@@ -29,7 +29,7 @@ public class AdminCreateUserDto {
     private String lang;
 
     @NotBlank
-    @Size(min = 8)
+    @Size(min = 8, max = 128)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 

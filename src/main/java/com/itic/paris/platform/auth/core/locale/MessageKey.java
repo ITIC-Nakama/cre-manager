@@ -47,6 +47,7 @@ public enum MessageKey {
             "Le nouveau mot de passe doit être différent de l'actuel",
             "New password must be different from the current password"),
     NOT_AUTHENTICATED("not-authenticated", "Non authentifié", "Not authenticated"),
+    ACCESS_DENIED("access-denied", "Accès refusé", "Access denied"),
     UNABLE_TO_SEND_OTP_EMAIL("unable-to-send-otp-email", "Impossible d'envoyer l'email OTP", "Unable to send OTP email"),
     TOKEN_EXPIRED("token-expired", "Jeton expiré. Veuillez vous reconnecter.", "Token has expired. Please login again."),
     REFRESH_TOKEN_EXPIRED("refresh-token-expired",

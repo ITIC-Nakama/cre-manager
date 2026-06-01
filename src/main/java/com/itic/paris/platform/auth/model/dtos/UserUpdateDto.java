@@ -23,7 +23,7 @@ public class UserUpdateDto {
 
     private String lang;
 
-    @Size(min = 8)
+    @Size(min = 8, max = 128)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 

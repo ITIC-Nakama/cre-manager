@@ -17,7 +17,7 @@ public class ResetPasswordRequestDto {
     private String code;
 
     @NotBlank
-    @Size(min = 8)
+    @Size(min = 8, max = 128)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String newPassword;
 }

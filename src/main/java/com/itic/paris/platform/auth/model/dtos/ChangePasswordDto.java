@@ -13,7 +13,7 @@ public class ChangePasswordDto {
     private String currentPassword;
 
     @NotBlank
-    @Size(min = 8)
+    @Size(min = 8, max = 128)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String newPassword;
 }
