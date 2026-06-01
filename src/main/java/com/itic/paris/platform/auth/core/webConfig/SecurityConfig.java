@@ -30,7 +30,6 @@ public class SecurityConfig {
     private static final Set<String> PUBLIC_AUTH_PATHS = Set.of(
             "/auth/login",
             "/auth/register",
-            "/auth/validate-token",
             "/auth/refresh-token",
             "/auth/otp/send",
             "/auth/otp/validate",

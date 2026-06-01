@@ -163,13 +163,6 @@ public class AuthController {
                 HttpStatus.OK.value(), null));
     }
 
-    @PostMapping("/validate-token")
-    public ResponseEntity<?> validateToken(
-            @Parameter(description = "Bearer token", required = true)
-            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-        String token = authorizationHeader.substring("Bearer ".length()).trim();
-        return ResponseEntity.ok(authService.validateToken(token));
-    }
 
     @PostMapping("/change-password")
     @Operation(summary = "Changer le mot de passe", description = "Obligatoire après création de compte par un admin (mot de passe temporaire)")

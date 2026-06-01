@@ -224,10 +224,6 @@ public class AuthService {
                 auditLogService.log(AuditAction.LOGOUT, actor, actor.getId(), "Déconnexion"));
     }
 
-    public Object validateToken(String token) {
-        Authentication authentication = jwtAuthProvider.validateToken(token);
-        return authentication.getPrincipal();
-    }
 
     public Object refreshToken(String refreshToken) {
         Authentication authentication = jwtAuthProvider.validateRefreshToken(refreshToken);
