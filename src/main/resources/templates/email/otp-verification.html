@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html th:lang="${lang}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${brandName}">ITIC Career Center</title>
+</head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;" th:style="'margin:0;padding:0;background-color:' + ${grisClair} + ';font-family:Arial,Helvetica,sans-serif;'">
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+       th:style="'background-color:' + ${grisClair}">
+    <tr>
+        <td align="center" style="padding:32px 16px;">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0"
+                   style="max-width:600px;width:100%;">
+
+                <!-- Hero — Bleu nuit -->
+                <tr>
+                    <td th:style="'background-color:' + ${bleuNuit} + ';border-radius:12px 12px 0 0;padding:0;'">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td style="padding:28px 32px 8px 32px;">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                            <td th:style="'width:4px;background-color:' + ${rougeItic} + ';border-radius:2px;'">&nbsp;</td>
+                                            <td style="padding-left:12px;">
+                                                <p th:style="'margin:0;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:' + ${rougeItic}"
+                                                   th:text="${brandName}">ITIC Career Center</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 32px 32px 32px;">
+                                    <h1 th:style="'margin:0;font-size:26px;font-weight:bold;line-height:1.3;color:' + ${blanc}"
+                                        th:if="${lang == 'en'}">Verify your email</h1>
+                                    <h1 th:style="'margin:0;font-size:26px;font-weight:bold;line-height:1.3;color:' + ${blanc}"
+                                        th:if="${lang != 'en'}">Vérifiez votre email</h1>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Corps — Blanc -->
+                <tr>
+                    <td th:style="'background-color:' + ${blanc} + ';padding:32px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;'">
+                        <p th:style="'margin:0 0 16px 0;font-size:16px;line-height:1.6;color:' + ${grisTexte}">
+                            <span th:if="${lang == 'en'}">Hello</span>
+                            <span th:if="${lang != 'en'}">Bonjour</span>
+                            <strong th:if="${!#strings.isEmpty(firstName)}"
+                                    th:text="' ' + ${firstName}"
+                                    th:style="'color:' + ${grisTexte}"> Jean</strong><span>,</span>
+                        </p>
+
+                        <p th:style="'margin:0 0 24px 0;font-size:15px;line-height:1.6;color:' + ${grisTexte}"
+                           th:if="${lang == 'en'}">
+                            Use the verification code below to activate your ITIC Career Center account.
+                        </p>
+                        <p th:style="'margin:0 0 24px 0;font-size:15px;line-height:1.6;color:' + ${grisTexte}"
+                           th:if="${lang != 'en'}">
+                            Utilisez le code ci-dessous pour activer votre compte ITIC Career Center.
+                        </p>
+
+                        <!-- Code OTP — accent Rouge ITIC -->
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                               th:style="'background-color:' + ${grisClair} + ';border-radius:8px;border-left:4px solid ' + ${rougeItic}">
+                            <tr>
+                                <td align="center" style="padding:24px 16px;">
+                                    <p th:style="'margin:0 0 8px 0;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:' + ${grisTexte}"
+                                       th:if="${lang == 'en'}">Your verification code</p>
+                                    <p th:style="'margin:0 0 8px 0;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:' + ${grisTexte}"
+                                       th:if="${lang != 'en'}">Votre code de vérification</p>
+                                    <p th:text="${code}"
+                                       th:style="'margin:0;font-size:36px;font-weight:bold;letter-spacing:8px;color:' + ${rougeItic} + ';font-family:Courier New,Courier,monospace;'">123456</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p th:style="'margin:24px 0 0 0;font-size:14px;line-height:1.5;color:' + ${grisTexte}"
+                           th:if="${lang == 'en'}">
+                            This code expires in <strong th:text="${expirationMinutes}">10</strong> minutes.
+                            Do not share it with anyone.
+                        </p>
+                        <p th:style="'margin:24px 0 0 0;font-size:14px;line-height:1.5;color:' + ${grisTexte}"
+                           th:if="${lang != 'en'}">
+                            Ce code expire dans <strong th:text="${expirationMinutes}">10</strong> minutes.
+                            Ne le partagez avec personne.
+                        </p>
+
+                        <p style="margin:12px 0 0 0;font-size:13px;line-height:1.5;color:#666666;"
+                           th:if="${lang == 'en'}">
+                            If you did not create an account, you can safely ignore this email.
+                        </p>
+                        <p style="margin:12px 0 0 0;font-size:13px;line-height:1.5;color:#666666;"
+                           th:if="${lang != 'en'}">
+                            Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Bande — Bleu marine -->
+                <tr>
+                    <td th:style="'background-color:' + ${bleuMarine} + ';padding:20px 32px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;'">
+                        <p th:style="'margin:0;font-size:14px;line-height:1.5;color:' + ${blanc} + ';text-align:center;'"
+                           th:if="${lang == 'en'}">
+                            Track your applications. Progress with confidence.
+                        </p>
+                        <p th:style="'margin:0;font-size:14px;line-height:1.5;color:' + ${blanc} + ';text-align:center;'"
+                           th:if="${lang != 'en'}">
+                            Suivez vos candidatures. Progressez en confiance.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer — Bleu profond -->
+                <tr>
+                    <td th:style="'background-color:' + ${bleuProfond} + ';border-radius:0 0 12px 12px;padding:24px 32px;border:1px solid ' + ${bleuProfond} + ';border-top:none;'">
+                        <p th:style="'margin:0 0 8px 0;font-size:13px;font-weight:bold;color:' + ${blanc} + ';text-align:center;'">
+                            ITIC Paris — <span th:text="${brandName}">ITIC Career Center</span>
+                        </p>
+                        <p style="margin:0;font-size:12px;line-height:1.5;color:#a8b8d0;text-align:center;"
+                           th:if="${lang == 'en'}">© ITIC Paris — All rights reserved</p>
+                        <p style="margin:0;font-size:12px;line-height:1.5;color:#a8b8d0;text-align:center;"
+                           th:if="${lang != 'en'}">© ITIC Paris — Tous droits réservés</p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
