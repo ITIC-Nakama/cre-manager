@@ -38,6 +38,9 @@ public abstract class User {
     @Column(length = 5)
     private String lang = "fr";
 
+    @Column()
+    private String profilePicture;
+
     @NotNull
     @Size(min = 8)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

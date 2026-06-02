@@ -13,6 +13,10 @@ import com.itic.paris.platform.auth.model.dtos.UserLoginDto;
 import com.itic.paris.platform.auth.model.dtos.UserRegisterDto;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.shared.storage.ICloudStorage;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
+import java.io.IOException;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.RoleRepository;
@@ -41,6 +45,7 @@ public class AuthService {
     private final JWTAuthProvider jwtAuthProvider;
     private final OtpService otpService;
     private final AuditLogService auditLogService;
+    private final ICloudStorage cloudStorage;
 
     public Object login(UserLoginDto loginDto) {
         User rawUser = userLookupService.findUserByEmail(loginDto.getEmail())
@@ -157,67 +162,7 @@ public class AuthService {
                 "Mot de passe mis à jour par l'utilisateur");
     }
 
-    public User updateUser(UUID id, UserUpdateDto updateDto) {
-        User rawUser = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
-        User user = (User) Hibernate.unproxy(rawUser);
 
-        boolean emailChanged = false;
-        if (updateDto.getEmail() != null && !updateDto.getEmail().equalsIgnoreCase(user.getEmail())) {
-            Optional<User> existing = userLookupService.findUserByEmail(updateDto.getEmail());
-            if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
-                throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
-            }
-            user.setEmail(updateDto.getEmail());
-            if (user instanceof Student) {
-                user.setEmailVerified(false);
-                emailChanged = true;
-            }
-        }
-
-        if (updateDto.getFirstName() != null) {
-            user.setFirstName(updateDto.getFirstName());
-        }
-        if (updateDto.getLastName() != null) {
-            user.setLastName(updateDto.getLastName());
-        }
-        if (updateDto.getPhoneNumber() != null) {
-            user.setPhoneNumber(updateDto.getPhoneNumber());
-        }
-        if (updateDto.getLang() != null) {
-            user.setLang(updateDto.getLang());
-        }
-        if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updateDto.getPassword()));
-            if (!(user instanceof Student)) {
-                user.setMustChangePassword(true);
-            }
-        }
-        if (user instanceof Advisor advisor && updateDto.getJobTitle() != null) {
-            advisor.setJobTitle(updateDto.getJobTitle());
-        }
-
-        User saved = userRepository.save(user);
-        if (emailChanged) {
-            otpService.sendEmailVerificationOtp(saved, saved.getLang());
-        }
-
-        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.USER_UPDATED, actor, saved.getId(),
-                "Mise à jour profil : " + saved.getEmail()));
-
-        return saved;
-    }
-
-    public void deleteUser(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
-
-        User actor = currentActor().orElse(null);
-        auditLogService.log(AuditAction.USER_DELETED, actor, user.getId(),
-                "Suppression compte : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
-
-        userRepository.delete(user);
-    }
 
     public void logLogout() {
         currentActor().ifPresent(actor ->
@@ -321,6 +266,9 @@ public class AuthService {
         profile.put("emailVerified", user.isEmailVerified());
         profile.put("mustChangePassword", user.isMustChangePassword());
         profile.put("role", user.getRole());
+        profile.put("profilePicture", user.getProfilePicture() != null 
+                ? cloudStorage.getFile(user.getProfilePicture()) 
+                : null);
         if (user instanceof Student student) {
             profile.put("xpTotal", student.getXpTotal());
             profile.put("lastActivity", student.getLastActivity());
@@ -337,4 +285,6 @@ public class AuthService {
             userRepository.save(student);
         }
     }
+
+
 }

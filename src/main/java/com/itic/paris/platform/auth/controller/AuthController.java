@@ -18,10 +18,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import com.itic.paris.platform.auth.service.UserProfileService;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -34,6 +38,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserProfileService userProfileService;
 
     @Value("${security.jwt.token.expiration:3600000}")
     private long accessTokenExpiration;
@@ -81,7 +86,7 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(request));
         }
-        return ResponseEntity.ok(authService.updateUser(id, updateDto));
+        return ResponseEntity.ok(userProfileService.updateUser(id, updateDto));
     }
 
     @PutMapping("/users/me")
@@ -92,14 +97,32 @@ public class AuthController {
             return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(request));
         }
         UUID currentUserId = SecurityContextHelper.currentUserId();
-        return ResponseEntity.ok(authService.updateUser(currentUserId, updateDto));
+        return ResponseEntity.ok(userProfileService.updateUser(currentUserId, updateDto));
+    }
+
+    @PostMapping(value = "/users/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Mettre à jour la photo de profil de l'utilisateur connecté")
+    public ResponseEntity<?> updateProfilePicture(@RequestParam("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Le fichier ne peut pas être vide");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest().body("Le fichier doit être une image (JPEG, PNG, etc.)");
+        }
+
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        String profilePictureUrl = userProfileService.updateProfilePicture(currentUserId, file);
+
+        return ResponseEntity.ok(Map.of("profilePictureUrl", profilePictureUrl));
     }
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer un compte")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        authService.deleteUser(id);
+        userProfileService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 

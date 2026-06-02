@@ -40,6 +40,9 @@ public class StorageConfig {
         @Value("${storage.r2.presigned-url-duration-hours:24}")
         private int presignedUrlDurationHours;
 
+        @Value("${storage.r2.public-folder:public}")
+        private String publicFolder;
+
         @Bean
         public S3Client s3Client() {
             return S3Client.builder()
@@ -66,7 +69,7 @@ public class StorageConfig {
 
         @Bean
         public ICloudStorage r2StorageService(S3Client s3Client, S3Presigner s3Presigner) {
-            return new R2StorageService(s3Client, s3Presigner, bucketName, publicUrl, presignedUrlDurationHours);
+            return new R2StorageService(s3Client, s3Presigner, bucketName, publicUrl, presignedUrlDurationHours, publicFolder);
         }
     }
 

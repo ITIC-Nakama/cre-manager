@@ -25,13 +25,15 @@ public class R2StorageService implements ICloudStorage {
     private final String bucketName;
     private final String publicBaseUrl;
     private final Duration presignedUrlDuration;
+    private final String publicFolder;
 
-    public R2StorageService(S3Client s3Client, S3Presigner s3Presigner, String bucketName, String publicBaseUrl, int presignedUrlDurationHours) {
+    public R2StorageService(S3Client s3Client, S3Presigner s3Presigner, String bucketName, String publicBaseUrl, int presignedUrlDurationHours, String publicFolder) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;
         this.bucketName = bucketName;
         this.publicBaseUrl = publicBaseUrl;
         this.presignedUrlDuration = Duration.ofHours(presignedUrlDurationHours);
+        this.publicFolder = publicFolder != null ? publicFolder.trim() : "avatars";
     }
 
     @Override
@@ -112,14 +114,19 @@ public class R2StorageService implements ICloudStorage {
 
     @Override
     public String getFile(String path) {
-        // Si une URL de base publique est configurée (ex: URL de bucket public Cloudflare R2), on l'utilise directement
-        if (publicBaseUrl != null && !publicBaseUrl.trim().isEmpty()) {
-            String baseUrl = publicBaseUrl.endsWith("/") ? publicBaseUrl : publicBaseUrl + "/";
-            return baseUrl + path;
+        // Si le fichier commence par le dossier public configuré, on renvoie l'URL publique directe
+        String prefix = publicFolder.endsWith("/") ? publicFolder : publicFolder + "/";
+        boolean isPublic = path.startsWith(prefix);
+
+        if (isPublic) {
+            if (publicBaseUrl != null && !publicBaseUrl.trim().isEmpty()) {
+                String baseUrl = publicBaseUrl.endsWith("/") ? publicBaseUrl : publicBaseUrl + "/";
+                return baseUrl + path;
+            }
         }
 
+        // Pour tous les autres dossiers (privés) ou si aucune URL publique n'est configurée, on génère une URL pré-signée
         try {
-            // Sinon, génère une URL pré-signée valide pendant la durée configurée
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(path)
