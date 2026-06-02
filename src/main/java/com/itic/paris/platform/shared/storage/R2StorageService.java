@@ -33,7 +33,7 @@ public class R2StorageService implements ICloudStorage {
         this.bucketName = bucketName;
         this.publicBaseUrl = publicBaseUrl;
         this.presignedUrlDuration = Duration.ofHours(presignedUrlDurationHours);
-        this.publicFolder = publicFolder != null ? publicFolder.trim() : "avatars";
+        this.publicFolder = publicFolder != null ? publicFolder.trim() : "public";
     }
 
     @Override

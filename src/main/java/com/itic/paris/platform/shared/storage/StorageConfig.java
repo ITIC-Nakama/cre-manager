@@ -34,7 +34,7 @@ public class StorageConfig {
         @Value("${storage.r2.public-url:}")
         private String publicUrl;
 
-        @Value("${storage.r2.region:eu-west-3}")
+        @Value("${storage.r2.region:weur}")
         private String region;
 
         @Value("${storage.r2.presigned-url-duration-hours:24}")
