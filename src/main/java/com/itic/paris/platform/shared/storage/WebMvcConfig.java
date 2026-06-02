@@ -19,8 +19,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Résout le chemin absolu du dossier de stockage local
-        String absolutePath = Paths.get(uploadDirectory).toAbsolutePath().toUri().toString();
+        // Résout le chemin absolu et normalisé du dossier de stockage local
+        String absolutePath = Paths.get(uploadDirectory).toAbsolutePath().normalize().toUri().toString();
         
         // Mappe l'URL /files/** vers le dossier physique uploads/
         registry.addResourceHandler("/files/**")
