@@ -12,7 +12,7 @@ import com.itic.paris.platform.auth.model.dtos.CustomUserDetails;
 import com.itic.paris.platform.auth.model.dtos.UserLoginDto;
 import com.itic.paris.platform.auth.model.dtos.UserRegisterDto;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
-import com.itic.paris.platform.auth.model.enums.AuditAction;
+import com.itic.paris.platform.audit.model.AuditAction;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.RoleRepository;

@@ -1,6 +1,5 @@
 package com.itic.paris.platform.audit.model;
 
-import com.itic.paris.platform.auth.model.enums.AuditAction;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;

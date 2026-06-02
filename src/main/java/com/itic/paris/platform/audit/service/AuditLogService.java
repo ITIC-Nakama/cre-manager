@@ -4,7 +4,7 @@ import com.itic.paris.platform.audit.model.AuditLog;
 import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.User;
-import com.itic.paris.platform.auth.model.enums.AuditAction;
+import com.itic.paris.platform.audit.model.AuditAction;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
