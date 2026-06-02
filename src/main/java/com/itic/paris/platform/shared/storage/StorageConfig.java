@@ -37,6 +37,9 @@ public class StorageConfig {
         @Value("${storage.r2.region:eu-west-3}")
         private String region;
 
+        @Value("${storage.r2.presigned-url-duration-hours:24}")
+        private int presignedUrlDurationHours;
+
         @Bean
         public S3Client s3Client() {
             return S3Client.builder()
@@ -63,7 +66,7 @@ public class StorageConfig {
 
         @Bean
         public ICloudStorage r2StorageService(S3Client s3Client, S3Presigner s3Presigner) {
-            return new R2StorageService(s3Client, s3Presigner, bucketName, publicUrl);
+            return new R2StorageService(s3Client, s3Presigner, bucketName, publicUrl, presignedUrlDurationHours);
         }
     }
 

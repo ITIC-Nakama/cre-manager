@@ -24,12 +24,14 @@ public class R2StorageService implements ICloudStorage {
     private final S3Presigner s3Presigner;
     private final String bucketName;
     private final String publicBaseUrl;
+    private final Duration presignedUrlDuration;
 
-    public R2StorageService(S3Client s3Client, S3Presigner s3Presigner, String bucketName, String publicBaseUrl) {
+    public R2StorageService(S3Client s3Client, S3Presigner s3Presigner, String bucketName, String publicBaseUrl, int presignedUrlDurationHours) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;
         this.bucketName = bucketName;
         this.publicBaseUrl = publicBaseUrl;
+        this.presignedUrlDuration = Duration.ofHours(presignedUrlDurationHours);
     }
 
     @Override
@@ -117,14 +119,14 @@ public class R2StorageService implements ICloudStorage {
         }
 
         try {
-            // Sinon, génère une URL pré-signée valide pendant 24 heures
+            // Sinon, génère une URL pré-signée valide pendant la durée configurée
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(path)
                     .build();
 
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofHours(24))
+                    .signatureDuration(presignedUrlDuration)
                     .getObjectRequest(getObjectRequest)
                     .build();
 
