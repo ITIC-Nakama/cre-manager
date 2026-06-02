@@ -78,6 +78,9 @@ public class SecurityConfig {
         if (HttpMethod.GET.matches(request.getMethod()) && path.startsWith("/auth/roles")) {
             return true;
         }
+        if (path.startsWith("/files/public/")) {
+            return true;
+        }
         if ("/error".equals(path)) {
             return true;
         }
@@ -104,6 +107,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/error").permitAll()
+                        .requestMatchers("/files/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()
                         .anyRequest().authenticated())
