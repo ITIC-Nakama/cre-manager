@@ -25,10 +25,18 @@ export default function DashboardNavBar() {
     }
   };
 
-  const navLinks = [
-    { label: t('dashboard.sidebar.accueil', 'Accueil'), path: '/dashboard', icon: Home, end: true },
-    { label: t('dashboard.sidebar.parametres', 'Paramètres'), path: '/dashboard/parametres', icon: Settings },
-  ];
+  const isStudent = user?.role === 1; // Role.STUDENT = 1
+
+  const navLinks = isStudent
+    ? [
+        { label: t('dashboard.sidebar.accueil', 'Accueil'), path: '/student/dashboard', icon: Home, end: true },
+        { label: t('dashboard.sidebar.parametres', 'Paramètres'), path: '/student/parametres', icon: Settings },
+      ]
+    : [
+        { label: t('dashboard.sidebar.accueil', 'Suivi Candidatures'), path: '/advisor/dashboard', icon: Home, end: true },
+        { label: t('dashboard.sidebar.parametres', 'Paramètres'), path: '/advisor/parametres', icon: Settings },
+      ];
+
 
   const getInitials = () => {
     if (!user) return 'U';
@@ -42,7 +50,7 @@ export default function DashboardNavBar() {
 
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/dashboard')} className="flex-shrink-0 cursor-pointer">
+            <button onClick={() => navigate(isStudent ? '/student/dashboard' : '/advisor/dashboard')} className="flex-shrink-0 cursor-pointer">
               <img src={logo} alt="ITIC CRE" className="h-8 w-auto" />
             </button>
 

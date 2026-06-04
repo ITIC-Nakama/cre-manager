@@ -6,7 +6,8 @@ import {
     ValidateOtpRequest, 
     RefreshTokenRequest, 
     ResetPasswordRequest,
-    ResetPasswordConfirmRequest
+    ResetPasswordConfirmRequest,
+    UpdatePasswordRequest
 } from '../api-s/requests/AuthRequest';
 
 export const useLogin = () => {
@@ -36,3 +37,7 @@ export const useResetPassword = () => {
 export const useResetPasswordConfirm = () => {
     return useMutation({ mutationFn: ResetPasswordConfirmRequest });
 };
+
+export const useUpdatePassword = () => {
+    return useMutation({ mutationFn: UpdatePasswordRequest });
+};

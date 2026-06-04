@@ -1,11 +1,5 @@
-import { Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../basics/CustomSelect';
-
-interface PreferencesCardProps {
-  notifications: boolean;
-  onToggleNotifications: () => void;
-}
 
 function SettingRow({ icon, title, subtitle, action }: {
   icon: React.ReactNode;
@@ -34,7 +28,7 @@ const LANG_OPTIONS = [
   { value: 'en', label: 'English' },
 ];
 
-export default function PreferencesCard({ notifications, onToggleNotifications }: PreferencesCardProps) {
+export default function PreferencesCard() {
   const { i18n } = useTranslation();
   const currentLang = i18n.language ? i18n.language.split('-')[0] : 'fr';
 
@@ -62,30 +56,8 @@ export default function PreferencesCard({ notifications, onToggleNotifications }
             />
           }
         />
-
-        <SettingRow
-          icon={<Bell className="h-5 w-5" />}
-          title="Notifications"
-          subtitle="Notifications de l'application"
-          action={
-            <button
-              id="toggle-notifications"
-              onClick={onToggleNotifications}
-              role="switch"
-              aria-checked={notifications}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                notifications ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                  notifications ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          }
-        />
       </div>
     </div>
   );
 }
+
