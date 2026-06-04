@@ -1,6 +1,5 @@
 name: Continuous Deployment (CD)
 
-
 on:
   push:
     branches:
@@ -16,7 +15,13 @@ jobs:
 
       - name: Deploy application
         working-directory: ${{ github.workspace }}
+        env:
+          ENV_DATA: ${{ secrets.ENV_FILE_CONTENT }}
         run: |
+          # Régénérer le fichier .env à partir du secret GitHub
+          echo "$ENV_DATA" > .env
+          
+          # Gérer le cycle de vie des conteneurs
           docker compose down
           docker compose up -d --build --remove-orphans
           docker image prune -f
