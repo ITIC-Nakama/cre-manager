@@ -33,9 +33,13 @@ jobs:
 
       - name: Build Frontend with Vite/React
         env:
-          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1' }}
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV_CONTENT }}
         run: |
           cd itic-cre-frontend
+          
+          # Injection des variables spécifiques au Frontend au moment du Build
+          echo "$FRONTEND_ENV" > .env
+          
           rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
@@ -78,9 +82,9 @@ jobs:
       - name: Deploy application in Native Mode
         working-directory: ${{ github.workspace }}
         env:
-          ENV_DATA: ${{ secrets.ENV_FILE_CONTENT }}
+          ENV_DATA: ${{ secrets.BACKEND_ENV_CONTENT }}
         run: |
-          # 1. Configuration de l'environnement du Backend
+          # 1. Configuration de l'environnement du Backend sur le serveur
           echo "$ENV_DATA" > itic-cre-backend/.env
           
           # Ajuster les permissions pour s'assurer que le runner peut manipuler les fichiers
