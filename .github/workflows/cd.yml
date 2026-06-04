@@ -22,25 +22,41 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y strongswan xl2tpd
 
-          printf 'conn myvpn\n  keyexchange=ikev1\n  authby=secret\n  type=transport\n  left=%%defaultroute\n  leftprotoport=17/1701\n  right=%s\n  rightprotoport=17/1701\n  auto=add\n' \
+          # --- Écriture de /etc/ipsec.conf (avec config setup obligatoire) ---
+          printf 'config setup\n  charondebug="ike 1, knl 1, cfg 0"\n\nconn myvpn\n  keyexchange=ikev1\n  authby=secret\n  type=transport\n  left=%%defaultroute\n  leftprotoport=17/1701\n  right=%s\n  rightprotoport=17/1701\n  auto=add\n' \
             "${VPN_HOST}" | sudo tee /etc/ipsec.conf > /dev/null
 
+          # --- Écriture de /etc/ipsec.secrets ---
           printf '%%any %s : PSK "%s"\n' \
             "${VPN_HOST}" "${VPN_PSK}" | sudo tee /etc/ipsec.secrets > /dev/null
 
+          # --- Écriture de /etc/xl2tpd/xl2tpd.conf ---
           sudo mkdir -p /etc/xl2tpd
           printf '[lac myvpn]\nlns = %s\nppp optfile = /etc/ppp/options.l2tpd.client\nlength bit = yes\n' \
             "${VPN_HOST}" | sudo tee /etc/xl2tpd/xl2tpd.conf > /dev/null
 
+          # --- Écriture de /etc/ppp/options.l2tpd.client ---
           sudo mkdir -p /etc/ppp
           printf 'ipcp-accept-local\nipcp-accept-remote\nrefuse-eap\nrefuse-pap\nrefuse-chap\nrefuse-mschap\nrequire-mschap-v2\nnoccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\ndefaultroute\nusepeerdns\ndebug\nlock\nconnect-delay 5000\nname %s\npassword %s\n' \
             "${VPN_USER}" "${VPN_PASSWORD}" | sudo tee /etc/ppp/options.l2tpd.client > /dev/null
 
+          # --- Debug: vérification du fichier écrit ---
+          echo "=== Contenu de /etc/ipsec.conf ==="
+          sudo cat /etc/ipsec.conf
+
+          # --- Redémarrage des services ---
           sudo systemctl restart strongswan-starter 2>/dev/null || sudo systemctl restart strongswan 2>/dev/null || sudo service strongswan restart 2>/dev/null || true
           sudo systemctl restart xl2tpd 2>/dev/null || sudo service xl2tpd restart 2>/dev/null || true
+          sleep 3
 
+          # --- Chargement de la config IPsec ---
           sudo ipsec rereadsecrets
           sudo ipsec reload
+          sleep 2
+
+          echo "=== Connexions IPsec chargées ==="
+          sudo ipsec status
+
           sudo ipsec up myvpn
 
           sudo mkdir -p /var/run/xl2tpd
