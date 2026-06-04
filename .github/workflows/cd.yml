@@ -16,8 +16,8 @@ jobs:
       - name: Deploy application
         working-directory: ${{ github.workspace }}
         run: |
-          docker compose down
-          docker compose up -d --build --remove-orphans
+          docker-compose down
+          docker-compose up -d --build --remove-orphans
           docker image prune -f
 
       - name: Notify Discord on Success
