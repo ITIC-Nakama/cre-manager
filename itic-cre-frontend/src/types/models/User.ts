@@ -12,7 +12,13 @@ export interface UserProfileDTO {
 export function toUserProfileDTO(apiUser: any): UserProfileDTO {
     let role: Role = Role.STUDENT;
 
-    if (apiUser.roles && Array.isArray(apiUser.roles) && apiUser.roles.length > 0) {
+    if (apiUser.role) {
+        if (typeof apiUser.role === 'object') {
+            role = (apiUser.role.id ?? Role.STUDENT) as Role;
+        } else {
+            role = apiUser.role as Role;
+        }
+    } else if (apiUser.roles && Array.isArray(apiUser.roles) && apiUser.roles.length > 0) {
         role = (apiUser.roles[0].id ?? apiUser.roles[0]) as Role;
     }
 
