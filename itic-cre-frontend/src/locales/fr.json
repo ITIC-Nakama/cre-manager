@@ -1,0 +1,149 @@
+{
+  "nav": {
+    "how_it_works": "Comment ça marche ?",
+    "faq": "FAQ",
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "start": "Commencer"
+  },
+  "hero": {
+    "title": "Bienvenue sur ITIC CRE",
+    "description": "La plateforme de suivi de vos candidatures de stage et d'alternance. Progressez dans votre recherche de carrière en toute confiance."
+  },
+  "features": {
+    "category": "Fonctionnalités",
+    "title": "Tout pour réussir vos candidatures",
+    "item1": {
+      "title": "Suivi en temps réel",
+      "desc": "Suivez le statut de chacune de vos candidatures à tout moment."
+    },
+    "item2": {
+      "title": "Espace Conseiller",
+      "desc": "Collaborez étroitement avec vos conseillers pédagogiques."
+    },
+    "item3": {
+      "title": "Documents Centralisés",
+      "desc": "Gerez vos CV, lettres de motivation et contrats en un seul endroit sécurisé."
+    }
+  },
+  "dashboard": {
+    "sidebar": {
+      "accueil": "Accueil",
+      "parametres": "Paramètres",
+      "logout": "Déconnexion"
+    },
+    "home": {
+      "title": "Tableau de bord",
+      "subtitle": "Bienvenue {{name}}."
+    },
+    "pages": {
+      "parametres": {
+        "title": "Paramètres",
+        "description": "Gérez vos préférences et la sécurité de votre compte."
+      }
+    }
+  },
+  "cta": {
+    "warning_title": "Avertissement :",
+    "warning_text": "Cette plateforme est un outil de suivi des candidatures réservé aux étudiants de l'ITIC Paris."
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion à votre espace",
+      "subtitle": "Accédez à votre espace en toute sécurité.",
+      "email_label": "Adresse email",
+      "email_placeholder": "vous@exemple.com",
+      "password_label": "Mot de passe",
+      "password_placeholder": "••••••••",
+      "submit_button": "Se connecter",
+      "or_continue_with": "Ou continuer avec",
+      "forgot_password": "Mot de passe oublié ?",
+      "no_account": "Pas encore de compte ?",
+      "register_free": "S'inscrire gratuitement"
+    },
+    "register": {
+      "title": "Créer votre compte",
+      "subtitle": "Inscrivez-vous pour accéder à la plateforme.",
+      "name_label": "Nom complet",
+      "name_placeholder": "Jean Dupont",
+      "email_label": "Adresse email",
+      "email_placeholder": "vous@exemple.com",
+      "password_label": "Mot de passe",
+      "password_placeholder": "••••••••",
+      "submit_button": "S'inscrire gratuitement",
+      "or_register_with": "Ou s'inscrire avec",
+      "have_account": "Vous avez déjà un compte ?",
+      "login_link": "Se connecter",
+      "terms_label": "J'accepte les",
+      "terms_link": "Conditions d'utilisation",
+      "terms_required": "Vous devez accepter les conditions d'utilisation.",
+      "privacy_label": "J'accepte la",
+      "privacy_link": "Politique de confidentialité",
+      "privacy_required": "Vous devez accepter la politique de confidentialité."
+    },
+    "reset_password": {
+      "title": "Mot de passe oublié ?",
+      "subtitle": "Saisissez votre adresse e-mail pour recevoir un code de réinitialisation.",
+      "email_label": "Adresse email",
+      "email_placeholder": "vous@exemple.com",
+      "submit_button": "Envoyer le code de réinitialisation",
+      "back_to_login": "Retourner à la connexion",
+      "subtitle_step2": "Saisissez le code de réinitialisation et votre nouveau mot de passe.",
+      "code_label": "Code de vérification",
+      "code_placeholder": "123456",
+      "new_password_label": "Nouveau mot de passe",
+      "new_password_placeholder": "••••••••",
+      "confirm_password_label": "Confirmer le nouveau mot de passe",
+      "confirm_password_placeholder": "••••••••",
+      "submit_confirm_button": "Réinitialiser le mot de passe",
+      "resend_code": "Renvoyer le code",
+      "resend_cooldown": "Renvoyer ({{seconds}}s)",
+      "error_mismatch": "Les mots de passe ne correspondent pas.",
+      "success_email_sent": "Un code de réinitialisation a été envoyé à votre adresse e-mail.",
+      "success_password_reset": "Votre mot de passe a été réinitialisé avec succès !"
+    },
+    "verify_email": {
+      "title": "Vérifiez votre compte",
+      "subtitle": "Saisissez le code OTP à 6 chiffres envoyé à votre adresse e-mail (valide pendant 10 minutes).",
+      "success_verified": "Votre compte a été vérifié avec succès ! Vous pouvez maintenant vous connecter.",
+      "error_invalid_otp": "Le code de vérification est invalide ou a expiré.",
+      "error_enter_email": "Veuillez saisir une adresse email pour renvoyer le code.",
+      "success_code_sent": "Un nouveau code de vérification a été envoyé par email.",
+      "error_resend_failed": "Impossible de renvoyer le code de vérification.",
+      "email_label": "Adresse email",
+      "email_required": "L'adresse email est requise.",
+      "email_invalid": "Veuillez entrer une adresse e-mail valide.",
+      "code_label": "Code de vérification",
+      "resend_code": "Renvoyer le code",
+      "resend_cooldown": "Renvoyer ({{seconds}}s)",
+      "code_required": "Le code est requis.",
+      "code_pattern": "Le code doit être composé de 6 chiffres.",
+      "submit_button": "Valider le code",
+      "submitting_button": "Validation...",
+      "back_to_login": "Retour à la page de connexion"
+    }
+  },
+  "legal": {
+    "back_to_home": "Retour à l'accueil",
+    "terms": {
+      "badge": "Document légal",
+      "title": "Conditions d'utilisation",
+      "last_updated": "Dernière mise à jour : {{date}}",
+      "introduction": "Bienvenue sur ITIC CRE. En utilisant notre plateforme, vous acceptez les présentes conditions d'utilisation.",
+      "contact": {
+        "title": "Contact",
+        "content": "Pour toute question, veuillez nous contacter à contact@itic-cre.fr."
+      }
+    },
+    "privacy": {
+      "badge": "Confidentialité",
+      "title": "Politique de confidentialité",
+      "last_updated": "Dernière mise à jour : {{date}}",
+      "introduction": "Chez ITIC CRE, la protection de vos données personnelles est notre priorité.",
+      "contact": {
+        "title": "Contact DPO",
+        "content": "Pour toute question relative à vos données, contactez dpo@itic-cre.fr."
+      }
+    }
+  }
+}

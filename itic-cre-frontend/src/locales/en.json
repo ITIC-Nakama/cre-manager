@@ -1,0 +1,149 @@
+{
+  "nav": {
+    "how_it_works": "How it works?",
+    "faq": "FAQ",
+    "login": "Login",
+    "logout": "Logout",
+    "start": "Get Started"
+  },
+  "hero": {
+    "title": "Welcome to ITIC CRE",
+    "description": "The platform to track your internship and work-study applications. Progress in your career search with confidence."
+  },
+  "features": {
+    "category": "Features",
+    "title": "Everything to succeed in your applications",
+    "item1": {
+      "title": "Real-time tracking",
+      "desc": "Track the status of each of your applications at any time."
+    },
+    "item2": {
+      "title": "Advisor Space",
+      "desc": "Collaborate closely with your academic advisors."
+    },
+    "item3": {
+      "title": "Centralized Documents",
+      "desc": "Manage your CVs, cover letters and contracts in one secure place."
+    }
+  },
+  "dashboard": {
+    "sidebar": {
+      "accueil": "Home",
+      "parametres": "Settings",
+      "logout": "Logout"
+    },
+    "home": {
+      "title": "Dashboard",
+      "subtitle": "Welcome {{name}}."
+    },
+    "pages": {
+      "parametres": {
+        "title": "Settings",
+        "description": "Manage your preferences and account security."
+      }
+    }
+  },
+  "cta": {
+    "warning_title": "Warning:",
+    "warning_text": "This platform is a candidate tracking tool reserved for ITIC Paris students."
+  },
+  "auth": {
+    "login": {
+      "title": "Login to your space",
+      "subtitle": "Access your account securely.",
+      "email_label": "Email address",
+      "email_placeholder": "you@example.com",
+      "password_label": "Password",
+      "password_placeholder": "••••••••",
+      "submit_button": "Log in",
+      "or_continue_with": "Or continue with",
+      "forgot_password": "Forgot password?",
+      "no_account": "Don't have an account?",
+      "register_free": "Register for free"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Sign up to access the platform.",
+      "name_label": "Full name",
+      "name_placeholder": "John Doe",
+      "email_label": "Email address",
+      "email_placeholder": "you@example.com",
+      "password_label": "Password",
+      "password_placeholder": "••••••••",
+      "submit_button": "Register for free",
+      "or_register_with": "Or register with",
+      "have_account": "Already have an account?",
+      "login_link": "Log in",
+      "terms_label": "I accept the",
+      "terms_link": "Terms of Service",
+      "terms_required": "You must accept the terms of service.",
+      "privacy_label": "I accept the",
+      "privacy_link": "Privacy Policy",
+      "privacy_required": "You must accept the privacy policy."
+    },
+    "reset_password": {
+      "title": "Forgot password?",
+      "subtitle": "Enter your email address to receive a reset code.",
+      "email_label": "Email address",
+      "email_placeholder": "you@example.com",
+      "submit_button": "Send reset code",
+      "back_to_login": "Back to login",
+      "subtitle_step2": "Enter the reset code and your new password.",
+      "code_label": "Verification code",
+      "code_placeholder": "123456",
+      "new_password_label": "New password",
+      "new_password_placeholder": "••••••••",
+      "confirm_password_label": "Confirm new password",
+      "confirm_password_placeholder": "••••••••",
+      "submit_confirm_button": "Reset password",
+      "resend_code": "Resend code",
+      "resend_cooldown": "Resend ({{seconds}}s)",
+      "error_mismatch": "Passwords do not match.",
+      "success_email_sent": "A reset code has been sent to your email address.",
+      "success_password_reset": "Your password has been successfully reset!"
+    },
+    "verify_email": {
+      "title": "Verify your account",
+      "subtitle": "Enter the 6-digit OTP code sent to your email address (valid for 10 minutes).",
+      "success_verified": "Your account has been successfully verified! You can now log in.",
+      "error_invalid_otp": "The verification code is invalid or has expired.",
+      "error_enter_email": "Please enter an email address to resend the code.",
+      "success_code_sent": "A new verification code has been sent by email.",
+      "error_resend_failed": "Unable to resend verification code.",
+      "email_label": "Email address",
+      "email_required": "Email address is required.",
+      "email_invalid": "Please enter a valid email address.",
+      "code_label": "Verification code",
+      "resend_code": "Resend code",
+      "resend_cooldown": "Resend ({{seconds}}s)",
+      "code_required": "Code is required.",
+      "code_pattern": "Code must be 6 digits.",
+      "submit_button": "Validate code",
+      "submitting_button": "Validating...",
+      "back_to_login": "Back to login page"
+    }
+  },
+  "legal": {
+    "back_to_home": "Back to home",
+    "terms": {
+      "badge": "Legal Document",
+      "title": "Terms of Service",
+      "last_updated": "Last updated: {{date}}",
+      "introduction": "Welcome to ITIC CRE. By using our platform, you accept these terms of service.",
+      "contact": {
+        "title": "Contact",
+        "content": "For any questions, please contact us at contact@itic-cre.fr."
+      }
+    },
+    "privacy": {
+      "badge": "Privacy",
+      "title": "Privacy Policy",
+      "last_updated": "Last updated: {{date}}",
+      "introduction": "At ITIC CRE, protecting your personal data is our absolute priority.",
+      "contact": {
+        "title": "Contact DPO",
+        "content": "For any questions relative to your data, contact dpo@itic-cre.fr."
+      }
+    }
+  }
+}

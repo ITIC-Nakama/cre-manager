@@ -1,6 +1,15 @@
-# ITIC CRE — Backend
+# ITIC CRE
 
-API Spring Boot pour **ITIC CRE** (suivi des candidatures stage/alternance).
+Plateforme de suivi des candidatures (stage/alternance) pour **ITIC CRE**.
+
+## Structure du projet
+
+*   **[itic-cre-backend](./itic-cre-backend)** : API Spring Boot pour le backend.
+*   **[itic-cre-frontend](./itic-cre-frontend)** : Application React pour le frontend.
+
+---
+
+## Backend (`itic-cre-backend`)
 
 ## Stack
 
@@ -125,3 +134,42 @@ Authorization: Bearer <token>  (ou cookie)
 }
 → nouveaux cookies JWT, mustChangePassword: false
 ```
+
+---
+
+## Frontend (`itic-cre-frontend`)
+
+### Stack
+
+- **Framework** : Vite + React + TypeScript
+- **Style** : Tailwind CSS + Vanilla CSS pour les composants personnalisés
+- **State Management** : Zustand (gestion de session, thème, etc.)
+- **Routing** : React Router DOM
+- **API Queries** : TanStack React Query + Axios
+- **Internationalisation** : i18next
+
+### Démarrage local
+
+1. Installer les dépendances :
+   ```bash
+   npm install
+   ```
+
+2. Configurer les variables d'environnement (si applicable) :
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Lancer le serveur de développement :
+   ```bash
+   npm run dev
+   ```
+
+   - Frontend accessible sur : `http://localhost:5173` (ou port affiché dans le terminal)
+
+### Fonctionnalités implémentées
+
+- **Auth Flow complet** : Formulaires d'inscription (Student, avec validation OTP) et de connexion.
+- **Design premium** : Intégration du logo officiel ITIC Paris, favicon personnalisé, barre de navigation (`DashboardNavBar`) responsive et moderne.
+- **Dashboard personnalisé** : Vue tabulaire, avec correction des scintillements (flicker) lors de la soumission de formulaires en cas d'erreurs récurrentes.
+

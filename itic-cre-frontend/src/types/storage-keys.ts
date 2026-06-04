@@ -1,0 +1,1 @@
+export const ThemeStorageKey = "itic-cre-theme";

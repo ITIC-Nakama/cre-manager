@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  background-color: #F5F5F5; /* Gris clair */
+  color: #333333; /* Gris texte */
+}
+
+html.dark body {
+  background-color: #1A1A2E; /* Bleu nuit */
+  color: #FFFFFF;
+}
+
+@theme {
+  /* Base tokens mapped to ITIC CRE colors */
+  --color-primary: #E63946; /* Rouge ITIC */
+  --color-secondary: #1A1A2E; /* Bleu nuit */
+  --color-background: #F5F5F5; /* Gris clair */
+
+  /* Primary Accent Scale (Rouge ITIC #E63946) */
+  --color-primary-50:  #FFF5F5;
+  --color-primary-100: #FFE3E3;
+  --color-primary-200: #FFC9C9;
+  --color-primary-300: #FFA8A8;
+  --color-primary-400: #FF8787;
+  --color-primary-500: #E63946;
+  --color-primary-600: #C92A2A;
+  --color-primary-700: #A61E1E;
+  --color-primary-800: #861818;
+  --color-primary-900: #661010;
+
+  /* Secondary Scale (Bleu nuit #1A1A2E & other dark blues) */
+  --color-secondary-50:  #ECECF3;
+  --color-secondary-100: #D0D0E2;
+  --color-secondary-200: #B1B1CE;
+  --color-secondary-300: #8E8EB6;
+  --color-secondary-400: #67679C;
+  --color-secondary-500: #494984;
+  --color-secondary-600: #38386F;
+  --color-secondary-700: #292956;
+  --color-secondary-800: #1C1C3C;
+  --color-secondary-900: #1A1A2E;
+
+  /* Background Scale (Gris clair #F5F5F5 to dark blues) */
+  --color-background-50:  #F5F5F5; /* Gris clair */
+  --color-background-100: #EAEAEA;
+  --color-background-200: #D6D6D6;
+  --color-background-300: #B5B5B5;
+  --color-background-400: #8E8E8E;
+  --color-background-500: #333333; /* Gris texte */
+  --color-background-600: #16213E; /* Bleu marine */
+  --color-background-700: #0F3460; /* Bleu profond */
+  --color-background-800: #16213E; /* Bleu marine */
+  --color-background-900: #1A1A2E; /* Bleu nuit */
+}
+
+/* Color Palette Grid Utilities */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 1rem 0;
+}
+.swatch {
+  border-radius: 0.5rem; /* border-radius-lg style */
+  overflow: hidden;
+  border: 0.5px solid rgba(148, 163, 184, 0.2);
+}
+.swatch-color {
+  height: 80px;
+}
+.swatch-info {
+  padding: 10px 12px;
+  background: white;
+}
+html.dark .swatch-info {
+  background: #16213E;
+}
+.swatch-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  margin: 0 0 2px;
+}
+.swatch-hex {
+  font-size: 12px;
+  color: #64748B;
+  font-family: monospace;
+  margin: 0;
+}
+.swatch-role {
+  font-size: 11px;
+  color: #94A3B8;
+  margin: 4px 0 0;
+}
+.section-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1.5rem 0 0.5rem;
+}
