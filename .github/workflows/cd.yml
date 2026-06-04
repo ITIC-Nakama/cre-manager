@@ -36,7 +36,8 @@ jobs:
           REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1' }}
         run: |
           cd itic-cre-frontend
-          npm install  # Remplacement de npm ci par npm install
+          # Inclut les dépendances optionnelles pour récupérer les binaires natifs Linux requis par Rolldown
+          npm install --include=optional
           npm run build
 
       # Sauvegarde des artefacts compilés pour le job suivant
