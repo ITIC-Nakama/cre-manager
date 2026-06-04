@@ -7,91 +7,18 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # Le runner tourne directement sur le serveur de l'école
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Connect to L2TP/IPsec VPN
-        env:
-          VPN_HOST: ${{ secrets.VPN_HOST }}
-          VPN_PSK: ${{ secrets.VPN_PSK }}
-          VPN_USER: ${{ secrets.VPN_USER }}
-          VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
+      - name: Deploy application
+        working-directory: ${{ github.workspace }}
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y strongswan xl2tpd
-
-          # --- Écriture de /etc/ipsec.conf (avec config setup obligatoire) ---
-          printf 'config setup\n  charondebug="ike 1, knl 1, cfg 0"\n\nconn myvpn\n  keyexchange=ikev1\n  authby=secret\n  type=transport\n  left=%%defaultroute\n  leftprotoport=17/1701\n  right=%s\n  rightprotoport=17/1701\n  auto=add\n' \
-            "${VPN_HOST}" | sudo tee /etc/ipsec.conf > /dev/null
-
-          # --- Écriture de /etc/ipsec.secrets ---
-          printf '%%any %s : PSK "%s"\n' \
-            "${VPN_HOST}" "${VPN_PSK}" | sudo tee /etc/ipsec.secrets > /dev/null
-
-          # --- Écriture de /etc/xl2tpd/xl2tpd.conf ---
-          sudo mkdir -p /etc/xl2tpd
-          printf '[lac myvpn]\nlns = %s\nppp optfile = /etc/ppp/options.l2tpd.client\nlength bit = yes\n' \
-            "${VPN_HOST}" | sudo tee /etc/xl2tpd/xl2tpd.conf > /dev/null
-
-          # --- Écriture de /etc/ppp/options.l2tpd.client ---
-          sudo mkdir -p /etc/ppp
-          printf 'ipcp-accept-local\nipcp-accept-remote\nrefuse-eap\nrefuse-pap\nrefuse-chap\nrefuse-mschap\nrequire-mschap-v2\nnoccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\ndefaultroute\nusepeerdns\ndebug\nlock\nconnect-delay 5000\nname %s\npassword %s\n' \
-            "${VPN_USER}" "${VPN_PASSWORD}" | sudo tee /etc/ppp/options.l2tpd.client > /dev/null
-
-          # --- Debug: vérification du fichier écrit ---
-          echo "=== Contenu de /etc/ipsec.conf ==="
-          sudo cat /etc/ipsec.conf
-
-          # --- Redémarrage des services ---
-          sudo systemctl restart strongswan-starter 2>/dev/null || sudo systemctl restart strongswan 2>/dev/null || sudo service strongswan restart 2>/dev/null || true
-          sudo systemctl restart xl2tpd 2>/dev/null || sudo service xl2tpd restart 2>/dev/null || true
-          sleep 3
-
-          # --- Chargement de la config IPsec ---
-          sudo ipsec rereadsecrets
-          sudo ipsec reload
-          sleep 2
-
-          echo "=== Connexions IPsec chargées ==="
-          sudo ipsec status
-
-          sudo ipsec up myvpn
-
-          sudo mkdir -p /var/run/xl2tpd
-          sudo touch /var/run/xl2tpd/l2tp-control
-          echo "c myvpn" | sudo tee /var/run/xl2tpd/l2tp-control > /dev/null
-
-          for i in {1..30}; do
-            if ip addr show | grep -q "ppp0"; then
-              echo "VPN Connected successfully!"
-              break
-            fi
-            sleep 1
-          done
-
-          if ! ip addr show | grep -q "ppp0"; then
-            echo "VPN Connection failed."
-            sudo ipsec status
-            exit 1
-          fi
-
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            if [ ! -d "$HOME/cre-manager" ]; then
-              git clone git@github.com:ITIC-Nakama/cre-manager.git "$HOME/cre-manager"
-            fi
-            cd "$HOME/cre-manager"
-            git pull origin main
-            docker compose up -d --build --remove-orphans
-            docker image prune -f
+          docker compose down
+          docker compose up -d --build --remove-orphans
+          docker image prune -f
 
       - name: Notify Discord on Success
         if: success()
@@ -101,7 +28,7 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi\",\"description\":\"Le deploiement s'est termine avec succes.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi\",\"description\":\"Le deploiement s'est termine avec succes sur le serveur.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
             "${DISCORD_WEBHOOK}"
 
       - name: Notify Discord on Failure
