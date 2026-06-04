@@ -40,14 +40,13 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
 
-      # Sauvegarde séparée du Backend
+      # Sauvegarde des artefacts pour le job de déploiement
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: itic-cre-backend/target/*.jar
 
-      # Sauvegarde séparée du Frontend
       - name: Upload Frontend Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -61,33 +60,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Téléchargement du JAR directement à la racine du dossier backend
+      # Récupération du fichier JAR
       - name: Download Backend Artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
           path: itic-cre-backend
 
-      # Téléchargement des fichiers React directement dans le dossier dist du frontend
+      # Récupération des fichiers React (dist)
       - name: Download Frontend Artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: itic-cre-frontend/dist
 
-      - name: Deploy application
+      # Déploiement sur l'environnement natif du serveur
+      - name: Deploy application in Native Mode
         working-directory: ${{ github.workspace }}
         env:
           ENV_DATA: ${{ secrets.ENV_FILE_CONTENT }}
         run: |
-          # Régénérer le fichier .env à partir du secret GitHub
-          echo "$ENV_DATA" > .env
+          # 1. Configuration de l'environnement du Backend
+          echo "$ENV_DATA" > itic-cre-backend/.env
           
-          # Lancer Docker Compose
-          docker compose down
-          docker compose up -d --build --remove-orphans
-          docker image prune -f
+          # Renommer le JAR pour correspondre exactement au chemin attendu par le service systemd
+          mv itic-cre-backend/*.jar itic-cre-backend/itic-cre-backend-0.0.1-SNAPSHOT.jar
+          
+          # Ajuster les permissions pour s'assurer que le runner peut manipuler les fichiers
+          sudo chown -R github-runner:github-runner itic-cre-backend
+          
+          # 2. Déploiement du Frontend (Nettoyage et copie vers le répertoire Nginx)
+          sudo rm -rf /var/www/html/*
+          sudo cp -r itic-cre-frontend/dist/* /var/www/html/
+          sudo chown -R www-data:www-data /var/www/html/
+          
+          # 3. Redémarrage des services natifs du serveur
+          sudo systemctl restart itic-backend.service
+          sudo systemctl restart nginx
 
+      # Notifications Discord
       - name: Notify Discord on Success
         if: success()
         env:
@@ -96,7 +107,7 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi\",\"description\":\"Le deploiement s'est termine avec succes sur le serveur.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi (Natif)\",\"description\":\"L'application a ete deployee avec succes en mode natif.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
             "${DISCORD_WEBHOOK}"
 
       - name: Notify Discord on Failure
@@ -107,5 +118,5 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{\"embeds\":[{\"title\":\"Echec du Deploiement ITIC CRE\",\"description\":\"Une erreur est survenue durant le deploiement.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            -d "{\"embeds\":[{\"title\":\"Echec du Deploiement ITIC CRE\",\"description\":\"Une erreur est survenue durant la phase de deploiement natif.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
             "${DISCORD_WEBHOOK}"

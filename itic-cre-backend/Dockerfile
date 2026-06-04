@@ -1,8 +1,21 @@
+# Build (Maven image — évite mvnw / CRLF Windows)
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
+WORKDIR /app
+
+COPY pom.xml .
+RUN mvn -B dependency:go-offline -DskipTests
+
+COPY src ./src
+RUN mvn -B -DskipTests package
+
+# Run
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Recherche le JAR directement à la racine du contexte de build
-COPY *.jar app.jar
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 

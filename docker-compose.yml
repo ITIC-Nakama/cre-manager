@@ -1,10 +1,7 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: itic-cre-db
-    privileged: true  # Permet au conteneur de contourner le blocage pivot_root du serveur LXC
-    security_opt:
-      - apparmor:unconfined  # Désactive la restriction AppArmor si elle est active sur l'hôte
     environment:
       POSTGRES_DB: ${DB_NAME:-itic_cre}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
