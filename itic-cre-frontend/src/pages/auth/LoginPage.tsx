@@ -58,7 +58,6 @@ export default function LoginPage() {
         });
     };
 
-
     return (
 
         <div className="flex flex-col gap-6 max-w-md mx-auto w-full items-center justify-center min-h-[85vh] px-4 py-8">
