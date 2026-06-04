@@ -83,9 +83,6 @@ jobs:
           # 1. Configuration de l'environnement du Backend
           echo "$ENV_DATA" > itic-cre-backend/.env
           
-          # Renommer le JAR pour correspondre exactement au chemin attendu par le service systemd
-          mv itic-cre-backend/*.jar itic-cre-backend/itic-cre-backend-0.0.1-SNAPSHOT.jar
-          
           # Ajuster les permissions pour s'assurer que le runner peut manipuler les fichiers
           sudo chown -R github-runner:github-runner itic-cre-backend
           
