@@ -1,6 +1,5 @@
 name: Continuous Deployment (CD)
 
-
 on:
   push:
     branches:
