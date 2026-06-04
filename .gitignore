@@ -35,3 +35,6 @@ build/
 ### Env ###
 .env
 *.log
+
+### Dossier uploader ###
+uploads/*
