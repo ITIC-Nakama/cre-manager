@@ -19,9 +19,10 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .servers(List.of(new Server()
-                        .url("http://localhost:8080/api/v1")
-                        .description("ITIC CRE API (local)")))
+                .servers(List.of(
+                        new Server().url("/api/v1").description("Serveur Actuel (Relatif)"),
+                        new Server().url("http://localhost:8080/api/v1").description("Local Development (8080)")
+                ))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
