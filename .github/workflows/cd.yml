@@ -25,13 +25,11 @@ jobs:
           cd itic-cre-backend
           mvn -B -DskipTests package
 
-      # Compilation du Frontend React
+      # Compilation du Frontend React (Cache retiré pour éviter l'échec du job)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: itic-cre-frontend/package-lock.json
 
       - name: Build Frontend with Vite/React
         env:
