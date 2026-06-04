@@ -36,13 +36,8 @@ jobs:
           REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1' }}
         run: |
           cd itic-cre-frontend
-          # Supprimer un éventuel lockfile ou node_modules corrompu poussé par erreur
           rm -rf node_modules package-lock.json
-          
-          # Forcer une installation propre en téléchargeant les dépendances natives
           npm install --legacy-peer-deps --no-audit --no-fund
-          
-          # Lancer la compilation Vite
           npm run build
 
       # Sauvegarde des artefacts compilés pour le job suivant
@@ -61,11 +56,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Récupération des fichiers compilés par GitHub
+      # Récupération des fichiers en les forçant à se replacer au bon endroit dans l'arborescence
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: compiled-application
+          path: ${{ github.workspace }}
 
       - name: Deploy application
         working-directory: ${{ github.workspace }}
@@ -75,7 +71,7 @@ jobs:
           # Régénérer le fichier .env à partir du secret GitHub
           echo "$ENV_DATA" > .env
           
-          # Lancer Docker Compose (les Dockerfiles n'utilisent plus d'instruction RUN)
+          # Lancer Docker Compose
           docker compose down
           docker compose up -d --build --remove-orphans
           docker image prune -f
