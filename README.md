@@ -171,5 +171,4 @@ Authorization: Bearer <token>  (ou cookie)
 
 - **Auth Flow complet** : Formulaires d'inscription (Student, avec validation OTP) et de connexion.
 - **Design premium** : Intégration du logo officiel ITIC Paris, favicon personnalisé, barre de navigation (`DashboardNavBar`) responsive et moderne.
-- **Dashboard personnalisé** : Vue tabulaire, avec correction des scintillements (flicker) lors de la soumission de formulaires en cas d'erreurs récurrentes.
 
