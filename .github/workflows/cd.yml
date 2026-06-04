@@ -17,6 +17,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         env:
           ENV_DATA: ${{ secrets.ENV_FILE_CONTENT }}
+          DOCKER_BUILDKIT: "0"  # Force le moteur hérité pour éviter l'erreur pivot_root
         run: |
           # Régénérer le fichier .env à partir du secret GitHub
           echo "$ENV_DATA" > .env
