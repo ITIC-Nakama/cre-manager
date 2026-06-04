@@ -1,13 +1,19 @@
-import { Outlet, Navigate } from 'react-router-dom'
-import Footer from '../components/footer/Footer'
-import { useUserStore } from '../store/UserStore'
+import { Outlet, Navigate } from 'react-router-dom';
+import Footer from '../components/footer/Footer';
+import { useUserStore } from '../store/UserStore';
 import DashboardNavBar from '../components/head/DashboardNavBar';
+import { Role } from '../types/models/Auth';
 
-export default function MainLayout() {
+export default function AdvisorLayout() {
   const user = useUserStore((state) => state.user);
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Gating access only to advisors and admins
+  if (user.role !== Role.ADVISOR && user.role !== Role.ADMIN) {
+    return <Navigate to="/student/dashboard" replace />;
   }
 
   return (
@@ -20,5 +26,5 @@ export default function MainLayout() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

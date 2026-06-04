@@ -1,4 +1,3 @@
-
 import { useUserStore } from '../../store/UserStore';
 import {
   Briefcase,
@@ -42,17 +41,16 @@ const stats = [
   },
 ];
 
-export default function DashboardPage() {
+export default function StudentDashboard() {
   const user = useUserStore((state) => state.user);
-  const firstName = user?.firstName || 'Utilisateur';
+  const firstName = user?.firstName || 'Étudiant';
 
   return (
-    <div className="flex flex-col gap-8 pb-12">
-
+    <div className="flex flex-col gap-8 pb-12 animate-fadeIn">
       {/* Welcome header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Bonjour, {firstName} 👋
+          Bonjour, {firstName} 👋 (Espace Étudiant)
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Voici un aperçu de vos candidatures et de votre activité récente.
@@ -82,7 +80,6 @@ export default function DashboardPage() {
 
       {/* Content panels */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* Recent activity */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
@@ -112,7 +109,6 @@ export default function DashboardPage() {
 
         {/* Right panel */}
         <div className="flex flex-col gap-4">
-
           {/* Notifications */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
@@ -136,7 +132,6 @@ export default function DashboardPage() {
               <p className="text-xs text-slate-400 dark:text-slate-500">Aucun événement planifié</p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
