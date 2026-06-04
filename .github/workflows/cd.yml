@@ -80,8 +80,17 @@ jobs:
           sudo echo "c myvpn" | sudo tee /var/run/xl2tpd/l2tp-control
 
           echo "Waiting for interface ppp0 to come up..."
-          sleep 10
-          ip addr show
+          sleep 15
+          if ip addr show | grep -q "ppp0"; then
+            echo "✅ VPN Connected successfully!"
+            ip addr show ppp0
+          else
+            echo "❌ VPN Connection failed. Printing debug logs:"
+            sudo ipsec status
+            sudo journalctl -u xl2tpd --no-pager -n 50
+            sudo tail -n 50 /var/log/syslog || true
+            exit 1
+          fi
 
       # Déploiement SSH sur le serveur privé
       - name: Deploy to VPS via SSH
