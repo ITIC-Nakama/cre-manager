@@ -1,6 +1,5 @@
 import './App.css'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import PublicLayout from './layouts/PublicLayout'
 import StudentLayout from './layouts/StudentLayout'
 import AdvisorLayout from './layouts/AdvisorLayout'
 import AuthLayout from './layouts/AuthLayout'
@@ -39,10 +38,8 @@ function App() {
   return ( 
     <BrowserRouter>
       <Routes>
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/home" element={<Navigate to="/login" replace />} />
-        </Route>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/home" element={<Navigate to="/login" replace />} />
 
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
