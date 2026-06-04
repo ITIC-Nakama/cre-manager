@@ -40,14 +40,19 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
 
-      # Sauvegarde des artefacts compilés pour le job suivant
-      - name: Upload Build Artifacts
+      # Sauvegarde séparée du Backend
+      - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: compiled-application
-          path: |
-            itic-cre-backend/target/*.jar
-            itic-cre-frontend/dist/
+          name: backend-jar
+          path: itic-cre-backend/target/*.jar
+
+      # Sauvegarde séparée du Frontend
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: itic-cre-frontend/dist/
 
   deploy:
     needs: build-and-compile
@@ -56,12 +61,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Récupération des fichiers en les forçant à se replacer au bon endroit dans l'arborescence
-      - name: Download Build Artifacts
+      # Téléchargement du JAR directement dans le dossier du backend
+      - name: Download Backend Artifact
         uses: actions/download-artifact@v4
         with:
-          name: compiled-application
-          path: ${{ github.workspace }}
+          name: backend-jar
+          path: itic-cre-backend/target
+
+      # Téléchargement des fichiers React directement dans le dossier du frontend
+      - name: Download Frontend Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: itic-cre-frontend/dist
 
       - name: Deploy application
         working-directory: ${{ github.workspace }}
