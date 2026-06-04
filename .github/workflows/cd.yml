@@ -1,0 +1,130 @@
+name: Continuous Deployment (CD)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Étape de configuration et de connexion au VPN L2TP/IPsec
+      - name: Connect to L2TP/IPsec VPN
+        run: |
+          echo "Installing strongswan and xl2tpd..."
+          sudo apt-get update
+          sudo apt-get install -y strongswan xl2tpd
+
+          echo "Configuring IPsec..."
+          sudo tee /etc/ipsec.conf <<EOF
+          conn myvpn
+            keyexchange=ikev1
+            authby=secret
+            type=transport
+            left=%defaultroute
+            leftprotoport=17/1701
+            right=${{ secrets.VPN_HOST }}
+            rightprotoport=17/1701
+            auto=add
+          EOF
+
+          sudo tee /etc/ipsec.secrets <<EOF
+          %any ${{ secrets.VPN_HOST }} : PSK "${{ secrets.VPN_PSK }}"
+          EOF
+
+          echo "Configuring L2TP (xl2tpd)..."
+          sudo tee /etc/xl2tpd/xl2tpd.conf <<EOF
+          [lac myvpn]
+          lns = ${{ secrets.VPN_HOST }}
+          ppp optfile = /etc/ppp/options.l2tpd.client
+          length bit = yes
+          EOF
+
+          sudo mkdir -p /etc/ppp
+          sudo tee /etc/ppp/options.l2tpd.client <<EOF
+          ipcp-accept-local
+          ipcp-accept-remote
+          refuse-eap
+          refuse-pap
+          refuse-chap
+          refuse-mschap
+          require-mschap-v2
+          noccp
+          noauth
+          idle 1800
+          mtu 1410
+          mru 1410
+          defaultroute
+          usepeerdns
+          debug
+          lock
+          connect-delay 5000
+          name ${{ secrets.VPN_USER }}
+          password ${{ secrets.VPN_PASSWORD }}
+          EOF
+
+          echo "Starting VPN services..."
+          sudo systemctl start strongswan-starter || sudo service strongswan-starter start
+          sudo systemctl start xl2tpd || sudo service xl2tpd start
+
+          echo "Establishing IPsec tunnel..."
+          sudo ipsec up myvpn
+
+          echo "Establishing L2TP connection..."
+          sudo mkdir -p /var/run/xl2tpd
+          sudo touch /var/run/xl2tpd/l2tp-control
+          sudo echo "c myvpn" | sudo tee /var/run/xl2tpd/l2tp-control
+
+          echo "Waiting for interface ppp0 to come up..."
+          sleep 10
+          ip addr show
+
+      # Déploiement SSH sur le serveur privé
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            cd /var/www/cre-manager
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+
+      # Notification Discord en cas de Succès
+      - name: Notify Discord on Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d '{
+            "embeds": [{
+              "title": "✅ Déploiement ITIC CRE Réussi !",
+              "description": "Le déploiement continu s est terminé avec succès sur le serveur privé de l école.",
+              "color": 3066993,
+              "fields": [
+                {"name": "Commit", "value": "${{ github.sha }}", "inline": true},
+                {"name": "Branche", "value": "${{ github.ref_name }}", "inline": true}
+              ]
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # Notification Discord en cas d'Échec
+      - name: Notify Discord on Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d '{
+            "embeds": [{
+              "title": "❌ Échec du Déploiement ITIC CRE",
+              "description": "Une erreur est survenue durant le déploiement sur le serveur privé.",
+              "color": 15158332,
+              "fields": [
+                {"name": "Commit", "value": "${{ github.sha }}", "inline": true},
+                {"name": "Branche", "value": "${{ github.ref_name }}", "inline": true}
+              ]
+            }]
+          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
