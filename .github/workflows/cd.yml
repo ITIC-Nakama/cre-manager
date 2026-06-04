@@ -61,14 +61,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Téléchargement du JAR directement dans le dossier du backend
+      # Téléchargement du JAR directement à la racine du dossier backend
       - name: Download Backend Artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
-          path: itic-cre-backend/target
+          path: itic-cre-backend
 
-      # Téléchargement des fichiers React directement dans le dossier du frontend
+      # Téléchargement des fichiers React directement dans le dossier dist du frontend
       - name: Download Frontend Artifact
         uses: actions/download-artifact@v4
         with:
