@@ -107,6 +107,7 @@ jobs:
             -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi (Natif)\",\"description\":\"L'application a ete deployee avec succes en mode natif.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
             "${DISCORD_WEBHOOK}"
 
+
       - name: Notify Discord on Failure
         if: failure()
         env:
