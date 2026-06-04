@@ -22,51 +22,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y strongswan xl2tpd
 
-          sudo tee /etc/ipsec.conf <<EOF
-conn myvpn
-  keyexchange=ikev1
-  authby=secret
-  type=transport
-  left=%defaultroute
-  leftprotoport=17/1701
-  right=${VPN_HOST}
-  rightprotoport=17/1701
-  auto=add
-EOF
+          printf 'conn myvpn\n  keyexchange=ikev1\n  authby=secret\n  type=transport\n  left=%%defaultroute\n  leftprotoport=17/1701\n  right=%s\n  rightprotoport=17/1701\n  auto=add\n' \
+            "${VPN_HOST}" | sudo tee /etc/ipsec.conf > /dev/null
 
-          sudo tee /etc/ipsec.secrets <<EOF
-%any ${VPN_HOST} : PSK "${VPN_PSK}"
-EOF
+          printf '%%any %s : PSK "%s"\n' \
+            "${VPN_HOST}" "${VPN_PSK}" | sudo tee /etc/ipsec.secrets > /dev/null
 
-          sudo tee /etc/xl2tpd/xl2tpd.conf <<EOF
-[lac myvpn]
-lns = ${VPN_HOST}
-ppp optfile = /etc/ppp/options.l2tpd.client
-length bit = yes
-EOF
+          sudo mkdir -p /etc/xl2tpd
+          printf '[lac myvpn]\nlns = %s\nppp optfile = /etc/ppp/options.l2tpd.client\nlength bit = yes\n' \
+            "${VPN_HOST}" | sudo tee /etc/xl2tpd/xl2tpd.conf > /dev/null
 
           sudo mkdir -p /etc/ppp
-          sudo tee /etc/ppp/options.l2tpd.client <<EOF
-ipcp-accept-local
-ipcp-accept-remote
-refuse-eap
-refuse-pap
-refuse-chap
-refuse-mschap
-require-mschap-v2
-noccp
-noauth
-idle 1800
-mtu 1410
-mru 1410
-defaultroute
-usepeerdns
-debug
-lock
-connect-delay 5000
-name ${VPN_USER}
-password ${VPN_PASSWORD}
-EOF
+          printf 'ipcp-accept-local\nipcp-accept-remote\nrefuse-eap\nrefuse-pap\nrefuse-chap\nrefuse-mschap\nrequire-mschap-v2\nnoccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\ndefaultroute\nusepeerdns\ndebug\nlock\nconnect-delay 5000\nname %s\npassword %s\n' \
+            "${VPN_USER}" "${VPN_PASSWORD}" | sudo tee /etc/ppp/options.l2tpd.client > /dev/null
 
           sudo systemctl restart strongswan-starter 2>/dev/null || sudo systemctl restart strongswan 2>/dev/null || sudo service strongswan restart 2>/dev/null || true
           sudo systemctl restart xl2tpd 2>/dev/null || sudo service xl2tpd restart 2>/dev/null || true
@@ -77,18 +45,18 @@ EOF
 
           sudo mkdir -p /var/run/xl2tpd
           sudo touch /var/run/xl2tpd/l2tp-control
-          echo "c myvpn" | sudo tee /var/run/xl2tpd/l2tp-control
+          echo "c myvpn" | sudo tee /var/run/xl2tpd/l2tp-control > /dev/null
 
           for i in {1..30}; do
             if ip addr show | grep -q "ppp0"; then
-              echo "✅ VPN Connected successfully!"
+              echo "VPN Connected successfully!"
               break
             fi
             sleep 1
           done
 
           if ! ip addr show | grep -q "ppp0"; then
-            echo "❌ VPN Connection failed."
+            echo "VPN Connection failed."
             sudo ipsec status
             exit 1
           fi
@@ -117,17 +85,8 @@ EOF
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{
-              \"embeds\": [{
-                \"title\": \"✅ Déploiement ITIC CRE Réussi\",
-                \"description\": \"Le déploiement continu s'est terminé avec succès sur le serveur privé.\",
-                \"color\": 3066993,
-                \"fields\": [
-                  {\"name\": \"Commit\", \"value\": \"${COMMIT_SHA}\", \"inline\": true},
-                  {\"name\": \"Branche\", \"value\": \"${BRANCH}\", \"inline\": true}
-                ]
-              }]
-            }" "${DISCORD_WEBHOOK}"
+            -d "{\"embeds\":[{\"title\":\"Deploiement ITIC CRE Reussi\",\"description\":\"Le deploiement s'est termine avec succes.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            "${DISCORD_WEBHOOK}"
 
       - name: Notify Discord on Failure
         if: failure()
@@ -137,14 +96,5 @@ EOF
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{
-              \"embeds\": [{
-                \"title\": \"❌ Échec du Déploiement ITIC CRE\",
-                \"description\": \"Une erreur est survenue durant le déploiement sur le serveur privé.\",
-                \"color\": 15158332,
-                \"fields\": [
-                  {\"name\": \"Commit\", \"value\": \"${COMMIT_SHA}\", \"inline\": true},
-                  {\"name\": \"Branche\", \"value\": \"${BRANCH}\", \"inline\": true}
-                ]
-              }]
-            }" "${DISCORD_WEBHOOK}"
+            -d "{\"embeds\":[{\"title\":\"Echec du Deploiement ITIC CRE\",\"description\":\"Une erreur est survenue durant le deploiement.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            "${DISCORD_WEBHOOK}"
