@@ -92,7 +92,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            cd /var/www/cre-manager
+            if [ ! -d "$HOME/cre-manager" ]; then
+              git clone https://github.com/ITIC-Nakama/cre-manager.git "$HOME/cre-manager"
+            fi
+            cd "$HOME/cre-manager"
             git pull origin main
             docker compose down
             docker compose up -d --build
