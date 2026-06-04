@@ -1,4 +1,4 @@
-import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO } from "../../types/models/Auth";
+import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO, ChangePasswordDTO } from "../../types/models/Auth";
 import { apiClient } from '../AxiosApiClient';
 
 // Authenticate user — tokens are set as HttpOnly cookies by the server
@@ -93,3 +93,16 @@ export function LogoutRequest() {
             throw error;
         });
 }
+
+// Update password (when logged in)
+export function UpdatePasswordRequest(data: ChangePasswordDTO) {
+    return apiClient.post('/auth/update-password', data)
+        .then(response => {
+            return response.data;
+        })
+        .catch(error => {
+            console.error('Password update failed:', error);
+            throw error;
+        });
+}
+
