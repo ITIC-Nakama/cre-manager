@@ -82,4 +82,12 @@ public class OpenApiConfig {
                 .pathsToMatch("/auth/admin/audit-logs/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi jobBoardApi() {
+        return GroupedOpenApi.builder()
+                .group("4. Job Board")
+                .pathsToMatch("/jobboard/**")
+                .build();
+    }
 }
