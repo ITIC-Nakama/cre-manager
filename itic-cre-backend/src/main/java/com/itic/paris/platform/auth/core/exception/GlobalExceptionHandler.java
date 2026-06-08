@@ -9,6 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -31,13 +35,16 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CustomResponseEntity.of(MessageKey.VALIDATION_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
-                        ex.getBindingResult().getAllErrors()));
+                        buildFieldErrors(ex)));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<CustomResponseEntity> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<CustomResponseEntity> handleConstraintViolation(ConstraintViolationException ex,
+                                                                         HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new CustomResponseEntity(null, ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null));
+                .body(CustomResponseEntity.of(MessageKey.VALIDATION_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
+                        buildConstraintViolationErrors(ex)));
     }
 
     @ExceptionHandler(TransactionSystemException.class)
@@ -45,12 +52,36 @@ public class GlobalExceptionHandler {
                                                                                  HttpServletRequest request) {
         Throwable cause = ex.getRootCause();
         if (cause instanceof ConstraintViolationException cve) {
-            return handleConstraintViolation(cve);
+            return handleConstraintViolation(cve, request);
         }
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang,
                         HttpStatus.INTERNAL_SERVER_ERROR.value(), null));
+    }
+
+    private List<Map<String, String>> buildFieldErrors(MethodArgumentNotValidException ex) {
+        List<Map<String, String>> errors = new ArrayList<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.add(Map.of(
+                        "field", error.getField(),
+                        "message", error.getDefaultMessage()
+                )));
+        ex.getBindingResult().getGlobalErrors().forEach(error ->
+                errors.add(Map.of(
+                        "object", error.getObjectName(),
+                        "message", error.getDefaultMessage()
+                )));
+        return errors;
+    }
+
+    private List<Map<String, String>> buildConstraintViolationErrors(ConstraintViolationException ex) {
+        return ex.getConstraintViolations().stream()
+                .map(violation -> Map.of(
+                        "property", violation.getPropertyPath().toString(),
+                        "message", violation.getMessage()
+                ))
+                .toList();
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -59,7 +90,7 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CustomResponseEntity.of(MessageKey.INVALID_REQUEST_BODY, lang, HttpStatus.BAD_REQUEST.value(),
-                        ex.getMostSpecificCause().getMessage()));
+                        Map.of("error", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

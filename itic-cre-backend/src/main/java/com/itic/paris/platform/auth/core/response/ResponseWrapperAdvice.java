@@ -14,10 +14,7 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-@RestControllerAdvice(basePackages = {
-        "com.itic.paris.platform.auth.controller",
-        "com.itic.paris.platform.audit.controller"
-})
+@RestControllerAdvice(basePackages = "com.itic.paris.platform")
 public class ResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 
     @Override

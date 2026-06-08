@@ -50,7 +50,7 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.getWriter().write(
                         "{\"messageKey\":\"" + key.getKey() + "\",\"message\":\"" + jsonEscape(message)
-                                + "\",\"code\":\"PASSWORD_CHANGE_REQUIRED\"}");
+                                + "\",\"statusCode\":" + HttpStatus.FORBIDDEN.value() + ",\"data\":null}");
                 return;
             }
         }
