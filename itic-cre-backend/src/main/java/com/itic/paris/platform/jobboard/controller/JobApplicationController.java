@@ -31,7 +31,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('ADVISOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Get job application by ID")
     public ResponseEntity<JobApplicationDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(jobApplicationService.getById(id));

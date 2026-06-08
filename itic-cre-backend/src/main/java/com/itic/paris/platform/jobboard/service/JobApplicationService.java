@@ -1,6 +1,7 @@
 package com.itic.paris.platform.jobboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
@@ -13,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -89,9 +88,7 @@ public class JobApplicationService {
     }
 
     private Student getCurrentStudent() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        return studentRepository.findByEmailIgnoreCase(email)
+        return studentRepository.findById(SecurityContextHelper.currentUserId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
     }
 }

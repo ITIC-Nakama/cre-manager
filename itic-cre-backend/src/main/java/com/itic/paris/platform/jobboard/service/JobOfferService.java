@@ -1,6 +1,7 @@
 package com.itic.paris.platform.jobboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -16,8 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -73,7 +72,7 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getByContractType(UUID contractTypeId, Pageable pageable) {
-        return jobOfferRepository.findByContractTypeId(contractTypeId, pageable)
+        return jobOfferRepository.findByActiveTrueAndContractTypeId(contractTypeId, pageable)
                 .map(this::mapToDTO);
     }
 
@@ -135,9 +134,7 @@ public class JobOfferService {
     }
 
     private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        return userRepository.findByEmailIgnoreCase(email)
+        return userRepository.findById(SecurityContextHelper.currentUserId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
     }
 }

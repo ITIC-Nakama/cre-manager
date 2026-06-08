@@ -15,7 +15,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "job_applications")
+@Table(name = "job_applications", uniqueConstraints = @UniqueConstraint(columnNames = {"job_offer_id", "student_id"}))
 public class JobApplication {
 
     @Id

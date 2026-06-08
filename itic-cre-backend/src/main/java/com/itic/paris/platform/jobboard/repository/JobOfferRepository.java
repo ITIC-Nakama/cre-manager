@@ -20,5 +20,5 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID> {
 
     Page<JobOffer> findByActiveTrueAndTitleContainingIgnoreCase(String title, Pageable pageable);
 
-    Page<JobOffer> findByContractTypeId(UUID contractTypeId, Pageable pageable);
+    Page<JobOffer> findByActiveTrueAndContractTypeId(UUID contractTypeId, Pageable pageable);
 }

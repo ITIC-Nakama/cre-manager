@@ -17,13 +17,11 @@ import java.util.UUID;
 @RequestMapping("/jobboard/contract-types")
 @RequiredArgsConstructor
 @Tag(name = "Contract Types", description = "Manage job contract types")
-
-@PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
 public class ContractTypeController {
     private final ContractTypeService contractTypeService;
 
     @PostMapping
-
+    @PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
     @Operation(summary = "Create a new contract type")
     public ResponseEntity<ContractTypeDTO> create(@RequestBody ContractTypeDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(contractTypeService.create(dto));
