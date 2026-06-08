@@ -1,6 +1,6 @@
 package com.itic.paris.platform.jobboard.model;
 
-import com.itic.paris.platform.auth.model.Advisor;
+import com.itic.paris.platform.auth.model.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -54,7 +54,7 @@ public class JobOffer {
 
     @ManyToOne
     @JoinColumn(name = "created_by_id")
-    private Advisor createdBy;
+    private User createdBy;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

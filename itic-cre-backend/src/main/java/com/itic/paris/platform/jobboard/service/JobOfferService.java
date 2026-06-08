@@ -2,8 +2,8 @@ package com.itic.paris.platform.jobboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.auth.model.Advisor;
-import com.itic.paris.platform.auth.repository.AdvisorRepository;
+import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
@@ -29,13 +29,13 @@ public class JobOfferService {
     private final JobOfferRepository jobOfferRepository;
     private final ContractTypeRepository contractTypeRepository;
     private final JobApplicationRepository jobApplicationRepository;
-    private final AdvisorRepository advisorRepository;
+    private final UserRepository userRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
 
-        Advisor createdBy = getCurrentAdvisor();
+        User createdBy = getCurrentUser();
 
         JobOffer jobOffer = new JobOffer();
         jobOffer.setTitle(request.getTitle());
@@ -134,10 +134,10 @@ public class JobOfferService {
         );
     }
 
-    private Advisor getCurrentAdvisor() {
+    private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        return advisorRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
     }
 }
