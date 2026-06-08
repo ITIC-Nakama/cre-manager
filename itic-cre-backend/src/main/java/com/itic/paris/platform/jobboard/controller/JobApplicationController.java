@@ -31,7 +31,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Get job application by ID")
     public ResponseEntity<JobApplicationDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(jobApplicationService.getById(id));
@@ -46,7 +46,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/offer/{jobOfferId}")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Get applications for a specific job offer")
     public ResponseEntity<Page<JobApplicationDTO>> getApplicationsForOffer(
             @PathVariable UUID jobOfferId,
@@ -55,7 +55,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/offer/{jobOfferId}/count")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Get application count for a job offer")
     public ResponseEntity<Long> getApplicationCount(@PathVariable UUID jobOfferId) {
         return ResponseEntity.ok(jobApplicationService.getApplicationCountForOffer(jobOfferId));

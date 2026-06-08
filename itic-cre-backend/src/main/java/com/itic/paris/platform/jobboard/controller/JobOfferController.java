@@ -25,7 +25,7 @@ public class JobOfferController {
     private final JobOfferService jobOfferService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Create a new job offer")
     public ResponseEntity<JobOfferDTO> create(@RequestBody CreateJobOfferRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(jobOfferService.create(request));
@@ -69,14 +69,14 @@ public class JobOfferController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Update a job offer")
     public ResponseEntity<JobOfferDTO> update(@PathVariable UUID id, @RequestBody CreateJobOfferRequest request) {
         return ResponseEntity.ok(jobOfferService.update(id, request));
     }
 
     @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Deactivate a job offer")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         jobOfferService.deactivate(id);
@@ -84,7 +84,7 @@ public class JobOfferController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Delete a job offer")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         jobOfferService.delete(id);

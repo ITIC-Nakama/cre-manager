@@ -17,12 +17,13 @@ import java.util.UUID;
 @RequestMapping("/jobboard/contract-types")
 @RequiredArgsConstructor
 @Tag(name = "Contract Types", description = "Manage job contract types")
-public class ContractTypeController {
 
+@PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
+public class ContractTypeController {
     private final ContractTypeService contractTypeService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADVISOR')")
+
     @Operation(summary = "Create a new contract type")
     public ResponseEntity<ContractTypeDTO> create(@RequestBody ContractTypeDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(contractTypeService.create(dto));
@@ -47,14 +48,14 @@ public class ContractTypeController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
     @Operation(summary = "Update a contract type")
     public ResponseEntity<ContractTypeDTO> update(@PathVariable UUID id, @RequestBody ContractTypeDTO dto) {
         return ResponseEntity.ok(contractTypeService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
     @Operation(summary = "Delete a contract type")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         contractTypeService.delete(id);
@@ -62,7 +63,7 @@ public class ContractTypeController {
     }
 
     @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','ADVISOR')")
     @Operation(summary = "Deactivate a contract type")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         contractTypeService.deactivate(id);
