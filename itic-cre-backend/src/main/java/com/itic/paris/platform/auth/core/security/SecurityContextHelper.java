@@ -27,6 +27,6 @@ public final class SecurityContextHelper {
         return UUID.fromString((String) currentPrincipal().get("id"));
     }
     public static String currentUserLang() {
-        return UUID.fromString((String) currentPrincipal().get("lang"));
+        return (String) currentPrincipal().get("lang");
     }
 }

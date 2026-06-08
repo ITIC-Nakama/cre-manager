@@ -1,12 +1,12 @@
 package com.itic.paris.platform.auth.controller;
 
 import com.itic.paris.platform.auth.core.exception.entity.CustomResponseEntity;
-import com.itic.paris.platform.auth.core.locale.LanguageUtil;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
 import com.itic.paris.platform.auth.model.dtos.*;
 import com.itic.paris.platform.auth.service.AuthService;
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
+import com.itic.paris.platform.shared.local.LanguageUtil;
+import com.itic.paris.platform.shared.local.MessageKey;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
