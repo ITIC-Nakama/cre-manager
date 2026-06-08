@@ -90,4 +90,31 @@ public class OpenApiConfig {
                 .pathsToMatch("/jobboard/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi crmApi() {
+        return GroupedOpenApi.builder()
+                .group("5. CRM — Candidatures")
+                .pathsToMatch(
+                        "/api/candidatures/**",
+                        "/api/statuts-candidature/**"
+                )
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi gamificationStudentApi() {
+        return GroupedOpenApi.builder()
+                .group("6. Gamification — Étudiant")
+                .pathsToMatch("/api/me/gamification/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi administrationApi() {
+        return GroupedOpenApi.builder()
+                .group("7. Administration")
+                .pathsToMatch("/api/admin/**")
+                .build();
+    }
 }

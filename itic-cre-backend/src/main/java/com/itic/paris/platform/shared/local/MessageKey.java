@@ -82,7 +82,16 @@ public enum MessageKey {
     CONTRACT_TYPE_DEACTIVATED("contract-type-deactivated", "Type de contrat désactivé", "Job offer deactivated"),
     CONTRACT_TYPE_DELETED("contract-type-deleted", "Type de contrat supprimé", "Contract type deleted"),
     APPLICATION_SUBMITTED("application-submitted", "Candidature soumise avec succès", "Application submitted successfully"),
-    APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully");
+    APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully"),
+    // CRM messages
+    CANDIDATURE_NOT_FOUND("candidature-not-found", "Candidature introuvable", "Candidature not found"),
+    STATUT_NOT_FOUND("statut-not-found", "Statut introuvable", "Status not found"),
+    // Gamification messages
+    GRADE_NOT_FOUND("grade-not-found", "Grade introuvable", "Grade not found"),
+    GAMIFICATION_CONFIG_NOT_FOUND("gamification-config-not-found", "Configuration de gamification introuvable", "Gamification configuration not found"),
+    // App configuration messages
+    APP_CONFIG_NOT_FOUND("app-config-not-found", "Configuration introuvable", "Configuration not found"),
+    APP_CONFIG_INVALID_VALUE("app-config-invalid-value", "Valeur de configuration invalide", "Invalid configuration value");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));
