@@ -3,7 +3,7 @@ package com.itic.paris.platform.auth.service;
 import com.itic.paris.platform.audit.model.AuditAction;
 import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;

@@ -1,6 +1,6 @@
 package com.itic.paris.platform.auth.core.exception.entity;
 
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

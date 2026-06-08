@@ -1,7 +1,7 @@
 package com.itic.paris.platform.auth.service.helpers;
 
 import com.itic.paris.platform.auth.core.exception.entity.CustomResponseEntity;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;

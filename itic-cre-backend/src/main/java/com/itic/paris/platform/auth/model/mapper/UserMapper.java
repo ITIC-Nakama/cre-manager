@@ -1,7 +1,7 @@
 package com.itic.paris.platform.auth.model.mapper;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.*;
 import com.itic.paris.platform.auth.model.dtos.AdminCreateUserDto;
 import com.itic.paris.platform.auth.model.dtos.UserRegisterDto;

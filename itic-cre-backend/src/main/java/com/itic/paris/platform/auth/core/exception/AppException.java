@@ -1,6 +1,6 @@
 package com.itic.paris.platform.auth.core.exception;
 
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

@@ -1,8 +1,8 @@
 package com.itic.paris.platform.auth.core.exception;
 
 import com.itic.paris.platform.auth.core.exception.entity.CustomResponseEntity;
-import com.itic.paris.platform.auth.core.locale.LanguageUtil;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.LanguageUtil;
+import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

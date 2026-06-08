@@ -1,7 +1,7 @@
 package com.itic.paris.platform.auth.core.webConfig;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.locale.LanguageUtil;
+import com.itic.paris.platform.shared.local.LanguageUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

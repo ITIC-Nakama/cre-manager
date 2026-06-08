@@ -6,7 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.core.webConfig.userdetails.CustomUserDetailsService;
 import com.itic.paris.platform.auth.model.dtos.CustomUserDetails;
 import lombok.Getter;

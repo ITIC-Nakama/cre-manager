@@ -1,7 +1,7 @@
 package com.itic.paris.platform.auth.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.locale.MessageKey;
+import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.auth.model.Otp;
 import com.itic.paris.platform.auth.model.User;
