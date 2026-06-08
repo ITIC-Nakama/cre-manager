@@ -57,6 +57,17 @@ jobs:
           name: frontend-dist
           path: itic-cre-frontend/dist/
 
+      - name: Notify Discord on Build Failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          COMMIT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          curl -s -H "Content-Type: application/json" -X POST \
+            -d "{\"embeds\":[{\"title\":\"Echec de la compilation ITIC CRE\",\"description\":\"La compilation du backend ou du frontend a echoue.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            "${DISCORD_WEBHOOK}"
+
   deploy:
     needs: build-and-compile
     runs-on: self-hosted
