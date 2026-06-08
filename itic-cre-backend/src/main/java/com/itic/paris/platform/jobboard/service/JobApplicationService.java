@@ -1,8 +1,8 @@
 package com.itic.paris.platform.jobboard.service;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
-import com.itic.paris.platform.shared.local.LanguageUtil;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.JobOffer;
@@ -12,11 +12,10 @@ import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.UUID;
 
@@ -29,16 +28,14 @@ public class JobApplicationService {
     private final StudentRepository studentRepository;
 
     public JobApplicationDTO apply(UUID jobOfferId) {
-        String lang = getLanguage();
         Student student = getCurrentStudent();
 
-        // Check if student already applied
         if (jobApplicationRepository.findByJobOfferIdAndStudentId(jobOfferId, student.getId()).isPresent()) {
-            throw new RuntimeException(LanguageUtil.translate(MessageKey.ALREADY_APPLIED, lang));
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.ALREADY_APPLIED);
         }
 
         JobOffer jobOffer = jobOfferRepository.findById(jobOfferId)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_OFFER_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
 
         JobApplication application = new JobApplication();
         application.setJobOffer(jobOffer);
@@ -49,10 +46,9 @@ public class JobApplicationService {
     }
 
     public JobApplicationDTO getById(UUID id) {
-        String lang = getLanguage();
         return jobApplicationRepository.findById(id)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_APPLICATION_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_APPLICATION_NOT_FOUND));
     }
 
     public Page<JobApplicationDTO> getStudentApplications(Pageable pageable) {
@@ -71,13 +67,12 @@ public class JobApplicationService {
     }
 
     public void withdraw(UUID applicationId) {
-        String lang = getLanguage();
         JobApplication application = jobApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_APPLICATION_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_APPLICATION_NOT_FOUND));
 
         Student student = getCurrentStudent();
         if (!application.getStudent().getId().equals(student.getId())) {
-            throw new RuntimeException(LanguageUtil.translate(MessageKey.NOT_YOUR_APPLICATION, lang));
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.NOT_YOUR_APPLICATION);
         }
 
         jobApplicationRepository.deleteById(applicationId);
@@ -93,22 +88,10 @@ public class JobApplicationService {
         );
     }
 
-    private String getLanguage() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            return LanguageUtil.resolveLang(attributes.getRequest());
-        }
-        return "fr";
-    }
-
     private Student getCurrentStudent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-
         return studentRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> {
-                    String lang = getLanguage();
-                    throw new RuntimeException(LanguageUtil.translate(MessageKey.STUDENT_NOT_FOUND, lang));
-                });
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
     }
 }

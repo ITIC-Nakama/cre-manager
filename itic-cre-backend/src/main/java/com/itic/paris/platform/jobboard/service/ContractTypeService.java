@@ -1,20 +1,17 @@
 package com.itic.paris.platform.jobboard.service;
 
-import com.itic.paris.platform.shared.local.LanguageUtil;
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.dtos.ContractTypeDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static com.itic.paris.platform.auth.core.security.SecurityContextHelper.currentUserLang;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +32,7 @@ public class ContractTypeService {
     public ContractTypeDTO getById(UUID id) {
         return contractTypeRepository.findById(id)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> {
-                    String lang = currentUserLang();
-                    throw new RuntimeException(LanguageUtil.translate(MessageKey.CONTRACT_TYPE_NOT_FOUND, lang));
-                });
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
     }
 
     public List<ContractTypeDTO> getAll() {
@@ -57,10 +51,7 @@ public class ContractTypeService {
 
     public ContractTypeDTO update(UUID id, ContractTypeDTO dto) {
         ContractType contractType = contractTypeRepository.findById(id)
-                .orElseThrow(() -> {
-                    String lang = currentUserLang();
-                    throw new RuntimeException(LanguageUtil.translate(MessageKey.CONTRACT_TYPE_NOT_FOUND, lang));
-                });
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
 
         contractType.setLabel(dto.getLabel());
         contractType.setDescription(dto.getDescription());
@@ -75,10 +66,7 @@ public class ContractTypeService {
 
     public void deactivate(UUID id) {
         ContractType contractType = contractTypeRepository.findById(id)
-                .orElseThrow(() -> {
-                    String lang = currentUserLang();
-                    throw new RuntimeException(LanguageUtil.translate(MessageKey.CONTRACT_TYPE_NOT_FOUND, lang));
-                });
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
         contractType.setActive(false);
         contractTypeRepository.save(contractType);
     }

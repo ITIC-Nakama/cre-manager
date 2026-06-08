@@ -1,4 +1,4 @@
-package com.itic.paris.platform.auth.core.response;
+package com.itic.paris.platform.shared.response;
 
 import com.itic.paris.platform.auth.core.exception.entity.CustomResponseEntity;
 import com.itic.paris.platform.shared.local.LanguageUtil;

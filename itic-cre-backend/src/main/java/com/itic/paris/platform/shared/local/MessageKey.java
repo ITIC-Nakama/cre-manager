@@ -77,8 +77,9 @@ public enum MessageKey {
     JOB_OFFER_DEACTIVATED("job-offer-deactivated", "Offre d'emploi désactivée", "Job offer deactivated"),
     JOB_OFFER_DELETED("job-offer-deleted", "Offre d'emploi supprimée", "Job offer deleted"),
     CONTRACT_TYPE_CREATED("contract-type-created", "Type de contrat créé avec succès", "Contract type created successfully"),
+    CONTRACT_TYPE_LABEL_ALREADY_EXISTS("contract-type-label-already-exists", "Un type de contrat avec ce label existe déjà", "A contract type with this label already exists"),
     CONTRACT_TYPE_UPDATED("contract-type-updated", "Type de contrat mis à jour avec succès", "Contract type updated successfully"),
-    CONTRACT_TYPE_DEACTIVATED("contract-type-deactivated", "Type de contrat désactivé", "Contract type deactivated"),
+    CONTRACT_TYPE_DEACTIVATED("contract-type-deactivated", "Type de contrat désactivé", "Job offer deactivated"),
     CONTRACT_TYPE_DELETED("contract-type-deleted", "Type de contrat supprimé", "Contract type deleted"),
     APPLICATION_SUBMITTED("application-submitted", "Candidature soumise avec succès", "Application submitted successfully"),
     APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully");

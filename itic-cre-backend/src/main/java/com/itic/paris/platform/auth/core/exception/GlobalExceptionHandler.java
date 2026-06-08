@@ -5,6 +5,7 @@ import com.itic.paris.platform.shared.local.LanguageUtil;
 import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
@@ -47,6 +48,25 @@ public class GlobalExceptionHandler {
                         buildConstraintViolationErrors(ex)));
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomResponseEntity> handleDataIntegrityViolation(DataIntegrityViolationException ex,
+                                                                            HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        String property = extractUniqueConstraintField(ex);
+        if ("label".equals(property)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(CustomResponseEntity.of(MessageKey.VALIDATION_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
+                            List.of(Map.of(
+                                    "property", "label",
+                                    "message", MessageKey.CONTRACT_TYPE_LABEL_ALREADY_EXISTS.translate(lang)
+                            ))));
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
+                        Map.of("error", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())));
+    }
+
     @ExceptionHandler(TransactionSystemException.class)
     public ResponseEntity<CustomResponseEntity> handleTransactionSystemException(TransactionSystemException ex,
                                                                                  HttpServletRequest request) {
@@ -84,6 +104,20 @@ public class GlobalExceptionHandler {
                 .toList();
     }
 
+    private String extractUniqueConstraintField(DataIntegrityViolationException ex) {
+        Throwable root = ex.getRootCause();
+        String message = root != null ? root.getMessage() : ex.getMessage();
+        if (message == null) {
+            return null;
+        }
+
+        String lower = message.toLowerCase();
+        if (lower.contains("key (label)")) {
+            return "label";
+        }
+        return null;
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<CustomResponseEntity> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                               HttpServletRequest request) {
@@ -99,5 +133,13 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(CustomResponseEntity.of(MessageKey.ACCESS_DENIED, lang, HttpStatus.FORBIDDEN.value(), null));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CustomResponseEntity> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang,
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(), null));
     }
 }

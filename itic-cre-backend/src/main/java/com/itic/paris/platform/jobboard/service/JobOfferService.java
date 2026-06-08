@@ -1,6 +1,6 @@
 package com.itic.paris.platform.jobboard.service;
 
-import com.itic.paris.platform.shared.local.LanguageUtil;
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
@@ -15,11 +15,10 @@ import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.UUID;
 
@@ -33,9 +32,8 @@ public class JobOfferService {
     private final AdvisorRepository advisorRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
-        String lang = getLanguage();
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.CONTRACT_TYPE_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
 
         Advisor createdBy = getCurrentAdvisor();
 
@@ -54,10 +52,9 @@ public class JobOfferService {
     }
 
     public JobOfferDTO getById(UUID id) {
-        String lang = getLanguage();
         return jobOfferRepository.findById(id)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_OFFER_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
     }
 
     public Page<JobOfferDTO> getActiveOffers(Pageable pageable) {
@@ -81,12 +78,11 @@ public class JobOfferService {
     }
 
     public JobOfferDTO update(UUID id, CreateJobOfferRequest request) {
-        String lang = getLanguage();
         JobOffer jobOffer = jobOfferRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_OFFER_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
 
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.CONTRACT_TYPE_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
 
         jobOffer.setTitle(request.getTitle());
         jobOffer.setCompany(request.getCompany());
@@ -100,9 +96,8 @@ public class JobOfferService {
     }
 
     public void deactivate(UUID id) {
-        String lang = getLanguage();
         JobOffer jobOffer = jobOfferRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.JOB_OFFER_NOT_FOUND, lang)));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
         jobOffer.setActive(false);
         jobOfferRepository.save(jobOffer);
     }
@@ -142,17 +137,7 @@ public class JobOfferService {
     private Advisor getCurrentAdvisor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String lang = getLanguage();
-
         return advisorRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RuntimeException(LanguageUtil.translate(MessageKey.ADVISOR_NOT_FOUND, lang)));
-    }
-
-    private String getLanguage() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            return LanguageUtil.resolveLang(attributes.getRequest());
-        }
-        return "fr";
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
     }
 }
