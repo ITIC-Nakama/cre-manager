@@ -1,5 +1,6 @@
 package com.itic.paris.platform.jobboard.model.dtos;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ContractTypeDTO {
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private UUID id;
 
     @NotNull
@@ -25,5 +27,6 @@ public class ContractTypeDTO {
 
     private Boolean active;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Instant createdAt;
 }

@@ -1,5 +1,6 @@
 package com.itic.paris.platform.jobboard.model.dtos;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class JobOfferDTO {
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private UUID id;
 
     private String title;
@@ -28,9 +30,12 @@ public class JobOfferDTO {
 
     private Boolean active;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Instant createdAt;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Instant updatedAt;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Integer applicationCount;
 }
