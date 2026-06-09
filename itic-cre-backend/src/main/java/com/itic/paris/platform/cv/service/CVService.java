@@ -16,10 +16,12 @@ import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.shared.notification.NotificationEmailService;
+import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
+import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +45,7 @@ public class CVService {
     private final AdvisorRepository advisorRepository;
     private final ICloudStorage cloudStorage;
     private final AuditLogService auditLogService;
-    private final NotificationEmailService notificationEmailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
@@ -122,7 +124,11 @@ public class CVService {
         auditLogService.log(AuditAction.CV_STATUS_UPDATED, advisor, saved.getId(),
                 "Statut CV mis à jour : " + statut.getNom());
 
-        notificationEmailService.sendCVStatusChangeEmail(saved);
+        eventPublisher.publishEvent(new CVStatusChangedEvent(
+                cv.getStudent().getEmail(),
+                cv.getStudent().getFirstName(),
+                statut.getNom(),
+                statut.getCouleur()));
 
         return buildCVResponse(saved);
     }
@@ -142,7 +148,10 @@ public class CVService {
         auditLogService.log(AuditAction.CV_COMMENTED, advisor, cv.getId(),
                 "Commentaire ajouté sur le CV de l'étudiant " + cv.getStudent().getId());
 
-        notificationEmailService.sendCVCommentEmail(saved);
+        eventPublisher.publishEvent(new CVCommentAddedEvent(
+                cv.getStudent().getEmail(),
+                cv.getStudent().getFirstName(),
+                dto.getContenu()));
 
         return saved;
     }

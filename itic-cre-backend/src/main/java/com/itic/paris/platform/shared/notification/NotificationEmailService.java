@@ -1,8 +1,8 @@
 package com.itic.paris.platform.shared.notification;
 
 import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
-import com.itic.paris.platform.cv.model.CV;
-import com.itic.paris.platform.cv.model.CVCommentaire;
+import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
+import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Service
@@ -24,23 +26,19 @@ public class NotificationEmailService {
     private String mailFrom;
 
     @Async
-    public void sendCVStatusChangeEmail(CV cv) {
-        String email = cv.getStudent().getEmail();
-        String firstName = cv.getStudent().getFirstName();
-        String statutNom = cv.getStatut().getNom();
-        String couleur = cv.getStatut().getCouleur();
-
-        String html = emailTemplateService.renderCVStatusChangeEmail(firstName, statutNom, couleur);
-        sendHtml(email, "Mise à jour de votre CV — " + statutNom, html);
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onCVStatusChanged(CVStatusChangedEvent event) {
+        String html = emailTemplateService.renderCVStatusChangeEmail(
+                event.studentFirstName(), event.statutNom(), event.couleur());
+        sendHtml(event.studentEmail(), "Mise à jour de votre CV — " + event.statutNom(), html);
     }
 
     @Async
-    public void sendCVCommentEmail(CVCommentaire commentaire) {
-        String email = commentaire.getCv().getStudent().getEmail();
-        String firstName = commentaire.getCv().getStudent().getFirstName();
-
-        String html = emailTemplateService.renderCVCommentEmail(firstName, commentaire.getContenu());
-        sendHtml(email, "Nouveau commentaire sur votre CV", html);
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onCVCommentAdded(CVCommentAddedEvent event) {
+        String html = emailTemplateService.renderCVCommentEmail(
+                event.studentFirstName(), event.commentContent());
+        sendHtml(event.studentEmail(), "Nouveau commentaire sur votre CV", html);
     }
 
     private void sendHtml(String to, String subject, String htmlBody) {

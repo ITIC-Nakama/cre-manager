@@ -139,11 +139,9 @@ public class ApplicationService {
 
     @Transactional
     public void createFromJobboard(Student student, com.itic.paris.platform.jobboard.model.JobOffer jobOffer) {
-        // Status "Postulé" = ordre 2
         ApplicationStatus postuleStatus = statusRepository.findByOrdre(2)
-                .orElse(statusRepository.findByOrdre(1)
-                        .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
-                                MessageKey.APPLICATION_STATUS_NOT_FOUND)));
+                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        MessageKey.APPLICATION_STATUS_NOT_FOUND));
 
         Application application = new Application();
         application.setStudent(student);
