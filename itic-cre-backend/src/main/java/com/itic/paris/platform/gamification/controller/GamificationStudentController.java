@@ -3,6 +3,8 @@ package com.itic.paris.platform.gamification.controller;
 import com.itic.paris.platform.gamification.model.dtos.GradeDTO;
 import com.itic.paris.platform.gamification.model.dtos.XPHistoryDTO;
 import com.itic.paris.platform.gamification.service.GamificationStudentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,17 +17,20 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/me/gamification")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('STUDENT')")
+@Tag(name = "Gamification", description = "Historique XP et grade de l'étudiant connecté")
 public class GamificationStudentController {
 
     private final GamificationStudentService gamificationStudentService;
 
     @GetMapping("/xp-history")
+    @Operation(summary = "Historique des points XP gagnés")
     public ResponseEntity<Page<XPHistoryDTO>> getMyXPHistory(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(gamificationStudentService.getMyXPHistory(pageable));
     }
 
     @GetMapping("/grade")
+    @Operation(summary = "Obtenir son grade actuel et la progression vers le grade suivant")
     public ResponseEntity<GradeDTO> getMyGrade() {
         return ResponseEntity.ok(gamificationStudentService.getMyGrade());
     }

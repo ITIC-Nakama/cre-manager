@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequestMapping("/dashboard")
 @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "Dashboard Advisor", description = "Statistiques agrégées pour les conseillers et administrateurs")
+@Tag(name = "Tableau de bord Conseiller", description = "Statistiques agrégées pour les conseillers et administrateurs")
 public class DashboardController {
 
     private final DashboardService dashboardService;

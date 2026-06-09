@@ -17,7 +17,7 @@ import java.io.IOException;
 @RequestMapping("/cv/me")
 @PreAuthorize("hasRole('STUDENT')")
 @RequiredArgsConstructor
-@Tag(name = "CV Management", description = "Upload et suivi du CV étudiant")
+@Tag(name = "Gestion des CV", description = "Upload et suivi du CV étudiant")
 public class CVStudentController {
 
     private final CVService cvService;

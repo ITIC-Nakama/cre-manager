@@ -122,7 +122,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi skillTreeApi() {
         return GroupedOpenApi.builder()
-                .group("08. Skill Tree")
+                .group("08. Arbre de compétences")
                 .pathsToMatch("/api/skill-tree/**", "/api/admin/skill-tree/**")
                 .build();
     }
@@ -130,7 +130,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi cvApi() {
         return GroupedOpenApi.builder()
-                .group("09. CV Management")
+                .group("09. Gestion des CV")
                 .pathsToMatch("/cv/**", "/cv/statuts/**")
                 .build();
     }
@@ -138,7 +138,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi dashboardApi() {
         return GroupedOpenApi.builder()
-                .group("10. Dashboard Advisor")
+                .group("10. Tableau de bord Conseiller")
                 .pathsToMatch("/dashboard/**")
                 .build();
     }

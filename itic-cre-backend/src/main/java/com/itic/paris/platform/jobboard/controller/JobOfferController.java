@@ -19,33 +19,33 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/jobboard/offers")
 @RequiredArgsConstructor
-@Tag(name = "Job Offers", description = "Manage job offers on the jobboard")
+@Tag(name = "Offres d'emploi", description = "Gestion des offres d'emploi du jobboard")
 public class JobOfferController {
 
     private final JobOfferService jobOfferService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Create a new job offer")
+    @Operation(summary = "Créer une offre d'emploi")
     public ResponseEntity<JobOfferDTO> create(@RequestBody CreateJobOfferRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(jobOfferService.create(request));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get job offer by ID")
+    @Operation(summary = "Obtenir une offre par identifiant")
     public ResponseEntity<JobOfferDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(jobOfferService.getById(id));
     }
 
     @GetMapping
-    @Operation(summary = "List active job offers")
+    @Operation(summary = "Lister les offres actives")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getActiveOffers(pageable));
     }
 
     @GetMapping("/search/company")
-    @Operation(summary = "Search job offers by company")
+    @Operation(summary = "Rechercher des offres par entreprise")
     public ResponseEntity<Page<JobOfferDTO>> searchByCompany(
             @RequestParam String company,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
@@ -53,7 +53,7 @@ public class JobOfferController {
     }
 
     @GetMapping("/search/title")
-    @Operation(summary = "Search job offers by title")
+    @Operation(summary = "Rechercher des offres par intitulé de poste")
     public ResponseEntity<Page<JobOfferDTO>> searchByTitle(
             @RequestParam String title,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
@@ -61,7 +61,7 @@ public class JobOfferController {
     }
 
     @GetMapping("/contract-type/{contractTypeId}")
-    @Operation(summary = "Get job offers by contract type")
+    @Operation(summary = "Filtrer les offres par type de contrat")
     public ResponseEntity<Page<JobOfferDTO>> getByContractType(
             @PathVariable UUID contractTypeId,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
@@ -70,14 +70,14 @@ public class JobOfferController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Update a job offer")
+    @Operation(summary = "Mettre à jour une offre d'emploi")
     public ResponseEntity<JobOfferDTO> update(@PathVariable UUID id, @RequestBody CreateJobOfferRequest request) {
         return ResponseEntity.ok(jobOfferService.update(id, request));
     }
 
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a job offer")
+    @Operation(summary = "Désactiver une offre d'emploi")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         jobOfferService.deactivate(id);
         return ResponseEntity.noContent().build();
@@ -85,7 +85,7 @@ public class JobOfferController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Delete a job offer")
+    @Operation(summary = "Supprimer une offre d'emploi")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         jobOfferService.delete(id);
         return ResponseEntity.noContent().build();

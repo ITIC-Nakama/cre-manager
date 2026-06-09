@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "ITIC CRE — JWT étudiants, conseillers et administrateurs")
+@Tag(name = "Authentification", description = "ITIC CRE — JWT étudiants, conseillers et administrateurs")
 public class AuthController {
 
     private final AuthService authService;
@@ -127,6 +127,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
+    @Operation(summary = "Renouveler le token d'accès via le refresh token")
     public ResponseEntity<?> refreshToken(HttpServletRequest servletRequest, HttpServletResponse response) {
         String refreshToken = null;
         if (servletRequest.getCookies() != null) {
@@ -213,6 +214,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Déconnexion — invalide les cookies de session")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logLogout();
         clearTokenCookies(response);

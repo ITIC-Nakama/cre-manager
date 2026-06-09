@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth/admin/audit-logs")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Audit logs", description = "Journal des actions (admin uniquement)")
+@Tag(name = "Journal d'audit", description = "Journal des actions (admin uniquement)")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;

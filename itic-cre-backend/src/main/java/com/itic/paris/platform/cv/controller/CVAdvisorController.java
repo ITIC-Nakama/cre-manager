@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequestMapping("/cv")
 @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "CV Management", description = "Upload et suivi du CV étudiant")
+@Tag(name = "Gestion des CV", description = "Upload et suivi du CV étudiant")
 public class CVAdvisorController {
 
     private final CVService cvService;

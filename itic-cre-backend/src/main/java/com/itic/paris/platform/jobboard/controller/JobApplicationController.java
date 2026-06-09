@@ -18,28 +18,28 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/jobboard/applications")
 @RequiredArgsConstructor
-@Tag(name = "Job Applications", description = "Manage student applications to job offers")
+@Tag(name = "Candidatures Jobboard", description = "Candidatures étudiantes aux offres du jobboard")
 public class JobApplicationController {
 
     private final JobApplicationService jobApplicationService;
 
     @PostMapping("/{jobOfferId}/apply")
     @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "Apply to a job offer")
+    @Operation(summary = "Postuler à une offre d'emploi")
     public ResponseEntity<JobApplicationDTO> apply(@PathVariable UUID jobOfferId) {
         return ResponseEntity.status(HttpStatus.CREATED).body(jobApplicationService.apply(jobOfferId));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Get job application by ID")
+    @Operation(summary = "Obtenir une candidature par identifiant")
     public ResponseEntity<JobApplicationDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(jobApplicationService.getById(id));
     }
 
     @GetMapping("/my-applications")
     @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "List my job applications")
+    @Operation(summary = "Lister mes candidatures jobboard")
     public ResponseEntity<Page<JobApplicationDTO>> getMyApplications(
             @PageableDefault(size = 20, sort = "appliedAt") Pageable pageable) {
         return ResponseEntity.ok(jobApplicationService.getStudentApplications(pageable));
@@ -47,7 +47,7 @@ public class JobApplicationController {
 
     @GetMapping("/offer/{jobOfferId}")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Get applications for a specific job offer")
+    @Operation(summary = "Lister les candidatures pour une offre")
     public ResponseEntity<Page<JobApplicationDTO>> getApplicationsForOffer(
             @PathVariable UUID jobOfferId,
             @PageableDefault(size = 20, sort = "appliedAt") Pageable pageable) {
@@ -56,14 +56,14 @@ public class JobApplicationController {
 
     @GetMapping("/offer/{jobOfferId}/count")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Get application count for a job offer")
+    @Operation(summary = "Compter les candidatures pour une offre")
     public ResponseEntity<Long> getApplicationCount(@PathVariable UUID jobOfferId) {
         return ResponseEntity.ok(jobApplicationService.getApplicationCountForOffer(jobOfferId));
     }
 
     @DeleteMapping("/{id}/withdraw")
     @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "Withdraw from a job application")
+    @Operation(summary = "Retirer sa candidature")
     public ResponseEntity<Void> withdraw(@PathVariable UUID id) {
         jobApplicationService.withdraw(id);
         return ResponseEntity.noContent().build();
