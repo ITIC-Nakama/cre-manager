@@ -41,7 +41,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi allApi() {
         return GroupedOpenApi.builder()
-                .group("0. Toutes les APIs")
+                .group("00. Toutes les APIs")
                 .pathsToMatch("/**")
                 .build();
     }
@@ -49,7 +49,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
-                .group("1. Authentification")
+                .group("01. Authentification")
                 .pathsToMatch(
                         "/auth/login",
                         "/auth/register",
@@ -64,7 +64,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
-                .group("2. Gestion Utilisateurs & Profils")
+                .group("02. Gestion Utilisateurs & Profils")
                 .pathsToMatch(
                         "/auth/users/**",
                         "/auth/change-password",
@@ -79,7 +79,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi auditApi() {
         return GroupedOpenApi.builder()
-                .group("3. Journal d'Audit")
+                .group("03. Journal d'Audit")
                 .pathsToMatch("/auth/admin/audit-logs/**")
                 .build();
     }
@@ -87,7 +87,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi jobBoardApi() {
         return GroupedOpenApi.builder()
-                .group("4. Job Board")
+                .group("04. Job Board")
                 .pathsToMatch("/jobboard/**")
                 .build();
     }
@@ -95,7 +95,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi crmApi() {
         return GroupedOpenApi.builder()
-                .group("5. CRM — Applications")
+                .group("05. CRM — Applications")
                 .pathsToMatch(
                         "/api/applications/**",
                         "/api/application-statuses/**"
@@ -106,7 +106,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi gamificationStudentApi() {
         return GroupedOpenApi.builder()
-                .group("6. Gamification — Étudiant")
+                .group("06. Gamification — Étudiant")
                 .pathsToMatch("/api/me/gamification/**")
                 .build();
     }
@@ -114,7 +114,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi administrationApi() {
         return GroupedOpenApi.builder()
-                .group("7. Administration")
+                .group("07. Administration")
                 .pathsToMatch("/api/admin/**")
                 .build();
     }
@@ -122,7 +122,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi skillTreeApi() {
         return GroupedOpenApi.builder()
-                .group("8. Skill Tree")
+                .group("08. Skill Tree")
                 .pathsToMatch("/api/skill-tree/**", "/api/admin/skill-tree/**")
                 .build();
     }
@@ -130,7 +130,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi cvApi() {
         return GroupedOpenApi.builder()
-                .group("9. CV Management")
+                .group("09. CV Management")
                 .pathsToMatch("/cv/**", "/cv/statuts/**")
                 .build();
     }
