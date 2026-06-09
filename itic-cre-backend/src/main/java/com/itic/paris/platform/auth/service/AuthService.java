@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -63,6 +64,7 @@ public class AuthService {
         return buildTokenResponse(buildCustomUserDetails(user), user);
     }
 
+    @Transactional
     public User registerStudent(UserRegisterDto userDto) {
         if (userLookupService.existsByEmail(userDto.getEmail())) {
             throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);

@@ -119,14 +119,41 @@ CVService.updateStatus()          CVService.addComment()
 | `shared/notification/NotificationEmailService.java` | Écoute l'événement **après commit**, envoie l'email en mode `@Async` |
 | `resources/templates/email/cv-notification.html` | Template Thymeleaf HTML partagé (type STATUS ou COMMENT) |
 
-### Pourquoi ne pas appeler directement le service email ?
+---
 
-L'approche naïve (`@Async` avec entité JPA en paramètre) avait deux problèmes :
+## Email OTP — Création de compte et renvoi
 
-- **LazyInitializationException** : `CV.student` est `@OneToOne(LAZY)`. En dehors de la transaction, Hibernate ne peut plus charger la relation → crash silencieux, email jamais envoyé.
-- **Email fantôme** : l'appel `@Async` est dispatché *avant* que la transaction commite. Si un rollback survient ensuite, l'email est quand même parti alors que la modification n'existe pas en base.
+Même mécanisme event-driven que pour les notifications CV.
 
-`@TransactionalEventListener(phase = AFTER_COMMIT)` résout les deux : le listener ne se déclenche que si et seulement si la transaction s'est commitée avec succès.
+```
+registerStudent()  [@Transactional]
+  ├─ userRepository.save(student)
+  └─ otpService.sendEmailVerificationOtp()  [rejoint la même transaction]
+       ├─ otpRepository.save(otp)
+       └─ eventPublisher.publishEvent(OtpEmailEvent)
+            ↓ Spring attend le COMMIT de la transaction parente
+  [COMMIT — user + otp en base ensemble]
+            ↓
+  @TransactionalEventListener(AFTER_COMMIT) + @Async
+  NotificationEmailService.onOtpRequested()
+       └─ mailSender.send(...)  ← thread séparé, non-bloquant
+```
+
+### Garanties
+
+- **User et OTP commitent ensemble** : `registerStudent` est `@Transactional`, `otpService.sendEmailVerificationOtp` rejoint cette transaction (propagation REQUIRED). Un rollback annule les deux, pas l'un sans l'autre.
+- **Pas d'email si rollback** : l'événement ne se déclenche qu'après le commit.
+- **L'inscription ne peut jamais échouer à cause du SMTP** : si le serveur mail est indisponible, l'étudiant est inscrit, l'erreur est loguée, il peut demander un renvoi OTP.
+- **Non-bloquant** : la réponse HTTP est renvoyée immédiatement, l'email part en arrière-plan.
+
+### Fichiers concernés
+
+| Fichier | Rôle |
+|---------|------|
+| `shared/notification/event/OtpEmailEvent.java` | Record : email, prénom, lang, code OTP, durée d'expiration |
+| `auth/service/OtpService.java` | Génère le code, sauvegarde l'OTP, publie `OtpEmailEvent` |
+| `auth/service/AuthService.registerStudent()` | `@Transactional` : englobe user + OTP dans une seule transaction |
+| `shared/notification/NotificationEmailService.java` | Écoute `OtpEmailEvent` via `@TransactionalEventListener(AFTER_COMMIT)` + `@Async` |
 
 ---
 

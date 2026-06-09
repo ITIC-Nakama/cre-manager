@@ -3,6 +3,7 @@ package com.itic.paris.platform.shared.notification;
 import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
+import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,17 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderCVCommentEmail(
                 event.studentFirstName(), event.commentContent());
         sendHtml(event.studentEmail(), "Nouveau commentaire sur votre CV", html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onOtpRequested(OtpEmailEvent event) {
+        String html = emailTemplateService.renderOtpVerificationEmail(
+                event.lang(), event.firstName(), event.code(), event.expirationMinutes());
+        String subject = "en".equals(event.lang())
+                ? "Verify your ITIC CRE account"
+                : "Vérification de votre compte ITIC CRE";
+        sendHtml(event.email(), subject, html);
     }
 
     private void sendHtml(String to, String subject, String htmlBody) {

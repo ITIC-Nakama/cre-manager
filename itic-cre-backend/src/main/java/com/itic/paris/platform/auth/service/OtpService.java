@@ -2,17 +2,15 @@ package com.itic.paris.platform.auth.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.auth.model.Otp;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.OtpRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
-import jakarta.mail.internet.MimeMessage;
+import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,17 +26,13 @@ public class OtpService {
     private final OtpRepository otpRepository;
     private final UserRepository userRepository;
     private final UserLookupService userLookupService;
-    private final JavaMailSender mailSender;
-    private final EmailTemplateService emailTemplateService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${app.otp.expiration-minutes:10}")
     private long expirationMinutes;
 
     @Value("${app.otp.length:6}")
     private int otpLength;
-
-    @Value("${app.mail.from:no-reply@itic-cre.fr}")
-    private String mailFrom;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -55,7 +49,12 @@ public class OtpService {
         otpRepository.save(otp);
 
         String normalizedLang = normalizeLang(lang);
-        sendHtmlEmail(user.getEmail(), buildSubject(normalizedLang), buildHtmlBody(normalizedLang, user.getFirstName(), code));
+        eventPublisher.publishEvent(new OtpEmailEvent(
+                user.getEmail(),
+                user.getFirstName(),
+                normalizedLang,
+                code,
+                expirationMinutes));
     }
 
     @Transactional
@@ -113,30 +112,6 @@ public class OtpService {
         }
         String normalized = lang.trim().toLowerCase();
         return normalized.startsWith("en") ? "en" : "fr";
-    }
-
-    private String buildSubject(String lang) {
-        return "en".equals(lang)
-                ? "Verify your ITIC CRE account"
-                : "Vérification de votre compte ITIC CRE";
-    }
-
-    private void sendHtmlEmail(String to, String subject, String htmlBody) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(mailFrom);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-        } catch (Exception ex) {
-            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.UNABLE_TO_SEND_OTP_EMAIL, ex);
-        }
-    }
-
-    private String buildHtmlBody(String lang, String firstName, String code) {
-        return emailTemplateService.renderOtpVerificationEmail(lang, firstName, code, expirationMinutes);
     }
 
     private String generateOtp() {
