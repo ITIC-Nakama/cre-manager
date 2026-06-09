@@ -15,10 +15,11 @@ public final class UserMapper {
     private UserMapper() {
     }
 
-    public static Student toStudentEntity(UserRegisterDto dto, Role role) {
+    public static Student toStudentEntity(UserRegisterDto dto, Role role, com.itic.paris.platform.auth.model.Promotion promotion) {
         Student student = new Student();
         student.setXpTotal(0);
         student.setLastActivity(Instant.now());
+        student.setPromotion(promotion);
         mapCommonFields(student, dto.getEmail(), dto.getFirstName(), dto.getLastName(),
                 dto.getPhoneNumber(), dto.getPassword(), dto.getLang(), role);
         return student;

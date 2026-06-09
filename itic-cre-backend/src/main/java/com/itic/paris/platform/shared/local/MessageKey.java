@@ -98,7 +98,10 @@ public enum MessageKey {
     ARTICLE_NOT_FOUND("article-not-found", "Article introuvable", "Article not found"),
     QUIZ_NOT_FOUND("quiz-not-found", "Quiz introuvable", "Quiz not found"),
     QUIZ_ALREADY_EXISTS("quiz-already-exists", "Un quiz existe déjà pour cet article", "A quiz already exists for this article"),
-    QUESTION_NOT_FOUND("question-not-found", "Question introuvable", "Question not found");
+    QUESTION_NOT_FOUND("question-not-found", "Question introuvable", "Question not found"),
+    // Promotion messages
+    PROMOTION_NOT_FOUND("promotion-not-found", "Promotion introuvable", "Promotion not found"),
+    PROMOTION_NAME_ALREADY_EXISTS("promotion-name-already-exists", "Une promotion avec ce nom existe déjà", "A promotion with this name already exists");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

@@ -110,6 +110,7 @@ public class SecurityConfig {
                         .requestMatchers("/files/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/promotions", "/promotions/**").permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout.disable());
 

@@ -42,6 +42,7 @@ public class AuthService {
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
+    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
 
     public Object login(UserLoginDto loginDto) {
         User rawUser = userLookupService.findUserByEmail(loginDto.getEmail())
@@ -72,8 +73,14 @@ public class AuthService {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ROLE_NOT_FOUND);
         }
 
+        com.itic.paris.platform.auth.model.Promotion promotion = null;
+        if (userDto.getPromotionId() != null) {
+            promotion = promotionRepository.findById(userDto.getPromotionId())
+                    .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
+        }
+
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        Student student = UserMapper.toStudentEntity(userDto, role);
+        Student student = UserMapper.toStudentEntity(userDto, role, promotion);
         student.setEmailVerified(false);
 
         Student saved = userRepository.save(student);
@@ -268,6 +275,7 @@ public class AuthService {
         if (user instanceof Student student) {
             profile.put("xpTotal", student.getXpTotal());
             profile.put("lastActivity", student.getLastActivity());
+            profile.put("promotion", student.getPromotion());
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());

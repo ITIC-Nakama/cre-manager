@@ -18,4 +18,8 @@ public class Student extends User {
 
     @Column(name = "last_activity")
     private Instant lastActivity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private Promotion promotion;
 }

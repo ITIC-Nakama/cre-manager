@@ -4,8 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class UserRegisterDto {
+
+    private UUID promotionId;
 
     @NotBlank
     @Email
