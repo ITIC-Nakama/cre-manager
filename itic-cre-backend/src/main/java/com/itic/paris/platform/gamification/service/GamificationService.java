@@ -2,13 +2,13 @@ package com.itic.paris.platform.gamification.service;
 
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
-import com.itic.paris.platform.gamification.model.ConfigurationGamification;
+import com.itic.paris.platform.gamification.model.GamificationConfig;
 import com.itic.paris.platform.gamification.model.Grade;
-import com.itic.paris.platform.gamification.model.HistoriqueXP;
+import com.itic.paris.platform.gamification.model.XPHistory;
 import com.itic.paris.platform.gamification.model.enums.ActionXP;
-import com.itic.paris.platform.gamification.repository.ConfigurationGamificationRepository;
+import com.itic.paris.platform.gamification.repository.GamificationConfigRepository;
 import com.itic.paris.platform.gamification.repository.GradeRepository;
-import com.itic.paris.platform.gamification.repository.HistoriqueXPRepository;
+import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GamificationService {
 
-    private final HistoriqueXPRepository historiqueXPRepository;
-    private final ConfigurationGamificationRepository configurationRepository;
+    private final XPHistoryRepository xpHistoryRepository;
+    private final GamificationConfigRepository gamificationConfigRepository;
     private final GradeRepository gradeRepository;
     private final StudentRepository studentRepository;
 
@@ -29,12 +29,12 @@ public class GamificationService {
     public void awardXP(Student student, ActionXP action, int points, String description) {
         if (points <= 0) return;
 
-        HistoriqueXP xp = new HistoriqueXP();
+        XPHistory xp = new XPHistory();
         xp.setStudent(student);
         xp.setAction(action);
         xp.setPoints(points);
         xp.setDescription(description);
-        historiqueXPRepository.save(xp);
+        xpHistoryRepository.save(xp);
 
         student.setXpTotal(student.getXpTotal() + points);
         student.setLastActivity(Instant.now());
@@ -42,9 +42,9 @@ public class GamificationService {
     }
 
     public int getConfiguredXP(ActionXP action) {
-        return configurationRepository.findByAction(action)
-                .filter(ConfigurationGamification::getActive)
-                .map(ConfigurationGamification::getValeurXP)
+        return gamificationConfigRepository.findByAction(action)
+                .filter(GamificationConfig::getActive)
+                .map(GamificationConfig::getValeurXP)
                 .orElse(0);
     }
 

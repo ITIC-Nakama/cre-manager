@@ -1,7 +1,7 @@
 package com.itic.paris.platform.gamification.controller;
 
 import com.itic.paris.platform.gamification.model.dtos.GradeDTO;
-import com.itic.paris.platform.gamification.model.dtos.HistoriqueXPDTO;
+import com.itic.paris.platform.gamification.model.dtos.XPHistoryDTO;
 import com.itic.paris.platform.gamification.service.GamificationStudentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,7 +20,7 @@ public class GamificationStudentController {
     private final GamificationStudentService gamificationStudentService;
 
     @GetMapping("/xp-history")
-    public ResponseEntity<Page<HistoriqueXPDTO>> getMyXPHistory(
+    public ResponseEntity<Page<XPHistoryDTO>> getMyXPHistory(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(gamificationStudentService.getMyXPHistory(pageable));
     }

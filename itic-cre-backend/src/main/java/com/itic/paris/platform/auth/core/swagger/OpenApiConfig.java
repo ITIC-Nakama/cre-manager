@@ -94,10 +94,10 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi crmApi() {
         return GroupedOpenApi.builder()
-                .group("5. CRM — Candidatures")
+                .group("5. CRM — Applications")
                 .pathsToMatch(
-                        "/api/candidatures/**",
-                        "/api/statuts-candidature/**"
+                        "/api/applications/**",
+                        "/api/application-statuses/**"
                 )
                 .build();
     }
@@ -115,6 +115,14 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("7. Administration")
                 .pathsToMatch("/api/admin/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi skillTreeApi() {
+        return GroupedOpenApi.builder()
+                .group("8. Skill Tree")
+                .pathsToMatch("/api/skill-tree/**", "/api/admin/skill-tree/**")
                 .build();
     }
 }

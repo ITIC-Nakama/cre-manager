@@ -6,8 +6,8 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.model.dtos.GradeDTO;
-import com.itic.paris.platform.gamification.model.dtos.HistoriqueXPDTO;
-import com.itic.paris.platform.gamification.repository.HistoriqueXPRepository;
+import com.itic.paris.platform.gamification.model.dtos.XPHistoryDTO;
+import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,16 +19,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class GamificationStudentService {
 
-    private final HistoriqueXPRepository historiqueXPRepository;
+    private final XPHistoryRepository xpHistoryRepository;
     private final StudentRepository studentRepository;
     private final GamificationService gamificationService;
     private final GamificationAdminService gamificationAdminService;
 
-    public Page<HistoriqueXPDTO> getMyXPHistory(Pageable pageable) {
+    public Page<XPHistoryDTO> getMyXPHistory(Pageable pageable) {
         Student student = getCurrentStudent();
-        return historiqueXPRepository
+        return xpHistoryRepository
                 .findByStudentIdOrderByDateAttributionDesc(student.getId(), pageable)
-                .map(xp -> new HistoriqueXPDTO(
+                .map(xp -> new XPHistoryDTO(
                         xp.getId(), xp.getAction(), xp.getPoints(),
                         xp.getDescription(), xp.getDateAttribution()));
     }

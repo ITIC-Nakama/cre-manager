@@ -84,14 +84,21 @@ public enum MessageKey {
     APPLICATION_SUBMITTED("application-submitted", "Candidature soumise avec succès", "Application submitted successfully"),
     APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully"),
     // CRM messages
-    CANDIDATURE_NOT_FOUND("candidature-not-found", "Candidature introuvable", "Candidature not found"),
-    STATUT_NOT_FOUND("statut-not-found", "Statut introuvable", "Status not found"),
+    APPLICATION_NOT_FOUND("application-not-found", "Candidature introuvable", "Application not found"),
+    APPLICATION_STATUS_NOT_FOUND("application-status-not-found", "Statut introuvable", "Application status not found"),
+    SKILL_CATEGORY_NOT_FOUND("skill-category-not-found", "Catégorie introuvable", "Skill category not found"),
     // Gamification messages
     GRADE_NOT_FOUND("grade-not-found", "Grade introuvable", "Grade not found"),
     GAMIFICATION_CONFIG_NOT_FOUND("gamification-config-not-found", "Configuration de gamification introuvable", "Gamification configuration not found"),
     // App configuration messages
     APP_CONFIG_NOT_FOUND("app-config-not-found", "Configuration introuvable", "Configuration not found"),
-    APP_CONFIG_INVALID_VALUE("app-config-invalid-value", "Valeur de configuration invalide", "Invalid configuration value");
+    APP_CONFIG_INVALID_VALUE("app-config-invalid-value", "Valeur de configuration invalide", "Invalid configuration value"),
+    // Skill tree messages
+    CATEGORIE_NOT_FOUND("categorie-not-found", "Catégorie introuvable", "Category not found"),
+    ARTICLE_NOT_FOUND("article-not-found", "Article introuvable", "Article not found"),
+    QUIZ_NOT_FOUND("quiz-not-found", "Quiz introuvable", "Quiz not found"),
+    QUIZ_ALREADY_EXISTS("quiz-already-exists", "Un quiz existe déjà pour cet article", "A quiz already exists for this article"),
+    QUESTION_NOT_FOUND("question-not-found", "Question introuvable", "Question not found");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));
