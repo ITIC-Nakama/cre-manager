@@ -137,6 +137,38 @@ public class ApplicationService {
         applicationRepository.delete(getOwnedApplication(id));
     }
 
+    @Transactional
+    public void createFromJobboard(Student student, com.itic.paris.platform.jobboard.model.JobOffer jobOffer) {
+        // Status "Postulé" = ordre 2
+        ApplicationStatus postuleStatus = statusRepository.findByOrdre(2)
+                .orElse(statusRepository.findByOrdre(1)
+                        .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                MessageKey.APPLICATION_STATUS_NOT_FOUND)));
+
+        Application application = new Application();
+        application.setStudent(student);
+        application.setEntreprise(jobOffer.getCompany());
+        application.setPoste(jobOffer.getTitle());
+        application.setTypeContrat(jobOffer.getContractType());
+        application.setLienOffre(jobOffer.getExternalLink());
+        application.setNotes("Candidature créée automatiquement via le Jobboard");
+        application.setStatus(postuleStatus);
+
+        Application saved = applicationRepository.save(application);
+        recordHistory(saved, null, postuleStatus);
+
+        if (postuleStatus.getGainXP() > 0) {
+            gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED,
+                    postuleStatus.getGainXP(), "Candidature Jobboard : " + jobOffer.getCompany());
+        } else {
+            int xp = gamificationService.getConfiguredXP(ActionXP.CANDIDATURE_CREATED);
+            gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED, xp,
+                    "Candidature Jobboard : " + jobOffer.getCompany());
+        }
+
+        updateLastActivity(student);
+    }
+
     private ContractType resolveContractType(UUID typeContratId) {
         if (typeContratId == null) return null;
         return contractTypeRepository.findById(typeContratId)

@@ -40,6 +40,27 @@ public class EmailTemplateService {
         return templateEngine.process("email/otp-verification", context);
     }
 
+    public String renderCVStatusChangeEmail(String firstName, String statutNom, String couleur) {
+        Context context = new Context();
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("type", "STATUS");
+        context.setVariable("statutNom", statutNom);
+        context.setVariable("couleur", couleur != null ? couleur : "#1A1A2E");
+        context.setVariable("subject", "Mise à jour de votre CV");
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/cv-notification", context);
+    }
+
+    public String renderCVCommentEmail(String firstName, String comment) {
+        Context context = new Context();
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("type", "COMMENT");
+        context.setVariable("comment", comment);
+        context.setVariable("subject", "Nouveau commentaire sur votre CV");
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/cv-notification", context);
+    }
+
     private static String normalizeLang(String lang) {
         if (lang == null) {
             return "fr";

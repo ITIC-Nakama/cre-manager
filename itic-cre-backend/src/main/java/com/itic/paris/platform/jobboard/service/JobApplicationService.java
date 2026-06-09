@@ -4,6 +4,7 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.crm.service.ApplicationService;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.JobOffer;
@@ -25,6 +26,7 @@ public class JobApplicationService {
     private final JobApplicationRepository jobApplicationRepository;
     private final JobOfferRepository jobOfferRepository;
     private final StudentRepository studentRepository;
+    private final ApplicationService applicationService;
 
     public JobApplicationDTO apply(UUID jobOfferId) {
         Student student = getCurrentStudent();
@@ -41,6 +43,7 @@ public class JobApplicationService {
         application.setStudent(student);
 
         JobApplication saved = jobApplicationRepository.save(application);
+        applicationService.createFromJobboard(student, jobOffer);
         return mapToDTO(saved);
     }
 

@@ -126,4 +126,32 @@ public class OpenApiConfig {
                 .pathsToMatch("/api/skill-tree/**", "/api/admin/skill-tree/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi cvApi() {
+        return GroupedOpenApi.builder()
+                .group("9. CV Management")
+                .pathsToMatch("/cv/**", "/cv/statuts/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi dashboardApi() {
+        return GroupedOpenApi.builder()
+                .group("10. Dashboard Advisor")
+                .pathsToMatch("/dashboard/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi espaceEtudiantApi() {
+        return GroupedOpenApi.builder()
+                .group("11. Espace Étudiant")
+                .pathsToMatch(
+                        "/api/applications/**",
+                        "/api/me/gamification/**",
+                        "/cv/me/**"
+                )
+                .build();
+    }
 }

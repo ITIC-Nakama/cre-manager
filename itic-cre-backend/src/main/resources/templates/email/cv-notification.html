@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${subject}">Notification CV</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F5F5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F5F5;padding:30px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1A1A2E;padding:28px 40px;text-align:center;">
+              <span style="color:#FFFFFF;font-size:22px;font-weight:bold;" th:text="${brandName}">ITIC CRE</span>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;color:#333333;">
+              <p style="margin:0 0 16px 0;font-size:16px;">
+                Bonjour <strong th:text="${firstName}">Étudiant</strong>,
+              </p>
+
+              <!-- CV Status change -->
+              <th:block th:if="${type == 'STATUS'}">
+                <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;">
+                  Le statut de votre CV a été mis à jour par votre conseiller.
+                </p>
+                <table cellpadding="0" cellspacing="0" style="margin:20px 0;">
+                  <tr>
+                    <td style="padding:12px 24px;border-radius:6px;font-weight:bold;font-size:15px;"
+                        th:style="'background-color:' + ${couleur} + '22;color:' + ${couleur} + ';border:2px solid ' + ${couleur} + ';border-radius:6px;padding:12px 24px;font-weight:bold;font-size:15px;'">
+                      <span th:text="${statutNom}">Validé</span>
+                    </td>
+                  </tr>
+                </table>
+                <th:block th:if="${statutNom == 'À corriger'}">
+                  <p style="margin:0 0 16px 0;font-size:14px;color:#666;line-height:1.6;">
+                    Votre conseiller a peut-être laissé des commentaires sur votre CV. Connectez-vous à la plateforme pour les consulter.
+                  </p>
+                </th:block>
+              </th:block>
+
+              <!-- CV Comment -->
+              <th:block th:if="${type == 'COMMENT'}">
+                <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;">
+                  Votre conseiller a ajouté un commentaire sur votre CV :
+                </p>
+                <blockquote style="margin:20px 0;padding:16px 20px;background-color:#F5F5F5;border-left:4px solid #1A1A2E;border-radius:0 6px 6px 0;font-size:14px;color:#333;line-height:1.7;"
+                            th:text="${comment}">
+                  Contenu du commentaire
+                </blockquote>
+              </th:block>
+
+              <p style="margin:24px 0 0 0;font-size:14px;color:#666;line-height:1.6;">
+                Connectez-vous à votre espace étudiant pour retrouver tous les détails.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#F5F5F5;padding:20px 40px;text-align:center;border-top:1px solid #E0E0E0;">
+              <p style="margin:0;font-size:12px;color:#999;">
+                Cet email a été envoyé automatiquement par
+                <span th:text="${brandName}">ITIC CRE</span>.
+                Ne pas répondre à ce message.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

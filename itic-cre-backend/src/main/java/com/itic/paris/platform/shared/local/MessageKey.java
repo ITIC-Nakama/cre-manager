@@ -101,7 +101,15 @@ public enum MessageKey {
     QUESTION_NOT_FOUND("question-not-found", "Question introuvable", "Question not found"),
     // Promotion messages
     PROMOTION_NOT_FOUND("promotion-not-found", "Promotion introuvable", "Promotion not found"),
-    PROMOTION_NAME_ALREADY_EXISTS("promotion-name-already-exists", "Une promotion avec ce nom existe déjà", "A promotion with this name already exists");
+    PROMOTION_NAME_ALREADY_EXISTS("promotion-name-already-exists", "Une promotion avec ce nom existe déjà", "A promotion with this name already exists"),
+    // CV messages
+    CV_NOT_FOUND("cv-not-found", "CV introuvable", "CV not found"),
+    CV_UPLOAD_FAILED("cv-upload-failed", "Échec de l'upload du CV", "CV upload failed"),
+    CV_INVALID_FILE_TYPE("cv-invalid-file-type", "Seuls les fichiers PDF sont acceptés", "Only PDF files are accepted"),
+    CV_COMMENT_ADDED("cv-comment-added", "Commentaire ajouté", "Comment added"),
+    CV_STATUS_UPDATED("cv-status-updated", "Statut du CV mis à jour", "CV status updated"),
+    CV_STATUT_NOT_FOUND("cv-statut-not-found", "Statut CV introuvable", "CV status not found"),
+    CV_STATUT_NAME_ALREADY_EXISTS("cv-statut-name-already-exists", "Un statut CV avec ce nom existe déjà", "A CV status with this name already exists");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

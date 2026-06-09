@@ -21,6 +21,8 @@ public enum AuditAction {
     CV_VALIDATED,
     CV_REJECTED,
     CV_DELETED,
+    CV_STATUS_UPDATED,
+    CV_COMMENTED,
 
     // --- Actions de gestion des Tutoriels ---
     TUTO_CREATED,
