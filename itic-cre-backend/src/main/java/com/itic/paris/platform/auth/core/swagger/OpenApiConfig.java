@@ -70,7 +70,8 @@ public class OpenApiConfig {
                         "/auth/change-password",
                         "/auth/update-password",
                         "/auth/admin/users/**",
-                        "/auth/roles/**"
+                        "/auth/roles/**",
+                        "/promotions/**"
                 )
                 .build();
     }
