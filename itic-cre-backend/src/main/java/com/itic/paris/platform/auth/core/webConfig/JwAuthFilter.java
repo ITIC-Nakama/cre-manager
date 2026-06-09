@@ -3,6 +3,7 @@ package com.itic.paris.platform.auth.core.webConfig;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.LanguageUtil;
 import com.itic.paris.platform.shared.local.MessageKey;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,10 +58,19 @@ public class JwAuthFilter extends OncePerRequestFilter {
                 String message = LanguageUtil.translate(e.getMessageKey(), lang);
                 writeErrorResponse(response, HttpStatus.UNAUTHORIZED.value(), e.getMessageKey().getKey(), message);
                 return;
+            } catch (UsernameNotFoundException e) {
+                // Valid token but user deleted from DB — session is no longer valid
+                SecurityContextHolder.clearContext();
+                String lang = LanguageUtil.resolveLang(request);
+                String message = LanguageUtil.translate(MessageKey.USER_NOT_FOUND, lang);
+                writeErrorResponse(response, HttpStatus.UNAUTHORIZED.value(), MessageKey.USER_NOT_FOUND.getKey(), message);
+                return;
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
-                writeErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR.value(), MessageKey.ERROR.getKey(),
-                        jsonEscape(e.getMessage() != null ? e.getMessage() : "Internal server error"));
+                String lang = LanguageUtil.resolveLang(request);
+                String message = LanguageUtil.translate(MessageKey.REQUEST_PROCESSING_FAILED, lang);
+                writeErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        MessageKey.REQUEST_PROCESSING_FAILED.getKey(), message);
                 return;
             }
         }
