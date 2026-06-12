@@ -24,7 +24,6 @@ public class SkillTreeAdminService {
     private final ArticleRepository articleRepository;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
-    private final QuizValidationRepository quizValidationRepository;
     private final UserRepository userRepository;
 
     // ── Categories ──────────────────────────────────────────────────────────
