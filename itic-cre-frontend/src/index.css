@@ -1,6 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── TechSchool Design Tokens ─────────────────────────────────────── */
+:root {
+  /* Color */
+  --ts-text-primary:    #ffffff;
+  --ts-text-tertiary:   #9aa0a6;
+  --ts-text-inverse:    #3f74ff;
+  --ts-surface-base:    #000000;
+  --ts-surface-muted:   #020203;
+  --ts-surface-raised:  #15171f;
+  --ts-border-strong:   #333a51;
+
+  /* Spacing */
+  --ts-space-1: 5px;
+  --ts-space-2: 7px;
+  --ts-space-3: 15px;
+  --ts-space-4: 17px;
+  --ts-space-5: 18px;
+  --ts-space-6: 20px;
+  --ts-space-7: 25px;
+  --ts-space-8: 30px;
+
+  /* Radius */
+  --ts-radius-xs: 8px;
+  --ts-radius-sm: 15px;
+  --ts-radius-md: 30px;
+  --ts-radius-lg: 35px;
+  --ts-radius-xl: 50px;
+
+  /* Shadow */
+  --ts-shadow-1: rgba(99, 99, 110, 0.2) 0px 7px 29px 0px;
+
+  /* Motion */
+  --ts-duration-instant: 30ms;
+  --ts-duration-fast:    150ms;
+  --ts-duration-normal:  200ms;
+  --ts-duration-slow:    250ms;
+  --ts-duration-slower:  300ms;
+}
 
 html {
   color-scheme: light;
@@ -14,102 +54,77 @@ html.dark {
 html, body {
   overflow-x: hidden;
   max-width: 100%;
-  background-color: #F5F5F5; /* Gris clair */
-  color: #333333; /* Gris texte */
+  font-family: 'Poppins', sans-serif;
+  background-color: #F5F5F5;
+  color: #333333;
 }
 
 html.dark body {
-  background-color: #1A1A2E; /* Bleu nuit */
+  background-color: #1A1A2E;
   color: #FFFFFF;
 }
 
 @theme {
-  /* Base tokens mapped to ITIC CRE colors */
-  --color-primary: #E63946; /* Rouge ITIC */
-  --color-secondary: #1A1A2E; /* Bleu nuit */
-  --color-background: #F5F5F5; /* Gris clair */
+  --font-sans: 'Poppins', sans-serif;
 
-  /* Primary Accent Scale (Rouge ITIC #E63946) */
-  --color-primary-50:  #FFF5F5;
-  --color-primary-100: #FFE3E3;
-  --color-primary-200: #FFC9C9;
-  --color-primary-300: #FFA8A8;
-  --color-primary-400: #FF8787;
-  --color-primary-500: #E63946;
-  --color-primary-600: #C92A2A;
-  --color-primary-700: #A61E1E;
-  --color-primary-800: #861818;
-  --color-primary-900: #661010;
+  /* Primary: TechSchool Blue */
+  --color-primary:     #3f74ff;
+  --color-primary-50:  #eef3ff;
+  --color-primary-100: #d4e1ff;
+  --color-primary-200: #adc4ff;
+  --color-primary-300: #78a2ff;
+  --color-primary-400: #4d7eff;
+  --color-primary-500: #3f74ff;
+  --color-primary-600: #2a5de5;
+  --color-primary-700: #1d47c2;
+  --color-primary-800: #15349a;
+  --color-primary-900: #0e2270;
 
-  /* Secondary Scale (Bleu nuit #1A1A2E & other dark blues) */
-  --color-secondary-50:  #ECECF3;
-  --color-secondary-100: #D0D0E2;
-  --color-secondary-200: #B1B1CE;
-  --color-secondary-300: #8E8EB6;
-  --color-secondary-400: #67679C;
+  /* Secondary (dark surface scale) */
+  --color-secondary:     #15171f;
+  --color-secondary-50:  #ececf3;
+  --color-secondary-100: #d0d0e2;
+  --color-secondary-200: #b1b1ce;
+  --color-secondary-300: #8e8eb6;
+  --color-secondary-400: #67679c;
   --color-secondary-500: #494984;
-  --color-secondary-600: #38386F;
-  --color-secondary-700: #292956;
-  --color-secondary-800: #1C1C3C;
-  --color-secondary-900: #1A1A2E;
+  --color-secondary-600: #38386f;
+  --color-secondary-700: #29295a;
+  --color-secondary-800: #15171f;
+  --color-secondary-900: #020203;
 
-  /* Background Scale (Gris clair #F5F5F5 to dark blues) */
-  --color-background-50:  #F5F5F5; /* Gris clair */
+  /* Background scale */
+  --color-background:     #F5F5F5;
+  --color-background-50:  #F5F5F5;
   --color-background-100: #EAEAEA;
   --color-background-200: #D6D6D6;
   --color-background-300: #B5B5B5;
   --color-background-400: #8E8E8E;
-  --color-background-500: #333333; /* Gris texte */
-  --color-background-600: #16213E; /* Bleu marine */
-  --color-background-700: #0F3460; /* Bleu profond */
-  --color-background-800: #16213E; /* Bleu marine */
-  --color-background-900: #1A1A2E; /* Bleu nuit */
+  --color-background-500: #333333;
+  --color-background-600: #16213E;
+  --color-background-700: #0F3460;
+  --color-background-800: #16213E;
+  --color-background-900: #1A1A2E;
 }
 
-/* Color Palette Grid Utilities */
-.palette-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 1rem 0;
+/* ─── Entrance Animations ───────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.swatch {
-  border-radius: 0.5rem; /* border-radius-lg style */
-  overflow: hidden;
-  border: 0.5px solid rgba(148, 163, 184, 0.2);
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-.swatch-color {
-  height: 80px;
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.swatch-info {
-  padding: 10px 12px;
-  background: white;
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-html.dark .swatch-info {
-  background: #16213E;
-}
-.swatch-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: inherit;
-  margin: 0 0 2px;
-}
-.swatch-hex {
-  font-size: 12px;
-  color: #64748B;
-  font-family: monospace;
-  margin: 0;
-}
-.swatch-role {
-  font-size: 11px;
-  color: #94A3B8;
-  margin: 4px 0 0;
-}
-.section-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748B;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 1.5rem 0 0.5rem;
-}
+.anim-delay-100 { animation-delay: 100ms; }
+.anim-delay-200 { animation-delay: 200ms; }
+.anim-delay-300 { animation-delay: 300ms; }
+.anim-delay-400 { animation-delay: 400ms; }
+

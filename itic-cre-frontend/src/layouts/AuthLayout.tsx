@@ -11,8 +11,8 @@ export default function AuthLayout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <main className="flex-1 flex flex-col justify-center my-10">
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
       <Footer />
