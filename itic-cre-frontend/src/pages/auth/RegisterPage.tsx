@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import logo from '../../assets/itic-paris-logo-white.svg';
+import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import Button from '../../components/basics/Button';
 import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -57,7 +57,7 @@ export default function RegisterPage() {
                     {/* Logo */}
                     <div>
                         <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
-                            <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                            <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
                         <p className="text-white/60 text-sm mt-3">{t('auth.register.portal_subtitle')}</p>
                     </div>
@@ -94,21 +94,21 @@ export default function RegisterPage() {
                     <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-400/10 blur-2xl animate-blob-2" />
                 </div>
 
-                <div className="w-full max-w-xl relative z-10 animate-fade-in-up anim-delay-100
-                    bg-white
-                    rounded-2xl shadow-xl border border-slate-100
+                <div className="w-full max-w-xl relative z-10
+                    bg-white dark:bg-slate-800
+                    rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50
                     p-8 lg:p-12">
 
-                    {/* Mobile logo — plain, no wrapper */}
+                    {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-6">
-                        <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:brightness-0 dark:invert" />
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                             {t('auth.register.register_title')}
                         </h2>
-                        <p className="text-slate-500 text-sm">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
                             {t('auth.register.register_subtitle')}
                         </p>
                     </div>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                     <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (
-                            <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm animate-fade-in-up">
+                            <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm animate-fade-in-up">
                                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                                 <span>{generalError}</span>
                             </div>
@@ -125,7 +125,7 @@ export default function RegisterPage() {
                         {/* First name + Last name */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700">
+                                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     {t('auth.register.first_name_label')}
                                 </label>
                                 <div className="relative group">
@@ -135,10 +135,10 @@ export default function RegisterPage() {
                                         type="text"
                                         placeholder={t('auth.register.first_name_placeholder')}
                                         disabled={isPending}
-                                        className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
-                                            focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                        className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
+                                            focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                             transition-all duration-200 disabled:opacity-60
-                                            ${errors.firstName ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                            ${errors.firstName ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                         {...register('firstName', {
                                             required: t('auth.register.first_name_required'),
                                             minLength: { value: 2, message: t('auth.register.first_name_min') },
@@ -151,7 +151,7 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700">
+                                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     {t('auth.register.last_name_label')}
                                 </label>
                                 <div className="relative group">
@@ -161,10 +161,10 @@ export default function RegisterPage() {
                                         type="text"
                                         placeholder={t('auth.register.last_name_placeholder')}
                                         disabled={isPending}
-                                        className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
-                                            focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                        className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
+                                            focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                             transition-all duration-200 disabled:opacity-60
-                                            ${errors.lastName ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                            ${errors.lastName ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                         {...register('lastName', {
                                             required: t('auth.register.last_name_required'),
                                             minLength: { value: 2, message: t('auth.register.last_name_min') },
@@ -179,7 +179,7 @@ export default function RegisterPage() {
 
                         {/* Email */}
                         <div className="space-y-2">
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 {t('auth.register.email_label')}
                             </label>
                             <div className="relative group">
@@ -190,10 +190,10 @@ export default function RegisterPage() {
                                     placeholder={t('auth.register.email_placeholder')}
                                     autoComplete="email"
                                     disabled={isPending}
-                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
-                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                    className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-800 pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500
+                                        focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-[#3f74ff]
                                         transition-all duration-200 disabled:opacity-60
-                                        ${errors.email ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        ${errors.email ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                     {...register('email', {
                                         required: t('auth.verify_email.email_required'),
                                         pattern: { value: /^\S+@\S+$/i, message: t('auth.verify_email.email_invalid') },
@@ -207,7 +207,7 @@ export default function RegisterPage() {
 
                         {/* Password */}
                         <div className="space-y-2">
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 {t('auth.register.password_label')}
                             </label>
                             <div className="relative group">
@@ -218,10 +218,10 @@ export default function RegisterPage() {
                                     placeholder={t('auth.register.password_placeholder')}
                                     autoComplete="new-password"
                                     disabled={isPending}
-                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-12 py-3 text-sm text-slate-800 placeholder-slate-400
-                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                    className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-12 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
+                                        focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                         transition-all duration-200 disabled:opacity-60
-                                        ${errors.password ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        ${errors.password ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                     {...register('password', {
                                         required: t('auth.login.invalid_credentials'),
                                         minLength: { value: 8, message: 'Le mot de passe doit comporter au moins 8 caractères.' },
@@ -231,7 +231,7 @@ export default function RegisterPage() {
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     disabled={isPending}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
                                     aria-label={showPassword ? 'Masquer' : 'Afficher'}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -259,7 +259,7 @@ export default function RegisterPage() {
 
                         {/* Links */}
                         <div className="flex flex-col items-center gap-2 pt-2 text-center">
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {t('auth.register.have_account')}{' '}
                                 <Link to="/login" className="text-[#3f74ff] hover:underline font-medium">
                                     {t('auth.register.login_link')}

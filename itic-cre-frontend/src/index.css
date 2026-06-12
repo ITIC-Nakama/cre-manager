@@ -150,6 +150,11 @@ html.dark body {
   background-size: 400% 400%;
   animation: gradientShift 8s ease infinite;
 }
+.dark .animate-gradient-bg {
+  background: linear-gradient(-45deg, #0f172a, #1e293b, #131c2e, #1b2442, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
 
 /* ─── Entrance Animations ───────────────────────────────────────────── */
 @keyframes fadeInUp {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import logo from '../../assets/itic-paris-logo-white.svg';
+import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import Button from '../../components/basics/Button';
 import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useLogin } from '../../hooks/useAuth';
@@ -64,7 +64,7 @@ export default function LoginPage() {
                     {/* Logo */}
                     <div>
                         <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
-                            <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                            <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
                         <p className="text-white/60 text-sm mt-3">{t('auth.login.portal_subtitle')}</p>
                     </div>
@@ -102,20 +102,20 @@ export default function LoginPage() {
                 </div>
 
                 <div className="w-full max-w-xl relative z-10
-                    bg-white
-                    rounded-2xl shadow-xl border border-slate-100
+                    bg-white dark:bg-slate-800
+                    rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50
                     p-8 lg:p-12">
 
-                    {/* Mobile logo — plain, no wrapper */}
+                    {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-6">
-                        <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:brightness-0 dark:invert" />
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                             {t('auth.login.connexion_title')}
                         </h2>
-                        <p className="text-slate-500 text-sm">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
                             {t('auth.login.connexion_subtitle')}
                         </p>
                     </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                     <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (
-                            <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm animate-fade-in-up">
+                            <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm animate-fade-in-up">
                                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                                 <span>{generalError}</span>
                             </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
 
                         {/* Email */}
                         <div className="space-y-2">
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 {t('auth.login.email_label')}
                             </label>
                             <div className="relative group">
@@ -142,10 +142,10 @@ export default function LoginPage() {
                                     placeholder={t('auth.login.email_placeholder')}
                                     autoComplete="email"
                                     disabled={isPending}
-                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
-                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                    className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
+                                        focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                         transition-all duration-200 disabled:opacity-60
-                                        ${errors.email ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        ${errors.email ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                     {...register('email', {
                                         required: t('auth.verify_email.email_required'),
                                         pattern: { value: /^\S+@\S+$/i, message: t('auth.verify_email.email_invalid') },
@@ -159,7 +159,7 @@ export default function LoginPage() {
 
                         {/* Password */}
                         <div className="space-y-2">
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 {t('auth.login.password_label')}
                             </label>
                             <div className="relative group">
@@ -170,17 +170,17 @@ export default function LoginPage() {
                                     placeholder={t('auth.login.password_placeholder')}
                                     autoComplete="current-password"
                                     disabled={isPending}
-                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-12 py-3 text-sm text-slate-800 placeholder-slate-400
-                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                    className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-12 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
+                                        focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                         transition-all duration-200 disabled:opacity-60
-                                        ${errors.password ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        ${errors.password ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                     {...register('password', { required: t('auth.login.password_placeholder') })}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     disabled={isPending}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
                                     aria-label={showPassword ? t('auth.login.password_placeholder') : t('auth.login.password_label')}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -212,7 +212,7 @@ export default function LoginPage() {
                                 className="text-sm text-[#3f74ff] hover:underline font-medium transition-colors">
                                 {t('auth.login.forgot_password')}
                             </Link>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {t('auth.login.no_account')}{' '}
                                 <Link to="/signup" className="text-[#3f74ff] hover:underline font-medium">
                                     {t('auth.login.register_free')}
@@ -220,7 +220,7 @@ export default function LoginPage() {
                             </p>
                             <Link
                                 to={`/verify-email?email=${encodeURIComponent(watch('email') || '')}`}
-                                className="text-sm text-slate-400 hover:text-[#3f74ff] hover:underline transition-colors">
+                                className="text-sm text-slate-400 dark:text-slate-500 hover:text-[#3f74ff] hover:underline transition-colors">
                                 {t('auth.login.activate_account')}
                             </Link>
                         </div>

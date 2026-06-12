@@ -28,7 +28,12 @@
   },
   "dashboard": {
     "sidebar": {
-      "accueil": "Home",
+      "accueil": "Dashboard",
+      "candidatures": "Applications",
+      "formation": "Training",
+      "cv": "My CV",
+      "profil": "Profile",
+      "etudiants": "Students",
       "parametres": "Settings",
       "logout": "Logout"
     },
