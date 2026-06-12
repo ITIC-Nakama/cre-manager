@@ -45,18 +45,17 @@ export default function RegisterPage() {
 
             {/* ── Left panel ─────────────────────────────────────────── */}
             <div className="hidden lg:flex w-[44%] flex-col relative overflow-hidden
-                bg-gradient-to-br from-[#3f74ff] via-[#2e63f0] to-[#1a3fbf]
-                animate-slide-in-left">
+                bg-gradient-to-br from-[#3f74ff] via-[#2e63f0] to-[#1a3fbf]">
 
                 {/* Animated background blobs */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/20 blur-3xl animate-blob-1 pointer-events-none" />
-                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/15 blur-3xl animate-blob-2 pointer-events-none" />
-                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/20 blur-3xl animate-blob-3 pointer-events-none" />
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/35 blur-xl ring-1 ring-white/40 animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/30 blur-xl ring-1 ring-white/35 animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/35 blur-xl ring-1 ring-white/40 animate-blob-3 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col justify-between h-full p-12">
 
                     {/* Logo */}
-                    <div className="animate-fade-in-up">
+                    <div>
                         <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
                             <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
@@ -64,7 +63,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Headline */}
-                    <div className="animate-fade-in-up anim-delay-100">
+                    <div>
                         <h1 className="text-4xl font-bold text-white leading-tight mb-5">
                             {t('auth.register.hero_title')}
                         </h1>
@@ -74,8 +73,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Help box */}
-                    <div className="animate-fade-in-up anim-delay-200
-                        rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-5">
+                    <div className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-5">
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.register.help_title')}</p>
                         <p className="text-white/70 text-sm">
                             {t('auth.register.help_contact')}{' '}
@@ -90,6 +88,11 @@ export default function RegisterPage() {
 
             {/* ── Right panel ────────────────────────────────────────── */}
             <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
+
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#3f74ff]/12 blur-2xl animate-blob-1" />
+                    <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-400/10 blur-2xl animate-blob-2" />
+                </div>
 
                 <div className="w-full max-w-xl relative z-10 animate-fade-in-up anim-delay-100
                     bg-white
