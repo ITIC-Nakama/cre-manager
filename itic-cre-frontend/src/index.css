@@ -107,6 +107,36 @@ html.dark body {
   --color-background-900: #1A1A2E;
 }
 
+/* ─── Background Blob Animations ────────────────────────────────────── */
+@keyframes blobFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(40px, -30px) scale(1.07); }
+  66%       { transform: translate(-25px, 25px) scale(0.95); }
+}
+@keyframes blobFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(-40px, 40px) scale(1.12); }
+}
+@keyframes blobFloat3 {
+  0%, 100% { transform: translate(0, 0); }
+  40%       { transform: translate(30px, -40px); }
+  80%       { transform: translate(-20px, 15px); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-blob-1 { animation: blobFloat1 9s  ease-in-out infinite; }
+.animate-blob-2 { animation: blobFloat2 13s ease-in-out infinite; }
+.animate-blob-3 { animation: blobFloat3 7s  ease-in-out infinite; }
+.animate-gradient-bg {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 30%, #eff6ff 60%, #eef2ff 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+
 /* ─── Entrance Animations ───────────────────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }

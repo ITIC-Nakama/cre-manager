@@ -3,14 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logo from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
-import { ArrowRight, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useRegister } from '../../hooks/useAuth';
 import { type RegisterDTO, Role } from '../../types/models/Auth';
 import { handleApiError } from '../../utils/errorHelper';
 import { getBrowserLang } from '../../utils/browserSettings';
 import { toast } from 'sonner';
-
 
 export default function RegisterPage() {
     const { t } = useTranslation();
@@ -32,193 +31,250 @@ export default function RegisterPage() {
 
         mutate(registerDto, {
             onSuccess: () => {
-                toast.success("Compte créé avec succès ! Un e-mail de validation vous a été envoyé.");
+                toast.success(t('auth.register.success_created'));
                 navigate(`/verify-email?email=${encodeURIComponent(registerDto.email)}`);
             },
             onError: (err: any) => {
-                handleApiError(
-                    err,
-                    setError,
-                    setGeneralError,
-                    "Une erreur est survenue lors de l'inscription."
-                );
-            }
+                handleApiError(err, setError, setGeneralError, t('auth.register.error_generic'));
+            },
         });
     };
 
     return (
-        <div className="flex flex-col gap-6 max-w-md mx-auto w-full items-center justify-center min-h-[85vh] px-4 py-8">
-            {/* Header / Logo */}
-            <div className="gap-3 mb-2 items-center flex flex-col text-center">
-                <img src={logo} alt="Register" className="h-10 w-auto drop-shadow-sm" />
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t('auth.register.title')}</h1>
-                <span className="text-sm text-slate-500 dark:text-slate-400">{t('auth.register.subtitle')}</span>
-            </div>
+        <div className="flex-1 flex min-h-screen overflow-hidden">
 
-            {/* Register Card */}
-            <div className="shadow-xl rounded-xl w-full bg-white p-8 border border-slate-100 dark:border-slate-800/40 dark:bg-slate-900 dark:shadow-slate-950/40">
-                <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-                    {generalError && (
-                        <div className="flex gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/10 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 text-sm">
-                            <AlertTriangle className="h-5 w-5 shrink-0" />
-                            <span>{generalError}</span>
+            {/* ── Left panel ─────────────────────────────────────────── */}
+            <div className="hidden lg:flex w-[44%] flex-col relative overflow-hidden
+                bg-gradient-to-br from-[#3f74ff] via-[#2e63f0] to-[#1a3fbf]
+                animate-slide-in-left">
+
+                {/* Animated background blobs */}
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/10 blur-3xl animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/8 blur-3xl animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/10 blur-3xl animate-blob-3 pointer-events-none" />
+
+                <div className="relative z-10 flex flex-col justify-between h-full p-12">
+
+                    {/* Logo */}
+                    <div className="animate-fade-in-up">
+                        <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
+                            <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
-                    )}
-
-
-
-                    {/* Name Inputs (FirstName & LastName) */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* FirstName Input */}
-                        <div className="space-y-1.5">
-                            <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Prénom</label>
-                            <input
-                                id="firstName"
-                                type="text"
-                                placeholder="Jean"
-                                disabled={isPending}
-                                className={`w-full rounded-lg border px-3.5 py-2 text-sm placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 transition-all duration-150 disabled:opacity-60 ${errors.firstName ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`}
-                                {...register("firstName", {
-                                    required: "Le prénom est requis.",
-                                    minLength: { value: 2, message: "Le prénom doit faire au moins 2 caractères." }
-                                })}
-                            />
-                            {errors.firstName && (
-                                <span className="text-red-500 text-xs mt-1 block">
-                                    {errors.firstName.message as string}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* LastName Input */}
-                        <div className="space-y-1.5">
-                            <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Nom</label>
-                            <input
-                                id="lastName"
-                                type="text"
-                                placeholder="Dupont"
-                                disabled={isPending}
-                                className={`w-full rounded-lg border px-3.5 py-2 text-sm placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 transition-all duration-150 disabled:opacity-60 ${errors.lastName ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`}
-                                {...register("lastName", {
-                                    required: "Le nom est requis.",
-                                    minLength: { value: 2, message: "Le nom doit faire au moins 2 caractères." }
-                                })}
-                            />
-                            {errors.lastName && (
-                                <span className="text-red-500 text-xs mt-1 block">
-                                    {errors.lastName.message as string}
-                                </span>
-                            )}
-                        </div>
+                        <p className="text-white/60 text-sm mt-3">{t('auth.register.portal_subtitle')}</p>
                     </div>
 
-                    {/* Email Input */}
-                    <div className="space-y-1.5">
-                        <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('auth.register.email_label')}</label>
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder={t('auth.register.email_placeholder')}
-                            autoComplete="email"
+                    {/* Headline */}
+                    <div className="animate-fade-in-up anim-delay-100">
+                        <h1 className="text-4xl font-bold text-white leading-tight mb-5">
+                            {t('auth.register.hero_title')}
+                        </h1>
+                        <p className="text-white/75 text-base leading-relaxed max-w-xs">
+                            {t('auth.register.hero_description')}
+                        </p>
+                    </div>
+
+                    {/* Help box */}
+                    <div className="animate-fade-in-up anim-delay-200
+                        rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-5">
+                        <p className="text-white font-semibold text-sm mb-1">{t('auth.register.help_title')}</p>
+                        <p className="text-white/70 text-sm">
+                            {t('auth.register.help_contact')}{' '}
+                            <a href="mailto:rp-info@iticparis.fr"
+                                className="text-white underline underline-offset-2 hover:text-white/80 transition-colors">
+                                rp-info@iticparis.fr
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Right panel ────────────────────────────────────────── */}
+            <div className="flex-1 animate-gradient-bg lg:bg-white flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
+
+                {/* Mobile animated blobs */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden">
+                    <div className="absolute top-10 -left-16 w-72 h-72 rounded-full bg-[#3f74ff]/15 blur-3xl animate-blob-1" />
+                    <div className="absolute bottom-10 -right-16 w-80 h-80 rounded-full bg-indigo-400/15 blur-3xl animate-blob-2" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-blue-300/10 blur-3xl animate-blob-3" />
+                </div>
+
+                <div className="w-full max-w-md relative z-10 animate-fade-in-up anim-delay-100
+                    bg-white
+                    rounded-2xl shadow-xl border border-slate-100
+                    p-7 lg:p-8">
+
+                    {/* Mobile logo — plain, no wrapper */}
+                    <div className="flex lg:hidden justify-center mb-6">
+                        <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                    </div>
+
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                            {t('auth.register.register_title')}
+                        </h2>
+                        <p className="text-slate-500 text-sm">
+                            {t('auth.register.register_subtitle')}
+                        </p>
+                    </div>
+
+                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+
+                        {generalError && (
+                            <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm animate-fade-in-up">
+                                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                                <span>{generalError}</span>
+                            </div>
+                        )}
+
+                        {/* First name + Last name */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700">
+                                    {t('auth.register.first_name_label')}
+                                </label>
+                                <div className="relative group">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                    <input
+                                        id="firstName"
+                                        type="text"
+                                        placeholder={t('auth.register.first_name_placeholder')}
+                                        disabled={isPending}
+                                        className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
+                                            focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                            transition-all duration-200 disabled:opacity-60
+                                            ${errors.firstName ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        {...register('firstName', {
+                                            required: t('auth.register.first_name_required'),
+                                            minLength: { value: 2, message: t('auth.register.first_name_min') },
+                                        })}
+                                    />
+                                </div>
+                                {errors.firstName && (
+                                    <p className="text-red-500 text-xs">{errors.firstName.message as string}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700">
+                                    {t('auth.register.last_name_label')}
+                                </label>
+                                <div className="relative group">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                    <input
+                                        id="lastName"
+                                        type="text"
+                                        placeholder={t('auth.register.last_name_placeholder')}
+                                        disabled={isPending}
+                                        className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
+                                            focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                            transition-all duration-200 disabled:opacity-60
+                                            ${errors.lastName ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                        {...register('lastName', {
+                                            required: t('auth.register.last_name_required'),
+                                            minLength: { value: 2, message: t('auth.register.last_name_min') },
+                                        })}
+                                    />
+                                </div>
+                                {errors.lastName && (
+                                    <p className="text-red-500 text-xs">{errors.lastName.message as string}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Email */}
+                        <div className="space-y-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                                {t('auth.register.email_label')}
+                            </label>
+                            <div className="relative group">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                <input
+                                    id="email"
+                                    type="email"
+                                    placeholder={t('auth.register.email_placeholder')}
+                                    autoComplete="email"
+                                    disabled={isPending}
+                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400
+                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                        transition-all duration-200 disabled:opacity-60
+                                        ${errors.email ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                    {...register('email', {
+                                        required: t('auth.verify_email.email_required'),
+                                        pattern: { value: /^\S+@\S+$/i, message: t('auth.verify_email.email_invalid') },
+                                    })}
+                                />
+                            </div>
+                            {errors.email && (
+                                <p className="text-red-500 text-xs">{errors.email.message as string}</p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                                {t('auth.register.password_label')}
+                            </label>
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                <input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder={t('auth.register.password_placeholder')}
+                                    autoComplete="new-password"
+                                    disabled={isPending}
+                                    className={`w-full rounded-xl border-2 bg-slate-50 pl-11 pr-12 py-3 text-sm text-slate-800 placeholder-slate-400
+                                        focus:bg-white focus:outline-none focus:border-[#3f74ff]
+                                        transition-all duration-200 disabled:opacity-60
+                                        ${errors.password ? 'border-red-400 bg-red-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                    {...register('password', {
+                                        required: t('auth.login.invalid_credentials'),
+                                        minLength: { value: 8, message: 'Le mot de passe doit comporter au moins 8 caractères.' },
+                                    })}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    disabled={isPending}
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                                    aria-label={showPassword ? 'Masquer' : 'Afficher'}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-xs">{errors.password.message as string}</p>
+                            )}
+                        </div>
+
+                        {/* Submit */}
+                        <Button
+                            type="submit"
                             disabled={isPending}
-                            className={`w-full rounded-lg border px-3.5 py-2 text-sm placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 transition-all duration-150 disabled:opacity-60 ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`}
-                            {...register("email", {
-                                required: "L'adresse email est requise.",
-                                pattern: {
-                                    value: /^\S+@\S+$/i,
-                                    message: "Veuillez entrer une adresse e-mail valide."
-                                }
-                            })}
-                        />
-                        {errors.email && (
-                            <span className="text-red-500 text-xs mt-1 block">
-                                {errors.email.message as string}
-                            </span>
-                        )}
-                    </div>
+                            className="w-full flex items-center justify-center gap-2
+                                bg-[#3f74ff] hover:bg-[#2a5de5] active:bg-[#1e4fd8]
+                                text-white font-semibold py-3 rounded-xl
+                                focus:outline-none focus:ring-2 focus:ring-[#3f74ff]/40 focus:ring-offset-2
+                                transition-all duration-200 hover:shadow-lg hover:shadow-[#3f74ff]/25
+                                disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
+                        >
+                            <span>{isPending ? t('auth.register.creating') : t('auth.register.submit_button')}</span>
+                            {!isPending && <ArrowRight className="h-4 w-4" />}
+                        </Button>
 
-                    {/* Password Input */}
-                    <div className="space-y-1.5">
-                        <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('auth.register.password_label')}</label>
-                        <div className="relative mt-1">
-                            <input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder={t('auth.login.password_placeholder')}
-                                autoComplete="new-password"
-                                disabled={isPending}
-                                className={`w-full rounded-lg border pl-3.5 pr-10 py-2 text-sm placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 transition-all duration-150 disabled:opacity-60 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`}
-                                {...register("password", {
-                                    required: "Le mot de passe est requis.",
-                                    minLength: { value: 8, message: "Le mot de passe doit comporter au moins 8 caractères." }
-                                })}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                disabled={isPending}
-                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 cursor-pointer disabled:opacity-50"
-                            >
-                                {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                            </button>
+                        {/* Links */}
+                        <div className="flex flex-col items-center gap-2 pt-2 text-center">
+                            <p className="text-sm text-slate-500">
+                                {t('auth.register.have_account')}{' '}
+                                <Link to="/login" className="text-[#3f74ff] hover:underline font-medium">
+                                    {t('auth.register.login_link')}
+                                </Link>
+                            </p>
                         </div>
-                        {errors.password && (
-                            <span className="text-red-500 text-xs mt-1 block">
-                                {errors.password.message as string}
-                            </span>
-                        )}
-                    </div>
 
-
-
-                    {/* Submit Button */}
-                    <Button
-                        type="submit"
-                        disabled={isPending}
-                        className="bg-primary hover:bg-primary-dark text-white py-2.5 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer justify-center font-medium mt-2 disabled:opacity-60 disabled:cursor-not-allowed w-full flex items-center gap-2"
-                    >
-                        <span>{isPending ? "Création..." : t('auth.register.submit_button')}</span>
-                        {!isPending && <ArrowRight className="h-4 w-4" />}
-                    </Button>
-
-                    {/* Divider */}
-                    <div className="relative flex py-2 items-center">
-                        <div className="flex-grow border-t border-slate-200/80 dark:border-slate-800"></div>
-                        <span className="flex-shrink mx-4 text-xs text-slate-400 dark:text-slate-500">{t('auth.register.or_register_with')}</span>
-                        <div className="flex-grow border-t border-slate-200/80 dark:border-slate-800"></div>
-                    </div>
-
-                    {/* Social Buttons */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <button type="button" className="flex items-center justify-center py-2.5 px-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
-                            <svg className="h-5 w-5 text-slate-900 dark:text-white fill-current" viewBox="0 0 24 24">
-                                <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.415 0-6.19-2.775-6.19-6.19s2.775-6.19 6.19-6.19c1.55 0 2.969.577 4.053 1.528l3.102-3.102C19.263 2.107 15.992 1 12.24 1 6.136 1 1.143 5.993 1.143 12s4.993 11 11.097 11c6.36 0 10.574-4.469 10.574-10.772 0-.726-.065-1.428-.188-2.113H12.24z" />
-                            </svg>
-                        </button>
-                        <button type="button" className="flex items-center justify-center py-2.5 px-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
-                            <svg className="h-5 w-5 text-slate-900 dark:text-white fill-current" viewBox="0 0 24 24">
-                                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C3.79 16.32 3.1 9.94 6.7 9.59c1.32.1 2.22.84 2.87.84.66 0 1.95-.91 3.55-.75 1.63.16 2.84.81 3.5 1.78-3.3 2-2.77 6.8.52 8.12-.66 1.7-1.5 3.37-2.6 4.7M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.26 2.5-2.1 4.42-3.74 4.25" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {/* Links */}
-                    <div className="flex flex-col items-center gap-2 pt-2 text-center">
-                        <span className="text-sm text-slate-500 dark:text-primary-400">{t('auth.register.have_account')}{" "}
-                            <Link to="/login" className="text-primary dark:text-primary-400 hover:underline ps-1 cursor-pointer font-medium">{t('auth.register.login_link')}</Link>
-                        </span>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
 
-            {/* Disclaimer / Warning Banner at the bottom */}
-            <div className="w-full p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/80 dark:border-amber-900/20 flex gap-3 text-left">
-                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-xs md:text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
-                    <strong className="font-semibold text-amber-900 dark:text-amber-200">{t('cta.warning_title')}</strong>{" "}
-                    {t('cta.warning_text')}
-                </p>
-            </div>
         </div>
-    )
+    );
 }

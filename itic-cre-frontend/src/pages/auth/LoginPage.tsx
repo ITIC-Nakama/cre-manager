@@ -55,10 +55,10 @@ export default function LoginPage() {
                 bg-gradient-to-br from-[#3f74ff] via-[#2e63f0] to-[#1a3fbf]
                 animate-slide-in-left">
 
-                {/* Decorative circles */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/5 pointer-events-none" />
-                <div className="absolute top-1/2 -right-20 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
-                <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-white/8 pointer-events-none" />
+                {/* Animated background blobs */}
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/10 blur-3xl animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/8 blur-3xl animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/10 blur-3xl animate-blob-3 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col justify-between h-full p-12">
 
@@ -96,16 +96,24 @@ export default function LoginPage() {
             </div>
 
             {/* ── Right panel ────────────────────────────────────────── */}
-            <div className="flex-1 bg-white flex flex-col items-center justify-center px-8 py-12 overflow-y-auto">
+            <div className="flex-1 animate-gradient-bg lg:bg-white flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
 
-                {/* Mobile logo */}
-                <div className="flex lg:hidden mb-10">
-                    <div className="bg-white rounded-2xl px-6  my-12  ">
-                        <img src={logo} alt="ITIC Paris" className="h-8 w-auto" />
-                    </div>
+                {/* Mobile animated blobs */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden">
+                    <div className="absolute top-10 -left-16 w-72 h-72 rounded-full bg-[#3f74ff]/15 blur-3xl animate-blob-1" />
+                    <div className="absolute bottom-10 -right-16 w-80 h-80 rounded-full bg-indigo-400/15 blur-3xl animate-blob-2" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-blue-300/10 blur-3xl animate-blob-3" />
                 </div>
 
-                <div className="w-full max-w-md animate-fade-in-up anim-delay-100">
+                <div className="w-full max-w-md relative z-10 animate-fade-in-up anim-delay-100
+                    bg-white
+                    rounded-2xl shadow-xl border border-slate-100
+                    p-7 lg:p-8">
+
+                    {/* Mobile logo — plain, no wrapper */}
+                    <div className="flex lg:hidden justify-center mb-6">
+                        <img src={logo} alt="ITIC Paris" className="h-9 w-auto" />
+                    </div>
 
                     <div className="mb-8">
                         <h2 className="text-3xl font-bold text-slate-900 mb-2">
