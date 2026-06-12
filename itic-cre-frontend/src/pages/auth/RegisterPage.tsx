@@ -57,7 +57,7 @@ export default function RegisterPage() {
                     {/* Logo */}
                     <div>
                         <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
-                            <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto" />
+                            <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
                         <p className="text-white/60 text-sm mt-3">{t('auth.register.portal_subtitle')}</p>
                     </div>
