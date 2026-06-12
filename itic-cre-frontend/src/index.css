@@ -109,18 +109,23 @@ html.dark body {
 
 /* ─── Background Blob Animations ────────────────────────────────────── */
 @keyframes blobFloat1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(40px, -30px) scale(1.07); }
-  66%       { transform: translate(-25px, 25px) scale(0.95); }
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  25%  { transform: translate3d(80px, -60px, 0) scale(1.15); }
+  50%  { transform: translate3d(40px, 80px, 0) scale(0.9); }
+  75%  { transform: translate3d(-60px, 20px, 0) scale(1.1); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes blobFloat2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(-40px, 40px) scale(1.12); }
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(-80px, 60px, 0) scale(1.2); }
+  66%  { transform: translate3d(60px, -80px, 0) scale(0.85); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes blobFloat3 {
-  0%, 100% { transform: translate(0, 0); }
-  40%       { transform: translate(30px, -40px); }
-  80%       { transform: translate(-20px, 15px); }
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  40%  { transform: translate3d(70px, -70px, 0) scale(1.15); }
+  80%  { transform: translate3d(-50px, 50px, 0) scale(0.9); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes gradientShift {
   0%   { background-position: 0% 50%; }
@@ -128,13 +133,22 @@ html.dark body {
   100% { background-position: 0% 50%; }
 }
 
-.animate-blob-1 { animation: blobFloat1 9s  ease-in-out infinite; }
-.animate-blob-2 { animation: blobFloat2 13s ease-in-out infinite; }
-.animate-blob-3 { animation: blobFloat3 7s  ease-in-out infinite; }
+.animate-blob-1 {
+  animation: blobFloat1 8s  ease-in-out infinite;
+  will-change: transform;
+}
+.animate-blob-2 {
+  animation: blobFloat2 11s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-blob-3 {
+  animation: blobFloat3 6s  ease-in-out infinite;
+  will-change: transform;
+}
 .animate-gradient-bg {
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 30%, #eff6ff 60%, #eef2ff 100%);
-  background-size: 300% 300%;
-  animation: gradientShift 10s ease infinite;
+  background: linear-gradient(-45deg, #f8f9ff, #eef2ff, #e8edff, #f0f5ff, #f8f9ff);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
 }
 
 /* ─── Entrance Animations ───────────────────────────────────────────── */

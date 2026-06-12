@@ -56,9 +56,9 @@ export default function LoginPage() {
                 animate-slide-in-left">
 
                 {/* Animated background blobs */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/10 blur-3xl animate-blob-1 pointer-events-none" />
-                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/8 blur-3xl animate-blob-2 pointer-events-none" />
-                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/10 blur-3xl animate-blob-3 pointer-events-none" />
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/20 blur-3xl animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/15 blur-3xl animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/20 blur-3xl animate-blob-3 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col justify-between h-full p-12">
 
@@ -96,19 +96,13 @@ export default function LoginPage() {
             </div>
 
             {/* ── Right panel ────────────────────────────────────────── */}
-            <div className="flex-1 animate-gradient-bg lg:bg-white flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
+            <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
 
-                {/* Mobile animated blobs */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden">
-                    <div className="absolute top-10 -left-16 w-72 h-72 rounded-full bg-[#3f74ff]/15 blur-3xl animate-blob-1" />
-                    <div className="absolute bottom-10 -right-16 w-80 h-80 rounded-full bg-indigo-400/15 blur-3xl animate-blob-2" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-blue-300/10 blur-3xl animate-blob-3" />
-                </div>
 
-                <div className="w-full max-w-md relative z-10 animate-fade-in-up anim-delay-100
+                <div className="w-full max-w-xl relative z-10 animate-fade-in-up anim-delay-100
                     bg-white
                     rounded-2xl shadow-xl border border-slate-100
-                    p-7 lg:p-8">
+                    p-8 lg:p-12">
 
                     {/* Mobile logo — plain, no wrapper */}
                     <div className="flex lg:hidden justify-center mb-6">
