@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
+import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
 import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -101,7 +102,8 @@ export default function RegisterPage() {
 
                     {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-6">
-                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:brightness-0 dark:invert" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
+                        <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
 
                     <div className="mb-8">

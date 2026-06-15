@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
+import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
 import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useLogin } from '../../hooks/useAuth';
@@ -108,7 +109,8 @@ export default function LoginPage() {
 
                     {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-6">
-                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:brightness-0 dark:invert" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
+                        <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
 
                     <div className="mb-8">
@@ -174,7 +176,7 @@ export default function LoginPage() {
                                         focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
                                         transition-all duration-200 disabled:opacity-60
                                         ${errors.password ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
-                                    {...register('password', { required: t('auth.login.password_placeholder') })}
+                                    {...register('password', { required: t('auth.login.password_required') })}
                                 />
                                 <button
                                     type="button"

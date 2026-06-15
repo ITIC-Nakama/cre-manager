@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
-import logo from '../../assets/itic-paris-logo-white.svg';
+import logoDark from '../../assets/itic-paris-logo-dark.svg';
+import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import ToggleDarkMode from '../basics/ToggleDarkMode';
 import SwitchLanguage from '../basics/SwitchLanguage';
 
@@ -35,8 +36,9 @@ function SidebarContent({ navItems, onNavClick }: { navItems: NavItem[]; onNavCl
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-slate-100 dark:border-slate-800">
-        <div className="inline-flex items-center bg-[#3f74ff] rounded-xl px-4 py-2.5">
-          <img src={logo} alt="ITIC Paris" className="h-7 w-auto" />
+        <div className="inline-flex items-center  rounded-xl px-4 py-2.5">
+          <img src={logoDark} alt="ITIC Paris" className="h-7 w-auto dark:hidden" />
+          <img src={logoWhite} alt="ITIC Paris" className="h-7 w-auto hidden dark:block" />
         </div>
       </div>
 
