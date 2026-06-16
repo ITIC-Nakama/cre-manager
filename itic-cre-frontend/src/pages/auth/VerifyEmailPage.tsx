@@ -72,23 +72,25 @@ export default function VerifyEmailPage() {
                 <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-400/10 blur-2xl animate-blob-2" />
             </div>
 
-            <div className="flex flex-col gap-6 max-w-md w-full relative z-10">
+            <div className="flex flex-col gap-10 max-w-md w-full relative z-10">
 
                 {/* Logo + heading */}
-                <div className="flex flex-col items-center gap-3 text-center">
-                    <img src={logoDark} alt="ITIC Paris" className="h-10 w-auto dark:hidden" />
-                    <img src={logoWhite} alt="ITIC Paris" className="h-10 w-auto hidden dark:block" />
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-                        {t('auth.verify_email.title')}
-                    </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {t('auth.verify_email.subtitle')}
-                    </p>
+                <div className="flex flex-col items-center gap-5 text-center">
+                    <img src={logoDark} alt="ITIC Paris" className="h-12 w-auto dark:hidden" />
+                    <img src={logoWhite} alt="ITIC Paris" className="h-12 w-auto hidden dark:block" />
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {t('auth.verify_email.title')}
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+                            {t('auth.verify_email.subtitle')}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Card */}
-                <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50 p-8">
-                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+                <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50 p-10">
+                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (
                             <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm">

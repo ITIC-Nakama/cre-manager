@@ -13,6 +13,7 @@ import { Role } from './types/models/Auth'
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
+import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 
 // Redirection component based on role
@@ -53,14 +54,28 @@ function App() {
 
         {/* Student Routes */}
         <Route element={<StudentLayout />}>
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/parametres" element={<ParametresPage />} />
+          <Route path="/student/dashboard"     element={<StudentDashboard />} />
+          <Route path="/student/candidatures"  element={<ComingSoonPage />} />
+          <Route path="/student/offres"        element={<ComingSoonPage />} />
+          <Route path="/student/formation"     element={<ComingSoonPage />} />
+          <Route path="/student/cv"            element={<ComingSoonPage />} />
+          <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 
         {/* Advisor / Admin Routes */}
         <Route element={<AdvisorLayout />}>
-          <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />
-          <Route path="/advisor/parametres" element={<ParametresPage />} />
+          <Route path="/advisor/dashboard"     element={<AdvisorDashboard />} />
+          <Route path="/advisor/etudiants"     element={<ComingSoonPage />} />
+          <Route path="/advisor/candidatures"  element={<ComingSoonPage />} />
+          <Route path="/advisor/offres"        element={<ComingSoonPage />} />
+          <Route path="/advisor/cv"            element={<ComingSoonPage />} />
+          <Route path="/advisor/contenu"       element={<ComingSoonPage />} />
+          <Route path="/advisor/gamification"  element={<ComingSoonPage />} />
+          <Route path="/advisor/conseillers"   element={<ComingSoonPage />} />
+          <Route path="/advisor/promotions"    element={<ComingSoonPage />} />
+          <Route path="/advisor/audit"         element={<ComingSoonPage />} />
+          <Route path="/advisor/config"        element={<ComingSoonPage />} />
+          <Route path="/advisor/parametres"    element={<ParametresPage />} />
         </Route>
 
         {/* Fallback */}
