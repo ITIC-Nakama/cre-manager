@@ -58,20 +58,28 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
 
-    // Only handle 401 (Unauthorized) errors
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    // Only handle 401
+    if (status !== 401) {
       return Promise.reject(error);
     }
 
-    // Don't intercept auth endpoints — avoid infinite loops
     const url = originalRequest.url || '';
-    if (
+    const isAuthEndpoint =
       url.includes('/auth/login') ||
       url.includes('/auth/refresh-token') ||
       url.includes('/auth/register') ||
-      url.includes('/auth/logout')
-    ) {
+      url.includes('/auth/logout');
+
+    // Auth endpoints (login, etc.) return 401 for bad credentials — don't intercept
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // Already retried after a refresh — token is definitely invalid, logout immediately
+    if (originalRequest._retry) {
+      forceLogout();
       return Promise.reject(error);
     }
 
