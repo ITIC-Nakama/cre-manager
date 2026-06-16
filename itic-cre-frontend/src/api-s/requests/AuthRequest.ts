@@ -1,109 +1,94 @@
 import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO, ChangePasswordDTO } from "../../types/models/Auth";
 import { apiClient, resetSessionState } from '../AxiosApiClient';
 
-// Authenticate user — tokens are set as HttpOnly cookies by the server
+// Connexion — les tokens sont posés en cookies HttpOnly par le serveur
 export function AuthRequest(login: LoginDTO) {
     resetSessionState();
     return apiClient.post('/auth/login', login)
         .then(response => {
-            // Response body only contains { user: {...} }
-            // Tokens are in HttpOnly cookies — inaccessible to JS
             const payload = response.data.data ?? response.data;
             return payload;
         })
         .catch(error => {
-            console.error('Login failed:', error);
+            console.error('Échec de la connexion :', error);
             throw error;
         });
 }
 
-// Create a new user account
+// Inscription étudiant
 export function RegisterRequest(registerData: RegisterDTO) {
     return apiClient.post('/auth/register', registerData)
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('Registration failed:', error);
+            console.error('Échec de l\'inscription :', error);
             throw error;
         });
 }
 
-// Send an OTP code to user's email for verification or password reset
+// Envoyer un code OTP par email (vérification ou réinitialisation de mot de passe)
 export function SendOtpRequest(otpData: OtpSendDTO) {
     return apiClient.post('/auth/otp/send', otpData)
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('Sending OTP failed:', error);
+            console.error('Échec de l\'envoi OTP :', error);
             throw error;
         });
 }
 
-// Validate the email OTP code
+// Valider le code OTP reçu par email
 export function ValidateOtpRequest(otpData: OtpValidateDTO) {
     return apiClient.post('/auth/otp/validate', otpData)
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('OTP validation failed:', error);
+            console.error('Échec de la validation OTP :', error);
             throw error;
         });
 }
 
-// Refresh the access token — no body needed, the browser sends the refreshToken cookie automatically
+// Renouveler le token d'accès — le cookie refreshToken est envoyé automatiquement
 export function RefreshTokenRequest() {
     return apiClient.post('/auth/refresh-token', {})
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('Token refresh failed:', error);
+            console.error('Échec du refresh token :', error);
             throw error;
         });
 }
 
-// Reset password request (sends verification code to the email)
+// Demande de réinitialisation de mot de passe (envoi du code OTP)
 export function ResetPasswordRequest(email: string) {
     return SendOtpRequest({ email })
         .catch(error => {
-            console.error('Reset password request failed:', error);
+            console.error('Échec de la demande de réinitialisation :', error);
             throw error;
         });
 }
 
-// Reset password confirmation (validates OTP and sets the new password)
+// Confirmation de réinitialisation (validation OTP + nouveau mot de passe)
 export function ResetPasswordConfirmRequest(resetData: ResetPasswordDTO) {
     return apiClient.post('/auth/reset-password', resetData)
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('Reset password confirmation failed:', error);
+            console.error('Échec de la réinitialisation du mot de passe :', error);
             throw error;
         });
 }
 
-// Logout — asks the server to clear the HttpOnly cookies
+// Déconnexion — demande au serveur de supprimer les cookies HttpOnly
 export function LogoutRequest() {
     return apiClient.post('/auth/logout', {})
         .catch(error => {
-            console.error('Logout failed:', error);
+            console.error('Échec de la déconnexion :', error);
             throw error;
         });
 }
 
-// Update password (when logged in)
+// Mettre à jour le mot de passe (utilisateur connecté)
 export function UpdatePasswordRequest(data: ChangePasswordDTO) {
     return apiClient.post('/auth/update-password', data)
-        .then(response => {
-            return response.data;
-        })
+        .then(response => response.data)
         .catch(error => {
-            console.error('Password update failed:', error);
+            console.error('Échec de la mise à jour du mot de passe :', error);
             throw error;
         });
 }
-
