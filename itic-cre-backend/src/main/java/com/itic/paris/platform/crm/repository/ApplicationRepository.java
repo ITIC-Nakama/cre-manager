@@ -38,4 +38,12 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
     long countByDateCreationAfter(Instant since);
 
     List<Application> findByStudentIdOrderByDateCreationDesc(UUID studentId);
+
+    List<Application> findTop5ByStudentIdOrderByDateModificationDesc(UUID studentId);
+
+    @Query("SELECT a.status.nom, a.status.couleur, COUNT(a) FROM Application a WHERE a.student.id = :studentId GROUP BY a.status.id, a.status.nom, a.status.couleur ORDER BY COUNT(a) DESC")
+    List<Object[]> countGroupedByStatusForStudent(UUID studentId);
+
+    @Query("SELECT a FROM Application a WHERE a.student.id = :studentId AND a.status.declencheAlerte = true AND a.dateModification < :threshold ORDER BY a.dateModification ASC")
+    List<Application> findStaleByStudentId(UUID studentId, Instant threshold);
 }
