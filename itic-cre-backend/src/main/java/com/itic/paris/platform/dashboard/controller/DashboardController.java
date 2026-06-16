@@ -5,6 +5,8 @@ import com.itic.paris.platform.dashboard.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +41,15 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste des étudiants triés par XP — grade, activité, candidatures (stales inclus), CV (filtre promotionId optionnel)")
-    public ResponseEntity<?> students(@RequestParam(required = false) UUID promotionId) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId));
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId")
+    public ResponseEntity<?> students(
+            @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) Boolean hasCv,
+            @RequestParam(required = false) Boolean hasStale,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, pageable));
     }
 
     @GetMapping("/students/{studentId}")

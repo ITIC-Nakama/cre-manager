@@ -23,6 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -185,7 +189,9 @@ public class DashboardService {
 
     // ─── Student list ────────────────────────────────────────────────────────
 
-    public List<Map<String, Object>> getStudentList(UUID promotionId) {
+    public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
+                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
+                                                     Pageable pageable) {
         List<Student> students = promotionId != null
                 ? studentRepository.findAllByPromotionId(promotionId)
                 : studentRepository.findAll();
@@ -200,22 +206,22 @@ public class DashboardService {
 
         Map<UUID, Long> appCountByStudent = studentIds.isEmpty() ? Map.of()
                 : applicationRepository.countGroupedByStudentId(studentIds).stream()
-                        .collect(Collectors.toMap(
-                                row -> (UUID) row[0],
-                                row -> (Long) row[1]
-                        ));
+                        .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
 
         Map<UUID, Long> staleCountByStudent = studentIds.isEmpty() ? Map.of()
                 : applicationRepository.findStaleApplications(staleThreshold).stream()
                         .filter(a -> studentIds.contains(a.getStudent().getId()))
-                        .collect(Collectors.groupingBy(
-                                a -> a.getStudent().getId(), Collectors.counting()
-                        ));
+                        .collect(Collectors.groupingBy(a -> a.getStudent().getId(), Collectors.counting()));
 
-        return students.stream()
+        List<Map<String, Object>> fullList = students.stream()
                 .sorted(Comparator.comparingInt(Student::getXpTotal).reversed())
                 .map(student -> {
                     Grade grade = resolveGrade(student.getXpTotal(), allGrades);
+                    boolean active = student.getLastActivity() != null
+                            && student.getLastActivity().isAfter(inactiveThreshold);
+                    long staleCount = staleCountByStudent.getOrDefault(student.getId(), 0L);
+                    boolean cvPresent = studentIdsWithCv.contains(student.getId());
+
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("id", student.getId());
                     row.put("firstName", student.getFirstName());
@@ -229,13 +235,31 @@ public class DashboardService {
                             ? Map.of("nom", grade.getNom(), "icone", grade.getIcone() != null ? grade.getIcone() : "")
                             : null);
                     row.put("lastActivity", student.getLastActivity());
-                    row.put("isActive", student.getLastActivity() != null
-                            && student.getLastActivity().isAfter(inactiveThreshold));
+                    row.put("isActive", active);
                     row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
-                    row.put("staleApplicationCount", staleCountByStudent.getOrDefault(student.getId(), 0L));
-                    row.put("hasCv", studentIdsWithCv.contains(student.getId()));
+                    row.put("staleApplicationCount", staleCount);
+                    row.put("hasCv", cvPresent);
                     return row;
-                }).toList();
+                })
+                .filter(row -> {
+                    if (search != null && !search.isBlank()) {
+                        String q = search.toLowerCase();
+                        String name = (row.get("firstName") + " " + row.get("lastName")).toLowerCase();
+                        String email = ((String) row.get("email")).toLowerCase();
+                        if (!name.contains(q) && !email.contains(q)) return false;
+                    }
+                    if (isActive != null && !isActive.equals(row.get("isActive"))) return false;
+                    if (hasCv != null && !hasCv.equals(row.get("hasCv"))) return false;
+                    if (Boolean.TRUE.equals(hasStale) && (Long) row.get("staleApplicationCount") == 0L) return false;
+                    return true;
+                })
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), fullList.size());
+        List<Map<String, Object>> content = start >= fullList.size() ? List.of() : fullList.subList(start, end);
+
+        return new PageImpl<>(content, pageable, fullList.size());
     }
 
     // ─── Student detail ──────────────────────────────────────────────────────

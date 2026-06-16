@@ -13,6 +13,7 @@ import { Role } from './types/models/Auth'
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
+import EtudiantsPage from './pages/advisor/EtudiantsPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 
@@ -65,7 +66,7 @@ function App() {
         {/* Advisor / Admin Routes */}
         <Route element={<AdvisorLayout />}>
           <Route path="/advisor/dashboard"     element={<AdvisorDashboard />} />
-          <Route path="/advisor/etudiants"     element={<ComingSoonPage />} />
+          <Route path="/advisor/etudiants"     element={<EtudiantsPage />} />
           <Route path="/advisor/candidatures"  element={<ComingSoonPage />} />
           <Route path="/advisor/offres"        element={<ComingSoonPage />} />
           <Route path="/advisor/cv"            element={<ComingSoonPage />} />
