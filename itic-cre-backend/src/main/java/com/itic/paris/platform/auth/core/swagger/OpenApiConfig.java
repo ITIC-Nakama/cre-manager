@@ -148,8 +148,11 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("11. Espace Étudiant")
                 .pathsToMatch(
+                        "/api/me/dashboard/**",
                         "/api/applications/**",
-                        "/api/me/gamification/**"
+                        "/api/me/gamification/**",
+                        "/api/skill-tree/**",
+                        "/cv/me/**"
                 )
                 .build();
     }
