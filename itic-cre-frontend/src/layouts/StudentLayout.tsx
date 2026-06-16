@@ -2,7 +2,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { useUserStore } from '../store/UserStore';
 import { Role } from '../types/models/Auth';
 import Sidebar from '../components/head/Sidebar';
-import { LayoutDashboard, Briefcase, BookOpen, FileText, User } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Building2, BookOpen, FileText, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function StudentLayout() {
@@ -15,6 +15,7 @@ export default function StudentLayout() {
   const navItems = [
     { label: t('dashboard.sidebar.accueil'),       icon: LayoutDashboard, to: '/student/dashboard' },
     { label: t('dashboard.sidebar.candidatures'),  icon: Briefcase,       to: '/student/candidatures' },
+    { label: t('dashboard.sidebar.offres'),        icon: Building2,       to: '/student/offres' },
     { label: t('dashboard.sidebar.formation'),     icon: BookOpen,        to: '/student/formation' },
     { label: t('dashboard.sidebar.cv'),            icon: FileText,        to: '/student/cv' },
     { label: t('dashboard.sidebar.profil'),        icon: User,            to: '/student/parametres' },

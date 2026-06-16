@@ -17,14 +17,11 @@ export const useUserStore = create<UserStore>()(
             setUser: (user) => set({ user }),
             clearUser: () => set({ user: null }),
             logout: async () => {
+                set({ user: null });
                 try {
-                    // Ask the server to clear the HttpOnly cookies
                     await apiClient.post('/auth/logout', {});
-                    // Only clear local state if the request is successful
-                    set({ user: null });
                 } catch (error) {
                     console.error("Failed to log out from server:", error);
-                    throw error;
                 }
             },
         }),
