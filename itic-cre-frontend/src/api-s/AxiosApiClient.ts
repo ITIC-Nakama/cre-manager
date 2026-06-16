@@ -5,23 +5,20 @@ const apiBaseUrl = import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:8
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
-  // Required: tells the browser to send cookies (HttpOnly) with every cross-origin request
+  // Nécessaire : envoie les cookies HttpOnly sur chaque requête cross-origin
   withCredentials: true,
 });
 
-// ─── Request interceptor: set Content-Type ───────────────────────────────────
-// No manual token reading needed — the browser attaches the HttpOnly cookie automatically.
+// ─── Intercepteur requête : Content-Type ────────────────────────────────────
 apiClient.interceptors.request.use(
   (config) => {
     config.headers['Content-Type'] = 'application/json';
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// ─── Response interceptor: auto-refresh on 401 ──────────────────────────────
+// ─── Intercepteur réponse : refresh automatique sur 401 ──────────────────────
 
 let isRefreshing = false;
 let sessionInvalidated = false;
@@ -30,24 +27,19 @@ let failedQueue: Array<{
   reject: (error: any) => void;
 }> = [];
 
-/**
- * Process queued requests that were waiting for the token refresh.
- */
+// Relance toutes les requêtes en attente après un refresh réussi (ou les rejette si échec)
 function processQueue(error: any) {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
     } else {
-      resolve(undefined); // requests will retry — the cookie is already updated by the server
+      resolve(undefined);
     }
   });
   failedQueue = [];
 }
 
-/**
- * Clear user state and redirect to login.
- * The server already cleared the HttpOnly cookies via the /auth/logout endpoint.
- */
+// Vide le store utilisateur et redirige vers /login
 function forceLogout() {
   sessionInvalidated = true;
   useUserStore.getState().clearUser();
@@ -56,6 +48,7 @@ function forceLogout() {
   }
 }
 
+// À appeler au login pour remettre l'état à zéro (ex : après un logout forcé)
 export function resetSessionState() {
   sessionInvalidated = false;
   isRefreshing = false;
@@ -68,7 +61,6 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    // Only handle 401
     if (status !== 401) {
       return Promise.reject(error);
     }
@@ -80,17 +72,17 @@ apiClient.interceptors.response.use(
       url.includes('/auth/register') ||
       url.includes('/auth/logout');
 
-    // Auth endpoints (login wrong password, etc.) — don't intercept
+    // Les endpoints auth (ex : mauvais mot de passe) renvoient 401 légitimement
     if (isAuthEndpoint) {
       return Promise.reject(error);
     }
 
-    // Session already invalidated (refresh failed) — don't retry, don't loop
+    // Session déjà invalidée — ne pas boucler, ne pas retenter
     if (sessionInvalidated) {
       return Promise.reject(error);
     }
 
-    // If a refresh is already in progress, queue this request
+    // Refresh en cours — mettre la requête en attente
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
@@ -100,25 +92,22 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Mark as refreshing and attempt token renewal
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
-      // No body needed — the browser sends the refreshToken HttpOnly cookie automatically
+      // Le navigateur envoie automatiquement le cookie refreshToken HttpOnly
       await axios.post(
         `${apiBaseUrl}/auth/refresh-token`,
         {},
         { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
       );
 
-      // The server has now set fresh HttpOnly cookies.
-      // Retry all queued requests — they will automatically use the new cookie.
+      // Nouveaux cookies posés par le serveur — on relance toutes les requêtes en attente
       processQueue(null);
-
       return apiClient(originalRequest);
     } catch (refreshError) {
-      // Refresh failed — invalidate session globally so no other request retries
+      // Refresh échoué — invalider la session globalement et déconnecter
       sessionInvalidated = true;
       processQueue(refreshError);
       try {
