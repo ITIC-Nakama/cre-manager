@@ -1,9 +1,12 @@
 package com.itic.paris.platform.dashboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.model.CV;
@@ -14,6 +17,7 @@ import com.itic.paris.platform.gamification.model.XPHistory;
 import com.itic.paris.platform.gamification.repository.GradeRepository;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
 public class DashboardService {
 
     private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
     private final CVRepository cvRepository;
     private final CVCommentaireRepository cvCommentaireRepository;
@@ -36,6 +41,7 @@ public class DashboardService {
     private final GradeRepository gradeRepository;
     private final XPHistoryRepository xpHistoryRepository;
     private final ICloudStorage cloudStorage;
+    private final NotificationEmailService notificationEmailService;
 
     private static final int INACTIVE_DAYS = 14;
     private static final int STALE_DAYS = 10;
@@ -320,6 +326,29 @@ public class DashboardService {
         detail.put("cv", cvData);
         detail.put("recentXpHistory", xpList);
         return detail;
+    }
+
+    // ─── Notify student ──────────────────────────────────────────────────────
+
+    public void notifyStudent(UUID studentId, String customMessage) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+
+        UUID advisorId = SecurityContextHelper.currentUserId();
+        User advisor = advisorId != null
+                ? userRepository.findById(advisorId).orElse(null)
+                : null;
+
+        String advisorName = advisor != null
+                ? advisor.getFirstName() + " " + advisor.getLastName()
+                : "Votre conseiller";
+
+        String message = (customMessage != null && !customMessage.isBlank())
+                ? customMessage
+                : "Merci de vous connecter à la plateforme et de mettre à jour l'état de vos candidatures.";
+
+        notificationEmailService.sendStudentReminder(
+                student.getEmail(), student.getFirstName(), advisorName, message);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
