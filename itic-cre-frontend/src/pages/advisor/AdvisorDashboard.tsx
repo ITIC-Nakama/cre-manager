@@ -4,7 +4,6 @@ import { Role } from '../../types/models/Auth';
 import {
   Users,
   Search,
-  TrendingUp,
   SlidersHorizontal,
   Mail,
   ShieldCheck,
