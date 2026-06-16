@@ -1,4 +1,5 @@
 import { ShieldCheck, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuditLogs } from '../../../hooks/useAudit';
 
 const ACTION_COLORS: Record<string, string> = {
@@ -31,6 +32,7 @@ function formatDate(iso: string) {
 }
 
 export default function AuditLogPanel() {
+    const { t } = useTranslation();
     const { data, isLoading } = useAuditLogs();
     const logs = data?.content ?? [];
 
@@ -39,10 +41,12 @@ export default function AuditLogPanel() {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ShieldCheck className="h-5 w-5 text-indigo-500" />
-                    Audit Logs & Activités Système
+                    {t('dashboard.advisor.audit.title')}
                 </h2>
                 {data && (
-                    <span className="text-xs text-slate-400">{data.totalElements} entrée{data.totalElements > 1 ? 's' : ''}</span>
+                    <span className="text-xs text-slate-400">
+                        {t('dashboard.advisor.audit.entries', { count: data.totalElements })}
+                    </span>
                 )}
             </div>
 
@@ -51,7 +55,9 @@ export default function AuditLogPanel() {
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
                 </div>
             ) : logs.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-6">Aucun log enregistré.</p>
+                <p className="text-sm text-slate-400 text-center py-6">
+                    {t('dashboard.advisor.audit.empty')}
+                </p>
             ) : (
                 <div className="space-y-2">
                     {logs.map((log) => (

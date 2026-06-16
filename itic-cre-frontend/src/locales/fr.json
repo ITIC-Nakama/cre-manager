@@ -55,6 +55,106 @@
         "title": "Paramètres",
         "description": "Gérez vos préférences et la sécurité de votre compte."
       }
+    },
+    "advisor": {
+      "greeting": "Bonjour, {{name}} 👋",
+      "role_admin": "Admin",
+      "role_advisor": "Conseiller",
+      "subtitle": "Suivi global et accompagnement des étudiants dans leur recherche d'alternance ou de stage.",
+      "create_advisor": "Créer un conseiller",
+      "export_csv": "Exporter CSV",
+      "stats": {
+        "students_label": "Étudiants inscrits",
+        "students_sub": "{{active}} actifs · {{inactive}} inactifs",
+        "applications_label": "Candidatures totales",
+        "applications_sub": "+{{count}} cette semaine",
+        "stale_label": "Candidatures en retard",
+        "stale_sub": "Sans mise à jour depuis +10 j.",
+        "cvs_label": "CVs à examiner",
+        "cvs_sub_one": "{{count}} CV déposé",
+        "cvs_sub_other": "{{count}} CVs déposés"
+      },
+      "cvs_panel": {
+        "title": "CVs par statut",
+        "empty": "Aucun CV déposé pour l'instant",
+        "without_cv_one": "{{count}} étudiant sans CV déposé",
+        "without_cv_other": "{{count}} étudiants sans CV déposés"
+      },
+      "apps_panel": {
+        "title": "Candidatures par statut",
+        "empty": "Aucune candidature enregistrée",
+        "stale_one": "{{count}} candidature sans mise à jour depuis +10 jours",
+        "stale_other": "{{count}} candidatures sans mise à jour depuis +10 jours"
+      },
+      "students_widget": {
+        "title": "Étudiants à suivre",
+        "subtitle_one": "{{count}} étudiant · top 5 prioritaires",
+        "subtitle_other": "{{count}} étudiants · top 5 prioritaires",
+        "see_all": "Voir tous",
+        "empty": "Aucun étudiant enregistré.",
+        "no_alerts": "Tous les étudiants sont à jour — aucune alerte active.",
+        "stale_badge_one": "{{count}} en retard",
+        "stale_badge_other": "{{count}} en retard",
+        "no_cv": "Sans CV",
+        "ok": "✓ OK"
+      },
+      "audit": {
+        "title": "Audit Logs & Activités Système",
+        "entries_one": "{{count}} entrée",
+        "entries_other": "{{count}} entrées",
+        "empty": "Aucun log enregistré."
+      }
+    },
+    "etudiants": {
+      "title": "Étudiants",
+      "subtitle_one": "{{count}} étudiant au total",
+      "subtitle_other": "{{count}} étudiants au total",
+      "export_csv": "Exporter CSV",
+      "exporting": "Export...",
+      "search_placeholder": "Rechercher un étudiant…",
+      "filter_all": "Tous",
+      "filter_active": "Actifs",
+      "filter_inactive": "Inactifs",
+      "filter_stale": "Candidatures en retard",
+      "filter_no_cv": "Sans CV",
+      "table": {
+        "student": "Étudiant",
+        "promotion": "Promotion",
+        "applications": "Candidatures",
+        "grade_xp": "Grade / XP",
+        "cv": "CV",
+        "status": "Statut",
+        "actions": "Actions",
+        "cv_deposited": "Déposé",
+        "cv_none": "Aucun",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "empty": "Aucun étudiant ne correspond à vos critères.",
+        "stale_one": "{{count}} en retard",
+        "stale_other": "{{count}} en retard"
+      },
+      "pagination": {
+        "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
+        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants"
+      },
+      "actions": {
+        "view": "Consulter le dossier",
+        "notify": "Envoyer un rappel",
+        "view_wip": "Dossier de {{name}} — en cours de développement",
+        "export_success_one": "{{count}} étudiant exporté.",
+        "export_success_other": "{{count}} étudiants exportés.",
+        "export_error": "Impossible d'exporter les données."
+      }
+    },
+    "notify_modal": {
+      "message_label": "Message personnalisé",
+      "message_optional": "(optionnel)",
+      "message_placeholder": "Merci de mettre à jour vos candidatures et de déposer votre CV…",
+      "message_hint": "Si vide, un message de relance par défaut sera utilisé.",
+      "cancel": "Annuler",
+      "send": "Envoyer le rappel",
+      "success": "Email de rappel envoyé à {{name}}",
+      "error": "Impossible d'envoyer l'email à {{email}}"
     }
   },
   "cta": {
