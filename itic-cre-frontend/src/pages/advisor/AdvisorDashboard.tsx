@@ -95,9 +95,9 @@ export default function AdvisorDashboard() {
     return matchesSearch && matchesStatus;
   });
 
-  const cvsToReview = overview?.cvsByStatut
+  const cvsToReview = (overview?.cvsByStatut ?? [])
     .filter((s) => s.statutNom !== 'Validé')
-    .reduce((acc, s) => acc + s.count, 0) ?? 0;
+    .reduce((acc, s) => acc + s.count, 0);
 
   const statCards = [
     {
