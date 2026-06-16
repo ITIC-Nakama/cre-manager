@@ -24,6 +24,7 @@ apiClient.interceptors.request.use(
 // ─── Response interceptor: auto-refresh on 401 ──────────────────────────────
 
 let isRefreshing = false;
+let sessionInvalidated = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
   reject: (error: any) => void;
@@ -48,10 +49,17 @@ function processQueue(error: any) {
  * The server already cleared the HttpOnly cookies via the /auth/logout endpoint.
  */
 function forceLogout() {
+  sessionInvalidated = true;
   useUserStore.getState().clearUser();
   if (!window.location.pathname.startsWith('/login')) {
     window.location.href = '/login';
   }
+}
+
+export function resetSessionState() {
+  sessionInvalidated = false;
+  isRefreshing = false;
+  failedQueue = [];
 }
 
 apiClient.interceptors.response.use(
@@ -72,14 +80,13 @@ apiClient.interceptors.response.use(
       url.includes('/auth/register') ||
       url.includes('/auth/logout');
 
-    // Auth endpoints (login, etc.) return 401 for bad credentials — don't intercept
+    // Auth endpoints (login wrong password, etc.) — don't intercept
     if (isAuthEndpoint) {
       return Promise.reject(error);
     }
 
-    // Already retried after a refresh — token is definitely invalid, logout immediately
-    if (originalRequest._retry) {
-      forceLogout();
+    // Session already invalidated (refresh failed) — don't retry, don't loop
+    if (sessionInvalidated) {
       return Promise.reject(error);
     }
 
@@ -111,9 +118,9 @@ apiClient.interceptors.response.use(
 
       return apiClient(originalRequest);
     } catch (refreshError) {
-      // Refresh failed — clear user state and redirect to login
+      // Refresh failed — invalidate session globally so no other request retries
+      sessionInvalidated = true;
       processQueue(refreshError);
-      // Ask the server to clear the cookies too
       try {
         await axios.post(`${apiBaseUrl}/auth/logout`, {}, { withCredentials: true });
       } catch (_) { /* best-effort */ }
