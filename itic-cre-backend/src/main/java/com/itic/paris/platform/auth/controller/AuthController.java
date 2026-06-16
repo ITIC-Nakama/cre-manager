@@ -223,9 +223,10 @@ public class AuthController {
     }
 
     private void setTokenCookies(HttpServletResponse response, String token, String refreshToken) {
-        // Cookie lives for the full refresh-token duration so the browser keeps it
-        // even after the JWT (1h) expires — the 401 response triggers the refresh flow.
-        int cookieMaxAge = (int) (refreshTokenExpiration / 1000);
+        // Le cookie survit refresh_expiration + 24h pour éviter qu'il expire en même temps
+        // que le refresh token — l'expiration est ainsi toujours détectée côté serveur (401)
+        // plutôt que côté navigateur (cookie disparu silencieusement).
+        int cookieMaxAge = (int) ((refreshTokenExpiration + 86_400_000L) / 1000);
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("token", token, cookieMaxAge));
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("refreshToken", refreshToken, cookieMaxAge));
     }
