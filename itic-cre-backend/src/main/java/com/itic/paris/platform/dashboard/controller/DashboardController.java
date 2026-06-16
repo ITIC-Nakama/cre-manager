@@ -1,5 +1,6 @@
 package com.itic.paris.platform.dashboard.controller;
 
+import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
 import com.itic.paris.platform.dashboard.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,5 +48,18 @@ public class DashboardController {
     @Operation(summary = "Détail complet d'un étudiant — toutes les candidatures, CV + commentaires, 10 derniers XP")
     public ResponseEntity<?> studentDetail(@PathVariable UUID studentId) {
         return ResponseEntity.ok(dashboardService.getStudentDetail(studentId));
+    }
+
+    @PostMapping("/students/{studentId}/notify")
+    @Operation(
+            summary = "Envoyer un email de rappel à un étudiant",
+            description = "Envoie un email personnalisé à l'étudiant (ex : mettre à jour ses candidatures, déposer son CV). "
+                    + "Si `message` est absent ou vide, un message de relance par défaut est utilisé."
+    )
+    public ResponseEntity<Void> notifyStudent(
+            @PathVariable UUID studentId,
+            @RequestBody(required = false) SendReminderRequest request) {
+        dashboardService.notifyStudent(studentId, request != null ? request.getMessage() : null);
+        return ResponseEntity.noContent().build();
     }
 }

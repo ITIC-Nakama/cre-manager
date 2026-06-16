@@ -61,6 +61,15 @@ public class EmailTemplateService {
         return templateEngine.process("email/cv-notification", context);
     }
 
+    public String renderStudentReminderEmail(String firstName, String advisorName, String message) {
+        Context context = new Context();
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "Votre conseiller");
+        context.setVariable("message", message);
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/student-reminder", context);
+    }
+
     private static String normalizeLang(String lang) {
         if (lang == null) {
             return "fr";

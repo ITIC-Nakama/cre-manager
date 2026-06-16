@@ -53,6 +53,13 @@ public class NotificationEmailService {
         sendHtml(event.email(), subject, html);
     }
 
+    @Async
+    public void sendStudentReminder(String studentEmail, String studentFirstName,
+                                    String advisorName, String message) {
+        String html = emailTemplateService.renderStudentReminderEmail(studentFirstName, advisorName, message);
+        sendHtml(studentEmail, "Rappel de votre conseiller — ITIC CRE", html);
+    }
+
     private void sendHtml(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
