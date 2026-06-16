@@ -55,6 +55,106 @@
         "title": "Settings",
         "description": "Manage your preferences and account security."
       }
+    },
+    "advisor": {
+      "greeting": "Hello, {{name}} 👋",
+      "role_admin": "Admin",
+      "role_advisor": "Advisor",
+      "subtitle": "Global monitoring and support for students in their internship or work-study search.",
+      "create_advisor": "Create advisor",
+      "export_csv": "Export CSV",
+      "stats": {
+        "students_label": "Enrolled students",
+        "students_sub": "{{active}} active · {{inactive}} inactive",
+        "applications_label": "Total applications",
+        "applications_sub": "+{{count}} this week",
+        "stale_label": "Late applications",
+        "stale_sub": "No update for +10 days.",
+        "cvs_label": "CVs to review",
+        "cvs_sub_one": "{{count}} CV uploaded",
+        "cvs_sub_other": "{{count}} CVs uploaded"
+      },
+      "cvs_panel": {
+        "title": "CVs by status",
+        "empty": "No CV uploaded yet",
+        "without_cv_one": "{{count}} student without CV",
+        "without_cv_other": "{{count}} students without CV"
+      },
+      "apps_panel": {
+        "title": "Applications by status",
+        "empty": "No applications recorded",
+        "stale_one": "{{count}} application with no update for +10 days",
+        "stale_other": "{{count}} applications with no update for +10 days"
+      },
+      "students_widget": {
+        "title": "Students to follow",
+        "subtitle_one": "{{count}} student · top 5 priority",
+        "subtitle_other": "{{count}} students · top 5 priority",
+        "see_all": "See all",
+        "empty": "No students registered.",
+        "no_alerts": "All students are up to date — no active alerts.",
+        "stale_badge_one": "{{count}} late",
+        "stale_badge_other": "{{count}} late",
+        "no_cv": "No CV",
+        "ok": "✓ OK"
+      },
+      "audit": {
+        "title": "Audit Logs & System Activity",
+        "entries_one": "{{count}} entry",
+        "entries_other": "{{count}} entries",
+        "empty": "No logs recorded."
+      }
+    },
+    "etudiants": {
+      "title": "Students",
+      "subtitle_one": "{{count}} student total",
+      "subtitle_other": "{{count}} students total",
+      "export_csv": "Export CSV",
+      "exporting": "Exporting...",
+      "search_placeholder": "Search a student…",
+      "filter_all": "All",
+      "filter_active": "Active",
+      "filter_inactive": "Inactive",
+      "filter_stale": "Late applications",
+      "filter_no_cv": "No CV",
+      "table": {
+        "student": "Student",
+        "promotion": "Cohort",
+        "applications": "Applications",
+        "grade_xp": "Grade / XP",
+        "cv": "CV",
+        "status": "Status",
+        "actions": "Actions",
+        "cv_deposited": "Uploaded",
+        "cv_none": "None",
+        "active": "Active",
+        "inactive": "Inactive",
+        "empty": "No students match your criteria.",
+        "stale_one": "{{count}} late",
+        "stale_other": "{{count}} late"
+      },
+      "pagination": {
+        "info_one": "Page {{current}} of {{total}} — {{count}} student",
+        "info_other": "Page {{current}} of {{total}} — {{count}} students"
+      },
+      "actions": {
+        "view": "View profile",
+        "notify": "Send reminder",
+        "view_wip": "Profile of {{name}} — under development",
+        "export_success_one": "{{count}} student exported.",
+        "export_success_other": "{{count}} students exported.",
+        "export_error": "Unable to export data."
+      }
+    },
+    "notify_modal": {
+      "message_label": "Custom message",
+      "message_optional": "(optional)",
+      "message_placeholder": "Please update your applications and upload your CV…",
+      "message_hint": "If empty, a default follow-up message will be used.",
+      "cancel": "Cancel",
+      "send": "Send reminder",
+      "success": "Reminder email sent to {{name}}",
+      "error": "Unable to send email to {{email}}"
     }
   },
   "cta": {

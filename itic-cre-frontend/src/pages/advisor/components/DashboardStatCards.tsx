@@ -1,4 +1,5 @@
 import { Users, Briefcase, AlertCircle, FileText, Loader2, type LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { DashboardOverview } from '../../../types/models/Dashboard';
 
 interface StatCard {
@@ -17,36 +18,40 @@ interface Props {
 }
 
 export default function DashboardStatCards({ overview, loading, cvsToReview }: Props) {
+  const { t } = useTranslation();
+
   const cards: StatCard[] = [
     {
-      label: 'Étudiants inscrits',
+      label: t('dashboard.advisor.stats.students_label'),
       value: overview?.totalStudents ?? '—',
-      sub: overview ? `${overview.activeStudents} actifs · ${overview.inactiveStudents} inactifs` : null,
+      sub: overview
+        ? t('dashboard.advisor.stats.students_sub', { active: overview.activeStudents, inactive: overview.inactiveStudents })
+        : null,
       icon: Users,
       color: 'text-blue-500',
       bg: 'bg-blue-500/10',
     },
     {
-      label: 'Candidatures totales',
+      label: t('dashboard.advisor.stats.applications_label'),
       value: overview?.totalApplications ?? '—',
-      sub: overview ? `+${overview.recentApplications7d} cette semaine` : null,
+      sub: overview ? t('dashboard.advisor.stats.applications_sub', { count: overview.recentApplications7d }) : null,
       icon: Briefcase,
       color: 'text-violet-500',
       bg: 'bg-violet-500/10',
     },
     {
-      label: 'Candidatures en retard',
+      label: t('dashboard.advisor.stats.stale_label'),
       value: overview?.staleApplicationsCount ?? '—',
-      sub: 'Sans mise à jour depuis +10 j.',
+      sub: t('dashboard.advisor.stats.stale_sub'),
       icon: AlertCircle,
       color: 'text-amber-500',
       bg: 'bg-amber-500/10',
     },
     {
-      label: 'CVs à examiner',
+      label: t('dashboard.advisor.stats.cvs_label'),
       value: loading ? '—' : cvsToReview,
       sub: overview
-        ? `${overview.totalCvs} CV${overview.totalCvs > 1 ? 's' : ''} déposé${overview.totalCvs > 1 ? 's' : ''}`
+        ? t('dashboard.advisor.stats.cvs_sub', { count: overview.totalCvs })
         : null,
       icon: FileText,
       color: 'text-emerald-500',

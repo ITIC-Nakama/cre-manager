@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -12,6 +12,7 @@ import {
     ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useStudentList, useNotifyStudent } from '../../hooks/useDashboard';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
@@ -24,84 +25,6 @@ const PAGE_SIZE = 20;
 
 const col = createColumnHelper<StudentRow>();
 
-const columns = [
-    col.accessor((row) => `${row.firstName} ${row.lastName}`, {
-        id: 'name',
-        header: 'Étudiant',
-        cell: ({ row }) => (
-            <div>
-                <p className="font-semibold text-slate-900 dark:text-white">
-                    {row.original.firstName} {row.original.lastName}
-                </p>
-                <p className="text-xs text-slate-400">{row.original.email}</p>
-            </div>
-        ),
-        enableSorting: false,
-    }),
-    col.accessor((row) => row.promotion?.nom ?? '', {
-        id: 'promotion',
-        header: 'Promotion',
-        cell: ({ getValue }) => (
-            <span className="text-slate-500 dark:text-slate-400 text-sm">
-                {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
-            </span>
-        ),
-        enableSorting: false,
-    }),
-    col.accessor('applicationCount', {
-        header: 'Candidatures',
-        cell: ({ row }) => (
-            <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-700 dark:text-slate-300">{row.original.applicationCount}</span>
-                {row.original.staleApplicationCount > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
-                        <AlertCircle className="h-3 w-3" />
-                        {row.original.staleApplicationCount} en retard
-                    </span>
-                )}
-            </div>
-        ),
-    }),
-    col.accessor('xpTotal', {
-        header: 'Grade / XP',
-        cell: ({ row }) => (
-            <div className="flex items-center gap-1.5">
-                <Star className="h-3.5 w-3.5 text-violet-400 flex-shrink-0" />
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                    {row.original.grade?.nom ?? '—'}
-                </span>
-                <span className="text-xs text-slate-400">· {row.original.xpTotal} XP</span>
-            </div>
-        ),
-    }),
-    col.accessor('hasCv', {
-        header: 'CV',
-        cell: ({ getValue }) => getValue() ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
-                Déposé
-            </span>
-        ) : (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                <FileText className="h-3 w-3 mr-1" />Aucun
-            </span>
-        ),
-        enableSorting: false,
-    }),
-    col.accessor('isActive', {
-        header: 'Statut',
-        cell: ({ getValue }) => (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                getValue()
-                    ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
-                    : 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
-            }`}>
-                {getValue() ? 'Actif' : 'Inactif'}
-            </span>
-        ),
-        enableSorting: false,
-    }),
-];
-
 function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
     if (sorted === 'asc') return <ChevronUp className="h-3.5 w-3.5" />;
     if (sorted === 'desc') return <ChevronDown className="h-3.5 w-3.5" />;
@@ -109,6 +32,7 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 }
 
 export default function EtudiantsPage() {
+    const { t } = useTranslation();
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -119,6 +43,85 @@ export default function EtudiantsPage() {
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
+
+    const columns = useMemo(() => [
+        col.accessor((row) => `${row.firstName} ${row.lastName}`, {
+            id: 'name',
+            header: t('dashboard.etudiants.table.student'),
+            cell: ({ row }) => (
+                <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                        {row.original.firstName} {row.original.lastName}
+                    </p>
+                    <p className="text-xs text-slate-400">{row.original.email}</p>
+                </div>
+            ),
+            enableSorting: false,
+        }),
+        col.accessor((row) => row.promotion?.nom ?? '', {
+            id: 'promotion',
+            header: t('dashboard.etudiants.table.promotion'),
+            cell: ({ getValue }) => (
+                <span className="text-slate-500 dark:text-slate-400 text-sm">
+                    {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
+                </span>
+            ),
+            enableSorting: false,
+        }),
+        col.accessor('applicationCount', {
+            header: t('dashboard.etudiants.table.applications'),
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.original.applicationCount}</span>
+                    {row.original.staleApplicationCount > 0 && (
+                        <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
+                            <AlertCircle className="h-3 w-3" />
+                            {t('dashboard.etudiants.table.stale', { count: row.original.staleApplicationCount })}
+                        </span>
+                    )}
+                </div>
+            ),
+        }),
+        col.accessor('xpTotal', {
+            header: t('dashboard.etudiants.table.grade_xp'),
+            cell: ({ row }) => (
+                <div className="flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5 text-violet-400 flex-shrink-0" />
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {row.original.grade?.nom ?? '—'}
+                    </span>
+                    <span className="text-xs text-slate-400">· {row.original.xpTotal} XP</span>
+                </div>
+            ),
+        }),
+        col.accessor('hasCv', {
+            header: t('dashboard.etudiants.table.cv'),
+            cell: ({ getValue }) => getValue() ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+                    {t('dashboard.etudiants.table.cv_deposited')}
+                </span>
+            ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                    <FileText className="h-3 w-3 mr-1" />{t('dashboard.etudiants.table.cv_none')}
+                </span>
+            ),
+            enableSorting: false,
+        }),
+        col.accessor('isActive', {
+            header: t('dashboard.etudiants.table.status'),
+            cell: ({ getValue }) => (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                    getValue()
+                        ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
+                        : 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
+                }`}>
+                    {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
+                </span>
+            ),
+            enableSorting: false,
+        }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [t]);
 
     const params = {
         page,
@@ -160,9 +163,9 @@ export default function EtudiantsPage() {
     const handleNotify = async (student: StudentRow, message?: string): Promise<void> => {
         try {
             await notifyMutation.mutateAsync({ studentId: student.id, message });
-            toast.success(`Email envoyé à ${student.firstName} ${student.lastName}`);
+            toast.success(t('dashboard.notify_modal.success', { name: `${student.firstName} ${student.lastName}` }));
         } catch {
-            toast.error(`Impossible d'envoyer l'email à ${student.email}`);
+            toast.error(t('dashboard.notify_modal.error', { email: student.email }));
         }
     };
 
@@ -171,9 +174,9 @@ export default function EtudiantsPage() {
         try {
             const all = await fetchAllStudents();
             exportStudentsCsv(all);
-            toast.success(`${all.length} étudiant${all.length > 1 ? 's' : ''} exporté${all.length > 1 ? 's' : ''}.`);
+            toast.success(t('dashboard.etudiants.actions.export_success', { count: all.length }));
         } catch {
-            toast.error("Impossible d'exporter les données.");
+            toast.error(t('dashboard.etudiants.actions.export_error'));
         } finally {
             setExporting(false);
         }
@@ -185,9 +188,11 @@ export default function EtudiantsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Étudiants</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {t('dashboard.etudiants.title')}
+                    </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                        {totalElements} étudiant{totalElements > 1 ? 's' : ''} au total
+                        {t('dashboard.etudiants.subtitle', { count: totalElements })}
                     </p>
                 </div>
                 <button
@@ -199,7 +204,7 @@ export default function EtudiantsPage() {
                         ? <Loader2 className="h-4 w-4 text-emerald-600 animate-spin" />
                         : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     }
-                    Exporter CSV
+                    {exporting ? t('dashboard.etudiants.exporting') : t('dashboard.etudiants.export_csv')}
                 </button>
             </div>
 
@@ -211,7 +216,7 @@ export default function EtudiantsPage() {
                         type="text"
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Rechercher un étudiant…"
+                        placeholder={t('dashboard.etudiants.search_placeholder')}
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
@@ -222,11 +227,11 @@ export default function EtudiantsPage() {
                         onChange={(e) => handleFilterChange(e.target.value as FilterStatus)}
                         className="bg-transparent border-none focus:outline-none cursor-pointer text-slate-700 dark:text-slate-300 text-sm"
                     >
-                        <option value="all">Tous</option>
-                        <option value="active">Actifs</option>
-                        <option value="inactive">Inactifs</option>
-                        <option value="stale">Candidatures en retard</option>
-                        <option value="no-cv">Sans CV</option>
+                        <option value="all">{t('dashboard.etudiants.filter_all')}</option>
+                        <option value="active">{t('dashboard.etudiants.filter_active')}</option>
+                        <option value="inactive">{t('dashboard.etudiants.filter_inactive')}</option>
+                        <option value="stale">{t('dashboard.etudiants.filter_stale')}</option>
+                        <option value="no-cv">{t('dashboard.etudiants.filter_no_cv')}</option>
                     </select>
                 </div>
                 {isFetching && !isLoading && (
@@ -256,7 +261,7 @@ export default function EtudiantsPage() {
                                             )}
                                         </th>
                                     ))}
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-right">{t('dashboard.etudiants.table.actions')}</th>
                                 </tr>
                             ))}
                         </thead>
@@ -270,7 +275,7 @@ export default function EtudiantsPage() {
                             ) : students.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length + 1} className="text-center py-16 text-slate-400">
-                                        Aucun étudiant ne correspond à vos critères.
+                                        {t('dashboard.etudiants.table.empty')}
                                     </td>
                                 </tr>
                             ) : (
@@ -283,16 +288,16 @@ export default function EtudiantsPage() {
                                         ))}
                                         <td className="px-6 py-4 text-right space-x-1">
                                             <button
-                                                onClick={() => toast.info(`Dossier de ${row.original.firstName} — en cours de développement`)}
+                                                onClick={() => toast.info(t('dashboard.etudiants.actions.view_wip', { name: row.original.firstName }))}
                                                 className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
-                                                title="Consulter le dossier"
+                                                title={t('dashboard.etudiants.actions.view')}
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => setSelectedStudent(row.original)}
                                                 className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                                                title="Envoyer un rappel"
+                                                title={t('dashboard.etudiants.actions.notify')}
                                             >
                                                 <Mail className="h-4 w-4" />
                                             </button>
@@ -308,7 +313,7 @@ export default function EtudiantsPage() {
                 {!isLoading && totalPages > 1 && (
                     <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
                         <span className="text-slate-500 dark:text-slate-400">
-                            Page {page + 1} sur {totalPages} — {totalElements} étudiant{totalElements > 1 ? 's' : ''}
+                            {t('dashboard.etudiants.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
                         </span>
                         <div className="flex items-center gap-1">
                             <button
