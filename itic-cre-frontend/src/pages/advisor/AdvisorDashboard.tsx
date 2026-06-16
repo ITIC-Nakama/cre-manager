@@ -14,6 +14,7 @@ import {
   FileText,
   Briefcase,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '../../api-s/AxiosApiClient';
@@ -47,25 +48,22 @@ interface DashboardOverview {
   cvsByStatut: CvByStatut[];
 }
 
-// ─── Mock student table (à remplacer par données réelles dans une prochaine itération) ─
-
-interface StudentMock {
-  id: number;
+interface StudentRow {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
-  applicationsCount: number;
-  status: 'Recherche active' | 'Entretien obtenu' | 'Placé' | 'Inactif';
-  advisor: string;
+  promotion: { id: string; nom: string } | null;
+  xpTotal: number;
+  grade: { nom: string; icone: string } | null;
+  lastActivity: string | null;
+  isActive: boolean;
+  applicationCount: number;
+  staleApplicationCount: number;
+  hasCv: boolean;
 }
 
-const mockStudents: StudentMock[] = [
-  { id: 1, firstName: 'Lina', lastName: 'Benali', email: 'l.benali@itic-paris.fr', applicationsCount: 12, status: 'Entretien obtenu', advisor: 'M. Dubois' },
-  { id: 2, firstName: 'Thomas', lastName: 'Moreau', email: 't.moreau@itic-paris.fr', applicationsCount: 8, status: 'Recherche active', advisor: 'Mme. Martin' },
-  { id: 3, firstName: 'Sophie', lastName: 'Lefebvre', email: 's.lefebvre@itic-paris.fr', applicationsCount: 15, status: 'Placé', advisor: 'M. Dubois' },
-  { id: 4, firstName: 'Kevin', lastName: 'Nguyen', email: 'k.nguyen@itic-paris.fr', applicationsCount: 3, status: 'Inactif', advisor: 'M. Dubois' },
-  { id: 5, firstName: 'Sarah', lastName: 'Gomez', email: 's.gomez@itic-paris.fr', applicationsCount: 10, status: 'Recherche active', advisor: 'Mme. Martin' },
-];
+type FilterValue = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -77,27 +75,55 @@ export default function AdvisorDashboard() {
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
 
+  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [notifyingId, setNotifyingId] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState<FilterValue>('all');
 
   useEffect(() => {
     apiClient.get<DashboardOverview>('/dashboard/overview')
       .then((res) => setOverview(res.data))
       .catch(() => toast.error('Impossible de charger les statistiques'))
       .finally(() => setLoadingOverview(false));
-  }, []);
 
-  const filteredStudents = mockStudents.filter((student) => {
-    const matchesSearch =
-      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+    apiClient.get<StudentRow[]>('/dashboard/students')
+      .then((res) => setStudents(res.data))
+      .catch(() => toast.error('Impossible de charger la liste des étudiants'))
+      .finally(() => setLoadingStudents(false));
+  }, []);
 
   const cvsToReview = (overview?.cvsByStatut ?? [])
     .filter((s) => s.statutNom !== 'Validé')
     .reduce((acc, s) => acc + s.count, 0);
+
+  const filteredStudents = students.filter((s) => {
+    const matchesSearch =
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && s.isActive) ||
+      (statusFilter === 'inactive' && !s.isActive) ||
+      (statusFilter === 'stale' && s.staleApplicationCount > 0) ||
+      (statusFilter === 'no-cv' && !s.hasCv);
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleNotify = async (student: StudentRow) => {
+    setNotifyingId(student.id);
+    try {
+      await apiClient.post(`/dashboard/students/${student.id}/notify`, {});
+      toast.success(`Email de rappel envoyé à ${student.firstName} ${student.lastName}`);
+    } catch {
+      toast.error(`Impossible d'envoyer l'email à ${student.email}`);
+    } finally {
+      setNotifyingId(null);
+    }
+  };
 
   const statCards = [
     {
@@ -220,10 +246,7 @@ export default function AdvisorDashboard() {
                 .map((s) => (
                   <div key={s.statutId} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: s.couleur }}
-                      />
+                      <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.couleur }} />
                       <span className="text-sm text-slate-700 dark:text-slate-300">{s.statutNom}</span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -236,9 +259,7 @@ export default function AdvisorDashboard() {
                           }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white w-6 text-right">
-                        {s.count}
-                      </span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white w-6 text-right">{s.count}</span>
                     </div>
                   </div>
                 ))}
@@ -272,10 +293,7 @@ export default function AdvisorDashboard() {
                 .map((s) => (
                   <div key={s.statusNom} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: s.couleur }}
-                      />
+                      <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.couleur }} />
                       <span className="text-sm text-slate-700 dark:text-slate-300">{s.statusNom}</span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -290,9 +308,7 @@ export default function AdvisorDashboard() {
                           }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white w-6 text-right">
-                        {s.count}
-                      </span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white w-6 text-right">{s.count}</span>
                     </div>
                   </div>
                 ))}
@@ -315,10 +331,12 @@ export default function AdvisorDashboard() {
       {/* Student list */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Liste des Étudiants</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Données de démonstration — connexion API en cours</p>
-          </div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">
+            Liste des Étudiants
+            {!loadingStudents && (
+              <span className="ml-2 text-xs font-normal text-slate-400">({filteredStudents.length})</span>
+            )}
+          </h2>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
@@ -327,22 +345,22 @@ export default function AdvisorDashboard() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher un élève..."
-                className="pl-9 pr-4 py-2 w-60 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                placeholder="Rechercher un étudiant..."
+                className="pl-9 pr-4 py-2 w-56 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               />
             </div>
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-600 dark:text-slate-400">
-              <SlidersHorizontal className="h-4 w-4" />
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm">
+              <SlidersHorizontal className="h-4 w-4 text-slate-400" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent border-none focus:outline-none cursor-pointer text-slate-700 dark:text-slate-300"
+                onChange={(e) => setStatusFilter(e.target.value as FilterValue)}
+                className="bg-transparent border-none focus:outline-none cursor-pointer text-slate-700 dark:text-slate-300 text-sm"
               >
-                <option value="All">Tous les statuts</option>
-                <option value="Recherche active">Recherche active</option>
-                <option value="Entretien obtenu">Entretien obtenu</option>
-                <option value="Placé">Placé</option>
-                <option value="Inactif">Inactif</option>
+                <option value="all">Tous</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs</option>
+                <option value="stale">Candidatures en retard</option>
+                <option value="no-cv">Sans CV</option>
               </select>
             </div>
           </div>
@@ -353,57 +371,110 @@ export default function AdvisorDashboard() {
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <th className="px-6 py-4">Étudiant</th>
-                <th className="px-6 py-4">Email</th>
+                <th className="px-6 py-4">Promotion</th>
                 <th className="px-6 py-4">Candidatures</th>
+                <th className="px-6 py-4">Grade / XP</th>
+                <th className="px-6 py-4">CV</th>
                 <th className="px-6 py-4">Statut</th>
-                <th className="px-6 py-4">Conseiller</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-              {filteredStudents.length > 0 ? (
+              {loadingStudents ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12">
+                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      {student.firstName} {student.lastName}
+
+                    {/* Nom + email */}
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-slate-900 dark:text-white">
+                        {student.firstName} {student.lastName}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">{student.email}</p>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{student.email}</td>
-                    <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{student.applicationsCount}</td>
+
+                    {/* Promotion */}
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                      {student.promotion?.nom ?? <span className="text-slate-300 dark:text-slate-600">—</span>}
+                    </td>
+
+                    {/* Candidatures */}
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{student.applicationCount}</span>
+                      {student.staleApplicationCount > 0 && (
+                        <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
+                          <AlertCircle className="h-3 w-3" />
+                          {student.staleApplicationCount} en retard
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Grade / XP */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-3.5 w-3.5 text-violet-400 flex-shrink-0" />
+                        <span className="text-slate-700 dark:text-slate-300 text-xs font-medium">
+                          {student.grade?.nom ?? '—'}
+                        </span>
+                        <span className="text-slate-400 text-xs">· {student.xpTotal} XP</span>
+                      </div>
+                    </td>
+
+                    {/* CV */}
+                    <td className="px-6 py-4">
+                      {student.hasCv ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+                          Déposé
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          Aucun CV
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Statut actif/inactif */}
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        student.status === 'Placé'
+                        student.isActive
                           ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
-                          : student.status === 'Entretien obtenu'
-                          ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400'
-                          : student.status === 'Inactif'
-                          ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400'
-                          : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400'
+                          : 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
                       }`}>
-                        {student.status}
+                        {student.isActive ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{student.advisor}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 text-right space-x-1">
                       <button
-                        onClick={() => toast.info(`Détails de ${student.firstName}`)}
+                        onClick={() => toast.info(`Détails de ${student.firstName} — en cours de développement`)}
                         className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                         title="Consulter le dossier"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => toast.success(`Rappel envoyé à ${student.email}`)}
-                        className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                        title="Contacter l'étudiant"
+                        onClick={() => handleNotify(student)}
+                        disabled={notifyingId === student.id}
+                        className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer disabled:opacity-50"
+                        title="Envoyer un rappel par email"
                       >
-                        <Mail className="h-4 w-4" />
+                        {notifyingId === student.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Mail className="h-4 w-4" />
+                        }
                       </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                  <td colSpan={7} className="text-center py-10 text-slate-400">
                     Aucun étudiant ne correspond à votre recherche.
                   </td>
                 </tr>
