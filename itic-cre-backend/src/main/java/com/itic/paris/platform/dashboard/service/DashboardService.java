@@ -105,6 +105,7 @@ public class DashboardService {
         overview.put("studentsWithoutCv", studentsWithoutCv);
         overview.put("staleApplicationsCount", staleApplicationsCount);
         overview.put("recentApplications7d", recentApplications7d);
+        overview.put("cvsToReview", cvRepository.countNotInFinalStatut());
         overview.put("recentApplications30d", recentApplications30d);
         overview.put("applicationsByStatus", appsByStatus);
         overview.put("cvsByStatut", cvsByStatut);

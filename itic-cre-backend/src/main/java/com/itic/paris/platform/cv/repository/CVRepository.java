@@ -24,4 +24,7 @@ public interface CVRepository extends JpaRepository<CV, UUID> {
 
     @Query("SELECT c.student.id FROM CV c WHERE c.student.id IN :studentIds")
     List<UUID> findStudentIdsWithCv(List<UUID> studentIds);
+
+    @Query("SELECT COUNT(c) FROM CV c WHERE c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
+    long countNotInFinalStatut();
 }
