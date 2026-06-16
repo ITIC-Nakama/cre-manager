@@ -1,8 +1,9 @@
 import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO, ChangePasswordDTO } from "../../types/models/Auth";
-import { apiClient } from '../AxiosApiClient';
+import { apiClient, resetSessionState } from '../AxiosApiClient';
 
 // Authenticate user — tokens are set as HttpOnly cookies by the server
 export function AuthRequest(login: LoginDTO) {
+    resetSessionState();
     return apiClient.post('/auth/login', login)
         .then(response => {
             // Response body only contains { user: {...} }
