@@ -50,7 +50,7 @@ export default function StudentDashboard() {
       {/* Welcome header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Bonjour, {firstName} 👋 (Espace Étudiant)
+          Bonjour, {firstName} 👋
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Voici un aperçu de vos candidatures et de votre activité récente.
