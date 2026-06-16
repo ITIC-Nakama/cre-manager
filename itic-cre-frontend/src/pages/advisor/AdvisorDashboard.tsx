@@ -15,7 +15,8 @@ export default function AdvisorDashboard() {
   const firstName = user?.firstName || 'Conseiller';
 
   const { data: overview, isLoading: loadingOverview } = useDashboardOverview();
-  const { data: students = [], isLoading: loadingStudents } = useStudentList();
+  const { data: studentPage, isLoading: loadingStudents } = useStudentList({ size: 200 });
+  const students = studentPage?.content ?? [];
   const notifyMutation = useNotifyStudent();
 
   const cvsToReview = overview?.cvsToReview ?? 0;
