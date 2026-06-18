@@ -33,7 +33,7 @@ function formatDate(iso: string) {
 
 export default function AuditLogPanel() {
     const { t } = useTranslation();
-    const { data, isLoading } = useAuditLogs();
+    const { data, isLoading } = useAuditLogs(0, 5);
     const logs = data?.content ?? [];
 
     return (
@@ -45,7 +45,7 @@ export default function AuditLogPanel() {
                 </h2>
                 {data && (
                     <span className="text-xs text-slate-400">
-                        {t('dashboard.advisor.audit.entries', { count: data.totalElements })}
+                        {t('dashboard.advisor.audit.showing_latest', { count: logs.length, total: data.totalElements })}
                     </span>
                 )}
             </div>

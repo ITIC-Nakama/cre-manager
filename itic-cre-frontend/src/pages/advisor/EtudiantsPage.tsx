@@ -9,11 +9,12 @@ import {
 import {
     Search, SlidersHorizontal, Mail, Eye, Loader2,
     AlertCircle, Star, FileText, ChevronUp, ChevronDown,
-    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight,
+    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useStudentList, useNotifyStudent } from '../../hooks/useDashboard';
+import { usePromotions } from '../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
@@ -38,12 +39,14 @@ export default function EtudiantsPage() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+    const [promotionFilter, setPromotionFilter] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
+    const { data: promotions } = usePromotions();
 
     const columns = useMemo(() => [
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
@@ -132,6 +135,14 @@ export default function EtudiantsPage() {
         { value: 'no-cv', label: t('dashboard.etudiants.filter_no_cv') },
     ], [t]);
 
+    const promotionOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.filter_all_promotions') },
+        ...(promotions ?? []).map((promotion) => ({
+            value: promotion.id,
+            label: promotion.year ? `${promotion.name} (${promotion.year})` : promotion.name,
+        })),
+    ], [promotions, t]);
+
     const params = {
         page,
         size: PAGE_SIZE,
@@ -139,6 +150,7 @@ export default function EtudiantsPage() {
         isActive:  filterStatus === 'active' ? true  : filterStatus === 'inactive' ? false : undefined,
         hasCv:     filterStatus === 'no-cv'  ? false : undefined,
         hasStale:  filterStatus === 'stale'  ? true  : undefined,
+        promotionId: promotionFilter || undefined,
     };
 
     const { data, isLoading, isFetching } = useStudentList(params);
@@ -166,6 +178,11 @@ export default function EtudiantsPage() {
 
     const handleFilterChange = (value: FilterStatus) => {
         setFilterStatus(value);
+        setPage(0);
+    };
+
+    const handlePromotionFilterChange = (value: string) => {
+        setPromotionFilter(value);
         setPage(0);
     };
 
@@ -234,6 +251,13 @@ export default function EtudiantsPage() {
                     options={filterOptions}
                     onChange={(value) => handleFilterChange(value as FilterStatus)}
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={promotionFilter}
+                    options={promotionOptions}
+                    onChange={handlePromotionFilterChange}
+                    icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
                 {isFetching && !isLoading && (
