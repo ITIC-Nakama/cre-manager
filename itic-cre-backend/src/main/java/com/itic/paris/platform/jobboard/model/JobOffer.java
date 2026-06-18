@@ -39,6 +39,7 @@ public class JobOffer {
     private String description;
 
     @Size(max = 500)
+    @Column(length = 500)
     private String location;
 
     @NotNull
@@ -46,7 +47,8 @@ public class JobOffer {
     @JoinColumn(name = "contract_type_id", nullable = false)
     private ContractType contractType;
 
-    @Column(name = "external_link")
+    @Size(max = 2048)
+    @Column(name = "external_link", length = 2048)
     private String externalLink;
 
     @Column(name = "is_active", nullable = false)

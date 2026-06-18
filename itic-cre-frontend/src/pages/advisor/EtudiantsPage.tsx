@@ -18,6 +18,7 @@ import { usePromotions } from '../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
+import TruncatedText from '../../components/shared/TruncatedText';
 import CustomSelect from '../../components/basics/CustomSelect';
 import type { StudentRow } from '../../types/models/Dashboard';
 
@@ -53,11 +54,12 @@ export default function EtudiantsPage() {
             id: 'name',
             header: t('dashboard.etudiants.table.student'),
             cell: ({ row }) => (
-                <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">
-                        {row.original.firstName} {row.original.lastName}
-                    </p>
-                    <p className="text-xs text-slate-400">{row.original.email}</p>
+                <div className="max-w-[200px]">
+                    <TruncatedText
+                        text={`${row.original.firstName} ${row.original.lastName}`}
+                        className="font-semibold text-slate-900 dark:text-white"
+                    />
+                    <TruncatedText text={row.original.email} className="text-xs text-slate-400" />
                 </div>
             ),
             enableSorting: false,
@@ -65,11 +67,14 @@ export default function EtudiantsPage() {
         col.accessor((row) => row.promotion?.nom ?? '', {
             id: 'promotion',
             header: t('dashboard.etudiants.table.promotion'),
-            cell: ({ getValue }) => (
-                <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
-                </span>
-            ),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[160px] text-slate-500 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
             enableSorting: false,
         }),
         col.accessor('applicationCount', {

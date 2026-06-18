@@ -31,11 +31,8 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800 animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn">
 
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
@@ -61,15 +58,19 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
         {/* Body */}
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-              {t('dashboard.notify_modal.message_label')}{' '}
-              <span className="font-normal text-slate-400">{t('dashboard.notify_modal.message_optional')}</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                {t('dashboard.notify_modal.message_label')}{' '}
+                <span className="font-normal text-slate-400">{t('dashboard.notify_modal.message_optional')}</span>
+              </label>
+              <span className="text-xs text-slate-400">{message.length}/1000</span>
+            </div>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('dashboard.notify_modal.message_placeholder')}
-              rows={4}
+              maxLength={1000}
+              rows={5}
               className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
             <p className="text-xs text-slate-400 mt-1">
