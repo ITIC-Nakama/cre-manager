@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, User, ChevronDown } from 'lucide-react';
+import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, User, ChevronDown, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useCVComments, useUpdateCVStatus, useAddCVComment } from '../../hooks/useCV';
+import { useCVComments, useUpdateCVStatus, useAddCVComment, useDeleteCVComment } from '../../hooks/useCV';
+import { useUserStore } from '../../store/UserStore';
+import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
 
 interface Props {
@@ -35,9 +37,11 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
         setCv(initialCv);
     }, [initialCv]);
 
+    const { user } = useUserStore();
     const { data: comments = [], isLoading: commentsLoading } = useCVComments(cv.id);
     const updateStatus = useUpdateCVStatus();
     const addComment = useAddCVComment();
+    const deleteComment = useDeleteCVComment();
 
     const handleStatusChange = async (statut: CVStatut) => {
         setStatusDropdownOpen(false);
@@ -57,6 +61,15 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
             await addComment.mutateAsync({ cvId: cv.id, contenu });
             setNewComment('');
             toast.success(t('dashboard.cv.toast.comment_added', 'Commentaire ajouté.'));
+        } catch {
+            toast.error(t('dashboard.cv.toast.error', 'Une erreur est survenue.'));
+        }
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        try {
+            await deleteComment.mutateAsync({ cvId: cv.id, commentId });
+            toast.success(t('dashboard.cv.toast.comment_deleted', 'Commentaire supprimé.'));
         } catch {
             toast.error(t('dashboard.cv.toast.error', 'Une erreur est survenue.'));
         }
@@ -203,22 +216,36 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     {t('dashboard.cv.detail.no_comments', 'Aucun commentaire pour l\'instant.')}
                                 </div>
                             ) : (
-                                comments.map((c) => (
-                                    <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-3">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
-                                                <User className="h-3 w-3 text-indigo-500" />
+                                comments.map((c) => {
+                                    const isCommentOwner = user && c.advisor && String(c.advisor.id) === String(user.id);
+                                    const isUserAdmin = user && user.role === Role.ADMIN;
+                                    return (
+                                        <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-3 animate-fadeIn">
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
+                                                    <User className="h-3 w-3 text-indigo-500" />
+                                                </div>
+                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                                    {c.advisor
+                                                        ? `${c.advisor.firstName} ${c.advisor.lastName}`
+                                                        : 'Conseiller'}
+                                                </span>
+                                                <span className="text-xs text-slate-400 ml-auto">{formatDateTime(c.createdAt)}</span>
+                                                {(isCommentOwner || isUserAdmin) && (
+                                                    <button
+                                                        onClick={() => handleDeleteComment(c.id)}
+                                                        disabled={deleteComment.isPending}
+                                                        className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 ml-1"
+                                                        title={t('dashboard.cv.detail.delete_comment', 'Supprimer le commentaire')}
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </button>
+                                                )}
                                             </div>
-                                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                                {c.advisor
-                                                    ? `${c.advisor.firstName} ${c.advisor.lastName}`
-                                                    : 'Conseiller'}
-                                            </span>
-                                            <span className="text-xs text-slate-400 ml-auto">{formatDateTime(c.createdAt)}</span>
+                                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap pl-8">{c.contenu}</p>
                                         </div>
-                                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap pl-8">{c.contenu}</p>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
 

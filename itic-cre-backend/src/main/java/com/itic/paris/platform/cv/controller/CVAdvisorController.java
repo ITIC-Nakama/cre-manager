@@ -80,4 +80,11 @@ public class CVAdvisorController {
     public ResponseEntity<?> getComments(@PathVariable UUID cvId) {
         return ResponseEntity.ok(cvService.getComments(cvId));
     }
+
+    @DeleteMapping("/comments/{commentId}")
+    @Operation(summary = "Supprimer un commentaire d'un CV")
+    public ResponseEntity<?> deleteComment(@PathVariable UUID commentId) {
+        cvService.deleteComment(commentId, SecurityContextHelper.currentUserId());
+        return ResponseEntity.ok().build();
+    }
 }
