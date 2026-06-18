@@ -102,6 +102,7 @@
         "title": "Audit Logs & Activités Système",
         "entries_one": "{{count}} entrée",
         "entries_other": "{{count}} entrées",
+        "showing_latest": "{{count}} dernières sur {{total}}",
         "empty": "Aucun log enregistré."
       }
     },
@@ -117,6 +118,7 @@
       "filter_inactive": "Inactifs",
       "filter_stale": "Candidatures en retard",
       "filter_no_cv": "Sans CV",
+      "filter_all_promotions": "Toutes les promotions",
       "table": {
         "student": "Étudiant",
         "promotion": "Promotion",

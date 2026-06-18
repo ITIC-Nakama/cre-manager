@@ -102,6 +102,7 @@
         "title": "Audit Logs & System Activity",
         "entries_one": "{{count}} entry",
         "entries_other": "{{count}} entries",
+        "showing_latest": "Latest {{count}} of {{total}}",
         "empty": "No logs recorded."
       }
     },
@@ -117,6 +118,7 @@
       "filter_inactive": "Inactive",
       "filter_stale": "Late applications",
       "filter_no_cv": "No CV",
+      "filter_all_promotions": "All cohorts",
       "table": {
         "student": "Student",
         "promotion": "Cohort",
