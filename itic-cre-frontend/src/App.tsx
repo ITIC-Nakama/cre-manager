@@ -1,7 +1,8 @@
 import './App.css'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import StudentLayout from './layouts/StudentLayout'
-import AdvisorLayout from './layouts/AdvisorLayout'
+import SupervisorLayout from './layouts/SupervisorLayout'
+import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
@@ -14,6 +15,7 @@ import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/EtudiantsPage'
+import CandidaturesPage from './pages/advisor/CandidaturesPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 
@@ -30,7 +32,7 @@ function DashboardRedirect() {
   }
 
   if (user.role === Role.ADVISOR || user.role === Role.ADMIN) {
-    return <Navigate to="/advisor/dashboard" replace />;
+    return <Navigate to="/supervisor/dashboard" replace />;
   }
 
   return <Navigate to="/login" replace />;
@@ -64,19 +66,24 @@ function App() {
         </Route>
 
         {/* Advisor / Admin Routes */}
-        <Route element={<AdvisorLayout />}>
-          <Route path="/advisor/dashboard"     element={<AdvisorDashboard />} />
-          <Route path="/advisor/etudiants"     element={<EtudiantsPage />} />
-          <Route path="/advisor/candidatures"  element={<ComingSoonPage />} />
-          <Route path="/advisor/offres"        element={<ComingSoonPage />} />
-          <Route path="/advisor/cv"            element={<ComingSoonPage />} />
-          <Route path="/advisor/contenu"       element={<ComingSoonPage />} />
-          <Route path="/advisor/gamification"  element={<ComingSoonPage />} />
-          <Route path="/advisor/conseillers"   element={<ComingSoonPage />} />
-          <Route path="/advisor/promotions"    element={<ComingSoonPage />} />
-          <Route path="/advisor/audit"         element={<ComingSoonPage />} />
-          <Route path="/advisor/config"        element={<ComingSoonPage />} />
-          <Route path="/advisor/parametres"    element={<ParametresPage />} />
+        <Route element={<SupervisorLayout />}>
+          <Route path="/supervisor/dashboard"     element={<AdvisorDashboard />} />
+          <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
+          <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
+          <Route path="/supervisor/offres"        element={<ComingSoonPage />} />
+          <Route path="/supervisor/cv"            element={<ComingSoonPage />} />
+          <Route path="/supervisor/contenu"       element={<ComingSoonPage />} />
+          <Route path="/supervisor/gamification"  element={<ComingSoonPage />} />
+          <Route path="/supervisor/parametres"    element={<ParametresPage />} />
+
+          {/* Admin-only — advisors are redirected to their dashboard */}
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/conseillers" element={<ComingSoonPage />} />
+            <Route path="/admin/promotions"  element={<ComingSoonPage />} />
+            <Route path="/admin/audit"       element={<ComingSoonPage />} />
+            <Route path="/admin/config"      element={<ComingSoonPage />} />
+          </Route>
+
         </Route>
 
         {/* Fallback */}

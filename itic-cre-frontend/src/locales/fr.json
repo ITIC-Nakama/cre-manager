@@ -148,6 +148,40 @@
         "export_error": "Impossible d'exporter les données."
       }
     },
+    "candidatures": {
+      "title": "Candidatures",
+      "subtitle_one": "{{count}} candidature au total",
+      "subtitle_other": "{{count}} candidatures au total",
+      "search_placeholder": "Rechercher (étudiant, entreprise, poste)…",
+      "filter_all_statuses": "Tous les statuts",
+      "filter_all_promotions": "Toutes les promotions",
+      "filter_all_contracts": "Tous les types de contrat",
+      "filter_stale_only": "En retard uniquement",
+      "table": {
+        "student": "Étudiant",
+        "promotion": "Promotion",
+        "entreprise": "Entreprise",
+        "poste": "Poste",
+        "contract": "Type de contrat",
+        "status": "Statut",
+        "last_update": "Dernière mise à jour",
+        "empty": "Aucune candidature ne correspond à vos critères."
+      },
+      "pagination": {
+        "info_one": "Page {{current}} sur {{total}} — {{count}} candidature",
+        "info_other": "Page {{current}} sur {{total}} — {{count}} candidatures"
+      },
+      "detail": {
+        "student": "Étudiant",
+        "contract": "Type de contrat",
+        "contact": "Contact",
+        "view_offer": "Voir l'offre",
+        "notes": "Notes",
+        "stale": "En retard",
+        "created_at": "Créée le {{date}}",
+        "updated_at": "Mise à jour le {{date}}"
+      }
+    },
     "notify_modal": {
       "message_label": "Message personnalisé",
       "message_optional": "(optionnel)",

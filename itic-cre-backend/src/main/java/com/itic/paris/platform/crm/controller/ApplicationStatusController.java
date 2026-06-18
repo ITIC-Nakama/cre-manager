@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/application-statuses")
+@RequestMapping("/application-statuses")
 @RequiredArgsConstructor
 @Tag(name = "CRM — Applications", description = "Statuts du pipeline de candidatures")
 public class ApplicationStatusController {

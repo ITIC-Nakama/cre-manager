@@ -262,6 +262,81 @@ public class DashboardService {
         return new PageImpl<>(content, pageable, fullList.size());
     }
 
+    // ─── Application list (toutes promotions) ──────────────────────────────────
+
+    public Page<Map<String, Object>> getApplicationList(UUID promotionId, UUID statusId, UUID typeContratId,
+                                                          String search, Boolean stale, Pageable pageable) {
+        Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
+
+        List<Map<String, Object>> fullList = applicationRepository.findAll().stream()
+                .filter(app -> promotionId == null
+                        || (app.getStudent().getPromotion() != null
+                            && promotionId.equals(app.getStudent().getPromotion().getId())))
+                .filter(app -> statusId == null || statusId.equals(app.getStatus().getId()))
+                .filter(app -> typeContratId == null
+                        || (app.getTypeContrat() != null && typeContratId.equals(app.getTypeContrat().getId())))
+                .map(app -> {
+                    Student student = app.getStudent();
+                    Map<String, Object> studentRow = new LinkedHashMap<>();
+                    studentRow.put("id", student.getId());
+                    studentRow.put("firstName", student.getFirstName());
+                    studentRow.put("lastName", student.getLastName());
+                    studentRow.put("email", student.getEmail());
+                    studentRow.put("promotion", student.getPromotion() != null
+                            ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
+                            : null);
+
+                    boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
+                            && app.getDateModification().isBefore(staleThreshold);
+
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("id", app.getId());
+                    row.put("student", studentRow);
+                    row.put("entreprise", app.getEntreprise());
+                    row.put("poste", app.getPoste());
+                    row.put("typeContrat", app.getTypeContrat() != null
+                            ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
+                            : null);
+                    row.put("lienOffre", app.getLienOffre());
+                    row.put("contact", app.getContact());
+                    row.put("notes", app.getNotes());
+                    row.put("status", Map.of(
+                            "id", app.getStatus().getId(),
+                            "nom", app.getStatus().getNom(),
+                            "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
+                            "declencheAlerte", app.getStatus().getDeclencheAlerte()
+                    ));
+                    row.put("stale", isStale);
+                    row.put("dateCreation", app.getDateCreation());
+                    row.put("dateModification", app.getDateModification());
+                    return row;
+                })
+                .filter(row -> {
+                    if (search != null && !search.isBlank()) {
+                        String q = search.toLowerCase();
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> studentRow = (Map<String, Object>) row.get("student");
+                        String name = (studentRow.get("firstName") + " " + studentRow.get("lastName")).toLowerCase();
+                        String email = ((String) studentRow.get("email")).toLowerCase();
+                        String entreprise = ((String) row.get("entreprise")).toLowerCase();
+                        String poste = ((String) row.get("poste")).toLowerCase();
+                        if (!name.contains(q) && !email.contains(q) && !entreprise.contains(q) && !poste.contains(q)) {
+                            return false;
+                        }
+                    }
+                    if (Boolean.TRUE.equals(stale) && !Boolean.TRUE.equals(row.get("stale"))) return false;
+                    return true;
+                })
+                .sorted(Comparator.comparing((Map<String, Object> row) -> (Instant) row.get("dateModification")).reversed())
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), fullList.size());
+        List<Map<String, Object>> content = start >= fullList.size() ? List.of() : fullList.subList(start, end);
+
+        return new PageImpl<>(content, pageable, fullList.size());
+    }
+
     // ─── Student detail ──────────────────────────────────────────────────────
 
     public Map<String, Object> getStudentDetail(UUID studentId) {

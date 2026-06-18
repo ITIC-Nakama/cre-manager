@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/applications")
+@RequestMapping("/applications")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('STUDENT')")
 @Tag(name = "CRM — Applications", description = "Suivi du pipeline de candidatures de l'étudiant connecté")

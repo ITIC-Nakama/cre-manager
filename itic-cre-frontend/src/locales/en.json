@@ -148,6 +148,40 @@
         "export_error": "Unable to export data."
       }
     },
+    "candidatures": {
+      "title": "Applications",
+      "subtitle_one": "{{count}} application total",
+      "subtitle_other": "{{count}} applications total",
+      "search_placeholder": "Search (student, company, position)…",
+      "filter_all_statuses": "All statuses",
+      "filter_all_promotions": "All cohorts",
+      "filter_all_contracts": "All contract types",
+      "filter_stale_only": "Late only",
+      "table": {
+        "student": "Student",
+        "promotion": "Cohort",
+        "entreprise": "Company",
+        "poste": "Position",
+        "contract": "Contract type",
+        "status": "Status",
+        "last_update": "Last update",
+        "empty": "No applications match your criteria."
+      },
+      "pagination": {
+        "info_one": "Page {{current}} of {{total}} — {{count}} application",
+        "info_other": "Page {{current}} of {{total}} — {{count}} applications"
+      },
+      "detail": {
+        "student": "Student",
+        "contract": "Contract type",
+        "contact": "Contact",
+        "view_offer": "View offer",
+        "notes": "Notes",
+        "stale": "Late",
+        "created_at": "Created on {{date}}",
+        "updated_at": "Updated on {{date}}"
+      }
+    },
     "notify_modal": {
       "message_label": "Custom message",
       "message_optional": "(optional)",
