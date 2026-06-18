@@ -20,6 +20,8 @@ import CandidaturesPage from './pages/advisor/CandidaturesPage'
 import SupervisorOffresPage from './pages/advisor/OffresPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
+import CVValidationPage from './pages/advisor/CVValidationPage'
+
 
 // Redirection component based on role
 function DashboardRedirect() {
@@ -73,7 +75,7 @@ function App() {
           <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
           <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
-          <Route path="/supervisor/cv"            element={<ComingSoonPage />} />
+          <Route path="/supervisor/cv"            element={<CVValidationPage />} />
           <Route path="/supervisor/contenu"       element={<ComingSoonPage />} />
           <Route path="/supervisor/gamification"  element={<ComingSoonPage />} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />

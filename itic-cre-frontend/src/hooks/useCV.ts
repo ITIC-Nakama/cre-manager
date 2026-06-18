@@ -1,0 +1,63 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+    fetchAllCVs,
+    fetchCVStatuts,
+    updateCVStatus,
+    addCVComment,
+    fetchCVComments,
+    fetchCVStats,
+} from '../api-s/requests/CVRequest';
+import type { CVListParams } from '../api-s/requests/CVRequest';
+
+export function useAllCVs(params: CVListParams = {}) {
+    return useQuery({
+        queryKey: ['cvs', 'all', params],
+        queryFn: () => fetchAllCVs(params),
+        placeholderData: (prev) => prev,
+    });
+}
+
+export function useCVStatuts() {
+    return useQuery({
+        queryKey: ['cv-statuts'],
+        queryFn: fetchCVStatuts,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+}
+
+export function useCVComments(cvId: string | null) {
+    return useQuery({
+        queryKey: ['cv-comments', cvId],
+        queryFn: () => fetchCVComments(cvId!),
+        enabled: !!cvId,
+    });
+}
+
+export function useUpdateCVStatus() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ cvId, statutId }: { cvId: string; statutId: string }) =>
+            updateCVStatus(cvId, statutId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cvs'] });
+            queryClient.invalidateQueries({ queryKey: ['cv-stats'] });
+        },
+    });
+}
+
+export function useAddCVComment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ cvId, contenu }: { cvId: string; contenu: string }) =>
+            addCVComment(cvId, contenu),
+        onSuccess: (_data, variables) =>
+            queryClient.invalidateQueries({ queryKey: ['cv-comments', variables.cvId] }),
+    });
+}
+
+export function useCVStats() {
+    return useQuery({
+        queryKey: ['cv-stats'],
+        queryFn: fetchCVStats,
+    });
+}
