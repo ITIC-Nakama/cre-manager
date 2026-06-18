@@ -52,6 +52,18 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, pageable));
     }
 
+    @GetMapping("/applications")
+    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale")
+    public ResponseEntity<?> applications(
+            @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) UUID statusId,
+            @RequestParam(required = false) UUID typeContratId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean stale,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(dashboardService.getApplicationList(promotionId, statusId, typeContratId, search, stale, pageable));
+    }
+
     @GetMapping("/students/{studentId}")
     @Operation(summary = "Détail complet d'un étudiant — toutes les candidatures, CV + commentaires, 10 derniers XP")
     public ResponseEntity<?> studentDetail(@PathVariable UUID studentId) {

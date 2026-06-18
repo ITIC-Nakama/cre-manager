@@ -40,7 +40,7 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
             </p>
           </div>
           <button
-            onClick={() => navigate('/advisor/etudiants')}
+            onClick={() => navigate('/supervisor/etudiants')}
             className="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium cursor-pointer"
           >
             {t('dashboard.advisor.students_widget.see_all')} <ArrowRight className="h-3.5 w-3.5" />
