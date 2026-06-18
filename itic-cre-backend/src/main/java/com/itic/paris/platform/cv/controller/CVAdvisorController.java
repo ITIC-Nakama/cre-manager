@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -29,9 +31,18 @@ public class CVAdvisorController {
     private final CVService cvService;
 
     @GetMapping
-    @Operation(summary = "Lister tous les CVs (filtre par statutId optionnel)")
-    public ResponseEntity<?> listAll(@RequestParam(required = false) UUID statutId) {
-        return ResponseEntity.ok(cvService.getAllCVs(statutId));
+    @Operation(summary = "Lister tous les CVs paginés (filtre par statutId et recherche optionnels)")
+    public ResponseEntity<?> listAll(
+            @RequestParam(required = false) UUID statutId,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, pageable));
+    }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Obtenir les statistiques des CVs par statut")
+    public ResponseEntity<?> getStats() {
+        return ResponseEntity.ok(cvService.getCVStats());
     }
 
     @GetMapping("/student/{studentId}")

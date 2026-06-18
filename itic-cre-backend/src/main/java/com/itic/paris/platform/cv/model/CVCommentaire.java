@@ -1,6 +1,6 @@
 package com.itic.paris.platform.cv.model;
 
-import com.itic.paris.platform.auth.model.Advisor;
+import com.itic.paris.platform.auth.model.User;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,11 +18,12 @@ public class CVCommentaire {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cv_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private CV cv;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "advisor_id", nullable = false)
-    private Advisor advisor;
+    private User advisor;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String contenu;
