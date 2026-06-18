@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
-import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import CustomSelect from '../../components/basics/CustomSelect';
+import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User, GraduationCap } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useRegister } from '../../hooks/useAuth';
+import { usePromotions } from '../../hooks/usePromotions';
 import { type RegisterDTO, Role } from '../../types/models/Auth';
 import { handleApiError } from '../../utils/errorHelper';
 import { getBrowserLang } from '../../utils/browserSettings';
@@ -17,10 +19,30 @@ export default function RegisterPage() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const { mutate, isPending } = useRegister();
+    const { data: promotions, isLoading: loadingPromotions } = usePromotions();
     const { register, handleSubmit, setError, formState: { errors } } = useForm();
     const [generalError, setGeneralError] = useState<string | null>(null);
+    const [promotionId, setPromotionId] = useState('');
+    const [promotionError, setPromotionError] = useState<string | null>(null);
+
+    const promotionOptions = useMemo(() => [
+        {
+            value: '',
+            label: loadingPromotions ? t('auth.register.promotion_loading') : t('auth.register.promotion_placeholder'),
+        },
+        ...(promotions ?? []).map((promotion) => ({
+            value: promotion.id,
+            label: promotion.year ? `${promotion.name} (${promotion.year})` : promotion.name,
+        })),
+    ], [promotions, loadingPromotions, t]);
 
     const onSubmit = (data: any) => {
+        if (!promotionId) {
+            setPromotionError(t('auth.register.promotion_required'));
+            return;
+        }
+        setPromotionError(null);
+
         const registerDto: RegisterDTO = {
             email: data.email,
             firstName: data.firstName,
@@ -28,6 +50,7 @@ export default function RegisterPage() {
             password: data.password,
             roleId: Role.STUDENT,
             lang: getBrowserLang(),
+            promotionId,
         };
 
         mutate(registerDto, {
@@ -177,6 +200,27 @@ export default function RegisterPage() {
                                     <p className="text-red-500 text-xs">{errors.lastName.message as string}</p>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Promotion */}
+                        <div className="space-y-2">
+                            <label htmlFor="promotionId" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {t('auth.register.promotion_label')}
+                            </label>
+                            <CustomSelect
+                                id="promotionId"
+                                value={promotionId}
+                                options={promotionOptions}
+                                onChange={(value) => {
+                                    setPromotionId(value);
+                                    setPromotionError(null);
+                                }}
+                                icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
+                                className="w-full"
+                            />
+                            {promotionError && (
+                                <p className="text-red-500 text-xs">{promotionError}</p>
+                            )}
                         </div>
 
                         {/* Email */}

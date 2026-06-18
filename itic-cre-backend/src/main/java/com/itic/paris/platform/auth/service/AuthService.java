@@ -277,12 +277,24 @@ public class AuthService {
         if (user instanceof Student student) {
             profile.put("xpTotal", student.getXpTotal());
             profile.put("lastActivity", student.getLastActivity());
-            profile.put("promotion", student.getPromotion());
+            profile.put("promotion", sanitizePromotion(student.getPromotion()));
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());
         }
         return profile;
+    }
+
+    private Map<String, Object> sanitizePromotion(Promotion promotion) {
+        if (promotion == null) {
+            return null;
+        }
+        Promotion unproxied = (Promotion) Hibernate.unproxy(promotion);
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", unproxied.getId());
+        dto.put("name", unproxied.getName());
+        dto.put("year", unproxied.getYear());
+        return dto;
     }
 
     private void touchStudentActivity(User user) {
