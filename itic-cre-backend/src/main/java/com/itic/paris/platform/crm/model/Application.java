@@ -44,7 +44,7 @@ public class Application {
     private ContractType typeContrat;
 
     @Size(max = 500)
-    @Column(name = "lien_offre")
+    @Column(name = "lien_offre", length = 500)
     private String lienOffre;
 
     @Size(max = 200)

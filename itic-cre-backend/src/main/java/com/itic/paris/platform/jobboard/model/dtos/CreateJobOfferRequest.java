@@ -23,6 +23,7 @@ public class CreateJobOfferRequest {
     private String company;
 
     @NotNull
+    @Size(max = 5000)
     private String description;
 
     @Size(max = 500)
@@ -31,5 +32,6 @@ public class CreateJobOfferRequest {
     @NotNull
     private UUID contractTypeId;
 
+    @Size(max = 2048)
     private String externalLink;
 }

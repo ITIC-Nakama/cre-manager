@@ -14,6 +14,7 @@ import { useApplicationList, useApplicationStatuses, useContractTypes } from '..
 import { usePromotions } from '../../hooks/usePromotions';
 import CustomSelect from '../../components/basics/CustomSelect';
 import StatusBadge from '../../components/shared/StatusBadge';
+import TruncatedText from '../../components/shared/TruncatedText';
 import ApplicationDetailModal from '../../components/shared/ApplicationDetailModal';
 import type { ApplicationRow } from '../../types/models/Application';
 
@@ -48,39 +49,50 @@ export default function CandidaturesPage() {
             id: 'student',
             header: t('dashboard.candidatures.table.student'),
             cell: ({ row }) => (
-                <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">
-                        {row.original.student.firstName} {row.original.student.lastName}
-                    </p>
-                    <p className="text-xs text-slate-400">{row.original.student.email}</p>
+                <div className="max-w-[200px]">
+                    <TruncatedText
+                        text={`${row.original.student.firstName} ${row.original.student.lastName}`}
+                        className="font-semibold text-slate-900 dark:text-white"
+                    />
+                    <TruncatedText text={row.original.student.email} className="text-xs text-slate-400" />
                 </div>
             ),
         }),
         col.accessor((row) => row.student.promotion?.nom ?? '', {
             id: 'promotion',
             header: t('dashboard.candidatures.table.promotion'),
-            cell: ({ getValue }) => (
-                <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
-                </span>
-            ),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[140px] text-slate-500 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
         }),
         col.accessor('entreprise', {
             header: t('dashboard.candidatures.table.entreprise'),
-            cell: ({ getValue }) => <span className="font-medium text-slate-700 dark:text-slate-300">{getValue()}</span>,
+            cell: ({ getValue }) => (
+                <TruncatedText text={getValue()} className="max-w-[160px] font-medium text-slate-700 dark:text-slate-300" />
+            ),
         }),
         col.accessor('poste', {
             header: t('dashboard.candidatures.table.poste'),
-            cell: ({ getValue }) => <span className="text-slate-600 dark:text-slate-400 text-sm">{getValue()}</span>,
+            cell: ({ getValue }) => (
+                <TruncatedText text={getValue()} className="max-w-[180px] text-slate-600 dark:text-slate-400 text-sm" />
+            ),
         }),
         col.accessor((row) => row.typeContrat?.label ?? '', {
             id: 'typeContrat',
             header: t('dashboard.candidatures.table.contract'),
-            cell: ({ getValue }) => (
-                <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
-                </span>
-            ),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[120px] text-slate-500 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
         }),
         col.accessor('status', {
             header: t('dashboard.candidatures.table.status'),

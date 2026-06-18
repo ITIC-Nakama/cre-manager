@@ -1,10 +1,14 @@
 package com.itic.paris.platform.jobboard.controller;
 
+import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
 import com.itic.paris.platform.jobboard.service.JobOfferService;
+import com.itic.paris.platform.shared.local.LanguageUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -27,7 +32,11 @@ public class JobOfferController {
     @PostMapping
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Créer une offre d'emploi")
-    public ResponseEntity<JobOfferDTO> create(@RequestBody CreateJobOfferRequest request) {
+    public ResponseEntity<?> create(@Valid @RequestBody CreateJobOfferRequest request, BindingResult bindingResult,
+                                    HttpServletRequest httpRequest) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(httpRequest));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(jobOfferService.create(request));
     }
 
@@ -82,7 +91,11 @@ public class JobOfferController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Mettre à jour une offre d'emploi")
-    public ResponseEntity<JobOfferDTO> update(@PathVariable UUID id, @RequestBody CreateJobOfferRequest request) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody CreateJobOfferRequest request,
+                                    BindingResult bindingResult, HttpServletRequest httpRequest) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(httpRequest));
+        }
         return ResponseEntity.ok(jobOfferService.update(id, request));
     }
 

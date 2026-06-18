@@ -12,6 +12,14 @@ interface Props {
     onSave: (payload: JobOfferPayload) => Promise<void>;
 }
 
+const LIMITS = {
+    title: { min: 5, max: 200 },
+    company: { min: 2, max: 100 },
+    description: { min: 1, max: 5000 },
+    location: { max: 500 },
+    externalLink: { max: 2048 },
+};
+
 export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
     const { t } = useTranslation();
     const { data: contractTypes } = useContractTypes();
@@ -22,16 +30,36 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
     const [contractTypeId, setContractTypeId] = useState(offer?.contractType.id ?? '');
     const [externalLink, setExternalLink] = useState(offer?.externalLink ?? '');
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [generalError, setGeneralError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const contractTypeOptions = (contractTypes ?? []).map((c) => ({ value: c.id, label: c.label }));
 
+    const validate = (): Record<string, string> => {
+        const errors: Record<string, string> = {};
+        if (title.trim().length < LIMITS.title.min || title.trim().length > LIMITS.title.max) {
+            errors.title = t('dashboard.offres.form.length_error', LIMITS.title);
+        }
+        if (company.trim().length < LIMITS.company.min || company.trim().length > LIMITS.company.max) {
+            errors.company = t('dashboard.offres.form.length_error', LIMITS.company);
+        }
+        if (description.trim().length < LIMITS.description.min) {
+            errors.description = t('dashboard.offres.form.required_field_error');
+        }
+        if (!contractTypeId) {
+            errors.contractTypeId = t('dashboard.offres.form.required_field_error');
+        }
+        return errors;
+    };
+
     const handleSave = async () => {
-        if (!title.trim() || !company.trim() || !description.trim() || !contractTypeId) {
-            setError(t('dashboard.offres.form.required_error'));
+        const errors = validate();
+        setFieldErrors(errors);
+        setGeneralError(null);
+        if (Object.keys(errors).length > 0) {
             return;
         }
-        setError(null);
+
         setSaving(true);
         try {
             await onSave({
@@ -43,19 +71,21 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                 externalLink: externalLink.trim() || undefined,
             });
             onClose();
-        } catch {
-            setError(t('dashboard.offres.form.save_error'));
+        } catch (err: any) {
+            const serverFieldErrors = err?.response?.data?.data;
+            if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
+                setFieldErrors(serverFieldErrors);
+            } else {
+                setGeneralError(t('dashboard.offres.form.save_error'));
+            }
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
@@ -75,60 +105,88 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
 
                 {/* Body */}
                 <div className="p-5 space-y-4">
-                    {error && (
+                    {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
-                            {error}
+                            {generalError}
                         </p>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                {t('dashboard.offres.form.title_label')}
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.offres.form.title_label')}
+                                </label>
+                                <span className="text-xs text-slate-400">{title.length}/{LIMITS.title.max}</span>
+                            </div>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                maxLength={LIMITS.title.max}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                    fieldErrors.title ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                }`}
                             />
+                            {fieldErrors.title && <p className="text-xs text-rose-500">{fieldErrors.title}</p>}
                         </div>
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                {t('dashboard.offres.form.company_label')}
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.offres.form.company_label')}
+                                </label>
+                                <span className="text-xs text-slate-400">{company.length}/{LIMITS.company.max}</span>
+                            </div>
                             <input
                                 type="text"
                                 value={company}
                                 onChange={(e) => setCompany(e.target.value)}
-                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                maxLength={LIMITS.company.max}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                    fieldErrors.company ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                }`}
                             />
+                            {fieldErrors.company && <p className="text-xs text-rose-500">{fieldErrors.company}</p>}
                         </div>
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            {t('dashboard.offres.form.description_label')}
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                {t('dashboard.offres.form.description_label')}
+                            </label>
+                            <span className="text-xs text-slate-400">{description.length}/{LIMITS.description.max}</span>
+                        </div>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            rows={4}
-                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                            maxLength={LIMITS.description.max}
+                            rows={6}
+                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${
+                                fieldErrors.description ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                            }`}
                         />
+                        {fieldErrors.description && <p className="text-xs text-rose-500">{fieldErrors.description}</p>}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                {t('dashboard.offres.form.location_label')}
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.offres.form.location_label')}
+                                </label>
+                                <span className="text-xs text-slate-400">{(location ?? '').length}/{LIMITS.location.max}</span>
+                            </div>
                             <input
                                 type="text"
                                 value={location ?? ''}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                maxLength={LIMITS.location.max}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                    fieldErrors.location ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                }`}
                             />
+                            {fieldErrors.location && <p className="text-xs text-rose-500">{fieldErrors.location}</p>}
                         </div>
                         <div className="space-y-1.5">
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -140,20 +198,28 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                                 onChange={setContractTypeId}
                                 className="w-full"
                             />
+                            {fieldErrors.contractTypeId && <p className="text-xs text-rose-500">{fieldErrors.contractTypeId}</p>}
                         </div>
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            {t('dashboard.offres.form.link_label')}
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                {t('dashboard.offres.form.link_label')}
+                            </label>
+                            <span className="text-xs text-slate-400">{(externalLink ?? '').length}/{LIMITS.externalLink.max}</span>
+                        </div>
                         <input
                             type="text"
                             value={externalLink ?? ''}
                             onChange={(e) => setExternalLink(e.target.value)}
+                            maxLength={LIMITS.externalLink.max}
                             placeholder="https://..."
-                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                fieldErrors.externalLink ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                            }`}
                         />
+                        {fieldErrors.externalLink && <p className="text-xs text-rose-500">{fieldErrors.externalLink}</p>}
                     </div>
                 </div>
 

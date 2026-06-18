@@ -71,7 +71,9 @@ export default function AuditLogPanel() {
                             <span className="flex-1 text-slate-600 dark:text-slate-400 truncate px-2">
                                 {log.description ?? (`${log.targetType ?? ''} ${log.targetId ?? ''}`.trim() || '—')}
                             </span>
-                            <span className="text-slate-400 flex-shrink-0">{log.actorEmail ?? '—'}</span>
+                            <span className="text-slate-400 flex-shrink-0 max-w-[160px] truncate" title={log.actorEmail ?? undefined}>
+                                {log.actorEmail ?? '—'}
+                            </span>
                             <span className="text-slate-400 font-mono flex-shrink-0">{formatDate(log.createdAt)}</span>
                         </div>
                     ))}

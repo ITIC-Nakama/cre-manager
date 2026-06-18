@@ -230,6 +230,8 @@
         "cancel": "Cancel",
         "save": "Save",
         "required_error": "Please fill in the required fields.",
+        "required_field_error": "This field is required.",
+        "length_error": "Must be between {{min}} and {{max}} characters.",
         "save_error": "Failed to save the offer."
       },
       "toast": {

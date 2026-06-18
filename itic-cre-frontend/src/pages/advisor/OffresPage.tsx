@@ -16,6 +16,7 @@ import {
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer,
 } from '../../hooks/useJobOffers';
 import JobOfferFormModal from '../../components/shared/JobOfferFormModal';
+import TruncatedText from '../../components/shared/TruncatedText';
 import type { JobOffer } from '../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../api-s/requests/JobOfferRequest';
 
@@ -95,25 +96,30 @@ export default function OffresPage() {
         col.accessor('title', {
             header: t('dashboard.offres.table.title'),
             cell: ({ row }) => (
-                <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{row.original.title}</p>
-                    <p className="text-xs text-slate-400">{row.original.company}</p>
+                <div className="max-w-[220px]">
+                    <TruncatedText text={row.original.title} className="font-semibold text-slate-900 dark:text-white" />
+                    <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
                 </div>
             ),
         }),
         col.accessor((row) => row.location ?? '', {
             id: 'location',
             header: t('dashboard.offres.table.location'),
-            cell: ({ getValue }) => (
-                <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {getValue() || <span className="text-slate-300 dark:text-slate-600">—</span>}
-                </span>
-            ),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[140px] text-slate-500 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
         }),
         col.accessor((row) => row.contractType.label, {
             id: 'contractType',
             header: t('dashboard.offres.table.contract'),
-            cell: ({ getValue }) => <span className="text-slate-600 dark:text-slate-400 text-sm">{getValue()}</span>,
+            cell: ({ getValue }) => (
+                <TruncatedText text={getValue()} className="max-w-[120px] text-slate-600 dark:text-slate-400 text-sm" />
+            ),
         }),
         col.accessor('applicationCount', {
             header: t('dashboard.offres.table.applications'),

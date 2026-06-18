@@ -1,14 +1,19 @@
 package com.itic.paris.platform.dashboard.controller;
 
+import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
 import com.itic.paris.platform.dashboard.service.DashboardService;
+import com.itic.paris.platform.shared.local.LanguageUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -76,9 +81,14 @@ public class DashboardController {
             description = "Envoie un email personnalisé à l'étudiant (ex : mettre à jour ses candidatures, déposer son CV). "
                     + "Si `message` est absent ou vide, un message de relance par défaut est utilisé."
     )
-    public ResponseEntity<Void> notifyStudent(
+    public ResponseEntity<?> notifyStudent(
             @PathVariable UUID studentId,
-            @RequestBody(required = false) SendReminderRequest request) {
+            @Valid @RequestBody(required = false) SendReminderRequest request,
+            BindingResult bindingResult,
+            HttpServletRequest httpRequest) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(httpRequest));
+        }
         dashboardService.notifyStudent(studentId, request != null ? request.getMessage() : null);
         return ResponseEntity.noContent().build();
     }
