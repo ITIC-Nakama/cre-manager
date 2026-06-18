@@ -182,6 +182,68 @@
         "updated_at": "Mise à jour le {{date}}"
       }
     },
+    "offres": {
+      "title": "Offres d'emploi",
+      "student_title": "Offres d'emploi",
+      "subtitle_one": "{{count}} offre disponible",
+      "subtitle_other": "{{count}} offres disponibles",
+      "create_button": "Publier une offre",
+      "search_placeholder": "Rechercher (intitulé, entreprise)…",
+      "filter_all_contracts": "Tous les types de contrat",
+      "apply_button": "Postuler",
+      "already_applied": "Déjà postulé",
+      "confirm_delete": "Supprimer l'offre « {{title}} » ? Cette action est irréversible.",
+      "table": {
+        "title": "Offre",
+        "location": "Lieu",
+        "contract": "Type de contrat",
+        "applications": "Candidatures",
+        "status": "Statut",
+        "active": "Active",
+        "inactive": "Inactive",
+        "created_at": "Publiée le",
+        "actions": "Actions",
+        "empty": "Aucune offre ne correspond à vos critères."
+      },
+      "actions": {
+        "view_link": "Voir l'offre originale",
+        "edit": "Modifier",
+        "activate": "Réactiver",
+        "deactivate": "Désactiver",
+        "delete": "Supprimer"
+      },
+      "pagination": {
+        "info_one": "Page {{current}} sur {{total}} — {{count}} offre",
+        "info_other": "Page {{current}} sur {{total}} — {{count}} offres",
+        "prev": "Précédent",
+        "next": "Suivant"
+      },
+      "form": {
+        "create_title": "Publier une offre",
+        "edit_title": "Modifier l'offre",
+        "title_label": "Intitulé du poste",
+        "company_label": "Entreprise",
+        "description_label": "Description",
+        "location_label": "Lieu",
+        "contract_label": "Type de contrat",
+        "link_label": "Lien externe (candidature)",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "required_error": "Veuillez remplir les champs obligatoires.",
+        "save_error": "Échec de l'enregistrement de l'offre."
+      },
+      "toast": {
+        "created": "Offre publiée avec succès.",
+        "updated": "Offre mise à jour.",
+        "deactivated": "Offre désactivée.",
+        "activated": "Offre réactivée.",
+        "deleted": "Offre supprimée.",
+        "action_error": "Une erreur est survenue.",
+        "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
+        "already_applied": "Vous avez déjà postulé à cette offre.",
+        "apply_error": "Impossible d'envoyer la candidature."
+      }
+    },
     "notify_modal": {
       "message_label": "Message personnalisé",
       "message_optional": "(optionnel)",

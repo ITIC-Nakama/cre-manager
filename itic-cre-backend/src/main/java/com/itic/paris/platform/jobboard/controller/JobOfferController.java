@@ -38,10 +38,21 @@ public class JobOfferController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les offres actives")
+    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID contractTypeId,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, pageable));
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin")
+    public ResponseEntity<Page<JobOfferDTO>> getAll(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, pageable));
     }
 
     @GetMapping("/search/company")
@@ -80,6 +91,14 @@ public class JobOfferController {
     @Operation(summary = "Désactiver une offre d'emploi")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         jobOfferService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Réactiver une offre d'emploi")
+    public ResponseEntity<Void> activate(@PathVariable UUID id) {
+        jobOfferService.activate(id);
         return ResponseEntity.noContent().build();
     }
 

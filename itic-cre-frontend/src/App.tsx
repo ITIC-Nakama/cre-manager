@@ -13,9 +13,11 @@ import { Role } from './types/models/Auth'
 
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
+import StudentOffresPage from './pages/student/OffresPage'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/CandidaturesPage'
+import SupervisorOffresPage from './pages/advisor/OffresPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 
@@ -59,7 +61,7 @@ function App() {
         <Route element={<StudentLayout />}>
           <Route path="/student/dashboard"     element={<StudentDashboard />} />
           <Route path="/student/candidatures"  element={<ComingSoonPage />} />
-          <Route path="/student/offres"        element={<ComingSoonPage />} />
+          <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/formation"     element={<ComingSoonPage />} />
           <Route path="/student/cv"            element={<ComingSoonPage />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
@@ -70,7 +72,7 @@ function App() {
           <Route path="/supervisor/dashboard"     element={<AdvisorDashboard />} />
           <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
           <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
-          <Route path="/supervisor/offres"        element={<ComingSoonPage />} />
+          <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
           <Route path="/supervisor/cv"            element={<ComingSoonPage />} />
           <Route path="/supervisor/contenu"       element={<ComingSoonPage />} />
           <Route path="/supervisor/gamification"  element={<ComingSoonPage />} />
