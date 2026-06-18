@@ -18,6 +18,7 @@ import { usePromotions } from '../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
+import StudentDetailModal from '../../components/shared/StudentDetailModal';
 import TruncatedText from '../../components/shared/TruncatedText';
 import CustomSelect from '../../components/basics/CustomSelect';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -43,6 +44,7 @@ export default function EtudiantsPage() {
     const [promotionFilter, setPromotionFilter] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
+    const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -319,7 +321,7 @@ export default function EtudiantsPage() {
                                         ))}
                                         <td className="px-6 py-4 text-right space-x-1">
                                             <button
-                                                onClick={() => toast.info(t('dashboard.etudiants.actions.view_wip', { name: row.original.firstName }))}
+                                                onClick={() => setViewingStudent(row.original)}
                                                 className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                                                 title={t('dashboard.etudiants.actions.view')}
                                             >
@@ -387,6 +389,13 @@ export default function EtudiantsPage() {
                     student={selectedStudent}
                     onClose={() => setSelectedStudent(null)}
                     onSend={(message) => handleNotify(selectedStudent, message)}
+                />
+            )}
+
+            {viewingStudent && (
+                <StudentDetailModal
+                    student={viewingStudent}
+                    onClose={() => setViewingStudent(null)}
                 />
             )}
         </div>

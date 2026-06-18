@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2,
-    Power, PowerOff, Users, ExternalLink,
+    Power, PowerOff, Users, ExternalLink, Eye,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -37,6 +37,7 @@ export default function OffresPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
+    const [isReadOnly, setIsReadOnly] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const params = { page, size: PAGE_SIZE, search: debouncedSearch || undefined };
@@ -170,7 +171,7 @@ export default function OffresPage() {
                     </p>
                 </div>
                 <button
-                    onClick={() => { setEditingOffer(null); setFormOpen(true); }}
+                    onClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
                     className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
                 >
                     <Plus className="h-4 w-4" />
@@ -246,7 +247,14 @@ export default function OffresPage() {
                                                 </a>
                                             )}
                                             <button
-                                                onClick={() => { setEditingOffer(row.original); setFormOpen(true); }}
+                                                onClick={() => { setEditingOffer(row.original); setIsReadOnly(true); setFormOpen(true); }}
+                                                className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                                                title={t('dashboard.offres.actions.view_details', "Consulter les détails")}
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => { setEditingOffer(row.original); setIsReadOnly(false); setFormOpen(true); }}
                                                 className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
                                                 title={t('dashboard.offres.actions.edit')}
                                             >
@@ -309,6 +317,7 @@ export default function OffresPage() {
                     offer={editingOffer}
                     onClose={() => setFormOpen(false)}
                     onSave={handleSave}
+                    isReadOnly={isReadOnly}
                 />
             )}
         </div>
