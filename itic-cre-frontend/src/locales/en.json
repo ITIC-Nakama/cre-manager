@@ -182,6 +182,68 @@
         "updated_at": "Updated on {{date}}"
       }
     },
+    "offres": {
+      "title": "Job offers",
+      "student_title": "Job offers",
+      "subtitle_one": "{{count}} offer available",
+      "subtitle_other": "{{count}} offers available",
+      "create_button": "Publish an offer",
+      "search_placeholder": "Search (title, company)…",
+      "filter_all_contracts": "All contract types",
+      "apply_button": "Apply",
+      "already_applied": "Already applied",
+      "confirm_delete": "Delete offer \"{{title}}\"? This action cannot be undone.",
+      "table": {
+        "title": "Offer",
+        "location": "Location",
+        "contract": "Contract type",
+        "applications": "Applications",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "created_at": "Published on",
+        "actions": "Actions",
+        "empty": "No offers match your criteria."
+      },
+      "actions": {
+        "view_link": "View original offer",
+        "edit": "Edit",
+        "activate": "Reactivate",
+        "deactivate": "Deactivate",
+        "delete": "Delete"
+      },
+      "pagination": {
+        "info_one": "Page {{current}} of {{total}} — {{count}} offer",
+        "info_other": "Page {{current}} of {{total}} — {{count}} offers",
+        "prev": "Previous",
+        "next": "Next"
+      },
+      "form": {
+        "create_title": "Publish an offer",
+        "edit_title": "Edit offer",
+        "title_label": "Job title",
+        "company_label": "Company",
+        "description_label": "Description",
+        "location_label": "Location",
+        "contract_label": "Contract type",
+        "link_label": "External link (apply)",
+        "cancel": "Cancel",
+        "save": "Save",
+        "required_error": "Please fill in the required fields.",
+        "save_error": "Failed to save the offer."
+      },
+      "toast": {
+        "created": "Offer published successfully.",
+        "updated": "Offer updated.",
+        "deactivated": "Offer deactivated.",
+        "activated": "Offer reactivated.",
+        "deleted": "Offer deleted.",
+        "action_error": "Something went wrong.",
+        "applied": "Application sent! It has been added to your tracker.",
+        "already_applied": "You already applied to this offer.",
+        "apply_error": "Unable to send the application."
+      }
+    },
     "notify_modal": {
       "message_label": "Custom message",
       "message_optional": "(optional)",

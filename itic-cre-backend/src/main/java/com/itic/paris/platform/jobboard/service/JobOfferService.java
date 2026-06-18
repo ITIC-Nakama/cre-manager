@@ -61,6 +61,12 @@ public class JobOfferService {
                 .map(this::mapToDTO);
     }
 
+    public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, Pageable pageable) {
+        String q = (search != null && !search.isBlank()) ? search : "";
+        return jobOfferRepository.searchActive(q, contractTypeId, pageable)
+                .map(this::mapToDTO);
+    }
+
     public Page<JobOfferDTO> searchByCompany(String company, Pageable pageable) {
         return jobOfferRepository.findByActiveTrueAndCompanyContainingIgnoreCase(company, pageable)
                 .map(this::mapToDTO);
@@ -99,6 +105,20 @@ public class JobOfferService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
         jobOffer.setActive(false);
         jobOfferRepository.save(jobOffer);
+    }
+
+    public void activate(UUID id) {
+        JobOffer jobOffer = jobOfferRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
+        jobOffer.setActive(true);
+        jobOfferRepository.save(jobOffer);
+    }
+
+    public Page<JobOfferDTO> getAllOffers(String search, Pageable pageable) {
+        Page<JobOffer> page = (search != null && !search.isBlank())
+                ? jobOfferRepository.search(search, pageable)
+                : jobOfferRepository.findAll(pageable);
+        return page.map(this::mapToDTO);
     }
 
     public void delete(UUID id) {
