@@ -206,7 +206,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                             {t('dashboard.cv.detail.comments_label', 'Commentaires conseiller')}
                         </p>
 
-                        <div className="space-y-2 mb-3 max-h-52 overflow-y-auto">
+                        <div className="space-y-3.5 mb-4 max-h-[350px] overflow-y-auto pr-1">
                             {commentsLoading ? (
                                 <div className="flex justify-center py-4">
                                     <Loader2 className="h-5 w-5 text-slate-400 animate-spin" />
@@ -220,17 +220,17 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     const isCommentOwner = user && c.advisor && String(c.advisor.id) === String(user.id);
                                     const isUserAdmin = user && user.role === Role.ADMIN;
                                     return (
-                                        <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-3 animate-fadeIn">
-                                            <div className="flex items-center gap-2 mb-1.5">
-                                                <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
-                                                    <User className="h-3 w-3 text-indigo-500" />
+                                        <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-5 animate-fadeIn">
+                                            <div className="flex items-center gap-2.5 mb-3">
+                                                <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
+                                                    <User className="h-4 w-4 text-indigo-500" />
                                                 </div>
-                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                                                     {c.advisor
                                                         ? `${c.advisor.firstName} ${c.advisor.lastName}`
                                                         : 'Conseiller'}
                                                 </span>
-                                                <span className="text-xs text-slate-400 ml-auto">{formatDateTime(c.createdAt)}</span>
+                                                <span className="text-sm text-slate-400 ml-auto">{formatDateTime(c.createdAt)}</span>
                                                 {(isCommentOwner || isUserAdmin) && (
                                                     <button
                                                         onClick={() => handleDeleteComment(c.id)}
@@ -238,11 +238,11 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                                         className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 ml-1"
                                                         title={t('dashboard.cv.detail.delete_comment', 'Supprimer le commentaire')}
                                                     >
-                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                        <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap pl-8">{c.contenu}</p>
+                                            <p className="text-base text-slate-800 dark:text-slate-200 whitespace-pre-wrap pl-10 leading-relaxed">{c.contenu}</p>
                                         </div>
                                     );
                                 })
@@ -261,9 +261,9 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 maxLength={1000}
-                                rows={3}
+                                rows={4}
                                 placeholder={t('dashboard.cv.detail.comment_placeholder', 'Votre commentaire pour l\'étudiant…')}
-                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3.5 py-3 text-base text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                             />
                             <div className="flex justify-end">
                                 <button
