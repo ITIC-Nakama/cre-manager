@@ -17,6 +17,7 @@ import { useStudentList, useNotifyStudent } from '../../hooks/useDashboard';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
+import CustomSelect from '../../components/basics/CustomSelect';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
@@ -123,6 +124,14 @@ export default function EtudiantsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
+    const filterOptions = useMemo(() => [
+        { value: 'all', label: t('dashboard.etudiants.filter_all') },
+        { value: 'active', label: t('dashboard.etudiants.filter_active') },
+        { value: 'inactive', label: t('dashboard.etudiants.filter_inactive') },
+        { value: 'stale', label: t('dashboard.etudiants.filter_stale') },
+        { value: 'no-cv', label: t('dashboard.etudiants.filter_no_cv') },
+    ], [t]);
+
     const params = {
         page,
         size: PAGE_SIZE,
@@ -220,20 +229,13 @@ export default function EtudiantsPage() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
-                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2">
-                    <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => handleFilterChange(e.target.value as FilterStatus)}
-                        className="bg-transparent border-none focus:outline-none cursor-pointer text-slate-700 dark:text-slate-300 text-sm"
-                    >
-                        <option value="all">{t('dashboard.etudiants.filter_all')}</option>
-                        <option value="active">{t('dashboard.etudiants.filter_active')}</option>
-                        <option value="inactive">{t('dashboard.etudiants.filter_inactive')}</option>
-                        <option value="stale">{t('dashboard.etudiants.filter_stale')}</option>
-                        <option value="no-cv">{t('dashboard.etudiants.filter_no_cv')}</option>
-                    </select>
-                </div>
+                <CustomSelect
+                    value={filterStatus}
+                    options={filterOptions}
+                    onChange={(value) => handleFilterChange(value as FilterStatus)}
+                    icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}

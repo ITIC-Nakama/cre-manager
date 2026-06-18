@@ -18,9 +18,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<CustomResponseEntity> handleAppException(AppException ex, HttpServletRequest request) {
@@ -137,6 +141,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CustomResponseEntity> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang,

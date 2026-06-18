@@ -19,6 +19,7 @@ export interface RegisterDTO{
     password: string;
     roleId: Role;
     lang: string;
+    promotionId?: string;
 }
 
 export interface OtpSendDTO {
