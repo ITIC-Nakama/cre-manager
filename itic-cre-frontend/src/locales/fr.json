@@ -221,6 +221,8 @@
       "form": {
         "create_title": "Publier une offre",
         "edit_title": "Modifier l'offre",
+        "details_title": "Détails de l'offre",
+        "close": "Fermer",
         "title_label": "Intitulé du poste",
         "company_label": "Entreprise",
         "description_label": "Description",

@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle,
-    Briefcase, GraduationCap, FileSignature, ChevronLeft, ChevronRight,
+    Briefcase, GraduationCap, FileSignature, ChevronLeft, ChevronRight, Eye,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useApplicationList, useApplicationStatuses, useContractTypes } from '../../hooks/useApplications';
@@ -257,19 +257,20 @@ export default function CandidaturesPage() {
                                             {flexRender(header.column.columnDef.header, header.getContext())}
                                         </th>
                                     ))}
+                                    <th className="px-6 py-4 text-right">{t('dashboard.offres.table.actions', 'Actions')}</th>
                                 </tr>
                             ))}
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={columns.length} className="text-center py-16">
+                                    <td colSpan={columns.length + 1} className="text-center py-16">
                                         <Loader2 className="h-6 w-6 text-slate-400 animate-spin mx-auto" />
                                     </td>
                                 </tr>
                             ) : applications.length === 0 ? (
                                 <tr>
-                                    <td colSpan={columns.length} className="text-center py-16 text-slate-400">
+                                    <td colSpan={columns.length + 1} className="text-center py-16 text-slate-400">
                                         <Briefcase className="h-8 w-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
                                         {t('dashboard.candidatures.table.empty')}
                                     </td>
@@ -288,6 +289,15 @@ export default function CandidaturesPage() {
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </td>
                                         ))}
+                                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => setSelectedApplication(row.original)}
+                                                className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                                                title={t('dashboard.etudiants.actions.view', "Consulter les détails")}
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             )}

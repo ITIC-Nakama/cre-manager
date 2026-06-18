@@ -221,6 +221,8 @@
       "form": {
         "create_title": "Publish an offer",
         "edit_title": "Edit offer",
+        "details_title": "Job Offer Details",
+        "close": "Close",
         "title_label": "Job title",
         "company_label": "Company",
         "description_label": "Description",

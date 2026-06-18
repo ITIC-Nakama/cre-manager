@@ -15,6 +15,7 @@ interface CustomSelectProps {
   /** If true, the dropdown opens upward */
   dropUp?: boolean;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export default function CustomSelect({
@@ -25,6 +26,7 @@ export default function CustomSelect({
   className = '',
   dropUp = false,
   icon,
+  disabled = false,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,8 +49,11 @@ export default function CustomSelect({
       {/* Trigger Button - Matches SwitchLanguage exactly */}
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setIsOpen((o) => !o)}
-        className="inline-flex items-center justify-between gap-2 w-full rounded-full cursor-pointer border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+        className={`inline-flex items-center justify-between gap-2 w-full rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
+          disabled ? 'opacity-60 cursor-not-allowed hover:bg-white dark:hover:bg-slate-900' : 'cursor-pointer'
+        }`}
       >
         <span className="flex items-center gap-2 truncate">
           {icon}

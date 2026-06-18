@@ -9,7 +9,8 @@ import type { JobOfferPayload } from '../../api-s/requests/JobOfferRequest';
 interface Props {
     offer?: JobOffer | null;
     onClose: () => void;
-    onSave: (payload: JobOfferPayload) => Promise<void>;
+    onSave?: (payload: JobOfferPayload) => Promise<void>;
+    isReadOnly?: boolean;
 }
 
 const LIMITS = {
@@ -20,7 +21,7 @@ const LIMITS = {
     externalLink: { max: 2048 },
 };
 
-export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
+export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly = false }: Props) {
     const { t } = useTranslation();
     const { data: contractTypes } = useContractTypes();
     const [title, setTitle] = useState(offer?.title ?? '');
@@ -53,6 +54,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
     };
 
     const handleSave = async () => {
+        if (isReadOnly || !onSave) return;
         const errors = validate();
         setFieldErrors(errors);
         setGeneralError(null);
@@ -92,7 +94,9 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                     <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-indigo-500" />
                         <p className="text-base font-bold text-slate-900 dark:text-white">
-                            {offer ? t('dashboard.offres.form.edit_title') : t('dashboard.offres.form.create_title')}
+                            {isReadOnly
+                                ? t('dashboard.offres.form.details_title', "Détails de l'offre")
+                                : (offer ? t('dashboard.offres.form.edit_title') : t('dashboard.offres.form.create_title'))}
                         </p>
                     </div>
                     <button
@@ -117,14 +121,15 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.offres.form.title_label')}
                                 </label>
-                                <span className="text-xs text-slate-400">{title.length}/{LIMITS.title.max}</span>
+                                {!isReadOnly && <span className="text-xs text-slate-400">{title.length}/{LIMITS.title.max}</span>}
                             </div>
-                            <input
+                             <input
                                 type="text"
                                 value={title}
+                                disabled={isReadOnly}
                                 onChange={(e) => setTitle(e.target.value)}
                                 maxLength={LIMITS.title.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
                                     fieldErrors.title ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -135,14 +140,15 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.offres.form.company_label')}
                                 </label>
-                                <span className="text-xs text-slate-400">{company.length}/{LIMITS.company.max}</span>
+                                {!isReadOnly && <span className="text-xs text-slate-400">{company.length}/{LIMITS.company.max}</span>}
                             </div>
-                            <input
+                             <input
                                 type="text"
                                 value={company}
+                                disabled={isReadOnly}
                                 onChange={(e) => setCompany(e.target.value)}
                                 maxLength={LIMITS.company.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
                                     fieldErrors.company ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -152,17 +158,18 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
 
                     <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.offres.form.description_label')}
                             </label>
-                            <span className="text-xs text-slate-400">{description.length}/{LIMITS.description.max}</span>
+                            {!isReadOnly && <span className="text-xs text-slate-400">{description.length}/{LIMITS.description.max}</span>}
                         </div>
-                        <textarea
+                         <textarea
                             value={description}
+                            disabled={isReadOnly}
                             onChange={(e) => setDescription(e.target.value)}
                             maxLength={LIMITS.description.max}
                             rows={6}
-                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${
+                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
                                 fieldErrors.description ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                             }`}
                         />
@@ -175,14 +182,15 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.offres.form.location_label')}
                                 </label>
-                                <span className="text-xs text-slate-400">{(location ?? '').length}/{LIMITS.location.max}</span>
+                                {!isReadOnly && <span className="text-xs text-slate-400">{(location ?? '').length}/{LIMITS.location.max}</span>}
                             </div>
-                            <input
+                             <input
                                 type="text"
                                 value={location ?? ''}
+                                disabled={isReadOnly}
                                 onChange={(e) => setLocation(e.target.value)}
                                 maxLength={LIMITS.location.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
                                     fieldErrors.location ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -192,11 +200,12 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.offres.form.contract_label')}
                             </label>
-                            <CustomSelect
+                             <CustomSelect
                                 value={contractTypeId}
                                 options={contractTypeOptions}
                                 onChange={setContractTypeId}
-                                className="w-full"
+                                disabled={isReadOnly}
+                                className="w-full animate-none"
                             />
                             {fieldErrors.contractTypeId && <p className="text-xs text-rose-500">{fieldErrors.contractTypeId}</p>}
                         </div>
@@ -204,18 +213,19 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
 
                     <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                {t('dashboard.offres.form.link_label')}
-                            </label>
-                            <span className="text-xs text-slate-400">{(externalLink ?? '').length}/{LIMITS.externalLink.max}</span>
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.offres.form.link_label')}
+                                </label>
+                                {!isReadOnly && <span className="text-xs text-slate-400">{(externalLink ?? '').length}/{LIMITS.externalLink.max}</span>}
                         </div>
-                        <input
+                         <input
                             type="text"
                             value={externalLink ?? ''}
+                            disabled={isReadOnly}
                             onChange={(e) => setExternalLink(e.target.value)}
                             maxLength={LIMITS.externalLink.max}
                             placeholder="https://..."
-                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
                                 fieldErrors.externalLink ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                             }`}
                         />
@@ -230,16 +240,18 @@ export default function JobOfferFormModal({ offer, onClose, onSave }: Props) {
                         disabled={saving}
                         className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                     >
-                        {t('dashboard.offres.form.cancel')}
+                        {isReadOnly ? t('dashboard.offres.form.close', 'Fermer') : t('dashboard.offres.form.cancel')}
                     </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
-                    >
-                        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {t('dashboard.offres.form.save')}
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                        >
+                            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                            {t('dashboard.offres.form.save')}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
