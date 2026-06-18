@@ -5,6 +5,7 @@ import {
     updateCVStatus,
     addCVComment,
     fetchCVComments,
+    deleteCVComment,
     fetchCVStats,
 } from '../api-s/requests/CVRequest';
 import type { CVListParams } from '../api-s/requests/CVRequest';
@@ -50,6 +51,16 @@ export function useAddCVComment() {
     return useMutation({
         mutationFn: ({ cvId, contenu }: { cvId: string; contenu: string }) =>
             addCVComment(cvId, contenu),
+        onSuccess: (_data, variables) =>
+            queryClient.invalidateQueries({ queryKey: ['cv-comments', variables.cvId] }),
+    });
+}
+
+export function useDeleteCVComment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (variables: { cvId: string; commentId: string }) =>
+            deleteCVComment(variables.commentId),
         onSuccess: (_data, variables) =>
             queryClient.invalidateQueries({ queryKey: ['cv-comments', variables.cvId] }),
     });

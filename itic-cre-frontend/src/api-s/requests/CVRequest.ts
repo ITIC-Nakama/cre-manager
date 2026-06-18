@@ -48,6 +48,11 @@ export function fetchCVComments(cvId: string): Promise<CVComment[]> {
     return apiClient.get(`/cv/${cvId}/comments`).then((r) => unwrap<CVComment[]>(r));
 }
 
+/** DELETE /cv/comments/{commentId} — delete a comment */
+export function deleteCVComment(commentId: string): Promise<void> {
+    return apiClient.delete(`/cv/comments/${commentId}`).then(() => undefined);
+}
+
 export interface CVStatCount {
     statutId: string;
     count: number;

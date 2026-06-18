@@ -17,6 +17,7 @@ import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.model.dtos.CVCommentaireCreateDto;
 import com.itic.paris.platform.cv.model.dtos.CVStatusUpdateDto;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
@@ -178,6 +179,27 @@ public class CVService {
         findById(cvId);
         List<CVCommentaire> list = commentaireRepository.findAllByCvIdOrderByCreatedAtDesc(cvId);
         return list.stream().map(this::buildCommentResponse).toList();
+    }
+
+    @Transactional
+    public void deleteComment(UUID commentId, UUID actorId) {
+        CVCommentaire comment = commentaireRepository.findById(commentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CV_COMMENT_NOT_FOUND));
+
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        boolean isOwner = comment.getAdvisor() != null && comment.getAdvisor().getId().equals(actorId);
+        boolean isAdmin = actor.getRole() != null && RoleEnum.ADMIN.equals(actor.getRole().getName());
+
+        if (!isOwner && !isAdmin) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ACCESS_DENIED);
+        }
+
+        commentaireRepository.delete(comment);
+
+        auditLogService.log(AuditAction.OTHER, actor, comment.getCv().getId(),
+                "Commentaire supprimé sur le CV de l'étudiant " + comment.getCv().getStudent().getId());
     }
 
     private Map<String, Object> buildCommentResponse(CVCommentaire comment) {
