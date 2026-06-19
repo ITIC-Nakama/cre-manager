@@ -97,8 +97,8 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("05. CRM — Applications")
                 .pathsToMatch(
-                        "/api/applications/**",
-                        "/api/application-statuses/**"
+                        "/applications/**",
+                        "/application-statuses/**"
                 )
                 .build();
     }
@@ -149,7 +149,7 @@ public class OpenApiConfig {
                 .group("11. Espace Étudiant")
                 .pathsToMatch(
                         "/api/me/dashboard/**",
-                        "/api/applications/**",
+                        "/applications/**",
                         "/api/me/gamification/**",
                         "/api/skill-tree/**",
                         "/cv/me/**"
