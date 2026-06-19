@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +130,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CustomResponseEntity.of(MessageKey.INVALID_REQUEST_BODY, lang, HttpStatus.BAD_REQUEST.value(),
                         Map.of("error", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<CustomResponseEntity> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex,
+                                                                            HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(CustomResponseEntity.of(MessageKey.FILE_TOO_LARGE, lang, HttpStatus.PAYLOAD_TOO_LARGE.value(), null));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
