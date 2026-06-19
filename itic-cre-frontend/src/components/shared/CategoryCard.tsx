@@ -70,19 +70,19 @@ export default function CategoryCard({ category, articlesCount, onEdit, onDelete
       </div>
 
       {/* Card Footer */}
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+      <div className="flex flex-wrap items-center justify-between gap-y-3 mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/60">
         {/* Article Count Badge */}
-        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1.5 flex-shrink-0">
           <BookOpen className="h-3.5 w-3.5" />
           {articlesCount > 0 
             ? `${articlesCount} ${articlesCount === 1 ? 'article' : 'articles'}`
-            : t('dashboard.formation.no_articles')
+            : t('dashboard.formation.no_articles_short', 'Aucun article')
           }
         </span>
 
         {/* Action Buttons (Rendered only if onEdit/onDelete are provided) */}
         {showActions && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {onEdit && (
               <button
                 onClick={() => onEdit(category)}

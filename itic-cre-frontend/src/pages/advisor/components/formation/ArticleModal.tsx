@@ -33,11 +33,21 @@ export default function ArticleModal({
   const [actif, setActif] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Initialize form state when modal opens
   useEffect(() => {
     if (!isOpen) return;
 
-    const loadArticle = async () => {
-      if (mode === 'edit' && articleId) {
+    if (mode === 'create') {
+      setTitre('');
+      setContenu('');
+      setActif(false);
+      if (categories.length > 0) {
+        setCategorieId(categories[0].id);
+      } else {
+        setCategorieId('');
+      }
+    } else if (mode === 'edit' && articleId) {
+      const loadArticle = async () => {
         setLoading(true);
         try {
           const art = await fetchAdminArticleById(articleId);
@@ -52,16 +62,18 @@ export default function ArticleModal({
         } finally {
           setLoading(false);
         }
-      } else {
-        setTitre('');
-        setContenu('');
-        setCategorieId(categories.length > 0 ? categories[0].id : '');
-        setActif(false);
-      }
-    };
+      };
+      loadArticle();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
-    loadArticle();
-  }, [isOpen, mode, articleId, categories, onClose, t]);
+  // Set default category when categories list loads/changes, but only if not currently set in create mode
+  useEffect(() => {
+    if (isOpen && mode === 'create' && !categorieId && categories.length > 0) {
+      setCategorieId(categories[0].id);
+    }
+  }, [isOpen, mode, categories, categorieId]);
 
   if (!isOpen) return null;
 
@@ -96,7 +108,8 @@ export default function ArticleModal({
           </h3>
           <button 
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            disabled={saving}
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="h-5 w-5" />
           </button>
@@ -119,7 +132,8 @@ export default function ArticleModal({
                   value={titre}
                   onChange={(e) => setTitre(e.target.value)}
                   placeholder={t('dashboard.formation.placeholder_article_title')}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                  disabled={saving}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -129,6 +143,7 @@ export default function ArticleModal({
                   value={categorieId}
                   options={categories.map(cat => ({ value: cat.id, label: cat.nom }))}
                   onChange={(val) => setCategorieId(val)}
+                  disabled={saving}
                   className="w-full"
                 />
               </div>
@@ -140,6 +155,7 @@ export default function ArticleModal({
                 <QuillEditor 
                   value={contenu} 
                   onChange={(html) => setContenu(html)} 
+                  readOnly={saving}
                 />
               </div>
             </div>
@@ -152,7 +168,8 @@ export default function ArticleModal({
                   id="art-active"
                   checked={actif}
                   onChange={(e) => setActif(e.target.checked)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
+                  disabled={saving}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <label htmlFor="art-active" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                   {t('dashboard.formation.label_active_article')}
@@ -163,7 +180,8 @@ export default function ArticleModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  disabled={saving}
+                  className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {t('dashboard.formation.btn_cancel')}
                 </button>

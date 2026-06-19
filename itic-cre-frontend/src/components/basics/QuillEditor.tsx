@@ -7,9 +7,10 @@ interface QuillEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  readOnly?: boolean;
 }
 
-export default function QuillEditor({ value, onChange, placeholder }: QuillEditorProps) {
+export default function QuillEditor({ value, onChange, placeholder, readOnly = false }: QuillEditorProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
@@ -71,6 +72,13 @@ export default function QuillEditor({ value, onChange, placeholder }: QuillEdito
       }
     }
   }, [value]);
+
+  // Handle read-only changes dynamically
+  useEffect(() => {
+    if (quillRef.current) {
+      quillRef.current.enable(!readOnly);
+    }
+  }, [readOnly]);
 
   return (
     <div className="bg-white text-slate-800 rounded-lg border border-slate-200 overflow-hidden dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 quill-editor-wrapper flex flex-col h-full min-h-[300px]">
