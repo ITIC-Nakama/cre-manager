@@ -59,6 +59,16 @@ public class SkillTreeAdminService {
         return mapCategoryToDTO(categoryRepository.save(cat));
     }
 
+    @Transactional
+    public void deleteCategory(UUID id) {
+        SkillCategory cat = categoryRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.SKILL_CATEGORY_NOT_FOUND));
+        if (articleRepository.existsByCategorieId(id)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CATEGORY_HAS_ARTICLES);
+        }
+        categoryRepository.delete(cat);
+    }
+
     // ── Articles ─────────────────────────────────────────────────────────────
 
     @Transactional

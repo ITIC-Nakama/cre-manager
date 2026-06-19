@@ -113,7 +113,8 @@ public enum MessageKey {
     CV_STATUS_UPDATED("cv-status-updated", "Statut du CV mis à jour", "CV status updated"),
     CV_STATUT_NOT_FOUND("cv-statut-not-found", "Statut CV introuvable", "CV status not found"),
     CV_STATUT_NAME_ALREADY_EXISTS("cv-statut-name-already-exists", "Un statut CV avec ce nom existe déjà", "A CV status with this name already exists"),
-    CV_COMMENT_NOT_FOUND("cv-comment-not-found", "Commentaire de CV introuvable", "CV comment not found");
+    CV_COMMENT_NOT_FOUND("cv-comment-not-found", "Commentaire de CV introuvable", "CV comment not found"),
+    CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

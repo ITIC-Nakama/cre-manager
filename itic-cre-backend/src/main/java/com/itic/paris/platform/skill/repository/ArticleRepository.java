@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
     List<Article> findByCategorieIdOrderByDateCreationDesc(UUID categorieId);
     List<Article> findByCategorieIdAndActifTrueOrderByDateCreationDesc(UUID categorieId);
+    boolean existsByCategorieId(UUID categorieId);
 }

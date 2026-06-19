@@ -43,6 +43,13 @@ public class SkillTreeAdminController {
         return ResponseEntity.ok(skillTreeAdminService.updateCategory(id, request));
     }
 
+    @DeleteMapping("/categories/{id}")
+    @Operation(summary = "Supprimer une catégorie")
+    public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
+        skillTreeAdminService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/articles")
     @Operation(summary = "Lister les articles (filtre par catégorie optionnel)")
     public ResponseEntity<List<ArticleSummaryDTO>> getArticles(
