@@ -114,7 +114,9 @@ public enum MessageKey {
     CV_STATUT_NOT_FOUND("cv-statut-not-found", "Statut CV introuvable", "CV status not found"),
     CV_STATUT_NAME_ALREADY_EXISTS("cv-statut-name-already-exists", "Un statut CV avec ce nom existe déjà", "A CV status with this name already exists"),
     CV_COMMENT_NOT_FOUND("cv-comment-not-found", "Commentaire de CV introuvable", "CV comment not found"),
-    CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles.");
+    CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles."),
+    ARTICLE_HAS_QUIZ("article-has-quiz", "Impossible de supprimer l'article car il contient un quiz. Supprimez d'abord le quiz.", "Cannot delete article because it contains a quiz. Delete the quiz first."),
+    QUIZ_HAS_VALIDATIONS("quiz-has-validations", "Impossible de supprimer ce quiz car des étudiants l'ont déjà validé.", "Cannot delete this quiz because students have already validated it.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

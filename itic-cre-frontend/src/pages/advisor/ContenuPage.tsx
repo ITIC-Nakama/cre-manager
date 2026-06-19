@@ -158,9 +158,13 @@ export default function ContenuPage() {
     try {
       await deleteArticleMutation.mutateAsync(articleId);
       toast.success(t('dashboard.formation.toast_article_deleted'));
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error(t('dashboard.formation.toast_article_delete_error'));
+      if (err.response?.data?.messageKey === 'article-has-quiz') {
+        toast.error(t('dashboard.formation.toast_article_has_quiz'));
+      } else {
+        toast.error(t('dashboard.formation.toast_article_delete_error'));
+      }
     }
   };
 
@@ -206,9 +210,13 @@ export default function ContenuPage() {
       });
       toast.success(t('dashboard.formation.toast_quiz_deleted'));
       setQuizModal({ isOpen: false });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error(t('dashboard.formation.toast_quiz_delete_error'));
+      if (err.response?.data?.messageKey === 'quiz-has-validations') {
+        toast.error(t('dashboard.formation.toast_quiz_has_validations'));
+      } else {
+        toast.error(t('dashboard.formation.toast_quiz_delete_error'));
+      }
     } finally {
       setSaving(false);
     }

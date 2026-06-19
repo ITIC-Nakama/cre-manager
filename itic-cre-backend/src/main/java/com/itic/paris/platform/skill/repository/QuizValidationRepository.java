@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface QuizValidationRepository extends JpaRepository<QuizValidation, UUID> {
     boolean existsByStudentIdAndQuizId(UUID studentId, UUID quizId);
+    boolean existsByQuizId(UUID quizId);
 }

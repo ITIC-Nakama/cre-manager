@@ -24,6 +24,7 @@ public class SkillTreeAdminService {
     private final ArticleRepository articleRepository;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
+    private final QuizValidationRepository quizValidationRepository;
     private final UserRepository userRepository;
 
     // ── Categories ──────────────────────────────────────────────────────────
@@ -113,7 +114,11 @@ public class SkillTreeAdminService {
 
     @Transactional
     public void deleteArticle(UUID id) {
-        articleRepository.delete(findArticle(id));
+        Article article = findArticle(id);
+        if (quizRepository.existsByArticleId(id)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.ARTICLE_HAS_QUIZ);
+        }
+        articleRepository.delete(article);
     }
 
     // ── Quiz ──────────────────────────────────────────────────────────────────
@@ -150,8 +155,12 @@ public class SkillTreeAdminService {
 
     @Transactional
     public void deleteQuiz(UUID id) {
-        quizRepository.delete(quizRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.QUIZ_NOT_FOUND)));
+        Quiz quiz = quizRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.QUIZ_NOT_FOUND));
+        if (quizValidationRepository.existsByQuizId(id)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.QUIZ_HAS_VALIDATIONS);
+        }
+        quizRepository.delete(quiz);
     }
 
     @Transactional
