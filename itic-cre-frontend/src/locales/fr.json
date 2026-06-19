@@ -321,6 +321,7 @@
       "placeholder_category_name": "ex: Techniques de Vente, Pitch...",
       "placeholder_category_description": "Objectifs pédagogiques ou présentation de la catégorie...",
       "placeholder_article_title": "ex: Réussir son entretien d'embauche...",
+      "placeholder_article_content": "Rédigez votre article ici...",
       "label_article_prefix": "Article :",
       "btn_delete_question": "Supprimer la question",
       "placeholder_question_text": "Intitulé de la question...",

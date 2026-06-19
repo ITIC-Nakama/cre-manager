@@ -321,6 +321,7 @@
       "placeholder_category_name": "e.g., Sales Techniques, Pitch...",
       "placeholder_category_description": "Learning objectives or category presentation...",
       "placeholder_article_title": "e.g., Succeed in your job interview...",
+      "placeholder_article_content": "Write your article here...",
       "label_article_prefix": "Article:",
       "btn_delete_question": "Delete question",
       "placeholder_question_text": "Question text...",

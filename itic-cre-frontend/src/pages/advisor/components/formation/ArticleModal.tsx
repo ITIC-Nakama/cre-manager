@@ -71,6 +71,10 @@ export default function ArticleModal({
       toast.error(t('dashboard.formation.toast_title_required'));
       return;
     }
+    if (titre.length > 150) {
+      toast.error(t('dashboard.formation.toast_title_too_long', 'Le titre ne doit pas dépasser 150 caractères'));
+      return;
+    }
     if (!contenu.trim()) {
       toast.error(t('dashboard.formation.toast_content_required'));
       return;
@@ -111,6 +115,7 @@ export default function ArticleModal({
                 <input
                   type="text"
                   required
+                  maxLength={150}
                   value={titre}
                   onChange={(e) => setTitre(e.target.value)}
                   placeholder={t('dashboard.formation.placeholder_article_title')}

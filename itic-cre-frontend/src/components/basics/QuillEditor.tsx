@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 
@@ -8,7 +9,8 @@ interface QuillEditorProps {
   placeholder?: string;
 }
 
-export default function QuillEditor({ value, onChange, placeholder = 'Rédigez votre article ici...' }: QuillEditorProps) {
+export default function QuillEditor({ value, onChange, placeholder }: QuillEditorProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const isUpdatingRef = useRef<boolean>(false);
@@ -21,10 +23,12 @@ export default function QuillEditor({ value, onChange, placeholder = 'Rédigez v
     const editorDiv = document.createElement('div');
     containerRef.current.appendChild(editorDiv);
 
+    const activePlaceholder = placeholder || t('dashboard.formation.placeholder_article_content');
+
     // Initialize Quill
     const quill = new Quill(editorDiv, {
       theme: 'snow',
-      placeholder,
+      placeholder: activePlaceholder,
       modules: {
         toolbar: [
           [{ header: [1, 2, 3, false] }],

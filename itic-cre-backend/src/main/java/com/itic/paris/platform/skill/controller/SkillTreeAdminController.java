@@ -39,7 +39,7 @@ public class SkillTreeAdminController {
     @Operation(summary = "Mettre à jour une catégorie")
     public ResponseEntity<SkillCategoryDTO> updateCategory(
             @PathVariable UUID id,
-            @RequestBody UpdateCategorieRequest request) {
+            @Valid @RequestBody UpdateCategorieRequest request) {
         return ResponseEntity.ok(skillTreeAdminService.updateCategory(id, request));
     }
 
@@ -73,7 +73,7 @@ public class SkillTreeAdminController {
     @Operation(summary = "Mettre à jour un article")
     public ResponseEntity<ArticleDTO> updateArticle(
             @PathVariable UUID id,
-            @RequestBody UpdateArticleRequest request) {
+            @Valid @RequestBody UpdateArticleRequest request) {
         return ResponseEntity.ok(skillTreeAdminService.updateArticle(id, request));
     }
 

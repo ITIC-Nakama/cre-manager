@@ -97,6 +97,7 @@ export default function CategoryModal({
             <input
               type="text"
               required
+              maxLength={100}
               value={nom}
               onChange={(e) => setNom(e.target.value)}
               placeholder={t('dashboard.formation.placeholder_category_name')}
@@ -108,6 +109,7 @@ export default function CategoryModal({
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_description')}</label>
             <textarea
               value={description}
+              maxLength={1000}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('dashboard.formation.placeholder_category_description')}
               rows={6}

@@ -153,6 +153,10 @@ export default function QuizModal({
         toast.error(t('dashboard.formation.toast_question_no_text', { num: i + 1 }));
         return;
       }
+      if (q.texte.length > 500) {
+        toast.error(t('dashboard.formation.toast_question_too_long', `La question ${i + 1} ne doit pas dépasser 500 caractères`));
+        return;
+      }
       if (q.answers.length < 2) {
         toast.error(t('dashboard.formation.toast_question_min_options', { num: i + 1 }));
         return;
@@ -165,6 +169,11 @@ export default function QuizModal({
       const anyEmpty = q.answers.some(a => !a.texte.trim());
       if (anyEmpty) {
         toast.error(t('dashboard.formation.toast_question_empty_options', { num: i + 1 }));
+        return;
+      }
+      const anyTooLong = q.answers.some(a => a.texte.length > 255);
+      if (anyTooLong) {
+        toast.error(t('dashboard.formation.toast_question_option_too_long', `Une option de la question ${i + 1} ne doit pas dépasser 255 caractères`));
         return;
       }
     }
@@ -303,6 +312,7 @@ export default function QuizModal({
                   <input
                     type="text"
                     required
+                    maxLength={500}
                     value={question.texte}
                     onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
                     placeholder={t('dashboard.formation.placeholder_question_text')}
@@ -335,6 +345,7 @@ export default function QuizModal({
                         <input
                           type="text"
                           required
+                          maxLength={255}
                           value={answer.texte}
                           onChange={(e) => handleAnswerTextChange(qIdx, aIdx, e.target.value)}
                           placeholder={t('dashboard.formation.placeholder_answer_text', { num: aIdx + 1 })}
