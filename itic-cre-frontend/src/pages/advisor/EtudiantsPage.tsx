@@ -266,6 +266,9 @@ export default function EtudiantsPage() {
                     onChange={handlePromotionFilterChange}
                     icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
+                    searchable
+                    searchPlaceholder={t('dashboard.etudiants.promotion_search_placeholder')}
+                    noResultsLabel={t('dashboard.etudiants.promotion_no_results')}
                 />
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />

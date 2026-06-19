@@ -49,7 +49,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex-1 flex min-h-screen overflow-hidden">
+        <div className="flex-1 flex overflow-hidden">
 
             {/* ── Left panel ─────────────────────────────────────────── */}
             <div className="hidden lg:flex w-[44%] flex-col relative overflow-hidden
@@ -64,7 +64,7 @@ export default function LoginPage() {
 
                     {/* Logo */}
                     <div>
-                        <div className="bg-white rounded-2xl px-5 py-4 inline-flex items-center shadow-sm">
+                        <div className="bg-white rounded  px-5 py-4 inline-flex items-center shadow-sm">
                             <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
                         <p className="text-white/60 text-sm mt-3">{t('auth.login.portal_subtitle')}</p>

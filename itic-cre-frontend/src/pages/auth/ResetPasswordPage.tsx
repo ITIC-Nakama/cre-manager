@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
         ${hasError ? 'border-red-400' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`;
 
     return (
-        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 overflow-y-auto relative min-h-screen">
+        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 overflow-y-auto relative">
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#3f74ff]/12 blur-2xl animate-blob-1" />

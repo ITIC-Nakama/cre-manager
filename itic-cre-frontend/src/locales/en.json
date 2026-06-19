@@ -119,6 +119,8 @@
       "filter_stale": "Late applications",
       "filter_no_cv": "No CV",
       "filter_all_promotions": "All cohorts",
+      "promotion_search_placeholder": "Search a cohort…",
+      "promotion_no_results": "No cohort found",
       "table": {
         "student": "Student",
         "promotion": "Cohort",
@@ -155,6 +157,8 @@
       "search_placeholder": "Search (student, company, position)…",
       "filter_all_statuses": "All statuses",
       "filter_all_promotions": "All cohorts",
+      "promotion_search_placeholder": "Search a cohort…",
+      "promotion_no_results": "No cohort found",
       "filter_all_contracts": "All contract types",
       "filter_stale_only": "Late only",
       "table": {
@@ -312,6 +316,8 @@
       "promotion_placeholder": "Select your cohort",
       "promotion_loading": "Loading cohorts...",
       "promotion_required": "Cohort is required.",
+      "promotion_search_placeholder": "Search a cohort…",
+      "promotion_no_results": "No cohort found",
       "creating": "Creating...",
       "error_generic": "An error occurred during registration.",
       "success_created": "Account created! A verification email has been sent.",

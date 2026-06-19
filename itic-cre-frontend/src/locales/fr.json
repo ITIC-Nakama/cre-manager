@@ -119,6 +119,8 @@
       "filter_stale": "Candidatures en retard",
       "filter_no_cv": "Sans CV",
       "filter_all_promotions": "Toutes les promotions",
+      "promotion_search_placeholder": "Rechercher une promotion…",
+      "promotion_no_results": "Aucune promotion trouvée",
       "table": {
         "student": "Étudiant",
         "promotion": "Promotion",
@@ -155,6 +157,8 @@
       "search_placeholder": "Rechercher (étudiant, entreprise, poste)…",
       "filter_all_statuses": "Tous les statuts",
       "filter_all_promotions": "Toutes les promotions",
+      "promotion_search_placeholder": "Rechercher une promotion…",
+      "promotion_no_results": "Aucune promotion trouvée",
       "filter_all_contracts": "Tous les types de contrat",
       "filter_stale_only": "En retard uniquement",
       "table": {
@@ -312,6 +316,8 @@
       "promotion_placeholder": "Sélectionnez votre promotion",
       "promotion_loading": "Chargement des promotions...",
       "promotion_required": "La promotion est requise.",
+      "promotion_search_placeholder": "Rechercher une promotion…",
+      "promotion_no_results": "Aucune promotion trouvée",
       "creating": "Création...",
       "error_generic": "Une erreur est survenue lors de l'inscription.",
       "success_created": "Compte créé ! Un e-mail de validation vous a été envoyé.",

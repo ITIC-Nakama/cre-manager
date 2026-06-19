@@ -221,6 +221,9 @@ export default function CandidaturesPage() {
                     onChange={handlePromotionFilterChange}
                     icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
+                    searchable
+                    searchPlaceholder={t('dashboard.candidatures.promotion_search_placeholder')}
+                    noResultsLabel={t('dashboard.candidatures.promotion_no_results')}
                 />
                 <CustomSelect
                     value={contractTypeFilter}
