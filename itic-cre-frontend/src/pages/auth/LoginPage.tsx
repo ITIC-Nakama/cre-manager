@@ -108,7 +108,7 @@ export default function LoginPage() {
                     p-8 lg:p-12">
 
                     {/* Mobile logo */}
-                    <div className="flex lg:hidden justify-center mb-6">
+                    <div className="flex lg:hidden justify-center mb-10">
                         <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
                         <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
