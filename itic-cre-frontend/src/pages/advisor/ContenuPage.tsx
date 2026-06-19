@@ -21,6 +21,7 @@ import type { SkillCategory, Question } from '../../types/models/Skill';
 
 // Subcomponents
 import CategoryCard from '../../components/shared/CategoryCard';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import CategoryModal from './components/formation/CategoryModal';
 import ArticleModal from './components/formation/ArticleModal';
 import QuizModal from './components/formation/QuizModal';
@@ -68,8 +69,32 @@ export default function ContenuPage() {
 
   const [saving, setSaving] = useState<boolean>(false);
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void>;
+  }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
+    setConfirmDialog({ isOpen: true, title, message, onConfirm });
+  };
+
+  const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+  const handleConfirm = async () => {
+    setConfirmLoading(true);
+    try {
+      await confirmDialog.onConfirm();
+      closeConfirm();
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
   // ── CATEGORY HANDLERS ──────────────────────────────────────────────────────
-  
+
   const handleSaveCategory = async (data: { nom: string; description: string; ordre: number; icone: string; actif: boolean }) => {
     setSaving(true);
     try {
@@ -97,28 +122,30 @@ export default function ContenuPage() {
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string, name: string) => {
+  const handleDeleteCategory = (categoryId: string, name: string) => {
     const hasArticles = articles.some(art => art.categoryId === categoryId);
     if (hasArticles) {
       toast.error(t('dashboard.formation.toast_category_has_articles'));
       return;
     }
 
-    if (!confirm(t('dashboard.formation.confirm_delete_category', { name }))) {
-      return;
-    }
-
-    try {
-      await deleteCategoryMutation.mutateAsync(categoryId);
-      toast.success(t('dashboard.formation.toast_category_deleted'));
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.messageKey === 'category-has-articles') {
-        toast.error(t('dashboard.formation.toast_category_has_articles'));
-      } else {
-        toast.error(t('dashboard.formation.toast_category_delete_error'));
+    openConfirm(
+      t('dashboard.formation.confirm_delete_category_title'),
+      t('dashboard.formation.confirm_delete_category', { name }),
+      async () => {
+        try {
+          await deleteCategoryMutation.mutateAsync(categoryId);
+          toast.success(t('dashboard.formation.toast_category_deleted'));
+        } catch (err: any) {
+          console.error(err);
+          if (err.response?.data?.messageKey === 'category-has-articles') {
+            toast.error(t('dashboard.formation.toast_category_has_articles'));
+          } else {
+            toast.error(t('dashboard.formation.toast_category_delete_error'));
+          }
+        }
       }
-    }
+    );
   };
 
   // ── ARTICLE HANDLERS ───────────────────────────────────────────────────────
@@ -150,22 +177,24 @@ export default function ContenuPage() {
     }
   };
 
-  const handleDeleteArticle = async (articleId: string, title: string) => {
-    if (!confirm(t('dashboard.formation.confirm_delete_article', { title }))) {
-      return;
-    }
-
-    try {
-      await deleteArticleMutation.mutateAsync(articleId);
-      toast.success(t('dashboard.formation.toast_article_deleted'));
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.messageKey === 'article-has-quiz') {
-        toast.error(t('dashboard.formation.toast_article_has_quiz'));
-      } else {
-        toast.error(t('dashboard.formation.toast_article_delete_error'));
+  const handleDeleteArticle = (articleId: string, title: string) => {
+    openConfirm(
+      t('dashboard.formation.confirm_delete_article_title'),
+      t('dashboard.formation.confirm_delete_article', { title }),
+      async () => {
+        try {
+          await deleteArticleMutation.mutateAsync(articleId);
+          toast.success(t('dashboard.formation.toast_article_deleted'));
+        } catch (err: any) {
+          console.error(err);
+          if (err.response?.data?.messageKey === 'article-has-quiz') {
+            toast.error(t('dashboard.formation.toast_article_has_quiz'));
+          } else {
+            toast.error(t('dashboard.formation.toast_article_delete_error'));
+          }
+        }
       }
-    }
+    );
   };
 
   // ── QUIZ HANDLERS ──────────────────────────────────────────────────────────
@@ -197,29 +226,31 @@ export default function ContenuPage() {
     }
   };
 
-  const handleDeleteQuiz = async (quizId: string) => {
-    if (!confirm(t('dashboard.formation.confirm_delete_quiz'))) {
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await deleteQuizMutation.mutateAsync({
-        id: quizId,
-        articleId: quizModal.articleId
-      });
-      toast.success(t('dashboard.formation.toast_quiz_deleted'));
-      setQuizModal({ isOpen: false });
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.messageKey === 'quiz-has-validations') {
-        toast.error(t('dashboard.formation.toast_quiz_has_validations'));
-      } else {
-        toast.error(t('dashboard.formation.toast_quiz_delete_error'));
+  const handleDeleteQuiz = (quizId: string) => {
+    openConfirm(
+      t('dashboard.formation.confirm_delete_quiz_title'),
+      t('dashboard.formation.confirm_delete_quiz'),
+      async () => {
+        setSaving(true);
+        try {
+          await deleteQuizMutation.mutateAsync({
+            id: quizId,
+            articleId: quizModal.articleId
+          });
+          toast.success(t('dashboard.formation.toast_quiz_deleted'));
+          setQuizModal({ isOpen: false });
+        } catch (err: any) {
+          console.error(err);
+          if (err.response?.data?.messageKey === 'quiz-has-validations') {
+            toast.error(t('dashboard.formation.toast_quiz_has_validations'));
+          } else {
+            toast.error(t('dashboard.formation.toast_quiz_delete_error'));
+          }
+        } finally {
+          setSaving(false);
+        }
       }
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
   return (
@@ -367,6 +398,15 @@ export default function ContenuPage() {
         onClose={() => setQuizModal({ isOpen: false })}
         onSave={handleSaveQuiz}
         onDelete={handleDeleteQuiz}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        loading={confirmLoading}
+        onConfirm={handleConfirm}
+        onClose={closeConfirm}
       />
 
     </div>

@@ -1,4 +1,12 @@
 {
+  "common": {
+    "confirm_dialog": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "deleting": "Deleting…"
+    }
+  },
   "nav": {
     "how_it_works": "How it works?",
     "faq": "FAQ",
@@ -196,6 +204,7 @@
       "filter_all_contracts": "All contract types",
       "apply_button": "Apply",
       "already_applied": "Already applied",
+      "confirm_delete_title": "Delete offer",
       "confirm_delete": "Delete offer \"{{title}}\"? This action cannot be undone.",
       "table": {
         "title": "Offer",
@@ -350,11 +359,13 @@
       "toast_article_created": "Article created successfully!",
       "toast_article_updated": "Article updated successfully!",
       "toast_article_save_error": "Error saving article.",
+      "confirm_delete_article_title": "Delete article",
       "confirm_delete_article": "Are you sure you want to delete the article \"{{title}}\"? This action is irreversible.",
       "toast_article_deleted": "Article deleted.",
       "toast_article_delete_error": "Unable to delete article.",
       "toast_article_has_quiz": "Cannot delete this article because it contains a quiz. Delete the quiz first.",
       "toast_category_has_articles": "Cannot delete this category because it contains articles.",
+      "confirm_delete_category_title": "Delete category",
       "confirm_delete_category": "Are you sure you want to delete the category \"{{name}}\"? This action is irreversible.",
       "toast_category_deleted": "Category deleted successfully!",
       "toast_category_delete_error": "Error deleting category.",
@@ -367,6 +378,7 @@
       "toast_quiz_updated": "Quiz updated successfully!",
       "toast_quiz_created": "Quiz created successfully!",
       "toast_quiz_save_error": "Error saving quiz.",
+      "confirm_delete_quiz_title": "Delete quiz",
       "confirm_delete_quiz": "Are you sure you want to permanently delete the quiz for this article?",
       "toast_quiz_deleted": "Quiz deleted successfully.",
       "toast_quiz_delete_error": "Error deleting quiz.",

@@ -1,4 +1,12 @@
 {
+  "common": {
+    "confirm_dialog": {
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "delete": "Supprimer",
+      "deleting": "Suppression…"
+    }
+  },
   "nav": {
     "how_it_works": "Comment ça marche ?",
     "faq": "FAQ",
@@ -196,6 +204,7 @@
       "filter_all_contracts": "Tous les types de contrat",
       "apply_button": "Postuler",
       "already_applied": "Déjà postulé",
+      "confirm_delete_title": "Supprimer l'offre",
       "confirm_delete": "Supprimer l'offre « {{title}} » ? Cette action est irréversible.",
       "table": {
         "title": "Offre",
@@ -350,11 +359,13 @@
       "toast_article_created": "Article créé avec succès !",
       "toast_article_updated": "Article mis à jour avec succès !",
       "toast_article_save_error": "Erreur lors de la sauvegarde de l'article.",
+      "confirm_delete_article_title": "Supprimer l'article",
       "confirm_delete_article": "Êtes-vous sûr de vouloir supprimer l'article \"{{title}}\" ? Cette action est irréversible.",
       "toast_article_deleted": "Article supprimé.",
       "toast_article_delete_error": "Impossible de supprimer l'article.",
       "toast_article_has_quiz": "Impossible de supprimer cet article car il contient un quiz. Supprimez d'abord le quiz.",
       "toast_category_has_articles": "Impossible de supprimer cette catégorie car elle contient des articles.",
+      "confirm_delete_category_title": "Supprimer la catégorie",
       "confirm_delete_category": "Êtes-vous sûr de vouloir supprimer la catégorie \"{{name}}\" ? Cette action est irréversible.",
       "toast_category_deleted": "Catégorie supprimée avec succès !",
       "toast_category_delete_error": "Erreur lors de la suppression de la catégorie.",
@@ -367,6 +378,7 @@
       "toast_quiz_updated": "Quiz mis à jour avec succès !",
       "toast_quiz_created": "Quiz créé avec succès !",
       "toast_quiz_save_error": "Erreur lors de la sauvegarde du quiz.",
+      "confirm_delete_quiz_title": "Supprimer le quiz",
       "confirm_delete_quiz": "Êtes-vous sûr de vouloir supprimer définitivement le quiz de cet article ?",
       "toast_quiz_deleted": "Quiz supprimé avec succès.",
       "toast_quiz_delete_error": "Erreur lors de la suppression du quiz.",

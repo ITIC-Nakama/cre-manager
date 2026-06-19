@@ -16,6 +16,7 @@ import {
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer,
 } from '../../hooks/useJobOffers';
 import JobOfferFormModal from '../../components/shared/JobOfferFormModal';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import TruncatedText from '../../components/shared/TruncatedText';
 import type { JobOffer } from '../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../api-s/requests/JobOfferRequest';
@@ -52,6 +53,30 @@ export default function OffresPage() {
     const activateMutation = useActivateJobOffer();
     const deleteMutation = useDeleteJobOffer();
 
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => Promise<void>;
+    }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+    const [confirmLoading, setConfirmLoading] = useState(false);
+
+    const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
+        setConfirmDialog({ isOpen: true, title, message, onConfirm });
+    };
+
+    const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
+    const handleConfirm = async () => {
+        setConfirmLoading(true);
+        try {
+            await confirmDialog.onConfirm();
+            closeConfirm();
+        } finally {
+            setConfirmLoading(false);
+        }
+    };
+
     const handleSearch = (value: string) => {
         setSearch(value);
         setPage(0);
@@ -83,14 +108,19 @@ export default function OffresPage() {
         }
     };
 
-    const handleDelete = async (offer: JobOffer) => {
-        if (!window.confirm(t('dashboard.offres.confirm_delete', { title: offer.title }))) return;
-        try {
-            await deleteMutation.mutateAsync(offer.id);
-            toast.success(t('dashboard.offres.toast.deleted'));
-        } catch {
-            toast.error(t('dashboard.offres.toast.action_error'));
-        }
+    const handleDelete = (offer: JobOffer) => {
+        openConfirm(
+            t('dashboard.offres.confirm_delete_title'),
+            t('dashboard.offres.confirm_delete', { title: offer.title }),
+            async () => {
+                try {
+                    await deleteMutation.mutateAsync(offer.id);
+                    toast.success(t('dashboard.offres.toast.deleted'));
+                } catch {
+                    toast.error(t('dashboard.offres.toast.action_error'));
+                }
+            }
+        );
     };
 
     const columns = useMemo(() => [
@@ -320,6 +350,15 @@ export default function OffresPage() {
                     isReadOnly={isReadOnly}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                loading={confirmLoading}
+                onConfirm={handleConfirm}
+                onClose={closeConfirm}
+            />
         </div>
     );
 }
