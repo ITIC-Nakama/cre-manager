@@ -235,10 +235,10 @@ export default function QuizModal({
         </div>
       </div>
 
-      {loading ? (
+      {saving || loading ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-slate-400">
           <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <p className="text-sm">{t('dashboard.formation.loading')}</p>
+          <p className="text-sm">{saving ? "Enregistrement du quiz..." : t('dashboard.formation.loading')}</p>
         </div>
       ) : (
         /* Form Content */

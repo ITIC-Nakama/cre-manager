@@ -91,90 +91,97 @@ export default function CategoryModal({
         </div>
         
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_name')}</label>
-            <input
-              type="text"
-              required
-              maxLength={100}
-              value={nom}
-              onChange={(e) => setNom(e.target.value)}
-              placeholder={t('dashboard.formation.placeholder_category_name')}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
-            />
+        {saving ? (
+          <div className="p-8 flex flex-col items-center justify-center gap-2 text-slate-400 min-h-[300px]">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <p className="text-sm">Enregistrement de la catégorie...</p>
           </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_description')}</label>
-            <textarea
-              value={description}
-              maxLength={1000}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('dashboard.formation.placeholder_category_description')}
-              rows={6}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
+        ) : (
+          <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_order')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_name')}</label>
               <input
-                type="number"
+                type="text"
                 required
-                min={1}
-                value={ordre}
-                onChange={(e) => setOrdre(parseInt(e.target.value) || 1)}
+                maxLength={100}
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+                placeholder={t('dashboard.formation.placeholder_category_name')}
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_icon')}</label>
-              <CustomSelect
-                value={icone}
-                options={categoryIcons}
-                onChange={(val) => setIcone(val)}
-                className="w-full"
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_description')}</label>
+              <textarea
+                value={description}
+                maxLength={1000}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t('dashboard.formation.placeholder_category_description')}
+                rows={6}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white resize-none"
               />
             </div>
-          </div>
 
-          {mode === 'edit' && (
-            <div className="flex items-center gap-2 mt-3">
-              <input
-                type="checkbox"
-                id="cat-active"
-                checked={actif}
-                onChange={(e) => setActif(e.target.checked)}
-                className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
-              />
-              <label htmlFor="cat-active" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                {t('dashboard.formation.label_active_category')}
-              </label>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_order')}</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={ordre}
+                  onChange={(e) => setOrdre(parseInt(e.target.value) || 1)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_icon')}</label>
+                <CustomSelect
+                  value={icone}
+                  options={categoryIcons}
+                  onChange={(val) => setIcone(val)}
+                  className="w-full"
+                />
+              </div>
             </div>
-          )}
 
-          {/* Footer Actions */}
-          <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/60">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              {t('dashboard.formation.btn_cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
-            >
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t('dashboard.formation.btn_save')}
-            </button>
-          </div>
-        </form>
+            {mode === 'edit' && (
+              <div className="flex items-center gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  id="cat-active"
+                  checked={actif}
+                  onChange={(e) => setActif(e.target.checked)}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
+                />
+                <label htmlFor="cat-active" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                  {t('dashboard.formation.label_active_category')}
+                </label>
+              </div>
+            )}
+
+            {/* Footer Actions */}
+            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/60">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                {t('dashboard.formation.btn_cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                {t('dashboard.formation.btn_save')}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
