@@ -66,7 +66,7 @@ export default function ArticlesTable({
     col.accessor('categoryNom', {
       header: t('dashboard.formation.col_category'),
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 w-full max-w-[150px]">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 max-w-[150px]">
           <TruncatedText text={row.original.categoryNom} />
         </span>
       ),
