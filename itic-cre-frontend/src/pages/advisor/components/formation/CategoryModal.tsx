@@ -82,22 +82,17 @@ export default function CategoryModal({
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
             {mode === 'create' ? t('dashboard.formation.modal_create_category') : t('dashboard.formation.modal_edit_category')}
           </h3>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            disabled={saving}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         {/* Form */}
-        {saving ? (
-          <div className="p-8 flex flex-col items-center justify-center gap-2 text-slate-400 min-h-[300px]">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-            <p className="text-sm">Enregistrement de la catégorie...</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_name')}</label>
               <input
@@ -107,7 +102,8 @@ export default function CategoryModal({
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder={t('dashboard.formation.placeholder_category_name')}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                disabled={saving}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -119,7 +115,8 @@ export default function CategoryModal({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t('dashboard.formation.placeholder_category_description')}
                 rows={6}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white resize-none"
+                disabled={saving}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -132,7 +129,8 @@ export default function CategoryModal({
                   min={1}
                   value={ordre}
                   onChange={(e) => setOrdre(parseInt(e.target.value) || 1)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                  disabled={saving}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -142,6 +140,7 @@ export default function CategoryModal({
                   value={icone}
                   options={categoryIcons}
                   onChange={(val) => setIcone(val)}
+                  disabled={saving}
                   className="w-full"
                 />
               </div>
@@ -154,7 +153,8 @@ export default function CategoryModal({
                   id="cat-active"
                   checked={actif}
                   onChange={(e) => setActif(e.target.checked)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
+                  disabled={saving}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <label htmlFor="cat-active" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                   {t('dashboard.formation.label_active_category')}
@@ -167,7 +167,8 @@ export default function CategoryModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                disabled={saving}
+                className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {t('dashboard.formation.btn_cancel')}
               </button>
@@ -181,7 +182,6 @@ export default function CategoryModal({
               </button>
             </div>
           </form>
-        )}
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,8 +88,9 @@ public class SkillTreeStudentService {
         Student student = getCurrentStudent();
         boolean alreadyValidated = quizValidationRepository.existsByStudentIdAndQuizId(student.getId(), quizId);
 
-        Map<UUID, UUID> submitted = request.getAnswers().stream()
-                .collect(Collectors.toMap(QuizAnswerItem::getQuestionId, QuizAnswerItem::getReponseId));
+        Map<UUID, Set<UUID>> submitted = request.getAnswers().stream()
+                .collect(Collectors.toMap(QuizAnswerItem::getQuestionId,
+                        item -> new HashSet<>(item.getReponseIds())));
 
         Set<UUID> validQuestionIds = quiz.getQuestions().stream()
                 .map(Question::getId)
@@ -97,12 +99,19 @@ public class SkillTreeStudentService {
         int total = quiz.getQuestions().size();
         int correct = 0;
 
+        // A question is correct only if the student selected exactly the set of
+        // answers marked estCorrecte=true — no more, no less (supports questions
+        // with one or several correct answers).
         for (Question question : quiz.getQuestions()) {
-            UUID submittedAnswerId = submitted.get(question.getId());
-            if (submittedAnswerId == null || !validQuestionIds.contains(question.getId())) continue;
-            boolean isCorrect = question.getReponses().stream()
-                    .anyMatch(a -> a.getId().equals(submittedAnswerId) && Boolean.TRUE.equals(a.getEstCorrecte()));
-            if (isCorrect) correct++;
+            Set<UUID> submittedAnswerIds = submitted.get(question.getId());
+            if (submittedAnswerIds == null || !validQuestionIds.contains(question.getId())) continue;
+
+            Set<UUID> correctAnswerIds = question.getReponses().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getEstCorrecte()))
+                    .map(Answer::getId)
+                    .collect(Collectors.toSet());
+
+            if (correctAnswerIds.equals(submittedAnswerIds)) correct++;
         }
 
         int score = total > 0 ? (correct * 100) / total : 0;

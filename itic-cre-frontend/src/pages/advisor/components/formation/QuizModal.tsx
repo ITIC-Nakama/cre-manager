@@ -132,12 +132,11 @@ export default function QuizModal({
     setQuestions(updated);
   };
 
-  const handleSetCorrectAnswer = (qIndex: number, aIndex: number) => {
+  const handleToggleCorrectAnswer = (qIndex: number, aIndex: number) => {
     const updated = [...questions];
-    updated[qIndex].answers = updated[qIndex].answers.map((ans, idx) => ({
-      ...ans,
-      estCorrecte: idx === aIndex
-    }));
+    updated[qIndex].answers = updated[qIndex].answers.map((ans, idx) =>
+      idx === aIndex ? { ...ans, estCorrecte: !ans.estCorrecte } : ans
+    );
     setQuestions(updated);
   };
 
@@ -198,9 +197,10 @@ export default function QuizModal({
       {/* Header bar */}
       <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-6 py-4 flex justify-between items-center z-10">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            disabled={saving}
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -218,7 +218,8 @@ export default function QuizModal({
           {quiz && (
             <button
               onClick={() => onDelete(quiz.id)}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 text-sm font-semibold transition-colors hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 text-sm font-semibold transition-colors hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-4 w-4" />
               {t('dashboard.formation.btn_delete_quiz')}
@@ -235,10 +236,10 @@ export default function QuizModal({
         </div>
       </div>
 
-      {saving || loading ? (
+      {loading ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-slate-400">
           <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <p className="text-sm">{saving ? "Enregistrement du quiz..." : t('dashboard.formation.loading')}</p>
+          <p className="text-sm">{t('dashboard.formation.loading')}</p>
         </div>
       ) : (
         /* Form Content */
@@ -266,7 +267,8 @@ export default function QuizModal({
                   max={questions.length || 1}
                   value={scoreMinimum}
                   onChange={(e) => setScoreMinimum(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 text-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+                  disabled={saving}
+                  className="w-20 text-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-slate-500">{t('dashboard.formation.score_of', { count: questions.length })}</span>
               </div>
@@ -283,7 +285,8 @@ export default function QuizModal({
               <button
                 type="button"
                 onClick={handleAddQuestion}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors cursor-pointer"
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="h-3.5 w-3.5" />
                 {t('dashboard.formation.btn_add_question')}
@@ -299,7 +302,8 @@ export default function QuizModal({
                 <button
                   type="button"
                   onClick={() => handleRemoveQuestion(qIdx)}
-                  className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
+                  disabled={saving}
+                  className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title={t('dashboard.formation.btn_delete_question')}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -316,25 +320,30 @@ export default function QuizModal({
                     value={question.texte}
                     onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
                     placeholder={t('dashboard.formation.placeholder_question_text')}
-                    className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-600 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-colors"
+                    disabled={saving}
+                    className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-600 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Answers section */}
                 <div className="pl-10 flex flex-col gap-3">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('dashboard.formation.label_answers_options')}</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {t('dashboard.formation.label_answers_options')}
+                  </label>
                   
                   <div className="flex flex-col gap-2">
                     {question.answers.map((answer, aIdx) => (
                       <div key={aIdx} className="flex items-center gap-3 group/ans">
                         
-                        {/* Radio box for correct selection */}
+                        {/* Checkbox for correct selection — multiple answers can be marked correct */}
                         <button
                           type="button"
-                          onClick={() => handleSetCorrectAnswer(qIdx, aIdx)}
-                          className={`flex items-center justify-center h-5 w-5 rounded-full border transition-all cursor-pointer ${
-                            answer.estCorrecte 
-                              ? 'bg-emerald-500 border-emerald-500 text-white' 
+                          disabled={saving}
+                          onClick={() => handleToggleCorrectAnswer(qIdx, aIdx)}
+                          title={t('dashboard.formation.label_mark_correct')}
+                          className={`flex items-center justify-center h-5 w-5 rounded-md border transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                            answer.estCorrecte
+                              ? 'bg-emerald-500 border-emerald-500 text-white'
                               : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500'
                           }`}
                         >
@@ -349,7 +358,8 @@ export default function QuizModal({
                           value={answer.texte}
                           onChange={(e) => handleAnswerTextChange(qIdx, aIdx, e.target.value)}
                           placeholder={t('dashboard.formation.placeholder_answer_text', { num: aIdx + 1 })}
-                          className={`flex-1 rounded-xl border px-3.5 py-1.5 text-sm focus:outline-none transition-all ${
+                          disabled={saving}
+                          className={`flex-1 rounded-xl border px-3.5 py-1.5 text-sm focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                             answer.estCorrecte
                               ? 'border-emerald-500/30 bg-emerald-50/10 dark:bg-emerald-950/10 dark:border-emerald-800/30 text-emerald-900 dark:text-emerald-300'
                               : 'border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/50 dark:text-slate-100'
@@ -360,7 +370,7 @@ export default function QuizModal({
                         <button
                           type="button"
                           onClick={() => handleRemoveAnswer(qIdx, aIdx)}
-                          disabled={question.answers.length <= 2}
+                          disabled={question.answers.length <= 2 || saving}
                           className="p-1 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-0 cursor-pointer"
                         >
                           <X className="h-4 w-4" />
@@ -373,7 +383,8 @@ export default function QuizModal({
                   <button
                     type="button"
                     onClick={() => handleAddAnswer(qIdx)}
-                    className="self-start inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1 font-semibold cursor-pointer"
+                    disabled={saving}
+                    className="self-start inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Plus className="h-3 w-3" />
                     {t('dashboard.formation.btn_add_option')}
@@ -386,7 +397,8 @@ export default function QuizModal({
           <button
             type="button"
             onClick={handleAddQuestion}
-            className="py-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+            disabled={saving}
+            className="py-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-6 w-6" />
             <span className="font-bold text-sm">{t('dashboard.formation.btn_add_question_dashed')}</span>
