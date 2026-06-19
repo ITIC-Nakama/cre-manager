@@ -124,10 +124,11 @@ export default function RegisterPage() {
                     p-8 lg:p-12">
 
                     {/* Mobile logo */}
-                    <div className="flex lg:hidden justify-center mb-6">
+                    <div className="flex lg:hidden justify-center mb-10">
                         <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
                         <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
+
 
                     <div className="mb-8">
                         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
