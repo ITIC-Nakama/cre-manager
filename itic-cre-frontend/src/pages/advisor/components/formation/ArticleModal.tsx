@@ -30,7 +30,7 @@ export default function ArticleModal({
   const [titre, setTitre] = useState('');
   const [contenu, setContenu] = useState('');
   const [categorieId, setCategorieId] = useState('');
-  const [actif, setActif] = useState(true);
+  const [actif, setActif] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function ArticleModal({
         setTitre('');
         setContenu('');
         setCategorieId(categories.length > 0 ? categories[0].id : '');
-        setActif(true);
+        setActif(false);
       }
     };
 

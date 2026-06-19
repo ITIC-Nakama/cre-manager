@@ -130,7 +130,8 @@ export default function ContenuPage() {
         await createArticleMutation.mutateAsync({
           titre: data.titre,
           contenu: data.contenu,
-          categorieId: data.categorieId
+          categorieId: data.categorieId,
+          actif: data.actif
         });
         toast.success(t('dashboard.formation.toast_article_created'));
       } else if (articleModal.mode === 'edit' && articleModal.articleId) {

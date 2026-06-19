@@ -79,6 +79,7 @@ public class SkillTreeAdminService {
         article.setTitre(request.getTitre());
         article.setContenu(request.getContenu());
         article.setCategorie(category);
+        article.setActif(request.getActif() != null ? request.getActif() : false);
         article.setCreatedBy(getCurrentUser());
         return mapArticleToDTO(articleRepository.save(article));
     }

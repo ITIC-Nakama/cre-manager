@@ -18,4 +18,6 @@ public class CreateArticleRequest {
 
     @NotNull
     private UUID categorieId;
+
+    private Boolean actif;
 }

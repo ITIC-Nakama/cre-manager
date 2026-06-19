@@ -63,7 +63,7 @@ export function useAdminArticleById(id: string, enabled = true) {
 export function useCreateArticle() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { titre: string; contenu: string; categorieId: string }) => createArticle(data),
+    mutationFn: (data: { titre: string; contenu: string; categorieId: string; actif?: boolean }) => createArticle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['skill-articles'] });
     },
