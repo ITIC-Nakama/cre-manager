@@ -39,6 +39,9 @@ public class UserProfileService {
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
 
+    @Value("${app.upload.max-image-size-mb:5}")
+    private long maxImageSizeMb;
+
     @Transactional
     public User updateUser(UUID id, UserUpdateDto updateDto) {
         User rawUser = userRepository.findById(id)
@@ -105,6 +108,10 @@ public class UserProfileService {
 
     @Transactional
     public String updateProfilePicture(UUID userId, MultipartFile file) throws IOException {
+        if (file.getSize() > maxImageSizeMb * 1024L * 1024L) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_FILE_TOO_LARGE);
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 

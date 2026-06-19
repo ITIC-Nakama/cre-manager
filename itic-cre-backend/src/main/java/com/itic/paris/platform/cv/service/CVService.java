@@ -56,10 +56,16 @@ public class CVService {
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
 
+    @Value("${app.upload.max-cv-size-mb:10}")
+    private long maxCvSizeMb;
+
     @Transactional
     public Map<String, Object> uploadCV(UUID studentId, MultipartFile file) throws IOException {
         if (file.isEmpty() || !isPdf(file)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_INVALID_FILE_TYPE);
+        }
+        if (file.getSize() > maxCvSizeMb * 1024L * 1024L) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_FILE_TOO_LARGE);
         }
 
         Student student = studentRepository.findById(studentId)
