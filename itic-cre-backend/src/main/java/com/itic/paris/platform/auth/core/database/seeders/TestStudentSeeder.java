@@ -19,11 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(12)
 public class TestStudentSeeder implements CommandLineRunner {
 
-    private static final String TEST_EMAIL    = "test.student@itic.fr";
-    private static final String TEST_PASSWORD = "Test123!";
-    private static final String FIRST_NAME    = "Etudiant";
-    private static final String LAST_NAME     = "Test";
-
     private final UserRepository  userRepository;
     private final RoleRepository  roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,20 +26,32 @@ public class TestStudentSeeder implements CommandLineRunner {
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
 
+    @Value("${app.test.student.email:test.student@itic.fr}")
+    private String testEmail;
+
+    @Value("${app.test.student.password:Test123!}")
+    private String testPassword;
+
+    @Value("${app.test.student.first-name:Etudiant}")
+    private String firstName;
+
+    @Value("${app.test.student.last-name:Test}")
+    private String lastName;
+
     @Override
     @Transactional
     public void run(String... args) {
         if (!enabled) return;
-        if (userRepository.existsByEmailIgnoreCase(TEST_EMAIL)) return;
+        if (userRepository.existsByEmailIgnoreCase(testEmail)) return;
 
         Role role = roleRepository.findByName(RoleEnum.STUDENT);
         if (role == null) return;
 
         Student student = new Student();
-        student.setEmail(TEST_EMAIL);
-        student.setFirstName(FIRST_NAME);
-        student.setLastName(LAST_NAME);
-        student.setPassword(passwordEncoder.encode(TEST_PASSWORD));
+        student.setEmail(testEmail);
+        student.setFirstName(firstName);
+        student.setLastName(lastName);
+        student.setPassword(passwordEncoder.encode(testPassword));
         student.setEmailVerified(true);
         student.setMustChangePassword(false);
         student.setRole(role);

@@ -19,12 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(11)
 public class TestAdvisorSeeder implements CommandLineRunner {
 
-    private static final String TEST_EMAIL    = "test.advisor@itic.fr";
-    private static final String TEST_PASSWORD = "Test123!";
-    private static final String FIRST_NAME    = "Conseiller";
-    private static final String LAST_NAME     = "Test";
-    private static final String JOB_TITLE     = "Conseiller pédagogique";
-
     private final UserRepository  userRepository;
     private final RoleRepository  roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -32,24 +26,39 @@ public class TestAdvisorSeeder implements CommandLineRunner {
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
 
+    @Value("${app.test.advisor.email:test.advisor@itic.fr}")
+    private String testEmail;
+
+    @Value("${app.test.advisor.password:Test123!}")
+    private String testPassword;
+
+    @Value("${app.test.advisor.first-name:Conseiller}")
+    private String firstName;
+
+    @Value("${app.test.advisor.last-name:Test}")
+    private String lastName;
+
+    @Value("${app.test.advisor.job-title:Conseiller pédagogique}")
+    private String jobTitle;
+
     @Override
     @Transactional
     public void run(String... args) {
         if (!enabled) return;
-        if (userRepository.existsByEmailIgnoreCase(TEST_EMAIL)) return;
+        if (userRepository.existsByEmailIgnoreCase(testEmail)) return;
 
         Role role = roleRepository.findByName(RoleEnum.ADVISOR);
         if (role == null) return;
 
         Advisor advisor = new Advisor();
-        advisor.setEmail(TEST_EMAIL);
-        advisor.setFirstName(FIRST_NAME);
-        advisor.setLastName(LAST_NAME);
-        advisor.setPassword(passwordEncoder.encode(TEST_PASSWORD));
+        advisor.setEmail(testEmail);
+        advisor.setFirstName(firstName);
+        advisor.setLastName(lastName);
+        advisor.setPassword(passwordEncoder.encode(testPassword));
         advisor.setEmailVerified(true);
         advisor.setMustChangePassword(false);
         advisor.setRole(role);
-        advisor.setJobTitle(JOB_TITLE);
+        advisor.setJobTitle(jobTitle);
 
         userRepository.save(advisor);
     }

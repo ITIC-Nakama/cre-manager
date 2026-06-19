@@ -19,11 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(10)
 public class TestAdminSeeder implements CommandLineRunner {
 
-    private static final String TEST_EMAIL    = "test.admin@itic.fr";
-    private static final String TEST_PASSWORD = "Test123!";
-    private static final String FIRST_NAME    = "Admin";
-    private static final String LAST_NAME     = "Test";
-
     private final UserRepository  userRepository;
     private final RoleRepository  roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,20 +26,32 @@ public class TestAdminSeeder implements CommandLineRunner {
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
 
+    @Value("${app.test.admin.email:test.admin@itic.fr}")
+    private String testEmail;
+
+    @Value("${app.test.admin.password:Test123!}")
+    private String testPassword;
+
+    @Value("${app.test.admin.first-name:Admin}")
+    private String firstName;
+
+    @Value("${app.test.admin.last-name:Test}")
+    private String lastName;
+
     @Override
     @Transactional
     public void run(String... args) {
         if (!enabled) return;
-        if (userRepository.existsByEmailIgnoreCase(TEST_EMAIL)) return;
+        if (userRepository.existsByEmailIgnoreCase(testEmail)) return;
 
         Role role = roleRepository.findByName(RoleEnum.ADMIN);
         if (role == null) return;
 
         Admin admin = new Admin();
-        admin.setEmail(TEST_EMAIL);
-        admin.setFirstName(FIRST_NAME);
-        admin.setLastName(LAST_NAME);
-        admin.setPassword(passwordEncoder.encode(TEST_PASSWORD));
+        admin.setEmail(testEmail);
+        admin.setFirstName(firstName);
+        admin.setLastName(lastName);
+        admin.setPassword(passwordEncoder.encode(testPassword));
         admin.setEmailVerified(true);
         admin.setMustChangePassword(false);
         admin.setRole(role);
