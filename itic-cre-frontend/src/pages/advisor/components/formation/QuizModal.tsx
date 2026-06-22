@@ -27,7 +27,7 @@ export default function QuizModal({
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [scoreMinimum, setScoreMinimum] = useState(1);
+  const [scoreMinimum, setScoreMinimum] = useState(80);
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
@@ -47,11 +47,11 @@ export default function QuizModal({
 
         if (q) {
           setQuiz(q);
-          setScoreMinimum(q.scoreMinimum ?? 1);
+          setScoreMinimum(q.scoreMinimum ?? 80);
           setQuestions(q.questions || []);
         } else {
           setQuiz(null);
-          setScoreMinimum(1);
+          setScoreMinimum(80);
           setQuestions([
             {
               texte: t('dashboard.formation.default_first_question'),
@@ -264,13 +264,13 @@ export default function QuizModal({
                 <input
                   type="number"
                   min={1}
-                  max={questions.length || 1}
+                  max={100}
                   value={scoreMinimum}
-                  onChange={(e) => setScoreMinimum(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => setScoreMinimum(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
                   disabled={saving}
                   className="w-20 text-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
-                <span className="text-sm text-slate-500">{t('dashboard.formation.score_of', { count: questions.length })}</span>
+                <span className="text-sm text-slate-500">%</span>
               </div>
             </div>
           </div>
