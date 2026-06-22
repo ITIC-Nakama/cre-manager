@@ -97,6 +97,8 @@ public class CVService {
         cv.setUpdatedAt(null);
         cv.setXpAwarded(false);
 
+        awardStatusXPIfNeeded(cv, statutEnAttente);
+
         CV saved = cvRepository.save(cv);
         auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
 
@@ -148,11 +150,7 @@ public class CVService {
         cv.setStatut(statut);
         cv.setUpdatedAt(Instant.now());
 
-        if (statut.getGainXP() > 0 && !Boolean.TRUE.equals(cv.getXpAwarded())) {
-            gamificationService.awardXP(cv.getStudent(), ActionXP.CV_VALIDATED, statut.getGainXP(),
-                    "CV " + statut.getNom());
-            cv.setXpAwarded(true);
-        }
+        awardStatusXPIfNeeded(cv, statut);
 
         CV saved = cvRepository.save(cv);
 
@@ -166,6 +164,14 @@ public class CVService {
                 statut.getCouleur()));
 
         return buildCVResponse(saved);
+    }
+
+    private void awardStatusXPIfNeeded(CV cv, CVStatut statut) {
+        if (statut.getGainXP() > 0 && !Boolean.TRUE.equals(cv.getXpAwarded())) {
+            gamificationService.awardXP(cv.getStudent(), ActionXP.CV_VALIDATED, statut.getGainXP(),
+                    "CV " + statut.getNom());
+            cv.setXpAwarded(true);
+        }
     }
 
     @Transactional
