@@ -25,10 +25,13 @@ Spring Boot 3.4.5 · Java 21 · PostgreSQL · JWT · Gamification · CV Manageme
 
 ```bash
 # Copier et compléter les variables d'environnement
-cp src/main/resources/application.properties.example src/main/resources/application-local.properties
+cp .env.example .env
 
-# Lancer avec le profil local
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+# Avec Docker (recommandé)
+docker compose up --build
+
+# Ou en local sans Docker
+./mvnw spring-boot:run
 ```
 
 Swagger UI disponible sur : `http://localhost:8080/api/v1/swagger-ui.html`
@@ -159,7 +162,7 @@ registerStudent()  [@Transactional]
 
 ## Jobboard → CRM auto-link
 
-Quand un étudiant postule à une offre via le Jobboard (`POST /jobboard/offers/{id}/apply`), une entrée CRM est automatiquement créée au statut "Postulé" (ordre 2) avec les XP associés.
+Quand un étudiant postule à une offre via le Jobboard (`POST /jobboard/applications/{jobOfferId}/apply`), une entrée CRM est automatiquement créée au statut "Postulé" avec les XP associés.
 
 Les deux opérations (JobApplication + Application CRM) sont englobées dans une seule `@Transactional` sur `JobApplicationService.apply()` : si l'une échoue, les deux sont annulées.
 
@@ -169,11 +172,14 @@ Les deux opérations (JobApplication + Application CRM) sont englobées dans une
 
 | Action | XP (configurable) |
 |--------|-------------------|
-| Candidature créée | configuré via `AppConfiguration` |
-| Changement de statut | défini sur chaque `ApplicationStatus.gainXP` |
-| Skill tree | défini sur chaque `SkillNode` |
+| Candidature créée | `GamificationConfig` (action `CANDIDATURE_CREATED`) |
+| Quiz validé (≥ score minimum) | `GamificationConfig` (action `QUIZ_COMPLETED`) |
+| Changement de statut de candidature | défini sur chaque `ApplicationStatus.gainXP` |
+| Changement de statut de CV (ex: validation) | défini sur chaque `CVStatut.gainXP` |
 
-Les grades (Bronze → Platine) sont calculés dynamiquement selon le total XP de l'étudiant.
+Un flag `xpAwarded` sur `CV` empêche le double comptage si un statut est basculé plusieurs fois ; il se réinitialise à chaque nouveau dépôt de CV par l'étudiant.
+
+Les grades (seedés par défaut : Débutant, Intermédiaire, Avancé, Expert) sont calculés dynamiquement selon le total XP de l'étudiant, et entièrement gérés (CRUD) par l'admin/conseiller depuis la page Gamification, qui centralise aussi la configuration des points XP par action, par statut de candidature et par statut de CV.
 
 ---
 

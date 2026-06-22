@@ -169,6 +169,8 @@ Authorization: Bearer <token>  (ou cookie)
 
 ### Fonctionnalités implémentées
 
-- **Auth Flow complet** : Formulaires d'inscription (Student, avec validation OTP) et de connexion.
-- **Design premium** : Intégration du logo officiel ITIC Paris, favicon personnalisé, barre de navigation (`DashboardNavBar`) responsive et moderne.
+- **Auth Flow complet** : inscription étudiant avec validation OTP, connexion, changement de mot de passe obligatoire pour les comptes créés par un admin.
+- **Espace étudiant** : dashboard, CRM kanban des candidatures, jobboard (recherche + candidature en un clic), skill tree (catégories/articles/quiz avec XP), upload et suivi du CV.
+- **Espace conseiller/admin** : gestion des candidatures et étudiants, validation des CV avec commentaires, gestion du contenu (catégories/articles/quiz), gestion des offres d'emploi, page **Gamification** (configuration des points XP par action/statut de candidature/statut de CV, gestion des grades).
+- **Composants partagés** : modale de confirmation générique (`ConfirmDialog`) utilisée pour toutes les suppressions, design responsive avec navigation (`DashboardNavBar`) et logo officiel ITIC Paris.
 
