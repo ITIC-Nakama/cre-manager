@@ -36,7 +36,8 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 ### Promotions
 - Nom **unique**.
 - Lecture (lister / consulter) : ouverte à **tout utilisateur connecté**, sans restriction de rôle (advisor et étudiant inclus).
-- Création / modification / suppression : réservées à `ADMIN` uniquement.
+- Création / modification / suppression : réservées à `ADMIN` et `ADVISOR`.
+- **Une promotion ne peut être supprimée si elle contient au moins un étudiant** (`promotion-has-students`, 400) — il faut d'abord réaffecter ou retirer tous les étudiants de cette promotion.
 
 ---
 

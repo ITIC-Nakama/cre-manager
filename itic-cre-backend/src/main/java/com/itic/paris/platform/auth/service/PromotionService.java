@@ -4,6 +4,7 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.dtos.PromotionDto;
 import com.itic.paris.platform.auth.repository.PromotionRepository;
+import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class PromotionService {
 
     private final PromotionRepository promotionRepository;
+    private final StudentRepository studentRepository;
 
     public List<Promotion> findAll() {
         return promotionRepository.findAll();
@@ -50,6 +52,9 @@ public class PromotionService {
 
     public void delete(UUID id) {
         Promotion promotion = findById(id);
+        if (studentRepository.countByPromotionId(id) > 0) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.PROMOTION_HAS_STUDENTS);
+        }
         promotionRepository.delete(promotion);
     }
 }

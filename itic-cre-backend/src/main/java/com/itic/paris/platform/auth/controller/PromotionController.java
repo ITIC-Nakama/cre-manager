@@ -38,7 +38,7 @@ public class PromotionController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
     @Operation(summary = "Créer une promotion")
     public ResponseEntity<?> create(@RequestBody @Valid PromotionDto dto, BindingResult bindingResult,
                                     HttpServletRequest request) {
@@ -49,7 +49,7 @@ public class PromotionController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
     @Operation(summary = "Mettre à jour une promotion")
     public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody @Valid PromotionDto dto,
                                     BindingResult bindingResult, HttpServletRequest request) {
@@ -60,7 +60,7 @@ public class PromotionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
     @Operation(summary = "Supprimer une promotion")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         promotionService.delete(id);

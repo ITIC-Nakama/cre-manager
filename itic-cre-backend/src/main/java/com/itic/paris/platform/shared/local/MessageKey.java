@@ -103,6 +103,7 @@ public enum MessageKey {
     // Promotion messages
     PROMOTION_NOT_FOUND("promotion-not-found", "Promotion introuvable", "Promotion not found"),
     PROMOTION_NAME_ALREADY_EXISTS("promotion-name-already-exists", "Une promotion avec ce nom existe déjà", "A promotion with this name already exists"),
+    PROMOTION_HAS_STUDENTS("promotion-has-students", "Impossible de supprimer cette promotion car elle contient des étudiants.", "Cannot delete this promotion because it contains students."),
     // CV messages
     CV_NOT_FOUND("cv-not-found", "CV introuvable", "CV not found"),
     CV_UPLOAD_FAILED("cv-upload-failed", "Échec de l'upload du CV", "CV upload failed"),
