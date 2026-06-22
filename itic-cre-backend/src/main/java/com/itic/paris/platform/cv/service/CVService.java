@@ -20,6 +20,8 @@ import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.cv.repository.CVStatutRepository;
+import com.itic.paris.platform.gamification.model.enums.ActionXP;
+import com.itic.paris.platform.gamification.service.GamificationService;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
@@ -52,6 +54,7 @@ public class CVService {
     private final ICloudStorage cloudStorage;
     private final AuditLogService auditLogService;
     private final ApplicationEventPublisher eventPublisher;
+    private final GamificationService gamificationService;
 
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
@@ -92,6 +95,7 @@ public class CVService {
         cv.setStatut(statutEnAttente);
         cv.setUploadedAt(Instant.now());
         cv.setUpdatedAt(null);
+        cv.setXpAwarded(false);
 
         CV saved = cvRepository.save(cv);
         auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
@@ -143,6 +147,13 @@ public class CVService {
 
         cv.setStatut(statut);
         cv.setUpdatedAt(Instant.now());
+
+        if (statut.getGainXP() > 0 && !Boolean.TRUE.equals(cv.getXpAwarded())) {
+            gamificationService.awardXP(cv.getStudent(), ActionXP.CV_VALIDATED, statut.getGainXP(),
+                    "CV " + statut.getNom());
+            cv.setXpAwarded(true);
+        }
+
         CV saved = cvRepository.save(cv);
 
         auditLogService.log(AuditAction.CV_STATUS_UPDATED, actor, saved.getId(),

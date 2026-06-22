@@ -408,9 +408,15 @@
       "toast_config_save_error": "Error updating configuration.",
       "action": {
         "CANDIDATURE_CREATED": "New application created",
-        "CANDIDATURE_STATUS_CHANGED": "Application status changed",
         "QUIZ_COMPLETED": "Quiz validated"
       },
+      "status_section_title": "XP Points per Application Status",
+      "status_section_desc": "Each status in the application pipeline awards its own XP points when a student reaches it.",
+      "col_status_name": "Status",
+      "toast_status_updated": "Status updated successfully!",
+      "toast_status_save_error": "Error updating status.",
+      "cv_status_section_title": "XP Points per CV Status",
+      "cv_status_section_desc": "Award XP points when a CV reaches a given status (e.g. CV validated by an advisor).",
       "grades_section_title": "Progression Grades",
       "grades_section_desc": "Grades are automatically awarded to students based on their total XP points.",
       "create_grade": "Create a grade",

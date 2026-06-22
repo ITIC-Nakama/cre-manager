@@ -49,7 +49,7 @@ export default function ConfirmDialog({
 
         {/* Body */}
         <div className="p-5">
-          <p className="text-sm text-slate-600 dark:text-slate-400">{message}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 break-words">{message}</p>
         </div>
 
         {/* Footer */}

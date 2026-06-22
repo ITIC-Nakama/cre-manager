@@ -28,4 +28,7 @@ public class CVStatut {
 
     @Column(nullable = false)
     private Boolean actif = true;
+
+    @Column(name = "gain_xp", nullable = false)
+    private Integer gainXP = 0;
 }

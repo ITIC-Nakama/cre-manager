@@ -31,6 +31,10 @@ export function fetchApplicationStatuses(): Promise<ApplicationStatus[]> {
     return apiClient.get('/application-statuses').then((response) => unwrap<ApplicationStatus[]>(response));
 }
 
+export function updateApplicationStatus(id: string, data: { gainXP?: number; couleur?: string }): Promise<ApplicationStatus> {
+    return apiClient.put(`/application-statuses/${id}`, data).then((response) => unwrap<ApplicationStatus>(response));
+}
+
 export function fetchContractTypes(): Promise<ContractType[]> {
     return apiClient.get('/jobboard/contract-types/active/list').then((response) => unwrap<ContractType[]>(response));
 }

@@ -4,6 +4,7 @@ export interface CVStatut {
     ordre: number;
     couleur: string;
     actif: boolean;
+    gainXP: number;
 }
 
 export interface CVStudentInfo {

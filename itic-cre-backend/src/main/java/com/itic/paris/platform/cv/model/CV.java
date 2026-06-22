@@ -32,4 +32,7 @@ public class CV {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "xp_awarded", nullable = false)
+    private Boolean xpAwarded = false;
 }

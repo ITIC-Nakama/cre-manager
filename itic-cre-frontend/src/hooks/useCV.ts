@@ -3,12 +3,14 @@ import {
     fetchAllCVs,
     fetchCVStatuts,
     updateCVStatus,
+    updateCVStatutConfig,
     addCVComment,
     fetchCVComments,
     deleteCVComment,
     fetchCVStats,
 } from '../api-s/requests/CVRequest';
 import type { CVListParams } from '../api-s/requests/CVRequest';
+import type { CVStatut } from '../types/models/CV';
 
 export function useAllCVs(params: CVListParams = {}) {
     return useQuery({
@@ -63,6 +65,17 @@ export function useDeleteCVComment() {
             deleteCVComment(variables.commentId),
         onSuccess: (_data, variables) =>
             queryClient.invalidateQueries({ queryKey: ['cv-comments', variables.cvId] }),
+    });
+}
+
+export function useUpdateCVStatutConfig() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: Omit<CVStatut, 'id'> }) =>
+            updateCVStatutConfig(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cv-statuts'] });
+        },
     });
 }
 

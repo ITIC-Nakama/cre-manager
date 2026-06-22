@@ -40,6 +40,7 @@ public class CVStatutService {
         statut.setOrdre(dto.getOrdre());
         statut.setCouleur(dto.getCouleur());
         statut.setActif(dto.getActif() != null ? dto.getActif() : true);
+        statut.setGainXP(dto.getGainXP() != null ? dto.getGainXP() : 0);
         return statutRepository.save(statut);
     }
 
@@ -53,6 +54,7 @@ public class CVStatutService {
         statut.setOrdre(dto.getOrdre());
         statut.setCouleur(dto.getCouleur());
         if (dto.getActif() != null) statut.setActif(dto.getActif());
+        if (dto.getGainXP() != null) statut.setGainXP(dto.getGainXP());
         return statutRepository.save(statut);
     }
 

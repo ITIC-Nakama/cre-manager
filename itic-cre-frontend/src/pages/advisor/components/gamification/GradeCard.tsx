@@ -25,7 +25,7 @@ export default function GradeCard({ grade, onEdit, onDelete }: GradeCardProps) {
           </span>
         </div>
 
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors break-words">
           {grade.nom}
         </h3>
 

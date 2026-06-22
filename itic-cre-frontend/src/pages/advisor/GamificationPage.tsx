@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trophy, Plus, Award, Loader2 } from 'lucide-react';
+import { Trophy, Plus, Award, ListChecks, FileCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -11,11 +11,14 @@ import {
   useUpdateGrade,
   useDeleteGrade,
 } from '../../hooks/useGamification';
+import { useApplicationStatuses, useUpdateApplicationStatus } from '../../hooks/useApplications';
+import { useCVStatuts, useUpdateCVStatutConfig } from '../../hooks/useCV';
 
 import type { Grade } from '../../types/models/Gamification';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import ConfigRow from './components/gamification/ConfigRow';
+import StatusXpRow from './components/gamification/StatusXpRow';
 import GradeCard from './components/gamification/GradeCard';
 import GradeModal from './components/gamification/GradeModal';
 
@@ -23,15 +26,21 @@ export default function GamificationPage() {
   const { t } = useTranslation();
 
   const { data: configs = [], isLoading: loadingConfigs } = useGamificationConfigs();
+  const { data: statuses = [], isLoading: loadingStatuses } = useApplicationStatuses();
+  const { data: cvStatuts = [], isLoading: loadingCvStatuts } = useCVStatuts();
   const { data: grades = [], isLoading: loadingGrades } = useGrades();
-  const loading = loadingConfigs || loadingGrades;
+  const loading = loadingConfigs || loadingStatuses || loadingCvStatuts || loadingGrades;
 
   const updateConfigMutation = useUpdateGamificationConfig();
+  const updateStatusMutation = useUpdateApplicationStatus();
+  const updateCvStatutMutation = useUpdateCVStatutConfig();
   const createGradeMutation = useCreateGrade();
   const updateGradeMutation = useUpdateGrade();
   const deleteGradeMutation = useDeleteGrade();
 
   const [savingConfigId, setSavingConfigId] = useState<string | null>(null);
+  const [savingStatusId, setSavingStatusId] = useState<string | null>(null);
+  const [savingCvStatutId, setSavingCvStatutId] = useState<string | null>(null);
   const [gradeModal, setGradeModal] = useState<{ isOpen: boolean; mode: 'create' | 'edit'; grade?: Grade }>({
     isOpen: false,
     mode: 'create',
@@ -70,6 +79,38 @@ export default function GamificationPage() {
       toast.error(t('dashboard.gamification.toast_config_save_error'));
     } finally {
       setSavingConfigId(null);
+    }
+  };
+
+  const handleSaveStatus = async (id: string, data: { gainXP: number }) => {
+    setSavingStatusId(id);
+    try {
+      await updateStatusMutation.mutateAsync({ id, data });
+      toast.success(t('dashboard.gamification.toast_status_updated'));
+    } catch (err) {
+      console.error(err);
+      toast.error(t('dashboard.gamification.toast_status_save_error'));
+    } finally {
+      setSavingStatusId(null);
+    }
+  };
+
+  const handleSaveCvStatut = async (id: string, data: { gainXP: number }) => {
+    const current = cvStatuts.find((s) => s.id === id);
+    if (!current) return;
+
+    setSavingCvStatutId(id);
+    try {
+      await updateCvStatutMutation.mutateAsync({
+        id,
+        data: { nom: current.nom, ordre: current.ordre, couleur: current.couleur, actif: current.actif, gainXP: data.gainXP }
+      });
+      toast.success(t('dashboard.gamification.toast_status_updated'));
+    } catch (err) {
+      console.error(err);
+      toast.error(t('dashboard.gamification.toast_status_save_error'));
+    } finally {
+      setSavingCvStatutId(null);
     }
   };
 
@@ -164,6 +205,68 @@ export default function GamificationPage() {
                       config={config}
                       saving={savingConfigId === config.id}
                       onSave={handleSaveConfig}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* CRM Status XP Section */}
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <ListChecks className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('dashboard.gamification.status_section_title')}</h2>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('dashboard.gamification.status_section_desc')}</p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/50">
+                    <th className="py-3 px-6">{t('dashboard.gamification.col_status_name')}</th>
+                    <th className="py-3 px-6">{t('dashboard.gamification.col_xp_value')}</th>
+                    <th className="py-3 px-6 text-right">{t('dashboard.gamification.col_actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                  {[...statuses].sort((a, b) => a.ordre - b.ordre).map((status) => (
+                    <StatusXpRow
+                      key={status.id}
+                      status={status}
+                      saving={savingStatusId === status.id}
+                      onSave={handleSaveStatus}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* CV Status XP Section */}
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <FileCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('dashboard.gamification.cv_status_section_title')}</h2>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('dashboard.gamification.cv_status_section_desc')}</p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/50">
+                    <th className="py-3 px-6">{t('dashboard.gamification.col_status_name')}</th>
+                    <th className="py-3 px-6">{t('dashboard.gamification.col_xp_value')}</th>
+                    <th className="py-3 px-6 text-right">{t('dashboard.gamification.col_actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                  {[...cvStatuts].sort((a, b) => a.ordre - b.ordre).map((statut) => (
+                    <StatusXpRow
+                      key={statut.id}
+                      status={statut}
+                      saving={savingCvStatutId === statut.id}
+                      onSave={handleSaveCvStatut}
                     />
                   ))}
                 </tbody>

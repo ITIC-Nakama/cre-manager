@@ -33,6 +33,11 @@ export function fetchCVStatuts(): Promise<CVStatut[]> {
     return apiClient.get('/cv/statuts').then((r) => unwrap<CVStatut[]>(r));
 }
 
+/** PUT /cv/statuts/{id} — update a CV status definition (full payload required by the backend) */
+export function updateCVStatutConfig(id: string, data: Omit<CVStatut, 'id'>): Promise<CVStatut> {
+    return apiClient.put(`/cv/statuts/${id}`, data).then((r) => unwrap<CVStatut>(r));
+}
+
 /** PUT /cv/{cvId}/status — update a CV's status */
 export function updateCVStatus(cvId: string, statutId: string): Promise<CVRow> {
     return apiClient.put(`/cv/${cvId}/status`, { statutId }).then((r) => unwrap<CVRow>(r));

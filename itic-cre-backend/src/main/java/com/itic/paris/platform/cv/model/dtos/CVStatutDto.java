@@ -20,4 +20,6 @@ public class CVStatutDto {
     private String couleur;
 
     private Boolean actif = true;
+
+    private Integer gainXP;
 }

@@ -408,9 +408,15 @@
       "toast_config_save_error": "Erreur lors de la mise à jour de la configuration.",
       "action": {
         "CANDIDATURE_CREATED": "Nouvelle candidature créée",
-        "CANDIDATURE_STATUS_CHANGED": "Changement de statut de candidature",
         "QUIZ_COMPLETED": "Quiz validé"
       },
+      "status_section_title": "Points XP par statut de candidature",
+      "status_section_desc": "Chaque statut du pipeline de candidatures attribue ses propres points XP lorsqu'un étudiant l'atteint.",
+      "col_status_name": "Statut",
+      "toast_status_updated": "Statut mis à jour avec succès !",
+      "toast_status_save_error": "Erreur lors de la mise à jour du statut.",
+      "cv_status_section_title": "Points XP par statut de CV",
+      "cv_status_section_desc": "Attribuez des points XP lorsqu'un CV atteint un statut donné (ex : validation du CV par un conseiller).",
       "grades_section_title": "Grades de progression",
       "grades_section_desc": "Les grades sont attribués automatiquement aux étudiants selon leur total de points XP.",
       "create_grade": "Créer un grade",
