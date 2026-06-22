@@ -89,6 +89,7 @@ public enum MessageKey {
     SKILL_CATEGORY_NOT_FOUND("skill-category-not-found", "Catégorie introuvable", "Skill category not found"),
     // Gamification messages
     GRADE_NOT_FOUND("grade-not-found", "Grade introuvable", "Grade not found"),
+    GRADE_NAME_ALREADY_EXISTS("grade-name-already-exists", "Un grade avec ce nom existe déjà", "A grade with this name already exists"),
     GAMIFICATION_CONFIG_NOT_FOUND("gamification-config-not-found", "Configuration de gamification introuvable", "Gamification configuration not found"),
     // App configuration messages
     APP_CONFIG_NOT_FOUND("app-config-not-found", "Configuration introuvable", "Configuration not found"),

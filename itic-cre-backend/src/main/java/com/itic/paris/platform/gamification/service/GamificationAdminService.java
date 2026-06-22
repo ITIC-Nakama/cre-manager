@@ -42,12 +42,32 @@ public class GamificationAdminService {
                 .toList();
     }
 
+    public GradeDTO createGrade(GradeDTO dto) {
+        if (gradeRepository.existsByNom(dto.getNom())) {
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.GRADE_NAME_ALREADY_EXISTS);
+        }
+        Grade grade = new Grade();
+        grade.setNom(dto.getNom());
+        grade.setXpMinimum(dto.getXpMinimum() != null ? dto.getXpMinimum() : 0);
+        grade.setOrdre(dto.getOrdre() != null ? dto.getOrdre() : gradeRepository.findAllByOrderByOrdreAsc().size() + 1);
+        grade.setIcone(dto.getIcone());
+        return mapGradeToDTO(gradeRepository.save(grade));
+    }
+
     public GradeDTO updateGrade(UUID id, GradeDTO dto) {
         Grade grade = gradeRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.GRADE_NOT_FOUND));
+        if (dto.getNom() != null) grade.setNom(dto.getNom());
         if (dto.getXpMinimum() != null) grade.setXpMinimum(dto.getXpMinimum());
+        if (dto.getOrdre() != null) grade.setOrdre(dto.getOrdre());
         if (dto.getIcone() != null) grade.setIcone(dto.getIcone());
         return mapGradeToDTO(gradeRepository.save(grade));
+    }
+
+    public void deleteGrade(UUID id) {
+        Grade grade = gradeRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.GRADE_NOT_FOUND));
+        gradeRepository.delete(grade);
     }
 
     public GradeDTO mapGradeToDTO(Grade g) {

@@ -42,11 +42,24 @@ public class GamificationAdminController {
         return ResponseEntity.ok(gamificationAdminService.getAllGrades());
     }
 
+    @PostMapping("/grades")
+    @Operation(summary = "Créer un grade")
+    public ResponseEntity<GradeDTO> createGrade(@RequestBody GradeDTO dto) {
+        return ResponseEntity.status(201).body(gamificationAdminService.createGrade(dto));
+    }
+
     @PutMapping("/grades/{id}")
     @Operation(summary = "Mettre à jour un grade")
     public ResponseEntity<GradeDTO> updateGrade(
             @PathVariable UUID id,
             @RequestBody GradeDTO dto) {
         return ResponseEntity.ok(gamificationAdminService.updateGrade(id, dto));
+    }
+
+    @DeleteMapping("/grades/{id}")
+    @Operation(summary = "Supprimer un grade")
+    public ResponseEntity<Void> deleteGrade(@PathVariable UUID id) {
+        gamificationAdminService.deleteGrade(id);
+        return ResponseEntity.noContent().build();
     }
 }

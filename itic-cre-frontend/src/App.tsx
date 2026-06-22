@@ -22,6 +22,7 @@ import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/CVValidationPage'
 import ContenuPage from './pages/advisor/ContenuPage'
+import GamificationPage from './pages/advisor/GamificationPage'
 
 
 // Redirection component based on role
@@ -78,7 +79,7 @@ function App() {
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
           <Route path="/supervisor/cv"            element={<CVValidationPage />} />
           <Route path="/supervisor/contenu"       element={<ContenuPage />} />
-          <Route path="/supervisor/gamification"  element={<ComingSoonPage />} />
+          <Route path="/supervisor/gamification"  element={<GamificationPage />} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}
