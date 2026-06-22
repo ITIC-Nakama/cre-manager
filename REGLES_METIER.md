@@ -35,7 +35,8 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 
 ### Promotions
 - Nom **unique**.
-- CRUD réservé à `ADMIN` uniquement (ni advisor, ni étudiant).
+- Lecture (lister / consulter) : ouverte à **tout utilisateur connecté**, sans restriction de rôle (advisor et étudiant inclus).
+- Création / modification / suppression : réservées à `ADMIN` uniquement.
 
 ---
 
