@@ -80,7 +80,8 @@ public class AuthController {
     }
 
     @PutMapping("/users/{id}")
-    @Operation(summary = "Mettre à jour le profil")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mettre à jour le profil d'un autre utilisateur", description = "Réservé aux administrateurs — un utilisateur met à jour son propre profil via /users/me")
     public ResponseEntity<?> updateUser(@PathVariable UUID id, @RequestBody @Valid UserUpdateDto updateDto,
                                         BindingResult bindingResult, HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
