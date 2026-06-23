@@ -236,6 +236,7 @@ public class DashboardService {
                             : null);
                     row.put("lastActivity", student.getLastActivity());
                     row.put("isActive", active);
+                    row.put("accountActive", student.isActive());
                     row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
                     row.put("staleApplicationCount", staleCount);
                     row.put("hasCv", cvPresent);

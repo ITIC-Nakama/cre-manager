@@ -36,6 +36,7 @@ export interface StudentRow {
   grade: { nom: string; icone: string } | null;
   lastActivity: string | null;
   isActive: boolean;
+  accountActive: boolean;
   applicationCount: number;
   staleApplicationCount: number;
   hasCv: boolean;

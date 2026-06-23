@@ -53,6 +53,9 @@ public class AuthService {
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.EMAIL_OR_PASSWORD_INCORRECT);
         }
+        if (!user.isActive()) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ACCOUNT_DEACTIVATED);
+        }
         if (user instanceof Student && !user.isEmailVerified()) {
             throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.EMAIL_NOT_VERIFIED);
         }

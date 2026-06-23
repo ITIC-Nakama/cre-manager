@@ -95,15 +95,33 @@ public class UserProfileService {
     }
 
     @Transactional
-    public void deleteUser(UUID id) {
+    public User deactivateUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
-        User actor = currentActor().orElse(null);
-        auditLogService.log(AuditAction.USER_DELETED, actor, user.getId(),
-                "Suppression compte : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
+        user.setActive(false);
+        User saved = userRepository.save(user);
 
-        userRepository.delete(user);
+        User actor = currentActor().orElse(null);
+        auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(),
+                "Compte désactivé : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
+
+        return saved;
+    }
+
+    @Transactional
+    public User reactivateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        user.setActive(true);
+        User saved = userRepository.save(user);
+
+        User actor = currentActor().orElse(null);
+        auditLogService.log(AuditAction.USER_REACTIVATED, actor, user.getId(),
+                "Compte réactivé : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
+
+        return saved;
     }
 
     @Transactional

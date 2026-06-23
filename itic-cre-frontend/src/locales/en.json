@@ -141,6 +141,7 @@
         "cv_none": "None",
         "active": "Active",
         "inactive": "Inactive",
+        "account_disabled": "Account disabled",
         "empty": "No students match your criteria.",
         "stale_one": "{{count}} late",
         "stale_other": "{{count}} late"
@@ -152,11 +153,19 @@
       "actions": {
         "view": "View profile",
         "notify": "Send reminder",
+        "deactivate": "Deactivate",
+        "reactivate": "Reactivate",
         "view_wip": "Profile of {{name}} — under development",
         "export_success_one": "{{count}} student exported.",
         "export_success_other": "{{count}} students exported.",
         "export_error": "Unable to export data."
-      }
+      },
+      "confirm_deactivate_title": "Deactivate student",
+      "confirm_deactivate": "Are you sure you want to deactivate \"{{name}}\"'s account? They will no longer be able to log in, but their history will be kept. You can reactivate them at any time.",
+      "toast_deactivated": "Account deactivated successfully!",
+      "toast_deactivate_error": "Error deactivating account.",
+      "toast_reactivated": "Account reactivated successfully!",
+      "toast_reactivate_error": "Error reactivating account."
     },
     "candidatures": {
       "title": "Applications",
@@ -458,8 +467,12 @@
       },
       "actions": {
         "edit": "Edit",
-        "delete": "Delete",
+        "deactivate": "Deactivate",
+        "reactivate": "Reactivate",
         "reset_password": "Reset password"
+      },
+      "status": {
+        "inactive": "Inactive"
       },
       "modal_create": "Create an advisor",
       "modal_edit": "Edit advisor",
@@ -485,10 +498,12 @@
       "toast_updated": "Advisor updated successfully!",
       "toast_save_error": "Error saving advisor.",
       "toast_email_exists": "This email is already in use.",
-      "confirm_delete_title": "Delete advisor",
-      "confirm_delete": "Are you sure you want to delete the advisor \"{{name}}\"? This action is irreversible.",
-      "toast_deleted": "Advisor deleted successfully!",
-      "toast_delete_error": "Error deleting advisor."
+      "confirm_deactivate_title": "Deactivate advisor",
+      "confirm_deactivate": "Are you sure you want to deactivate the advisor \"{{name}}\"? They will no longer be able to log in, but their history will be kept. You can reactivate them at any time.",
+      "toast_deactivated": "Advisor deactivated successfully!",
+      "toast_deactivate_error": "Error deactivating advisor.",
+      "toast_reactivated": "Advisor reactivated successfully!",
+      "toast_reactivate_error": "Error reactivating advisor."
     }
   },
   "cta": {

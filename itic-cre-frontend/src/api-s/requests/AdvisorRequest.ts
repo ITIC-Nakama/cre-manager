@@ -49,6 +49,10 @@ export function updateAdvisor(id: string, data: UpdateAdvisorData): Promise<Advi
   return apiClient.put(`/auth/users/${id}`, data).then((r) => unwrap<Advisor>(r));
 }
 
-export function deleteAdvisor(id: string): Promise<void> {
-  return apiClient.delete(`/auth/users/${id}`).then(() => undefined);
+export function deactivateAdvisor(id: string): Promise<Advisor> {
+  return apiClient.delete(`/auth/users/${id}`).then((r) => unwrap<Advisor>(r));
+}
+
+export function reactivateAdvisor(id: string): Promise<Advisor> {
+  return apiClient.patch(`/auth/users/${id}/reactivate`).then((r) => unwrap<Advisor>(r));
 }

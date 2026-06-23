@@ -141,6 +141,7 @@
         "cv_none": "Aucun",
         "active": "Actif",
         "inactive": "Inactif",
+        "account_disabled": "Compte désactivé",
         "empty": "Aucun étudiant ne correspond à vos critères.",
         "stale_one": "{{count}} en retard",
         "stale_other": "{{count}} en retard"
@@ -152,11 +153,19 @@
       "actions": {
         "view": "Consulter le dossier",
         "notify": "Envoyer un rappel",
+        "deactivate": "Désactiver",
+        "reactivate": "Réactiver",
         "view_wip": "Dossier de {{name}} — en cours de développement",
         "export_success_one": "{{count}} étudiant exporté.",
         "export_success_other": "{{count}} étudiants exportés.",
         "export_error": "Impossible d'exporter les données."
-      }
+      },
+      "confirm_deactivate_title": "Désactiver l'étudiant",
+      "confirm_deactivate": "Êtes-vous sûr de vouloir désactiver le compte de \"{{name}}\" ? Il ne pourra plus se connecter, mais son historique sera conservé. Vous pourrez le réactiver à tout moment.",
+      "toast_deactivated": "Compte désactivé avec succès !",
+      "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
+      "toast_reactivated": "Compte réactivé avec succès !",
+      "toast_reactivate_error": "Erreur lors de la réactivation du compte."
     },
     "candidatures": {
       "title": "Candidatures",
@@ -458,8 +467,12 @@
       },
       "actions": {
         "edit": "Modifier",
-        "delete": "Supprimer",
+        "deactivate": "Désactiver",
+        "reactivate": "Réactiver",
         "reset_password": "Réinitialiser le mot de passe"
+      },
+      "status": {
+        "inactive": "Inactif"
       },
       "modal_create": "Créer un conseiller",
       "modal_edit": "Modifier le conseiller",
@@ -485,10 +498,12 @@
       "toast_updated": "Conseiller mis à jour avec succès !",
       "toast_save_error": "Erreur lors de l'enregistrement du conseiller.",
       "toast_email_exists": "Cet email est déjà utilisé.",
-      "confirm_delete_title": "Supprimer le conseiller",
-      "confirm_delete": "Êtes-vous sûr de vouloir supprimer le conseiller \"{{name}}\" ? Cette action est irréversible.",
-      "toast_deleted": "Conseiller supprimé avec succès !",
-      "toast_delete_error": "Erreur lors de la suppression du conseiller."
+      "confirm_deactivate_title": "Désactiver le conseiller",
+      "confirm_deactivate": "Êtes-vous sûr de vouloir désactiver le conseiller \"{{name}}\" ? Il ne pourra plus se connecter, mais son historique sera conservé. Vous pourrez le réactiver à tout moment.",
+      "toast_deactivated": "Conseiller désactivé avec succès !",
+      "toast_deactivate_error": "Erreur lors de la désactivation du conseiller.",
+      "toast_reactivated": "Conseiller réactivé avec succès !",
+      "toast_reactivate_error": "Erreur lors de la réactivation du conseiller."
     }
   },
   "cta": {

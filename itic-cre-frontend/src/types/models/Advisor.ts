@@ -6,5 +6,6 @@ export interface Advisor {
   phoneNumber: string | null;
   jobTitle: string | null;
   mustChangePassword: boolean;
+  active: boolean;
   createdAt: string;
 }

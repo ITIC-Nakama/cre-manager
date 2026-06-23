@@ -121,10 +121,16 @@ public class AuthController {
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer un compte")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        userProfileService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "Désactiver un compte (connexion bloquée, historique conservé)")
+    public ResponseEntity<?> deactivateUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(userProfileService.deactivateUser(id));
+    }
+
+    @PatchMapping("/users/{id}/reactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Réactiver un compte désactivé")
+    public ResponseEntity<?> reactivateUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(userProfileService.reactivateUser(id));
     }
 
     @PostMapping("/refresh-token")

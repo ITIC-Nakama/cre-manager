@@ -10,10 +10,11 @@ import {
     Search, SlidersHorizontal, Mail, Eye, Loader2,
     AlertCircle, Star, FileText, ChevronUp, ChevronDown,
     ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap,
+    UserX, UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { useStudentList, useNotifyStudent } from '../../hooks/useDashboard';
+import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../hooks/useDashboard';
 import { usePromotions } from '../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
@@ -21,6 +22,9 @@ import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../components/shared/StudentDetailModal';
 import TruncatedText from '../../components/shared/TruncatedText';
 import CustomSelect from '../../components/basics/CustomSelect';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { useUserStore } from '../../store/UserStore';
+import { Role } from '../../types/models/Auth';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
@@ -49,7 +53,30 @@ export default function EtudiantsPage() {
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
+    const deactivateMutation = useDeactivateStudent();
+    const reactivateMutation = useReactivateStudent();
     const { data: promotions } = usePromotions();
+    const currentUser = useUserStore((state) => state.user);
+    const isAdmin = currentUser?.role === Role.ADMIN;
+
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => Promise<void>;
+    }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+    const [confirmLoading, setConfirmLoading] = useState(false);
+
+    const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+    const handleConfirm = async () => {
+        setConfirmLoading(true);
+        try {
+            await confirmDialog.onConfirm();
+            closeConfirm();
+        } finally {
+            setConfirmLoading(false);
+        }
+    };
 
     const columns = useMemo(() => [
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
@@ -120,14 +147,21 @@ export default function EtudiantsPage() {
         }),
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
-            cell: ({ getValue }) => (
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    getValue()
-                        ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
-                        : 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
-                }`}>
-                    {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
-                </span>
+            cell: ({ getValue, row }) => (
+                <div className="flex items-center gap-1.5">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        getValue()
+                            ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
+                            : 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400'
+                    }`}>
+                        {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
+                    </span>
+                    {!row.original.accountActive && (
+                        <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
+                            {t('dashboard.etudiants.table.account_disabled')}
+                        </span>
+                    )}
+                </div>
             ),
             enableSorting: false,
         }),
@@ -199,6 +233,33 @@ export default function EtudiantsPage() {
             toast.success(t('dashboard.notify_modal.success', { name: `${student.firstName} ${student.lastName}` }));
         } catch {
             toast.error(t('dashboard.notify_modal.error', { email: student.email }));
+        }
+    };
+
+    const handleDeactivateStudent = (student: StudentRow) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: t('dashboard.etudiants.confirm_deactivate_title'),
+            message: t('dashboard.etudiants.confirm_deactivate', { name: `${student.firstName} ${student.lastName}` }),
+            onConfirm: async () => {
+                try {
+                    await deactivateMutation.mutateAsync(student.id);
+                    toast.success(t('dashboard.etudiants.toast_deactivated'));
+                } catch (err) {
+                    console.error(err);
+                    toast.error(t('dashboard.etudiants.toast_deactivate_error'));
+                }
+            },
+        });
+    };
+
+    const handleReactivateStudent = async (student: StudentRow) => {
+        try {
+            await reactivateMutation.mutateAsync(student.id);
+            toast.success(t('dashboard.etudiants.toast_reactivated'));
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_reactivate_error'));
         }
     };
 
@@ -337,6 +398,25 @@ export default function EtudiantsPage() {
                                             >
                                                 <Mail className="h-4 w-4" />
                                             </button>
+                                            {isAdmin && (
+                                                row.original.accountActive ? (
+                                                    <button
+                                                        onClick={() => handleDeactivateStudent(row.original)}
+                                                        className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
+                                                        title={t('dashboard.etudiants.actions.deactivate')}
+                                                    >
+                                                        <UserX className="h-4 w-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleReactivateStudent(row.original)}
+                                                        className="inline-flex p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
+                                                        title={t('dashboard.etudiants.actions.reactivate')}
+                                                    >
+                                                        <UserCheck className="h-4 w-4" />
+                                                    </button>
+                                                )
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -401,6 +481,16 @@ export default function EtudiantsPage() {
                     onClose={() => setViewingStudent(null)}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmLabel={t('dashboard.etudiants.actions.deactivate')}
+                loading={confirmLoading}
+                onConfirm={handleConfirm}
+                onClose={closeConfirm}
+            />
         </div>
     );
 }

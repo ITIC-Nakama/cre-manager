@@ -1,9 +1,11 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     fetchDashboardOverview,
     fetchStudentList,
     fetchAllStudents,
     notifyStudent,
+    deactivateStudent,
+    reactivateStudent,
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../api-s/requests/DashboardRequest';
 
@@ -34,5 +36,25 @@ export function useNotifyStudent() {
     return useMutation({
         mutationFn: ({ studentId, message }: { studentId: string; message?: string }) =>
             notifyStudent(studentId, message),
+    });
+}
+
+export function useDeactivateStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (studentId: string) => deactivateStudent(studentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
+    });
+}
+
+export function useReactivateStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (studentId: string) => reactivateStudent(studentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
     });
 }

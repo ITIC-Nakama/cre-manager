@@ -16,6 +16,7 @@ public enum MessageKey {
     EMAIL_ALREADY_IN_USE("email-already-in-use", "Email déjà utilisé", "Email already in use"),
     EMAIL_OR_PASSWORD_INCORRECT("email-or-password-incorrect", "Email ou mot de passe incorrect", "Email or password incorrect"),
     EMAIL_NOT_VERIFIED("email-not-verified", "Email non vérifié", "Email not verified"),
+    ACCOUNT_DEACTIVATED("account-deactivated", "Ce compte a été désactivé. Contactez un administrateur.", "This account has been deactivated. Contact an administrator."),
     ROLE_NOT_FOUND("role-not-found", "Rôle introuvable", "Role not found"),
     REFRESH_TOKEN_MISSING("refresh-token-missing", "Cookie de rafraîchissement manquant", "Refresh token cookie is missing"),
     OTP_SENT("otp-sent", "OTP envoyé", "OTP sent"),

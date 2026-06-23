@@ -47,3 +47,11 @@ export function notifyStudent(studentId: string, message?: string): Promise<void
         .post(`/dashboard/students/${studentId}/notify`, message ? { message } : {})
         .then(() => undefined);
 }
+
+export function deactivateStudent(studentId: string): Promise<void> {
+    return apiClient.delete(`/auth/users/${studentId}`).then(() => undefined);
+}
+
+export function reactivateStudent(studentId: string): Promise<void> {
+    return apiClient.patch(`/auth/users/${studentId}/reactivate`).then(() => undefined);
+}

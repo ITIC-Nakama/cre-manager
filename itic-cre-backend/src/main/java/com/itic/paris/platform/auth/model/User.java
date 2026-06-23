@@ -53,6 +53,10 @@ public abstract class User {
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword = false;
 
+    /** false = compte désactivé par un admin (connexion bloquée, historique conservé). */
+    @Column(nullable = false, columnDefinition = "boolean not null default true")
+    private boolean active = true;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Instant createdAt;

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Loader2, UserCog, Pencil, Trash2, Mail, Phone, KeyRound } from 'lucide-react';
+import { Plus, Search, Loader2, UserCog, Pencil, UserX, UserCheck, Mail, Phone, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor } from '../../hooks/useAdvisors';
+import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeactivateAdvisor, useReactivateAdvisor } from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -26,7 +26,8 @@ export default function ConseillersPage() {
 
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
-  const deleteMutation = useDeleteAdvisor();
+  const deactivateMutation = useDeactivateAdvisor();
+  const reactivateMutation = useReactivateAdvisor();
 
   const [modal, setModal] = useState<{ isOpen: boolean; mode: 'create' | 'edit'; advisor?: Advisor }>({
     isOpen: false,
@@ -121,20 +122,30 @@ export default function ConseillersPage() {
     }
   };
 
-  const handleDelete = (advisor: Advisor) => {
+  const handleDeactivate = (advisor: Advisor) => {
     openConfirm(
-      t('dashboard.conseillers.confirm_delete_title'),
-      t('dashboard.conseillers.confirm_delete', { name: `${advisor.firstName} ${advisor.lastName}` }),
+      t('dashboard.conseillers.confirm_deactivate_title'),
+      t('dashboard.conseillers.confirm_deactivate', { name: `${advisor.firstName} ${advisor.lastName}` }),
       async () => {
         try {
-          await deleteMutation.mutateAsync(advisor.id);
-          toast.success(t('dashboard.conseillers.toast_deleted'));
+          await deactivateMutation.mutateAsync(advisor.id);
+          toast.success(t('dashboard.conseillers.toast_deactivated'));
         } catch (err) {
           console.error(err);
-          toast.error(t('dashboard.conseillers.toast_delete_error'));
+          toast.error(t('dashboard.conseillers.toast_deactivate_error'));
         }
       }
     );
+  };
+
+  const handleReactivate = async (advisor: Advisor) => {
+    try {
+      await reactivateMutation.mutateAsync(advisor.id);
+      toast.success(t('dashboard.conseillers.toast_reactivated'));
+    } catch (err) {
+      console.error(err);
+      toast.error(t('dashboard.conseillers.toast_reactivate_error'));
+    }
   };
 
   return (
@@ -202,13 +213,20 @@ export default function ConseillersPage() {
                 </tr>
               ) : (
                 advisors.map((advisor) => (
-                  <tr key={advisor.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                  <tr key={advisor.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${!advisor.active ? 'opacity-60' : ''}`}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-sm font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
                           {advisor.firstName[0]}{advisor.lastName[0]}
                         </div>
-                        <span className="font-semibold text-slate-900 dark:text-white">{advisor.firstName} {advisor.lastName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-900 dark:text-white">{advisor.firstName} {advisor.lastName}</span>
+                          {!advisor.active && (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
+                              {t('dashboard.conseillers.status.inactive')}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -237,13 +255,23 @@ export default function ConseillersPage() {
                       >
                         <KeyRound className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(advisor)}
-                        className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
-                        title={t('dashboard.conseillers.actions.delete')}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {advisor.active ? (
+                        <button
+                          onClick={() => handleDeactivate(advisor)}
+                          className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
+                          title={t('dashboard.conseillers.actions.deactivate')}
+                        >
+                          <UserX className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReactivate(advisor)}
+                          className="inline-flex p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
+                          title={t('dashboard.conseillers.actions.reactivate')}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -299,6 +327,7 @@ export default function ConseillersPage() {
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}
+        confirmLabel={t('dashboard.conseillers.actions.deactivate')}
         loading={confirmLoading}
         onConfirm={handleConfirm}
         onClose={closeConfirm}
