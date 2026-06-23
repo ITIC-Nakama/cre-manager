@@ -1,9 +1,10 @@
 import './App.css'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import StudentLayout from './layouts/StudentLayout'
 import SupervisorLayout from './layouts/SupervisorLayout'
-import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
+import RequireAuth from './layouts/RequireAuth'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
@@ -29,21 +30,21 @@ import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 // Redirection component based on role
 function DashboardRedirect() {
+  return (
+    <RequireAuth>
+      <RoleBasedRedirect />
+    </RequireAuth>
+  );
+}
+
+function RoleBasedRedirect() {
   const user = useUserStore((state) => state.user);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user.mustChangePassword) {
-    return <Navigate to="/change-password-required" replace />;
-  }
-
-  if (user.role === Role.STUDENT) {
+  if (user?.role === Role.STUDENT) {
     return <Navigate to="/student/dashboard" replace />;
   }
 
-  if (user.role === Role.ADVISOR || user.role === Role.ADMIN) {
+  if (user?.role === Role.ADVISOR || user?.role === Role.ADMIN) {
     return <Navigate to="/supervisor/dashboard" replace />;
   }
 
@@ -90,7 +91,7 @@ function App() {
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}
-          <Route element={<AdminLayout />}>
+          <Route element={<RequireAuth allowedRoles={[Role.ADMIN]} redirectTo="/supervisor/dashboard"><Outlet /></RequireAuth>}>
             <Route path="/admin/conseillers" element={<ConseillersPage />} />
             <Route path="/admin/promotions"  element={<ComingSoonPage />} />
             <Route path="/admin/audit"       element={<ComingSoonPage />} />

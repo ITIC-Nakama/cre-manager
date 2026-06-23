@@ -1,6 +1,7 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useUserStore } from '../store/UserStore';
 import { Role } from '../types/models/Auth';
+import RequireAuth from './RequireAuth';
 import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
@@ -13,10 +14,6 @@ import type { NavItem } from '../components/head/Sidebar';
 export default function SupervisorLayout() {
   const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.mustChangePassword) return <Navigate to="/change-password-required" replace />;
-  if (user.role !== Role.ADVISOR && user.role !== Role.ADMIN) return <Navigate to="/student/dashboard" replace />;
 
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
@@ -37,18 +34,20 @@ export default function SupervisorLayout() {
 
   const navItems: NavItem[] = [
     ...commonItems,
-    ...(user.role === Role.ADMIN ? adminItems : []),
+    ...(user?.role === Role.ADMIN ? adminItems : []),
     { label: t('dashboard.sidebar.parametres'), icon: Settings, to: '/supervisor/parametres' },
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <Sidebar navItems={navItems} />
-      <main className="flex-1 overflow-y-auto min-h-screen pt-16 lg:pt-0">
-        <div className="max-w-screen-xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <RequireAuth allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
+      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+        <Sidebar navItems={navItems} />
+        <main className="flex-1 overflow-y-auto min-h-screen pt-16 lg:pt-0">
+          <div className="max-w-screen-xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </RequireAuth>
   );
 }
