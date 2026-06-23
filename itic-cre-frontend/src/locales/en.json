@@ -458,10 +458,16 @@
       },
       "actions": {
         "edit": "Edit",
-        "delete": "Delete"
+        "delete": "Delete",
+        "reset_password": "Reset password"
       },
       "modal_create": "Create an advisor",
       "modal_edit": "Edit advisor",
+      "modal_reset_password": "Reset password",
+      "reset_password_desc": "Generates a new temporary password for {{name}}. They will need to change it on their next login.",
+      "btn_reset_password": "Reset",
+      "toast_password_reset": "Password reset successfully!",
+      "toast_password_reset_error": "Error resetting password.",
       "label_first_name": "First name",
       "label_last_name": "Last name",
       "label_email": "Email",

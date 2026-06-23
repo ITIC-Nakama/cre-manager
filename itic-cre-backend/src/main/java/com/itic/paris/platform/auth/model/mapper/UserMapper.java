@@ -29,11 +29,8 @@ public final class UserMapper {
         User user = switch (dto.getRole()) {
             case ADMIN -> new Admin();
             case ADVISOR -> {
-                if (dto.getJobTitle() == null || dto.getJobTitle().isBlank()) {
-                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_TITLE_REQUIRED);
-                }
                 Advisor advisor = new Advisor();
-                advisor.setJobTitle(dto.getJobTitle().trim());
+                advisor.setJobTitle(dto.getJobTitle() != null ? dto.getJobTitle().trim() : null);
                 yield advisor;
             }
             case STUDENT -> throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.STUDENTS_MUST_REGISTER);

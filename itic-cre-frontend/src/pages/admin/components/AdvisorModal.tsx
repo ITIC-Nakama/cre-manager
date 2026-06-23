@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2, Copy, Check, RefreshCw } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
+import { generatePassword } from '../../../utils/passwordGenerator';
 
 interface AdvisorModalProps {
   isOpen: boolean;
@@ -10,19 +11,6 @@ interface AdvisorModalProps {
   saving: boolean;
   onClose: () => void;
   onSave: (data: { email: string; firstName: string; lastName: string; password: string; phoneNumber: string; jobTitle: string }) => void;
-}
-
-const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
-
-function generatePassword(length = 12): string {
-  let result = '';
-  const cryptoObj = window.crypto;
-  const randomValues = new Uint32Array(length);
-  cryptoObj.getRandomValues(randomValues);
-  for (let i = 0; i < length; i++) {
-    result += PASSWORD_CHARS[randomValues[i] % PASSWORD_CHARS.length];
-  }
-  return result;
 }
 
 export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, onSave }: AdvisorModalProps) {

@@ -42,6 +42,7 @@ export interface UpdateAdvisorData {
   lastName?: string;
   phoneNumber?: string;
   jobTitle?: string;
+  password?: string;
 }
 
 export function updateAdvisor(id: string, data: UpdateAdvisorData): Promise<Advisor> {

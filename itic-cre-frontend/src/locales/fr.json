@@ -458,10 +458,16 @@
       },
       "actions": {
         "edit": "Modifier",
-        "delete": "Supprimer"
+        "delete": "Supprimer",
+        "reset_password": "Réinitialiser le mot de passe"
       },
       "modal_create": "Créer un conseiller",
       "modal_edit": "Modifier le conseiller",
+      "modal_reset_password": "Réinitialiser le mot de passe",
+      "reset_password_desc": "Génère un nouveau mot de passe temporaire pour {{name}}. Il devra le changer à sa prochaine connexion.",
+      "btn_reset_password": "Réinitialiser",
+      "toast_password_reset": "Mot de passe réinitialisé avec succès !",
+      "toast_password_reset_error": "Erreur lors de la réinitialisation du mot de passe.",
       "label_first_name": "Prénom",
       "label_last_name": "Nom",
       "label_email": "Email",

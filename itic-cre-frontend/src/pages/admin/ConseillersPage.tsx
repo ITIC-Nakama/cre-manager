@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Loader2, UserCog, Pencil, Trash2, Mail, Phone } from 'lucide-react';
+import { Plus, Search, Loader2, UserCog, Pencil, Trash2, Mail, Phone, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor } from '../../hooks/useAdvisors';
@@ -8,6 +8,7 @@ import type { Advisor } from '../../types/models/Advisor';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import AdvisorModal from './components/AdvisorModal';
+import ResetPasswordModal from './components/ResetPasswordModal';
 
 const PAGE_SIZE = 20;
 
@@ -32,6 +33,11 @@ export default function ConseillersPage() {
     mode: 'create',
   });
   const [saving, setSaving] = useState(false);
+
+  const [resetPasswordModal, setResetPasswordModal] = useState<{ isOpen: boolean; advisor?: Advisor }>({
+    isOpen: false,
+  });
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -97,6 +103,21 @@ export default function ConseillersPage() {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResetPassword = async (password: string) => {
+    if (!resetPasswordModal.advisor) return;
+    setResettingPassword(true);
+    try {
+      await updateMutation.mutateAsync({ id: resetPasswordModal.advisor.id, data: { password } });
+      toast.success(t('dashboard.conseillers.toast_password_reset'));
+      setResetPasswordModal({ isOpen: false });
+    } catch (err) {
+      console.error(err);
+      toast.error(t('dashboard.conseillers.toast_password_reset_error'));
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -210,6 +231,13 @@ export default function ConseillersPage() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => setResetPasswordModal({ isOpen: true, advisor })}
+                        className="inline-flex p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all cursor-pointer"
+                        title={t('dashboard.conseillers.actions.reset_password')}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(advisor)}
                         className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
                         title={t('dashboard.conseillers.actions.delete')}
@@ -257,6 +285,14 @@ export default function ConseillersPage() {
         saving={saving}
         onClose={() => setModal({ isOpen: false, mode: 'create' })}
         onSave={handleSave}
+      />
+
+      <ResetPasswordModal
+        isOpen={resetPasswordModal.isOpen}
+        advisor={resetPasswordModal.advisor}
+        saving={resettingPassword}
+        onClose={() => setResetPasswordModal({ isOpen: false })}
+        onConfirm={handleResetPassword}
       />
 
       <ConfirmDialog
