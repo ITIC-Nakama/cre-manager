@@ -60,6 +60,20 @@ public class NotificationEmailService {
         sendHtml(studentEmail, "Rappel de votre conseiller — ITIC CRE", html);
     }
 
+    @Async
+    public void sendAccountCredentials(String email, String firstName, String lang,
+                                        String temporaryPassword, boolean isNewAccount) {
+        String html = emailTemplateService.renderAccountCredentialsEmail(
+                lang, firstName, email, temporaryPassword, isNewAccount);
+        String subject;
+        if (isNewAccount) {
+            subject = "en".equals(lang) ? "Your ITIC CRE account is ready" : "Votre compte ITIC CRE est prêt";
+        } else {
+            subject = "en".equals(lang) ? "Your ITIC CRE password has been reset" : "Votre mot de passe ITIC CRE a été réinitialisé";
+        }
+        sendHtml(email, subject, html);
+    }
+
     private void sendHtml(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

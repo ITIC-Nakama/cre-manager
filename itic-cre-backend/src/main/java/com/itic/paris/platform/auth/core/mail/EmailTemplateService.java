@@ -70,6 +70,17 @@ public class EmailTemplateService {
         return templateEngine.process("email/student-reminder", context);
     }
 
+    public String renderAccountCredentialsEmail(String lang, String firstName, String email, String password, boolean isNewAccount) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("email", email);
+        context.setVariable("password", password);
+        context.setVariable("isNewAccount", isNewAccount);
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/account-credentials", context);
+    }
+
     private static String normalizeLang(String lang) {
         if (lang == null) {
             return "fr";

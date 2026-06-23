@@ -35,6 +35,7 @@ public class UserProfileService {
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
+    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
 
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
@@ -73,8 +74,10 @@ public class UserProfileService {
         if (updateDto.getLang() != null) {
             user.setLang(updateDto.getLang());
         }
+        String plainPassword = null;
         if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updateDto.getPassword()));
+            plainPassword = updateDto.getPassword();
+            user.setPassword(passwordEncoder.encode(plainPassword));
             if (!(user instanceof Student)) {
                 user.setMustChangePassword(true);
             }
@@ -86,6 +89,10 @@ public class UserProfileService {
         User saved = userRepository.save(user);
         if (emailChanged) {
             otpService.sendEmailVerificationOtp(saved, saved.getLang());
+        }
+        if (plainPassword != null) {
+            notificationEmailService.sendAccountCredentials(
+                    saved.getEmail(), saved.getFirstName(), saved.getLang(), plainPassword, false);
         }
 
         currentActor().ifPresent(actor -> auditLogService.log(AuditAction.USER_UPDATED, actor, saved.getId(),

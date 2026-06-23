@@ -44,6 +44,7 @@ public class AuthService {
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
     private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
+    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
 
     public Object login(UserLoginDto loginDto) {
         User rawUser = userLookupService.findUserByEmail(loginDto.getEmail())
@@ -110,7 +111,8 @@ public class AuthService {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ROLE_NOT_FOUND);
         }
 
-        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
+        String plainPassword = dto.getPassword();
+        dto.setPassword(passwordEncoder.encode(plainPassword));
         User user = UserMapper.toStaffEntity(dto, role);
         user.setEmailVerified(true);
         user.setMustChangePassword(true);
@@ -119,6 +121,9 @@ public class AuthService {
         User actor = currentActor().orElse(null);
         auditLogService.log(AuditAction.STAFF_USER_CREATED, actor, saved.getId(),
                 "Création compte " + dto.getRole().name() + " : " + saved.getEmail());
+
+        notificationEmailService.sendAccountCredentials(
+                saved.getEmail(), saved.getFirstName(), saved.getLang(), plainPassword, true);
 
         return saved;
     }
