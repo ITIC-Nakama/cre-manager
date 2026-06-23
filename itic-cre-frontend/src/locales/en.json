@@ -437,6 +437,50 @@
       "confirm_delete_grade": "Are you sure you want to delete the grade \"{{name}}\"? This action is irreversible.",
       "toast_grade_deleted": "Grade deleted successfully!",
       "toast_grade_delete_error": "Error deleting grade."
+    },
+    "conseillers": {
+      "title": "Advisors",
+      "subtitle_one": "{{count}} advisor total",
+      "subtitle_other": "{{count}} advisors total",
+      "create_button": "Create an advisor",
+      "search_placeholder": "Search (name, email)…",
+      "table": {
+        "name": "Name",
+        "contact": "Contact",
+        "job_title": "Job title",
+        "actions": "Actions",
+        "empty": "No advisor matches your criteria."
+      },
+      "pagination": {
+        "info": "Page {{current}} of {{total}} — {{count}} advisors",
+        "prev": "Previous",
+        "next": "Next"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "modal_create": "Create an advisor",
+      "modal_edit": "Edit advisor",
+      "label_first_name": "First name",
+      "label_last_name": "Last name",
+      "label_email": "Email",
+      "label_password": "Temporary password",
+      "placeholder_password": "Min. 8 characters",
+      "password_hint": "The advisor will need to change it on first login.",
+      "label_phone": "Phone",
+      "label_job_title": "Job title",
+      "placeholder_job_title": "E.g. Academic advisor",
+      "btn_cancel": "Cancel",
+      "btn_save": "Save",
+      "toast_created": "Advisor created successfully!",
+      "toast_updated": "Advisor updated successfully!",
+      "toast_save_error": "Error saving advisor.",
+      "toast_email_exists": "This email is already in use.",
+      "confirm_delete_title": "Delete advisor",
+      "confirm_delete": "Are you sure you want to delete the advisor \"{{name}}\"? This action is irreversible.",
+      "toast_deleted": "Advisor deleted successfully!",
+      "toast_delete_error": "Error deleting advisor."
     }
   },
   "cta": {

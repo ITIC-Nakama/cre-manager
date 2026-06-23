@@ -437,6 +437,50 @@
       "confirm_delete_grade": "Êtes-vous sûr de vouloir supprimer le grade \"{{name}}\" ? Cette action est irréversible.",
       "toast_grade_deleted": "Grade supprimé avec succès !",
       "toast_grade_delete_error": "Erreur lors de la suppression du grade."
+    },
+    "conseillers": {
+      "title": "Conseillers",
+      "subtitle_one": "{{count}} conseiller au total",
+      "subtitle_other": "{{count}} conseillers au total",
+      "create_button": "Créer un conseiller",
+      "search_placeholder": "Rechercher (nom, prénom, email)…",
+      "table": {
+        "name": "Nom",
+        "contact": "Contact",
+        "job_title": "Fonction",
+        "actions": "Actions",
+        "empty": "Aucun conseiller ne correspond à vos critères."
+      },
+      "pagination": {
+        "info": "Page {{current}} sur {{total}} — {{count}} conseillers",
+        "prev": "Précédent",
+        "next": "Suivant"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "delete": "Supprimer"
+      },
+      "modal_create": "Créer un conseiller",
+      "modal_edit": "Modifier le conseiller",
+      "label_first_name": "Prénom",
+      "label_last_name": "Nom",
+      "label_email": "Email",
+      "label_password": "Mot de passe temporaire",
+      "placeholder_password": "Min. 8 caractères",
+      "password_hint": "Le conseiller devra le changer à sa première connexion.",
+      "label_phone": "Téléphone",
+      "label_job_title": "Fonction",
+      "placeholder_job_title": "Ex : Conseiller pédagogique",
+      "btn_cancel": "Annuler",
+      "btn_save": "Enregistrer",
+      "toast_created": "Conseiller créé avec succès !",
+      "toast_updated": "Conseiller mis à jour avec succès !",
+      "toast_save_error": "Erreur lors de l'enregistrement du conseiller.",
+      "toast_email_exists": "Cet email est déjà utilisé.",
+      "confirm_delete_title": "Supprimer le conseiller",
+      "confirm_delete": "Êtes-vous sûr de vouloir supprimer le conseiller \"{{name}}\" ? Cette action est irréversible.",
+      "toast_deleted": "Conseiller supprimé avec succès !",
+      "toast_delete_error": "Erreur lors de la suppression du conseiller."
     }
   },
   "cta": {
