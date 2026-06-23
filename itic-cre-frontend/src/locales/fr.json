@@ -504,6 +504,25 @@
       "toast_deactivate_error": "Erreur lors de la désactivation du conseiller.",
       "toast_reactivated": "Conseiller réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du conseiller."
+    },
+    "audit_page": {
+      "title": "Journal d'audit",
+      "subtitle_one": "{{count}} entrée enregistrée",
+      "subtitle_other": "{{count}} entrées enregistrées",
+      "search_placeholder": "Rechercher (acteur, description)…",
+      "filter_all_actions": "Toutes les actions",
+      "table": {
+        "action": "Action",
+        "description": "Description",
+        "actor": "Auteur",
+        "date": "Date",
+        "empty": "Aucun log ne correspond à vos critères."
+      },
+      "pagination": {
+        "info": "Page {{current}} sur {{total}} — {{count}} entrées",
+        "prev": "Précédent",
+        "next": "Suivant"
+      }
     }
   },
   "cta": {

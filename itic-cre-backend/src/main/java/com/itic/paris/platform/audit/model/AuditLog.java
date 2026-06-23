@@ -26,6 +26,12 @@ public class AuditLog {
     @Column(name = "actor_email")
     private String actorEmail;
 
+    @Column(name = "actor_first_name")
+    private String actorFirstName;
+
+    @Column(name = "actor_last_name")
+    private String actorLastName;
+
     @Column(name = "actor_role", length = 30)
     private String actorRole;
 

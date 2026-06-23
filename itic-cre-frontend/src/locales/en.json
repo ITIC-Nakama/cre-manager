@@ -504,6 +504,25 @@
       "toast_deactivate_error": "Error deactivating advisor.",
       "toast_reactivated": "Advisor reactivated successfully!",
       "toast_reactivate_error": "Error reactivating advisor."
+    },
+    "audit_page": {
+      "title": "Audit Log",
+      "subtitle_one": "{{count}} entry recorded",
+      "subtitle_other": "{{count}} entries recorded",
+      "search_placeholder": "Search (actor, description)…",
+      "filter_all_actions": "All actions",
+      "table": {
+        "action": "Action",
+        "description": "Description",
+        "actor": "Actor",
+        "date": "Date",
+        "empty": "No log matches your criteria."
+      },
+      "pagination": {
+        "info": "Page {{current}} of {{total}} — {{count}} entries",
+        "prev": "Previous",
+        "next": "Next"
+      }
     }
   },
   "cta": {

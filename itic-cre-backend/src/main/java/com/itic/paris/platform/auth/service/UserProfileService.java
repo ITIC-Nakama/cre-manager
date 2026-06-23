@@ -104,7 +104,7 @@ public class UserProfileService {
 
         User actor = currentActor().orElse(null);
         auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(),
-                "Compte désactivé : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
+                "Compte désactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")");
 
         return saved;
     }
@@ -119,7 +119,7 @@ public class UserProfileService {
 
         User actor = currentActor().orElse(null);
         auditLogService.log(AuditAction.USER_REACTIVATED, actor, user.getId(),
-                "Compte réactivé : " + user.getEmail() + " (" + UserMapper.roleOf(user) + ")");
+                "Compte réactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")");
 
         return saved;
     }

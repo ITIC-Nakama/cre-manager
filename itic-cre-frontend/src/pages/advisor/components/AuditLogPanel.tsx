@@ -1,28 +1,7 @@
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuditLogs } from '../../../hooks/useAudit';
-
-const ACTION_COLORS: Record<string, string> = {
-    LOGIN: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30',
-    LOGOUT: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800',
-    STUDENT_REGISTERED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
-    STAFF_USER_CREATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
-    USER_UPDATED: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30',
-    USER_DELETED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
-    PASSWORD_CHANGED: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30',
-    PASSWORD_RESET: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30',
-    EMAIL_VERIFIED: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/30',
-    CV_UPLOADED: 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30',
-    CV_VALIDATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
-    CV_REJECTED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
-    CV_DELETED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
-    CV_STATUS_UPDATED: 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30',
-    CV_COMMENTED: 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30',
-};
-
-function actionColor(action: string) {
-    return ACTION_COLORS[action] ?? 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800';
-}
+import { auditActionColor } from '../../../utils/auditActionColors';
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleString('fr-FR', {
@@ -33,7 +12,7 @@ function formatDate(iso: string) {
 
 export default function AuditLogPanel() {
     const { t } = useTranslation();
-    const { data, isLoading } = useAuditLogs(0, 5);
+    const { data, isLoading } = useAuditLogs({ page: 0, size: 5 });
     const logs = data?.content ?? [];
 
     return (
@@ -65,14 +44,16 @@ export default function AuditLogPanel() {
                             key={log.id}
                             className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800"
                         >
-                            <span className={`inline-flex px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${actionColor(log.action)}`}>
+                            <span className={`inline-flex px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${auditActionColor(log.action)}`}>
                                 {log.action}
                             </span>
                             <span className="flex-1 text-slate-600 dark:text-slate-400 truncate px-2">
                                 {log.description ?? (`${log.targetType ?? ''} ${log.targetId ?? ''}`.trim() || '—')}
                             </span>
                             <span className="text-slate-400 flex-shrink-0 max-w-[160px] truncate" title={log.actorEmail ?? undefined}>
-                                {log.actorEmail ?? '—'}
+                                {log.actorFirstName || log.actorLastName
+                                    ? `${log.actorFirstName ?? ''} ${log.actorLastName ?? ''}`.trim()
+                                    : (log.actorEmail ?? '—')}
                             </span>
                             <span className="text-slate-400 font-mono flex-shrink-0">{formatDate(log.createdAt)}</span>
                         </div>

@@ -40,6 +40,8 @@ public class AuditLogService {
         if (actor != null) {
             entry.setActorId(actor.getId());
             entry.setActorEmail(actor.getEmail());
+            entry.setActorFirstName(actor.getFirstName());
+            entry.setActorLastName(actor.getLastName());
             Role role = actor.getRole();
             if (role != null) {
                 entry.setActorRole(role.getName().name());
@@ -60,6 +62,10 @@ public class AuditLogService {
 
     public Page<AuditLog> findAll(Pageable pageable) {
         return auditLogRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    public Page<AuditLog> findAll(AuditAction action, String search, Pageable pageable) {
+        return auditLogRepository.findAllByFilter(action, search, pageable);
     }
 
     private static java.util.Optional<HttpServletRequest> resolveRequest() {
