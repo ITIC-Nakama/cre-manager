@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Copy, Check, RefreshCw } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
 
 interface AdvisorModalProps {
@@ -12,6 +12,19 @@ interface AdvisorModalProps {
   onSave: (data: { email: string; firstName: string; lastName: string; password: string; phoneNumber: string; jobTitle: string }) => void;
 }
 
+const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+
+function generatePassword(length = 12): string {
+  let result = '';
+  const cryptoObj = window.crypto;
+  const randomValues = new Uint32Array(length);
+  cryptoObj.getRandomValues(randomValues);
+  for (let i = 0; i < length; i++) {
+    result += PASSWORD_CHARS[randomValues[i] % PASSWORD_CHARS.length];
+  }
+  return result;
+}
+
 export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, onSave }: AdvisorModalProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -20,6 +33,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [jobTitle, setJobTitle] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,12 +48,24 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
         setEmail('');
         setFirstName('');
         setLastName('');
-        setPassword('');
+        setPassword(generatePassword());
         setPhoneNumber('');
         setJobTitle('');
       }
+      setCopied(false);
     }
   }, [isOpen, mode, advisor]);
+
+  const handleRegeneratePassword = () => {
+    setPassword(generatePassword());
+    setCopied(false);
+  };
+
+  const handleCopyPassword = async () => {
+    await navigator.clipboard.writeText(password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   if (!isOpen) return null;
 
@@ -109,17 +135,32 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
           {mode === 'create' && (
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_password')}</label>
-              <input
-                type="text"
-                required
-                minLength={8}
-                maxLength={128}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('dashboard.conseillers.placeholder_password')}
-                disabled={saving}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={password}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm font-mono tracking-wide dark:text-white disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyPassword}
+                  disabled={saving}
+                  title={t('dashboard.conseillers.btn_copy')}
+                  className="flex-shrink-0 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRegeneratePassword}
+                  disabled={saving}
+                  title={t('dashboard.conseillers.btn_regenerate')}
+                  className="flex-shrink-0 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+              </div>
               <p className="text-xs text-slate-400 mt-1">{t('dashboard.conseillers.password_hint')}</p>
             </div>
           )}
