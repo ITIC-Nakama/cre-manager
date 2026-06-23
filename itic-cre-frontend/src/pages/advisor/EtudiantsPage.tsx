@@ -148,7 +148,7 @@ export default function EtudiantsPage() {
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
             cell: ({ getValue, row }) => (
-                <div className="flex items-center gap-1.5">
+                row.original.accountActive ? (
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         getValue()
                             ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
@@ -156,12 +156,11 @@ export default function EtudiantsPage() {
                     }`}>
                         {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
                     </span>
-                    {!row.original.accountActive && (
-                        <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
-                            {t('dashboard.etudiants.table.account_disabled')}
-                        </span>
-                    )}
-                </div>
+                ) : (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
+                        {t('dashboard.etudiants.table.account_disabled')}
+                    </span>
+                )
             ),
             enableSorting: false,
         }),

@@ -80,6 +80,7 @@ public class JwAuthFilter extends OncePerRequestFilter {
     private static void writeErrorResponse(HttpServletResponse response, int status, String messageKey, String message)
             throws java.io.IOException {
         response.setStatus(status);
+        response.setCharacterEncoding("UTF-8");
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write("{\"messageKey\":\"" + jsonEscape(messageKey) + "\",\"message\":\""
                 + jsonEscape(message) + "\",\"statusCode\":" + status + ",\"data\":null}");

@@ -47,6 +47,7 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
                 MessageKey key = MessageKey.PASSWORD_CHANGE_REQUIRED;
                 String message = key.translate(lang);
                 response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.setCharacterEncoding("UTF-8");
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.getWriter().write(
                         "{\"messageKey\":\"" + key.getKey() + "\",\"message\":\"" + jsonEscape(message)
