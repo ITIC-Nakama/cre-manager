@@ -488,6 +488,7 @@
       "placeholder_password": "Min. 8 caractères",
       "password_hint": "Mot de passe généré automatiquement — copiez-le pour le transmettre au conseiller. Il devra le changer à sa première connexion.",
       "btn_copy": "Copier",
+      "toast_copy_error": "Impossible de copier automatiquement — sélectionnez le texte et copiez-le manuellement (Ctrl+C).",
       "btn_regenerate": "Régénérer",
       "label_phone": "Téléphone",
       "label_job_title": "Fonction",
@@ -511,6 +512,9 @@
       "subtitle_other": "{{count}} entrées enregistrées",
       "search_placeholder": "Rechercher (acteur, description)…",
       "filter_all_actions": "Toutes les actions",
+      "from_date": "Date de début",
+      "to_date": "Date de fin",
+      "date_separator": "à",
       "table": {
         "action": "Action",
         "description": "Description",

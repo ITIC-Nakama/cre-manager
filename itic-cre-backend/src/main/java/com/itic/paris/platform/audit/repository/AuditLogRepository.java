@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
@@ -19,6 +20,8 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
             "OR LOWER(a.actorEmail) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(a.actorFirstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(a.actorLastName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(a.description) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<AuditLog> findAllByFilter(AuditAction action, String search, Pageable pageable);
+            "OR LOWER(a.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+            "(CAST(:from AS timestamp) IS NULL OR a.createdAt >= :from) AND " +
+            "(CAST(:to AS timestamp) IS NULL OR a.createdAt <= :to)")
+    Page<AuditLog> findAllByFilter(AuditAction action, String search, Instant from, Instant to, Pageable pageable);
 }

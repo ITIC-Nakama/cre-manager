@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+
 @RestController
 @RequestMapping("/auth/admin/audit-logs")
 @RequiredArgsConstructor
@@ -26,11 +31,15 @@ public class AuditLogController {
     private final AuditLogService auditLogService;
 
     @GetMapping
-    @Operation(summary = "Lister les logs d'audit — filtre par action et recherche optionnels")
+    @Operation(summary = "Lister les logs d'audit — filtre par action, recherche et plage de dates optionnels")
     public ResponseEntity<Page<AuditLog>> listAuditLogs(
             @RequestParam(required = false) AuditAction action,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to,
             @PageableDefault(size = 50, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(auditLogService.findAll(action, search, pageable));
+        Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
+        Instant toInstant = to != null ? to.atTime(LocalTime.MAX).atZone(ZoneOffset.UTC).toInstant() : null;
+        return ResponseEntity.ok(auditLogService.findAll(action, search, fromInstant, toInstant, pageable));
     }
 }

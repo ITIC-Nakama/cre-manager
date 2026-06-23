@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { X, Loader2, Copy, Check, RefreshCw, KeyRound } from 'lucide-react';
 import { generatePassword } from '../../../utils/passwordGenerator';
+import { copyToClipboard } from '../../../utils/clipboard';
 import type { Advisor } from '../../../types/models/Advisor';
 
 interface ResetPasswordModalProps {
@@ -32,9 +34,13 @@ export default function ResetPasswordModal({ isOpen, advisor, saving, onClose, o
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(password);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const success = await copyToClipboard(password);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } else {
+      toast.error(t('dashboard.conseillers.toast_copy_error'));
+    }
   };
 
   return (

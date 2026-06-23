@@ -21,6 +21,8 @@ export default function AuditLogsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data, isLoading, isFetching } = useAuditLogs({
@@ -28,6 +30,8 @@ export default function AuditLogsPage() {
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
     action: actionFilter || undefined,
+    from: fromDate || undefined,
+    to: toDate || undefined,
   });
   const logs = data?.content ?? [];
   const totalElements = data?.totalElements ?? 0;
@@ -47,6 +51,16 @@ export default function AuditLogsPage() {
 
   const handleActionFilterChange = (value: string) => {
     setActionFilter(value);
+    setPage(0);
+  };
+
+  const handleFromDateChange = (value: string) => {
+    setFromDate(value);
+    setPage(0);
+  };
+
+  const handleToDateChange = (value: string) => {
+    setToDate(value);
     setPage(0);
   };
 
@@ -84,6 +98,27 @@ export default function AuditLogsPage() {
           className="min-w-56"
           searchable
         />
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <label htmlFor="audit-from" className="sr-only">{t('dashboard.audit_page.from_date')}</label>
+          <input
+            id="audit-from"
+            type="date"
+            value={fromDate}
+            max={toDate || undefined}
+            onChange={(e) => handleFromDateChange(e.target.value)}
+            className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <span>{t('dashboard.audit_page.date_separator')}</span>
+          <label htmlFor="audit-to" className="sr-only">{t('dashboard.audit_page.to_date')}</label>
+          <input
+            id="audit-to"
+            type="date"
+            value={toDate}
+            min={fromDate || undefined}
+            onChange={(e) => handleToDateChange(e.target.value)}
+            className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
         {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
       </div>
 

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -64,8 +65,8 @@ public class AuditLogService {
         return auditLogRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
-    public Page<AuditLog> findAll(AuditAction action, String search, Pageable pageable) {
-        return auditLogRepository.findAllByFilter(action, search, pageable);
+    public Page<AuditLog> findAll(AuditAction action, String search, Instant from, Instant to, Pageable pageable) {
+        return auditLogRepository.findAllByFilter(action, search, from, to, pageable);
     }
 
     private static java.util.Optional<HttpServletRequest> resolveRequest() {
