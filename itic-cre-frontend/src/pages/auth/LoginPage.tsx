@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { handleApiError } from '../../utils/errorHelper';
 import { useUserStore } from '../../store/UserStore';
 import { toUserProfileDTO } from '../../types/models/User';
+import { setTempPassword } from '../../utils/tempPasswordRelay';
 
 export default function LoginPage() {
     const { t } = useTranslation();
@@ -27,6 +28,7 @@ export default function LoginPage() {
         mutate({ email, password } as LoginDTO, {
             onSuccess: (data: any) => {
                 const user = toUserProfileDTO(data.user ?? data);
+                setTempPassword(password);
                 setUser(user);
                 navigate('/dashboard');
             },

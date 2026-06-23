@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useChangePassword } from '../../hooks/useAuth';
 import { useUserStore } from '../../store/UserStore';
 import { toUserProfileDTO } from '../../types/models/User';
+import { getTempPassword } from '../../utils/tempPasswordRelay';
 
 export default function ChangePasswordRequiredPage() {
   const navigate = useNavigate();
@@ -14,7 +15,12 @@ export default function ChangePasswordRequiredPage() {
 
   const { mutate: changePassword, isPending } = useChangePassword();
 
-  const [currentPassword, setCurrentPassword] = useState('');
+  // Recupere le mot de passe deja saisi sur l'ecran de connexion pour ne pas le redemander.
+  // Absent si l'utilisateur arrive ici autrement (rafraichissement, navigation directe) —
+  // dans ce cas le champ reste visible en repli.
+  const tempPasswordFromLogin = getTempPassword();
+
+  const [currentPassword, setCurrentPassword] = useState(tempPasswordFromLogin ?? '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
@@ -76,27 +82,29 @@ export default function ChangePasswordRequiredPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Mot de passe temporaire actuel</label>
-            <div className="relative">
-              <input
-                type={showCurrent ? 'text' : 'password'}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                disabled={isPending}
-                placeholder="••••••••"
-                className="w-full pl-3 pr-10 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+          {!tempPasswordFromLogin && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Mot de passe temporaire actuel</label>
+              <div className="relative">
+                <input
+                  type={showCurrent ? 'text' : 'password'}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  disabled={isPending}
+                  placeholder="••••••••"
+                  className="w-full pl-3 pr-10 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Nouveau mot de passe</label>
