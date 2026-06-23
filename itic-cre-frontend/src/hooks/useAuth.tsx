@@ -1,13 +1,14 @@
 import { useMutation } from '@tanstack/react-query';
-import { 
-    AuthRequest, 
-    RegisterRequest, 
-    SendOtpRequest, 
-    ValidateOtpRequest, 
-    RefreshTokenRequest, 
+import {
+    AuthRequest,
+    RegisterRequest,
+    SendOtpRequest,
+    ValidateOtpRequest,
+    RefreshTokenRequest,
     ResetPasswordRequest,
     ResetPasswordConfirmRequest,
-    UpdatePasswordRequest
+    UpdatePasswordRequest,
+    ChangePasswordRequest
 } from '../api-s/requests/AuthRequest';
 
 export const useLogin = () => {
@@ -40,4 +41,8 @@ export const useResetPasswordConfirm = () => {
 
 export const useUpdatePassword = () => {
     return useMutation({ mutationFn: UpdatePasswordRequest });
+};
+
+export const useChangePassword = () => {
+    return useMutation({ mutationFn: ChangePasswordRequest });
 };

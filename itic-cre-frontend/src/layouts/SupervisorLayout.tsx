@@ -15,6 +15,7 @@ export default function SupervisorLayout() {
   const user = useUserStore((state) => state.user);
 
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/change-password-required" replace />;
   if (user.role !== Role.ADVISOR && user.role !== Role.ADMIN) return <Navigate to="/student/dashboard" replace />;
 
   const commonItems: NavItem[] = [

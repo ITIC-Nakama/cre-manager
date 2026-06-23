@@ -43,7 +43,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     onSave({ email, firstName, lastName, password, phoneNumber, jobTitle });
   };

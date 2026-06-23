@@ -92,3 +92,16 @@ export function UpdatePasswordRequest(data: ChangePasswordDTO) {
             throw error;
         });
 }
+
+// Changement de mot de passe obligatoire (mot de passe temporaire — mustChangePassword)
+export function ChangePasswordRequest(data: ChangePasswordDTO) {
+    return apiClient.post('/auth/change-password', data)
+        .then(response => {
+            const payload = response.data.data ?? response.data;
+            return payload;
+        })
+        .catch(error => {
+            console.error('Échec du changement de mot de passe :', error);
+            throw error;
+        });
+}

@@ -6,6 +6,7 @@ export interface UserProfileDTO {
     firstName: string;
     lastName: string;
     role: Role;
+    mustChangePassword: boolean;
 }
 
 // Converts the raw API user into the frontend-friendly DTO
@@ -28,5 +29,6 @@ export function toUserProfileDTO(apiUser: any): UserProfileDTO {
         firstName: apiUser.firstName,
         lastName: apiUser.lastName,
         role,
+        mustChangePassword: apiUser.mustChangePassword ?? false,
     };
 }

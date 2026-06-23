@@ -24,6 +24,7 @@ import CVValidationPage from './pages/advisor/CVValidationPage'
 import ContenuPage from './pages/advisor/ContenuPage'
 import GamificationPage from './pages/advisor/GamificationPage'
 import ConseillersPage from './pages/admin/ConseillersPage'
+import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 
 // Redirection component based on role
@@ -32,6 +33,10 @@ function DashboardRedirect() {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user.mustChangePassword) {
+    return <Navigate to="/change-password-required" replace />;
   }
 
   if (user.role === Role.STUDENT) {
@@ -61,6 +66,7 @@ function App() {
 
         {/* Root dashboard redirection */}
         <Route path="/dashboard" element={<DashboardRedirect />} />
+        <Route path="/change-password-required" element={<ChangePasswordRequiredPage />} />
 
         {/* Student Routes */}
         <Route element={<StudentLayout />}>

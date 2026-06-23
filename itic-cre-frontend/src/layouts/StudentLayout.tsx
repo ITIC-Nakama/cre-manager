@@ -10,6 +10,7 @@ export default function StudentLayout() {
   const user = useUserStore((state) => state.user);
 
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/change-password-required" replace />;
   if (user.role !== Role.STUDENT) return <Navigate to="/supervisor/dashboard" replace />;
 
   const navItems = [
