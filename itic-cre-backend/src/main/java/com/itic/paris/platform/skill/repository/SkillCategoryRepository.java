@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface SkillCategoryRepository extends JpaRepository<SkillCategory, UUID> {
     List<SkillCategory> findByActifTrueOrderByOrdreAsc();
     boolean existsByNom(String nom);
+    boolean existsByCreatedById(UUID createdById);
 }

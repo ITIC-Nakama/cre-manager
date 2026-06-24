@@ -3,7 +3,7 @@ import {
   fetchAdvisors,
   createAdvisor,
   updateAdvisor,
-  deactivateAdvisor,
+  deleteAdvisor,
   reactivateAdvisor,
 } from '../api-s/requests/AdvisorRequest';
 import type { AdvisorListParams, CreateAdvisorData, UpdateAdvisorData } from '../api-s/requests/AdvisorRequest';
@@ -36,10 +36,10 @@ export function useUpdateAdvisor() {
   });
 }
 
-export function useDeactivateAdvisor() {
+export function useDeleteAdvisor() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deactivateAdvisor(id),
+    mutationFn: (id: string) => deleteAdvisor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
     },

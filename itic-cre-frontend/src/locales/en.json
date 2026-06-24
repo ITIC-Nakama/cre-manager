@@ -467,7 +467,7 @@
       },
       "actions": {
         "edit": "Edit",
-        "deactivate": "Deactivate",
+        "delete": "Delete",
         "reactivate": "Reactivate",
         "reset_password": "Reset password"
       },
@@ -499,10 +499,11 @@
       "toast_updated": "Advisor updated successfully!",
       "toast_save_error": "Error saving advisor.",
       "toast_email_exists": "This email is already in use.",
-      "confirm_deactivate_title": "Deactivate advisor",
-      "confirm_deactivate": "Are you sure you want to deactivate the advisor \"{{name}}\"? They will no longer be able to log in, but their history will be kept. You can reactivate them at any time.",
-      "toast_deactivated": "Advisor deactivated successfully!",
-      "toast_deactivate_error": "Error deactivating advisor.",
+      "confirm_delete_title": "Delete advisor",
+      "confirm_delete": "Are you sure you want to delete the advisor \"{{name}}\"? If they have no associated data (CV comments, created content), they will be permanently deleted. Otherwise, their account will simply be deactivated (login blocked, history kept, reactivatable at any time).",
+      "toast_deleted": "Advisor deleted successfully!",
+      "toast_delete_error": "Error deleting advisor.",
+      "toast_deactivated": "This advisor has associated data: their account was deactivated instead of deleted.",
       "toast_reactivated": "Advisor reactivated successfully!",
       "toast_reactivate_error": "Error reactivating advisor."
     },

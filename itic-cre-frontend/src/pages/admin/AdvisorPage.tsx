@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Loader2, UserCog, Pencil, UserX, UserCheck, Mail, Phone, KeyRound } from 'lucide-react';
+import { Plus, Search, Loader2, UserCog, Pencil, Trash2, UserCheck, Mail, Phone, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeactivateAdvisor, useReactivateAdvisor } from '../../hooks/useAdvisors';
+import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor, useReactivateAdvisor } from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -12,7 +12,7 @@ import ResetPasswordModal from './components/ResetPasswordModal';
 
 const PAGE_SIZE = 20;
 
-export default function ConseillersPage() {
+export default function AdvisorPage() {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
@@ -26,7 +26,7 @@ export default function ConseillersPage() {
 
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
-  const deactivateMutation = useDeactivateAdvisor();
+  const deleteMutation = useDeleteAdvisor();
   const reactivateMutation = useReactivateAdvisor();
 
   const [modal, setModal] = useState<{ isOpen: boolean; mode: 'create' | 'edit'; advisor?: Advisor }>({
@@ -122,17 +122,19 @@ export default function ConseillersPage() {
     }
   };
 
-  const handleDeactivate = (advisor: Advisor) => {
+  const handleDelete = (advisor: Advisor) => {
     openConfirm(
-      t('dashboard.conseillers.confirm_deactivate_title'),
-      t('dashboard.conseillers.confirm_deactivate', { name: `${advisor.firstName} ${advisor.lastName}` }),
+      t('dashboard.conseillers.confirm_delete_title'),
+      t('dashboard.conseillers.confirm_delete', { name: `${advisor.firstName} ${advisor.lastName}` }),
       async () => {
         try {
-          await deactivateMutation.mutateAsync(advisor.id);
-          toast.success(t('dashboard.conseillers.toast_deactivated'));
+          const result = await deleteMutation.mutateAsync(advisor.id);
+          toast.success(result.deleted
+            ? t('dashboard.conseillers.toast_deleted')
+            : t('dashboard.conseillers.toast_deactivated'));
         } catch (err) {
           console.error(err);
-          toast.error(t('dashboard.conseillers.toast_deactivate_error'));
+          toast.error(t('dashboard.conseillers.toast_delete_error'));
         }
       }
     );
@@ -257,11 +259,11 @@ export default function ConseillersPage() {
                       </button>
                       {advisor.active ? (
                         <button
-                          onClick={() => handleDeactivate(advisor)}
+                          onClick={() => handleDelete(advisor)}
                           className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
-                          title={t('dashboard.conseillers.actions.deactivate')}
+                          title={t('dashboard.conseillers.actions.delete')}
                         >
-                          <UserX className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       ) : (
                         <button
@@ -327,7 +329,7 @@ export default function ConseillersPage() {
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        confirmLabel={t('dashboard.conseillers.actions.deactivate')}
+        confirmLabel={t('dashboard.conseillers.actions.delete')}
         loading={confirmLoading}
         onConfirm={handleConfirm}
         onClose={closeConfirm}

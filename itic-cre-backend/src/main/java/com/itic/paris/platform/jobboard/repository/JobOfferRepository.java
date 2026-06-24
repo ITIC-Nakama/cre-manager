@@ -32,4 +32,6 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID> {
            "AND (:q = '' OR LOWER(j.company) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(j.title) LIKE LOWER(CONCAT('%', :q, '%'))) " +
            "AND (:contractTypeId IS NULL OR j.contractType.id = :contractTypeId)")
     Page<JobOffer> searchActive(@Param("q") String q, @Param("contractTypeId") UUID contractTypeId, Pageable pageable);
+
+    boolean existsByCreatedById(UUID createdById);
 }

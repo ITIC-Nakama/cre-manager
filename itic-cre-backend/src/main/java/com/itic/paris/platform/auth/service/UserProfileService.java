@@ -11,6 +11,10 @@ import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
+import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.skill.repository.ArticleRepository;
+import com.itic.paris.platform.skill.repository.SkillCategoryRepository;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -36,6 +40,12 @@ public class UserProfileService {
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
     private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
+    private final CVCommentaireRepository cvCommentaireRepository;
+    private final JobOfferRepository jobOfferRepository;
+    private final ArticleRepository articleRepository;
+    private final SkillCategoryRepository skillCategoryRepository;
+
+    public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
@@ -101,19 +111,34 @@ public class UserProfileService {
         return saved;
     }
 
+    /**
+     * Supprime definitivement le compte s'il n'a aucune donnee associee (commentaires CV,
+     * offres/articles/categories crees), sinon le desactive (connexion bloquee, historique conserve) —
+     * une suppression definitive echouerait en base via les contraintes de cle etrangere.
+     */
     @Transactional
-    public User deactivateUser(UUID id) {
+    public DeleteOrDeactivateResult deleteOrDeactivateUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
-        user.setActive(false);
-        User saved = userRepository.save(user);
+        boolean hasLinkedContent = cvCommentaireRepository.existsByAdvisorId(id)
+                || jobOfferRepository.existsByCreatedById(id)
+                || articleRepository.existsByCreatedById(id)
+                || skillCategoryRepository.existsByCreatedById(id);
 
         User actor = currentActor().orElse(null);
-        auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(),
-                "Compte désactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")");
+        String label = user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")";
 
-        return saved;
+        if (hasLinkedContent) {
+            user.setActive(false);
+            User saved = userRepository.save(user);
+            auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(), "Compte désactivé : " + label);
+            return new DeleteOrDeactivateResult(false, saved);
+        }
+
+        auditLogService.log(AuditAction.USER_DELETED, actor, user.getId(), "Suppression compte : " + label);
+        userRepository.delete(user);
+        return new DeleteOrDeactivateResult(true, null);
     }
 
     @Transactional

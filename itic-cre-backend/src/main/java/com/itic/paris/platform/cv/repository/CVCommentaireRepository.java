@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface CVCommentaireRepository extends JpaRepository<CVCommentaire, UUID> {
 
     List<CVCommentaire> findAllByCvIdOrderByCreatedAtDesc(UUID cvId);
+
+    boolean existsByAdvisorId(UUID advisorId);
 }

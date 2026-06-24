@@ -28,6 +28,7 @@ import java.io.IOException;
 import com.itic.paris.platform.auth.service.UserProfileService;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -121,9 +122,13 @@ public class AuthController {
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Désactiver un compte (connexion bloquée, historique conservé)")
-    public ResponseEntity<?> deactivateUser(@PathVariable UUID id) {
-        return ResponseEntity.ok(userProfileService.deactivateUser(id));
+    @Operation(summary = "Supprimer un compte — desactive a la place s'il a des donnees associees")
+    public ResponseEntity<?> deleteOrDeactivateUser(@PathVariable UUID id) {
+        var result = userProfileService.deleteOrDeactivateUser(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("deleted", result.deleted());
+        response.put("user", result.user());
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/users/{id}/reactivate")

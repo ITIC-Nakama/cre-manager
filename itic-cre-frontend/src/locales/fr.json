@@ -467,7 +467,7 @@
       },
       "actions": {
         "edit": "Modifier",
-        "deactivate": "Désactiver",
+        "delete": "Supprimer",
         "reactivate": "Réactiver",
         "reset_password": "Réinitialiser le mot de passe"
       },
@@ -499,10 +499,11 @@
       "toast_updated": "Conseiller mis à jour avec succès !",
       "toast_save_error": "Erreur lors de l'enregistrement du conseiller.",
       "toast_email_exists": "Cet email est déjà utilisé.",
-      "confirm_deactivate_title": "Désactiver le conseiller",
-      "confirm_deactivate": "Êtes-vous sûr de vouloir désactiver le conseiller \"{{name}}\" ? Il ne pourra plus se connecter, mais son historique sera conservé. Vous pourrez le réactiver à tout moment.",
-      "toast_deactivated": "Conseiller désactivé avec succès !",
-      "toast_deactivate_error": "Erreur lors de la désactivation du conseiller.",
+      "confirm_delete_title": "Supprimer le conseiller",
+      "confirm_delete": "Êtes-vous sûr de vouloir supprimer le conseiller \"{{name}}\" ? S'il n'a aucune donnée associée (commentaires CV, contenus créés), il sera supprimé définitivement. Sinon, son compte sera simplement désactivé (connexion bloquée, historique conservé, réactivable à tout moment).",
+      "toast_deleted": "Conseiller supprimé avec succès !",
+      "toast_delete_error": "Erreur lors de la suppression du conseiller.",
+      "toast_deactivated": "Le conseiller a des données associées : son compte a été désactivé plutôt que supprimé.",
       "toast_reactivated": "Conseiller réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du conseiller."
     },
