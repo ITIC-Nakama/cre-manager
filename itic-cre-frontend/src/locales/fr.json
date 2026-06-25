@@ -545,7 +545,8 @@
       },
       "actions": {
         "edit": "Modifier",
-        "delete": "Supprimer"
+        "delete": "Supprimer",
+        "manage_students": "Gérer les étudiants"
       },
       "modal_create": "Créer une promotion",
       "modal_edit": "Modifier la promotion",
@@ -570,7 +571,14 @@
       "confirm_remove_student_title": "Retirer de la promotion",
       "confirm_remove_student": "Retirer \"{{name}}\" de cette promotion ? L'étudiant ne sera pas supprimé, seulement détaché de la promotion.",
       "toast_student_removed": "Étudiant retiré de la promotion avec succès !",
-      "toast_student_remove_error": "Erreur lors du retrait de l'étudiant."
+      "toast_student_remove_error": "Erreur lors du retrait de l'étudiant.",
+      "label_add_student": "Ajouter ou déplacer un étudiant",
+      "placeholder_add_student": "Rechercher un étudiant par nom ou email…",
+      "no_search_results": "Aucun étudiant trouvé.",
+      "currently_in": "actuellement dans {{name}}",
+      "btn_add_student": "Ajouter",
+      "toast_student_assigned": "Étudiant affecté à la promotion avec succès !",
+      "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant."
     }
   },
   "cta": {

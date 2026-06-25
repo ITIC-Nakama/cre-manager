@@ -170,15 +170,20 @@ export default function PromotionsPage() {
                         {promotion.year || <span className="text-slate-300 dark:text-slate-600">—</span>}
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => setStudentsModal({ isOpen: true, promotion })}
-                          className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                        >
+                        <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                           <Users className="h-3.5 w-3.5" />
                           {t('dashboard.promotions.table.student_count', { count })}
-                        </button>
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-1">
+                        <button
+                          onClick={() => setStudentsModal({ isOpen: true, promotion })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-xs font-semibold"
+                          title={t('dashboard.promotions.actions.manage_students')}
+                        >
+                          <Users className="h-3.5 w-3.5" />
+                          {t('dashboard.promotions.actions.manage_students')}
+                        </button>
                         <button
                           onClick={() => setModal({ isOpen: true, mode: 'edit', promotion })}
                           className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"

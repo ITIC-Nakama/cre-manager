@@ -36,6 +36,7 @@ public enum AuditAction {
     PROMOTION_UPDATED,
     PROMOTION_DELETED,
     STUDENT_REMOVED_FROM_PROMOTION,
+    STUDENT_ASSIGNED_TO_PROMOTION,
 
     // --- Autre / Action générique ---
     OTHER

@@ -35,3 +35,7 @@ export function deletePromotion(id: string): Promise<void> {
 export function removeStudentFromPromotion(promotionId: string, studentId: string): Promise<void> {
     return apiClient.delete(`/promotions/${promotionId}/students/${studentId}`).then(() => undefined);
 }
+
+export function assignStudentToPromotion(promotionId: string, studentId: string): Promise<void> {
+    return apiClient.put(`/promotions/${promotionId}/students/${studentId}`).then(() => undefined);
+}

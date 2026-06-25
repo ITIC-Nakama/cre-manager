@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Claude Code (local tool settings — permissions, etc.) ###
+.claude/
+
 ### STS ###
 .apt_generated
 .classpath

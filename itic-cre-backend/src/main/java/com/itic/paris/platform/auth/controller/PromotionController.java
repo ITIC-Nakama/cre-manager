@@ -74,4 +74,12 @@ public class PromotionController {
         promotionService.removeStudentFromPromotion(id, studentId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/students/{studentId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
+    @Operation(summary = "Affecter un étudiant à la promotion (ajout ou changement de promotion)")
+    public ResponseEntity<Void> assignStudent(@PathVariable UUID id, @PathVariable UUID studentId) {
+        promotionService.assignStudentToPromotion(id, studentId);
+        return ResponseEntity.noContent().build();
+    }
 }

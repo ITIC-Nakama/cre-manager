@@ -98,6 +98,25 @@ public class PromotionService {
                         + student.getFirstName() + " " + student.getLastName()));
     }
 
+    @Transactional
+    public void assignStudentToPromotion(UUID promotionId, UUID studentId) {
+        Promotion promotion = findById(promotionId);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        Promotion previous = student.getPromotion();
+        student.setPromotion(promotion);
+        studentRepository.save(student);
+
+        String label = student.getFirstName() + " " + student.getLastName();
+        String description = (previous != null && !previous.getId().equals(promotionId))
+                ? "Déplacé de la promotion " + previous.getName() + " vers " + promotion.getName() + " : " + label
+                : "Affecté à la promotion " + promotion.getName() + " : " + label;
+
+        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_ASSIGNED_TO_PROMOTION, actor,
+                student.getId(), description));
+    }
+
     private Optional<User> currentActor() {
         try {
             UUID actorId = SecurityContextHelper.currentUserId();

@@ -5,6 +5,7 @@ import {
     updatePromotion,
     deletePromotion,
     removeStudentFromPromotion,
+    assignStudentToPromotion,
 } from '../api-s/requests/PromotionRequest';
 import type { PromotionData } from '../api-s/requests/PromotionRequest';
 
@@ -51,6 +52,18 @@ export function useRemoveStudentFromPromotion() {
     return useMutation({
         mutationFn: ({ promotionId, studentId }: { promotionId: string; studentId: string }) =>
             removeStudentFromPromotion(promotionId, studentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['promotions'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
+    });
+}
+
+export function useAssignStudentToPromotion() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ promotionId, studentId }: { promotionId: string; studentId: string }) =>
+            assignStudentToPromotion(promotionId, studentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['promotions'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });

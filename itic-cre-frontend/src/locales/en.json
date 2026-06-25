@@ -545,7 +545,8 @@
       },
       "actions": {
         "edit": "Edit",
-        "delete": "Delete"
+        "delete": "Delete",
+        "manage_students": "Manage students"
       },
       "modal_create": "Create a promotion",
       "modal_edit": "Edit promotion",
@@ -570,7 +571,14 @@
       "confirm_remove_student_title": "Remove from promotion",
       "confirm_remove_student": "Remove \"{{name}}\" from this promotion? The student will not be deleted, only unlinked from the promotion.",
       "toast_student_removed": "Student removed from promotion successfully!",
-      "toast_student_remove_error": "Error removing student."
+      "toast_student_remove_error": "Error removing student.",
+      "label_add_student": "Add or move a student",
+      "placeholder_add_student": "Search a student by name or email…",
+      "no_search_results": "No student found.",
+      "currently_in": "currently in {{name}}",
+      "btn_add_student": "Add",
+      "toast_student_assigned": "Student assigned to promotion successfully!",
+      "toast_student_assign_error": "Error assigning student."
     }
   },
   "cta": {
