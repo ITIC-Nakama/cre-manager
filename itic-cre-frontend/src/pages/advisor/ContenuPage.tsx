@@ -298,7 +298,7 @@ export default function ContenuPage() {
       </div>
 
       {/* Content Container */}
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
         
         {loading && (
           <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">

@@ -195,7 +195,7 @@ export default function QuizModal({
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fadeIn flex flex-col">
       {/* Header bar */}
-      <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-6 py-4 flex justify-between items-center z-10">
+      <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800/80 px-6 py-4 flex justify-between items-center z-10">
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}

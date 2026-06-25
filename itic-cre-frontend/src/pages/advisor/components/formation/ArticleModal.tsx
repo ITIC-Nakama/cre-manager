@@ -102,7 +102,7 @@ export default function ArticleModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-7xl w-full h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-10">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 sticky top-0 bg-white dark:bg-slate-900 z-10">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
             {mode === 'create' ? t('dashboard.formation.modal_create_article') : t('dashboard.formation.modal_edit_article')}
           </h3>

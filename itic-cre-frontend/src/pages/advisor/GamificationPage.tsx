@@ -181,7 +181,7 @@ export default function GamificationPage() {
       {!loading && (
         <>
           {/* XP Configuration Section */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
               <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('dashboard.gamification.config_section_title')}</h2>
@@ -213,7 +213,7 @@ export default function GamificationPage() {
           </div>
 
           {/* CRM Status XP Section */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
               <ListChecks className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('dashboard.gamification.status_section_title')}</h2>
@@ -244,7 +244,7 @@ export default function GamificationPage() {
           </div>
 
           {/* CV Status XP Section */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
               <FileCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('dashboard.gamification.cv_status_section_title')}</h2>
@@ -275,7 +275,7 @@ export default function GamificationPage() {
           </div>
 
           {/* Grades Section */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
