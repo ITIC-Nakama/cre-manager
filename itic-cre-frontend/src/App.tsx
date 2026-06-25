@@ -26,6 +26,7 @@ import ContenuPage from './pages/advisor/ContenuPage'
 import GamificationPage from './pages/advisor/GamificationPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
+import PromotionsPage from './pages/admin/PromotionsPage'
 import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 
@@ -94,7 +95,7 @@ function App() {
           {/* Admin-only — advisors are redirected to their dashboard */}
           <Route element={<RequireAuth allowedRoles={[Role.ADMIN]} redirectTo="/supervisor/dashboard"><Outlet /></RequireAuth>}>
             <Route path="/admin/conseillers" element={<AdvisorPage />} />
-            <Route path="/admin/promotions"  element={<ComingSoonPage />} />
+            <Route path="/admin/promotions"  element={<PromotionsPage />} />
             <Route path="/admin/audit"       element={<AuditLogsPage />} />
             <Route path="/admin/config"      element={<ComingSoonPage />} />
           </Route>

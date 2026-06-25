@@ -66,4 +66,12 @@ public class PromotionController {
         promotionService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}/students/{studentId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
+    @Operation(summary = "Retirer un étudiant de la promotion")
+    public ResponseEntity<Void> removeStudent(@PathVariable UUID id, @PathVariable UUID studentId) {
+        promotionService.removeStudentFromPromotion(id, studentId);
+        return ResponseEntity.noContent().build();
+    }
 }

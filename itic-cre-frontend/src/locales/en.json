@@ -528,6 +528,49 @@
         "prev": "Previous",
         "next": "Next"
       }
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle_one": "{{count}} promotion total",
+      "subtitle_other": "{{count}} promotions total",
+      "create_button": "Create a promotion",
+      "table": {
+        "name": "Name",
+        "year": "Year",
+        "students": "Students",
+        "actions": "Actions",
+        "student_count_one": "{{count}} student",
+        "student_count_other": "{{count}} students",
+        "empty": "No promotion yet."
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "modal_create": "Create a promotion",
+      "modal_edit": "Edit promotion",
+      "label_name": "Name",
+      "placeholder_name": "E.g. Promotion 2026",
+      "label_year": "Year",
+      "placeholder_year": "E.g. 2025-2026",
+      "btn_cancel": "Cancel",
+      "btn_save": "Save",
+      "toast_created": "Promotion created successfully!",
+      "toast_updated": "Promotion updated successfully!",
+      "toast_save_error": "Error saving promotion.",
+      "toast_name_exists": "A promotion with this name already exists.",
+      "confirm_delete_title": "Delete promotion",
+      "confirm_delete": "Are you sure you want to delete the promotion \"{{name}}\"?",
+      "toast_deleted": "Promotion deleted successfully!",
+      "toast_delete_error": "Error deleting promotion.",
+      "toast_has_students": "Cannot delete this promotion: remove all students first.",
+      "modal_students": "Students of {{name}}",
+      "no_students": "No students in this promotion.",
+      "btn_remove_student": "Remove",
+      "confirm_remove_student_title": "Remove from promotion",
+      "confirm_remove_student": "Remove \"{{name}}\" from this promotion? The student will not be deleted, only unlinked from the promotion.",
+      "toast_student_removed": "Student removed from promotion successfully!",
+      "toast_student_remove_error": "Error removing student."
     }
   },
   "cta": {

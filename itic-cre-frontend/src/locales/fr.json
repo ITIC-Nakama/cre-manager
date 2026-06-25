@@ -528,6 +528,49 @@
         "prev": "Précédent",
         "next": "Suivant"
       }
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle_one": "{{count}} promotion au total",
+      "subtitle_other": "{{count}} promotions au total",
+      "create_button": "Créer une promotion",
+      "table": {
+        "name": "Nom",
+        "year": "Année",
+        "students": "Étudiants",
+        "actions": "Actions",
+        "student_count_one": "{{count}} étudiant",
+        "student_count_other": "{{count}} étudiants",
+        "empty": "Aucune promotion pour le moment."
+      },
+      "actions": {
+        "edit": "Modifier",
+        "delete": "Supprimer"
+      },
+      "modal_create": "Créer une promotion",
+      "modal_edit": "Modifier la promotion",
+      "label_name": "Nom",
+      "placeholder_name": "Ex : Promotion 2026",
+      "label_year": "Année",
+      "placeholder_year": "Ex : 2025-2026",
+      "btn_cancel": "Annuler",
+      "btn_save": "Enregistrer",
+      "toast_created": "Promotion créée avec succès !",
+      "toast_updated": "Promotion mise à jour avec succès !",
+      "toast_save_error": "Erreur lors de l'enregistrement de la promotion.",
+      "toast_name_exists": "Une promotion avec ce nom existe déjà.",
+      "confirm_delete_title": "Supprimer la promotion",
+      "confirm_delete": "Êtes-vous sûr de vouloir supprimer la promotion \"{{name}}\" ?",
+      "toast_deleted": "Promotion supprimée avec succès !",
+      "toast_delete_error": "Erreur lors de la suppression de la promotion.",
+      "toast_has_students": "Impossible de supprimer cette promotion : retirez d'abord tous les étudiants.",
+      "modal_students": "Étudiants de {{name}}",
+      "no_students": "Aucun étudiant dans cette promotion.",
+      "btn_remove_student": "Retirer",
+      "confirm_remove_student_title": "Retirer de la promotion",
+      "confirm_remove_student": "Retirer \"{{name}}\" de cette promotion ? L'étudiant ne sera pas supprimé, seulement détaché de la promotion.",
+      "toast_student_removed": "Étudiant retiré de la promotion avec succès !",
+      "toast_student_remove_error": "Erreur lors du retrait de l'étudiant."
     }
   },
   "cta": {

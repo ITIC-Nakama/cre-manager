@@ -31,6 +31,12 @@ public enum AuditAction {
     TUTO_UPDATED,
     TUTO_DELETED,
 
+    // --- Actions de gestion des Promotions ---
+    PROMOTION_CREATED,
+    PROMOTION_UPDATED,
+    PROMOTION_DELETED,
+    STUDENT_REMOVED_FROM_PROMOTION,
+
     // --- Autre / Action générique ---
     OTHER
 }
