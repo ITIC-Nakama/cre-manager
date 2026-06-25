@@ -37,7 +37,9 @@ export default function CustomSelect({
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [autoDropUp, setAutoDropUp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const effectiveDropUp = dropUp || autoDropUp;
 
   const selectedLabel = options.find((o) => o.value === value)?.label ?? value;
 
@@ -59,6 +61,11 @@ export default function CustomSelect({
   const handleToggle = () => {
     setIsOpen((o) => {
       const next = !o;
+      if (next && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const estimatedDropdownHeight = (searchable ? 300 : 260);
+        setAutoDropUp(window.innerHeight - rect.bottom < estimatedDropdownHeight);
+      }
       if (!next) setSearch('');
       return next;
     });
@@ -90,7 +97,7 @@ export default function CustomSelect({
       {isOpen && (
         <div
           className={`absolute ${
-            dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
+            effectiveDropUp ? 'bottom-full mb-2' : 'top-full mt-2'
           } right-0 z-50 min-w-full origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-black/5 dark:border-slate-800 dark:bg-slate-950 focus:outline-none`}
         >
           {searchable && (

@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Loader2, UserCog, Pencil, Trash2, UserCheck, Mail, Phone, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,6 +15,8 @@ const PAGE_SIZE = 20;
 
 export default function AdvisorPage() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -34,6 +37,15 @@ export default function AdvisorPage() {
     mode: 'create',
   });
   const [saving, setSaving] = useState(false);
+
+  // Ouvre directement la creation si on arrive depuis le bouton du tableau de bord
+  useEffect(() => {
+    if ((location.state as { openCreate?: boolean } | null)?.openCreate) {
+      setModal({ isOpen: true, mode: 'create' });
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [resetPasswordModal, setResetPasswordModal] = useState<{ isOpen: boolean; advisor?: Advisor }>({
     isOpen: false,

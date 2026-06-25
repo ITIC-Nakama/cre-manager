@@ -1,5 +1,6 @@
 import { Plus, FileText, Briefcase, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
@@ -12,6 +13,7 @@ import AuditLogPanel from './components/AuditLogPanel';
 
 export default function AdvisorDashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const isAdmin = user?.role === Role.ADMIN;
   const firstName = user?.firstName || t('dashboard.advisor.role_advisor');
@@ -51,7 +53,7 @@ export default function AdvisorDashboard() {
         <div className="flex gap-2">
           {isAdmin && (
             <button
-              onClick={() => toast.info("Redirection vers la création d'utilisateur...")}
+              onClick={() => navigate('/admin/conseillers', { state: { openCreate: true } })}
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
             >
               <Plus className="h-4 w-4" />
