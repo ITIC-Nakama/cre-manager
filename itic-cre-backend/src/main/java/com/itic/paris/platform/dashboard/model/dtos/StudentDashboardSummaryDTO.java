@@ -12,4 +12,5 @@ public class StudentDashboardSummaryDTO {
     private CvSummaryDTO cv;
     private ApplicationStatsDTO candidatures;
     private List<TaskDTO> aFaireAujourdhui;
+    private RankingDTO ranking;
 }

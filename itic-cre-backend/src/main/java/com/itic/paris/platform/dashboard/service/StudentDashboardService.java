@@ -54,8 +54,33 @@ public class StudentDashboardService {
         CvSummaryDTO cvSummary = buildCvSummary(studentId);
         ApplicationStatsDTO applicationStats = buildApplicationStats(studentId, staleAlertDays);
         List<TaskDTO> tasks = buildTasks(studentId, applicationStats, cvSummary, staleAlertDays);
+        RankingDTO ranking = buildRanking(student);
 
-        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks);
+        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking);
+    }
+
+    private RankingDTO buildRanking(Student student) {
+        boolean scopedToPromotion = student.getPromotion() != null;
+        List<Student> pool = scopedToPromotion
+                ? studentRepository.findAllByPromotionId(student.getPromotion().getId())
+                : studentRepository.findAll();
+
+        List<Student> sorted = pool.stream()
+                .sorted((a, b) -> b.getXpTotal() - a.getXpTotal())
+                .toList();
+
+        int rank = 1;
+        for (Student s : sorted) {
+            if (s.getId().equals(student.getId())) break;
+            rank++;
+        }
+
+        List<RankingEntryDTO> top3 = sorted.stream()
+                .limit(3)
+                .map(s -> new RankingEntryDTO(s.getFirstName(), s.getLastName(), s.getXpTotal(), s.getId().equals(student.getId())))
+                .toList();
+
+        return new RankingDTO(rank, sorted.size(), scopedToPromotion, top3);
     }
 
     private GamificationSummaryDTO buildGamificationSummary(Student student) {
