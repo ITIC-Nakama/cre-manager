@@ -136,7 +136,7 @@ export default function LoginPage() {
                         {/* Email */}
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.login.email_label')}
+                                {t('auth.login.email_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -164,7 +164,7 @@ export default function LoginPage() {
                         {/* Password */}
                         <div className="space-y-2">
                             <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.login.password_label')}
+                                {t('auth.login.password_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />

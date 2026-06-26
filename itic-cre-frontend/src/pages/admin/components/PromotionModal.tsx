@@ -54,7 +54,7 @@ export default function PromotionModal({ isOpen, mode, promotion, saving, onClos
 
         <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.promotions.label_name')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.promotions.label_name')} <span className="text-rose-500">*</span></label>
             <input
               type="text"
               required

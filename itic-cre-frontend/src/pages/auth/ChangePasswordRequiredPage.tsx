@@ -84,7 +84,7 @@ export default function ChangePasswordRequiredPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!tempPasswordFromLogin && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Mot de passe temporaire actuel</label>
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Mot de passe temporaire actuel <span className="text-rose-500">*</span></label>
               <div className="relative">
                 <input
                   type={showCurrent ? 'text' : 'password'}
@@ -107,7 +107,7 @@ export default function ChangePasswordRequiredPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Nouveau mot de passe</label>
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Nouveau mot de passe <span className="text-rose-500">*</span></label>
             <div className="relative">
               <input
                 type={showNew ? 'text' : 'password'}
@@ -130,7 +130,7 @@ export default function ChangePasswordRequiredPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Confirmer le nouveau mot de passe</label>
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Confirmer le nouveau mot de passe <span className="text-rose-500">*</span></label>
             <input
               type={showNew ? 'text' : 'password'}
               value={confirmPassword}

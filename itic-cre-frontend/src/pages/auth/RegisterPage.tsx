@@ -152,7 +152,7 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    {t('auth.register.first_name_label')}
+                                    {t('auth.register.first_name_label')} <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="relative group">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -178,7 +178,7 @@ export default function RegisterPage() {
 
                             <div className="space-y-2">
                                 <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    {t('auth.register.last_name_label')}
+                                    {t('auth.register.last_name_label')} <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="relative group">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -206,7 +206,7 @@ export default function RegisterPage() {
                         {/* Promotion */}
                         <div className="space-y-2">
                             <label htmlFor="promotionId" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.register.promotion_label')}
+                                {t('auth.register.promotion_label')} <span className="text-rose-500">*</span>
                             </label>
                             <CustomSelect
                                 id="promotionId"
@@ -230,7 +230,7 @@ export default function RegisterPage() {
                         {/* Email */}
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.register.email_label')}
+                                {t('auth.register.email_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -258,7 +258,7 @@ export default function RegisterPage() {
                         {/* Password */}
                         <div className="space-y-2">
                             <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.register.password_label')}
+                                {t('auth.register.password_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />

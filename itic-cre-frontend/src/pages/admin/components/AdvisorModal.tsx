@@ -89,7 +89,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
         <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_first_name')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_first_name')} <span className="text-rose-500">*</span></label>
               <input
                 type="text"
                 required
@@ -101,7 +101,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_last_name')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_last_name')} <span className="text-rose-500">*</span></label>
               <input
                 type="text"
                 required
@@ -115,7 +115,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_email')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_email')} <span className="text-rose-500">*</span></label>
             <input
               type="email"
               required

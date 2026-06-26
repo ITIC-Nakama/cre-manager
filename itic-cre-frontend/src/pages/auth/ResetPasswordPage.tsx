@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
                         {/* Email */}
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.reset_password.email_label')}
+                                {t('auth.reset_password.email_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-baseline">
                                         <label htmlFor="code" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            {t('auth.reset_password.code_label')}
+                                            {t('auth.reset_password.code_label')} <span className="text-rose-500">*</span>
                                         </label>
                                         <button
                                             type="button"
@@ -177,7 +177,7 @@ export default function ResetPasswordPage() {
                                 {/* New Password */}
                                 <div className="space-y-2">
                                     <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {t('auth.reset_password.new_password_label')}
+                                        {t('auth.reset_password.new_password_label')} <span className="text-rose-500">*</span>
                                     </label>
                                     <div className="relative group">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
@@ -199,7 +199,7 @@ export default function ResetPasswordPage() {
                                 {/* Confirm Password */}
                                 <div className="space-y-2">
                                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {t('auth.reset_password.confirm_password_label')}
+                                        {t('auth.reset_password.confirm_password_label')} <span className="text-rose-500">*</span>
                                     </label>
                                     <div className="relative group">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />

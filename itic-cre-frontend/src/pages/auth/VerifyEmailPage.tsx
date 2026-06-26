@@ -102,7 +102,7 @@ export default function VerifyEmailPage() {
                         {/* Email */}
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.verify_email.email_label')}
+                                {t('auth.verify_email.email_label')} <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 id="email"
@@ -125,7 +125,7 @@ export default function VerifyEmailPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-baseline">
                                 <label htmlFor="code" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    {t('auth.verify_email.code_label')}
+                                    {t('auth.verify_email.code_label')} <span className="text-rose-500">*</span>
                                 </label>
                                 <button
                                     type="button"

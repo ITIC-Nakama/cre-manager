@@ -328,7 +328,7 @@ export default function QuizModal({
                 {/* Answers section */}
                 <div className="pl-10 flex flex-col gap-3">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    {t('dashboard.formation.label_answers_options')}
+                    {t('dashboard.formation.label_answers_options')} <span className="text-rose-500">*</span>
                   </label>
                   
                   <div className="flex flex-col gap-2">

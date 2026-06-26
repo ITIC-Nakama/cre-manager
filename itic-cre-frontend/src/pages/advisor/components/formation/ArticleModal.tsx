@@ -124,7 +124,7 @@ export default function ArticleModal({
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 md:p-8 gap-6 min-h-0 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_title_article')}</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_title_article')} <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -138,7 +138,7 @@ export default function ArticleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.col_category')}</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.col_category')} <span className="text-rose-500">*</span></label>
                 <CustomSelect
                   value={categorieId}
                   options={categories.map(cat => ({ value: cat.id, label: cat.nom }))}
@@ -150,7 +150,7 @@ export default function ArticleModal({
             </div>
 
             <div className="flex-1 flex flex-col min-h-[400px]">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_content_article')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_content_article')} <span className="text-rose-500">*</span></label>
               <div className="flex-1 min-h-0">
                 <QuillEditor 
                   value={contenu} 

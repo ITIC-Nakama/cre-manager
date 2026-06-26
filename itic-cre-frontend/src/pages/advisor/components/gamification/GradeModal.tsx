@@ -71,7 +71,7 @@ export default function GradeModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_grade_name')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_grade_name')} <span className="text-rose-500">*</span></label>
             <input
               type="text"
               required
@@ -86,7 +86,7 @@ export default function GradeModal({
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_xp_minimum')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_xp_minimum')} <span className="text-rose-500">*</span></label>
               <input
                 type="number"
                 required
@@ -99,7 +99,7 @@ export default function GradeModal({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_order')}</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.gamification.label_order')} <span className="text-rose-500">*</span></label>
               <input
                 type="number"
                 required

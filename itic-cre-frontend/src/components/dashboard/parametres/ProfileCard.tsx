@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Camera } from 'lucide-react';
+import { Loader2, Camera, Medal } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import { useUpdateProfile, useUploadProfilePicture } from '../../../hooks/useAuth';
+import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
 import UserAvatar from '../../shared/UserAvatar';
 
 export default function ProfileCard() {
@@ -14,6 +15,8 @@ export default function ProfileCard() {
   const updateProfileMutation = useUpdateProfile();
   const uploadPictureMutation = useUploadProfilePicture();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isStudent = user?.role === Role.STUDENT;
+  const { data: dashboardSummary } = useMyDashboardSummary(isStudent);
 
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
@@ -92,12 +95,18 @@ export default function ProfileCard() {
           <div>
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs text-slate-400">{user.email}</p>
+            {isStudent && dashboardSummary && (
+              <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
+                <Medal className="h-3 w-3" />
+                {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_first_name')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_first_name')} <span className="text-rose-500">*</span></label>
             <input
               type="text"
               required
@@ -108,7 +117,7 @@ export default function ProfileCard() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_last_name')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_last_name')} <span className="text-rose-500">*</span></label>
             <input
               type="text"
               required
