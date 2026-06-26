@@ -579,6 +579,21 @@
       "btn_add_student": "Add",
       "toast_student_assigned": "Student assigned to promotion successfully!",
       "toast_student_assign_error": "Error assigning student."
+    },
+    "parametres": {
+      "profile": {
+        "title": "Profile",
+        "change_picture": "Change picture",
+        "label_first_name": "First name",
+        "label_last_name": "Last name",
+        "label_job_title": "Job title",
+        "placeholder_job_title": "E.g. Academic advisor",
+        "btn_save": "Save",
+        "toast_updated": "Profile updated successfully!",
+        "toast_update_error": "Error updating profile.",
+        "toast_picture_updated": "Profile picture updated successfully!",
+        "toast_picture_error": "Error updating profile picture."
+      }
     }
   },
   "cta": {

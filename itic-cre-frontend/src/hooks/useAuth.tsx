@@ -8,7 +8,9 @@ import {
     ResetPasswordRequest,
     ResetPasswordConfirmRequest,
     UpdatePasswordRequest,
-    ChangePasswordRequest
+    ChangePasswordRequest,
+    UpdateProfileRequest,
+    UploadProfilePictureRequest
 } from '../api-s/requests/AuthRequest';
 
 export const useLogin = () => {
@@ -45,4 +47,12 @@ export const useUpdatePassword = () => {
 
 export const useChangePassword = () => {
     return useMutation({ mutationFn: ChangePasswordRequest });
+};
+
+export const useUpdateProfile = () => {
+    return useMutation({ mutationFn: UpdateProfileRequest });
+};
+
+export const useUploadProfilePicture = () => {
+    return useMutation({ mutationFn: UploadProfilePictureRequest });
 };

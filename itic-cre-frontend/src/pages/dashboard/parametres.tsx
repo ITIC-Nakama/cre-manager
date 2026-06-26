@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, X, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { useUserStore } from '../../store/UserStore';
 import { toast } from 'sonner';
+import ProfileCard from '../../components/dashboard/parametres/ProfileCard';
 import PreferencesCard from '../../components/dashboard/parametres/PreferencesCard';
 import SecurityCard from '../../components/dashboard/parametres/SecurityCard';
 import { useUpdatePassword } from '../../hooks/useAuth';
@@ -83,6 +84,8 @@ export default function ParametresPage() {
           {t('dashboard.pages.parametres.description', 'Gérez vos préférences et la sécurité de votre compte.')}
         </p>
       </div>
+
+      <ProfileCard />
 
       <PreferencesCard />
 

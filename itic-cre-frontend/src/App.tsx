@@ -97,7 +97,6 @@ function App() {
             <Route path="/admin/conseillers" element={<AdvisorPage />} />
             <Route path="/admin/promotions"  element={<PromotionsPage />} />
             <Route path="/admin/audit"       element={<AuditLogsPage />} />
-            <Route path="/admin/config"      element={<ComingSoonPage />} />
           </Route>
 
         </Route>

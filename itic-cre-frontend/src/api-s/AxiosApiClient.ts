@@ -12,7 +12,11 @@ export const apiClient = axios.create({
 // ─── Intercepteur requête : Content-Type ────────────────────────────────────
 apiClient.interceptors.request.use(
   (config) => {
-    config.headers['Content-Type'] = 'application/json';
+    // Ne pas forcer JSON sur un upload multipart (FormData) — laisser le
+    // navigateur poser son propre Content-Type avec le boundary correct.
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
     return config;
   },
   (error) => Promise.reject(error)

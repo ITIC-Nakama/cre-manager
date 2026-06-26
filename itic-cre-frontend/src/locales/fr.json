@@ -579,6 +579,21 @@
       "btn_add_student": "Ajouter",
       "toast_student_assigned": "Étudiant affecté à la promotion avec succès !",
       "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant."
+    },
+    "parametres": {
+      "profile": {
+        "title": "Profil",
+        "change_picture": "Changer la photo",
+        "label_first_name": "Prénom",
+        "label_last_name": "Nom",
+        "label_job_title": "Fonction",
+        "placeholder_job_title": "Ex : Conseiller pédagogique",
+        "btn_save": "Enregistrer",
+        "toast_updated": "Profil mis à jour avec succès !",
+        "toast_update_error": "Erreur lors de la mise à jour du profil.",
+        "toast_picture_updated": "Photo de profil mise à jour avec succès !",
+        "toast_picture_error": "Erreur lors de la mise à jour de la photo de profil."
+      }
     }
   },
   "cta": {

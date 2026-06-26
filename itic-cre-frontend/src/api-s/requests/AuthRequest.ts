@@ -105,3 +105,37 @@ export function ChangePasswordRequest(data: ChangePasswordDTO) {
             throw error;
         });
 }
+
+export interface UpdateProfileData {
+    firstName: string;
+    lastName: string;
+    jobTitle?: string;
+}
+
+// Mettre à jour le profil de l'utilisateur connecté (nom, prénom, fonction)
+export function UpdateProfileRequest(data: UpdateProfileData) {
+    return apiClient.put('/auth/users/me', data)
+        .then(response => {
+            const payload = response.data.data ?? response.data;
+            return payload;
+        })
+        .catch(error => {
+            console.error('Échec de la mise à jour du profil :', error);
+            throw error;
+        });
+}
+
+// Mettre à jour la photo de profil de l'utilisateur connecté
+export function UploadProfilePictureRequest(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/auth/users/me/profile-picture', formData)
+        .then(response => {
+            const payload = response.data.data ?? response.data;
+            return payload as { profilePictureUrl: string };
+        })
+        .catch(error => {
+            console.error('Échec de la mise à jour de la photo de profil :', error);
+            throw error;
+        });
+}

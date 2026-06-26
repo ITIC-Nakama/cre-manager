@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeStorageKey, SidebarCollapsedStorageKey } from '../../types/storage-keys';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
+import UserAvatar from '../shared/UserAvatar';
 
 export interface NavItem {
   label: string;
@@ -44,10 +45,6 @@ function SidebarContent({
   };
 
   const lang = (i18n.language || 'fr').split('-')[0].toUpperCase();
-
-  const initials = user
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : '?';
   const fullName = user ? `${user.firstName} ${user.lastName}` : '';
   const roleLabel =
     user?.role === Role.STUDENT
@@ -107,11 +104,8 @@ function SidebarContent({
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <div
-              className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0"
-              title={fullName}
-            >
-              {initials}
+            <div title={fullName}>
+              <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
             </div>
             <button
               onClick={() => logout().then(() => navigate('/login'))}
@@ -141,9 +135,7 @@ function SidebarContent({
               </button>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0">
-                {initials}
-              </div>
+              <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{fullName}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>

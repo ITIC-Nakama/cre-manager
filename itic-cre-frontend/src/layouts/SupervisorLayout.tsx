@@ -6,7 +6,7 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, SlidersHorizontal, Settings
+  ScrollText, Settings
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
@@ -26,10 +26,9 @@ export default function SupervisorLayout() {
   ];
 
   const adminItems: NavItem[] = [
-    { label: t('dashboard.sidebar.conseillers'),  icon: UserCog,           to: '/admin/conseillers' },
-    { label: t('dashboard.sidebar.promotions'),   icon: GraduationCap,     to: '/admin/promotions' },
-    { label: t('dashboard.sidebar.audit'),        icon: ScrollText,        to: '/admin/audit' },
-    { label: t('dashboard.sidebar.configuration'),icon: SlidersHorizontal, to: '/admin/config' },
+    { label: t('dashboard.sidebar.conseillers'),  icon: UserCog,       to: '/admin/conseillers' },
+    { label: t('dashboard.sidebar.promotions'),   icon: GraduationCap, to: '/admin/promotions' },
+    { label: t('dashboard.sidebar.audit'),        icon: ScrollText,    to: '/admin/audit' },
   ];
 
   const navItems: NavItem[] = [
