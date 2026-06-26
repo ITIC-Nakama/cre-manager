@@ -71,7 +71,7 @@ export default function ProfileCard() {
       <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex flex-col gap-5">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <UserAvatar profilePicture={user.profilePicture} firstName={user.firstName} lastName={user.lastName} className="h-16 w-16" />
+            <UserAvatar onClick={() => fileInputRef.current?.click()}  profilePicture={user.profilePicture} firstName={user.firstName} lastName={user.lastName} className="h-16 w-16" />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
