@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchAdminArticleById } from '../../../../api-s/requests/SkillRequest';
-import QuillEditor from '../../../../components/basics/QuillEditor';
+import TiptapEditor from '../../../../components/basics/TiptapEditor';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import type { SkillCategory } from '../../../../types/models/Skill';
 
@@ -152,7 +152,7 @@ export default function ArticleModal({
             <div className="flex-1 flex flex-col min-h-[400px]">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_content_article')} <span className="text-rose-500">*</span></label>
               <div className="flex-1 min-h-0">
-                <QuillEditor 
+                <TiptapEditor
                   value={contenu} 
                   onChange={(html) => setContenu(html)} 
                   readOnly={saving}
