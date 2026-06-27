@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -13,6 +13,12 @@ import {
 } from 'lucide-react';
 import { AlignedImage } from './tiptap/AlignedImage';
 import { Video } from './tiptap/VideoExtension';
+
+const editorProps = {
+  attributes: {
+    class: 'ql-editor-replacement',
+  },
+};
 
 interface TiptapEditorProps {
   value: string;
@@ -112,9 +118,14 @@ export default function TiptapEditor({ value, onChange, placeholder, readOnly = 
   const lastSentValueRef = useRef<string>(value);
 
   const effectiveReadOnly = readOnly || isPreview;
+  const placeholderText = placeholder || t('dashboard.formation.placeholder_article_content');
 
-  const editor = useEditor({
-    extensions: [
+  // useEditor() calls editor.setOptions() whenever this array holds different object
+  // references (checked per-item) from the previous render, so it must stay referentially
+  // stable instead of being rebuilt inline — otherwise every keystroke (which re-renders
+  // this component via onChange) pays for an avoidable options diff + view.setProps() call.
+  const extensions = useMemo(
+    () => [
       StarterKit,
       AlignedImage,
       Video,
@@ -124,9 +135,14 @@ export default function TiptapEditor({ value, onChange, placeholder, readOnly = 
         defaultAlignment: 'left',
       }),
       Placeholder.configure({
-        placeholder: placeholder || t('dashboard.formation.placeholder_article_content'),
+        placeholder: placeholderText,
       }),
     ],
+    [placeholderText]
+  );
+
+  const editor = useEditor({
+    extensions,
     content: value || '',
     editable: !effectiveReadOnly,
     onUpdate: ({ editor }) => {
@@ -134,11 +150,7 @@ export default function TiptapEditor({ value, onChange, placeholder, readOnly = 
       lastSentValueRef.current = html;
       onChange(html);
     },
-    editorProps: {
-      attributes: {
-        class: 'ql-editor-replacement',
-      },
-    },
+    editorProps,
   });
 
   // Sync external value changes (e.g. async article load) without disrupting active typing
