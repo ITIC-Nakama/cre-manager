@@ -26,6 +26,21 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Créés avec un **mot de passe temporaire** et `mustChangePassword = true`.
 - Tant que `mustChangePassword = true`, **tous les endpoints sont bloqués (403 `password-change-required`) sauf** `POST /auth/change-password` et `POST /auth/logout`.
 - Pas d'OTP pour ces comptes (`emailVerified = true` directement).
+- Un email contenant le mot de passe temporaire est envoyé automatiquement (**asynchrone**, `@Async`) à la création du compte, et de nouveau si un admin lui réinitialise son mot de passe.
+- Réinitialiser le mot de passe d'un **conseiller/admin** via `PUT /auth/users/{id}` repasse `mustChangePassword = true` — **pas pour un étudiant** (ce flag est réservé au staff).
+
+### Gestion des conseillers
+- CRUD conseiller (création, modification, suppression) réservé à **`ADMIN` uniquement** — un `ADVISOR` ne peut pas gérer d'autres conseillers.
+- `jobTitle` est **optionnel**.
+
+### Désactivation et suppression de compte
+- Chaque utilisateur a un flag `active` (booléen, `true` par défaut). `DELETE /auth/users/{id}` et `PATCH /auth/users/{id}/reactivate` sont réservés à `ADMIN`.
+- **Suppression d'un conseiller** : si des données lui sont rattachées (commentaires CV, offres d'emploi créées, articles créés, catégories de compétences créées), le compte est **désactivé** (`active = false`) au lieu d'être supprimé. La suppression définitive n'a lieu que si **aucune donnée associée** n'existe.
+- **Coupure de session** : pas de liste de révocation de token — le flag `active` est vérifié **à chaque requête authentifiée** (dans le chargement de l'utilisateur par le filtre JWT) ; un compte désactivé perd l'accès dès sa prochaine requête, sans attendre l'expiration du token.
+
+### Autorisation sur la mise à jour de profil
+- `PUT /auth/users/{id}` (modifier le profil d'un **autre** utilisateur) est réservé à `ADMIN` (faille IDOR corrigée).
+- `PUT /auth/users/me` (modifier son **propre** profil) n'a pas de restriction de rôle — accessible à tout utilisateur connecté, scoping fait via l'utilisateur courant.
 
 ### Tokens
 - Access token : expiration par défaut **1h** (`TOKEN_EXPIRATION_TIME=3600000`).
@@ -38,6 +53,7 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Lecture (lister / consulter) : ouverte à **tout utilisateur connecté**, sans restriction de rôle (advisor et étudiant inclus).
 - Création / modification / suppression : réservées à `ADMIN` et `ADVISOR`.
 - **Une promotion ne peut être supprimée si elle contient au moins un étudiant** (`promotion-has-students`, 400) — il faut d'abord réaffecter ou retirer tous les étudiants de cette promotion.
+- `PUT /promotions/{id}/students/{studentId}` (`ADMIN`/`ADVISOR`) affecte un étudiant à la promotion. Si l'étudiant avait déjà une autre promotion, c'est traité comme un **déplacement** (libellé d'audit différent : "Déplacé" vs "Affecté"), mais dans les deux cas l'action journalisée est `STUDENT_ASSIGNED_TO_PROMOTION`.
 
 ---
 
@@ -94,6 +110,11 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 ### Historique XP (`xp_history`)
 - Table d'audit pure, indépendante de toute clé étrangère vers Quiz/Article/Catégorie/Statut — **un historique XP survit toujours** à la suppression du contenu qui l'a généré.
 
+### Classement (tableau de bord étudiant)
+- Calculé à la volée, jamais stocké. Tri par **XP total descendant**, rang **1-indexé**.
+- **Scope** : si l'étudiant a une promotion, le classement est limité aux étudiants de **cette promotion** ; sinon il est **global** (tous les étudiants de la plateforme).
+- Les étudiants désactivés (`active = false`) sont **inclus** dans le classement — aucun filtre sur ce flag.
+
 ---
 
 ## 5. Skill Tree — Catégories / Articles / Quiz
@@ -138,7 +159,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 ## 8. Journal d'audit
 
 - Lecture réservée à `ADMIN` uniquement (pas même les conseillers).
-- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `OTHER`.
+- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `OTHER`.
 
 ---
 
