@@ -8,6 +8,7 @@ import com.itic.paris.platform.gamification.model.enums.ActionXP;
 import com.itic.paris.platform.gamification.service.GamificationService;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.skill.model.*;
+import com.itic.paris.platform.skill.model.SkillCategory;
 import com.itic.paris.platform.skill.model.dtos.*;
 import com.itic.paris.platform.skill.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +133,39 @@ public class SkillTreeStudentService {
         }
 
         return new QuizResultDTO(score, passed, xpAwarded, alreadyValidated);
+    }
+
+    @Transactional(readOnly = true)
+    public SkillTreeProgressDTO getSkillTreeProgress() {
+        Student student = getCurrentStudent();
+
+        List<SkillCategory> categories = categoryRepository.findByActifTrueOrderByOrdreAsc();
+
+        Map<UUID, Long> totalPerCategory = new HashMap<>();
+        for (Object[] row : articleRepository.countActiveArticlesPerCategory()) {
+            totalPerCategory.put((UUID) row[0], (Long) row[1]);
+        }
+
+        Map<UUID, Long> completedPerCategory = new HashMap<>();
+        for (Object[] row : quizValidationRepository.countCompletedArticlesPerCategoryForStudent(student.getId())) {
+            completedPerCategory.put((UUID) row[0], (Long) row[1]);
+        }
+
+        List<SkillNodeProgressDTO> nodes = categories.stream().map(cat -> {
+            long total = totalPerCategory.getOrDefault(cat.getId(), 0L);
+            long completed = completedPerCategory.getOrDefault(cat.getId(), 0L);
+            String state;
+            if (completed == 0) state = "TO_DISCOVER";
+            else if (completed >= total) state = "COMPLETED";
+            else state = "IN_PROGRESS";
+            return new SkillNodeProgressDTO(cat.getId(), cat.getNom(), cat.getIcone(), (int) total, (int) completed, state);
+        }).toList();
+
+        long totalArticles = totalPerCategory.values().stream().mapToLong(Long::longValue).sum();
+        long completedArticles = completedPerCategory.values().stream().mapToLong(Long::longValue).sum();
+        int xpTotal = student.getXpTotal() != null ? student.getXpTotal() : 0;
+
+        return new SkillTreeProgressDTO(nodes, xpTotal, (int) totalArticles, (int) completedArticles);
     }
 
     private Student getCurrentStudent() {

@@ -22,6 +22,12 @@ public class SkillTreeStudentController {
 
     private final SkillTreeStudentService skillTreeStudentService;
 
+    @GetMapping("/progress")
+    @Operation(summary = "Progression de l'étudiant sur l'arbre de compétences")
+    public ResponseEntity<SkillTreeProgressDTO> getProgress() {
+        return ResponseEntity.ok(skillTreeStudentService.getSkillTreeProgress());
+    }
+
     @GetMapping("/categories")
     @Operation(summary = "Lister les catégories actives")
     public ResponseEntity<List<SkillCategoryDTO>> getCategories() {
