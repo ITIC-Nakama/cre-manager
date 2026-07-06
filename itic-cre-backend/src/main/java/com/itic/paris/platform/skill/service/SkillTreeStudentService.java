@@ -158,7 +158,8 @@ public class SkillTreeStudentService {
             if (completed == 0) state = "TO_DISCOVER";
             else if (completed >= total) state = "COMPLETED";
             else state = "IN_PROGRESS";
-            return new SkillNodeProgressDTO(cat.getId(), cat.getNom(), cat.getIcone(), (int) total, (int) completed, state);
+            int ordre = cat.getOrdre() != null ? cat.getOrdre() : 0;
+            return new SkillNodeProgressDTO(cat.getId(), cat.getNom(), cat.getIcone(), ordre, (int) total, (int) completed, state);
         }).toList();
 
         long totalArticles = totalPerCategory.values().stream().mapToLong(Long::longValue).sum();

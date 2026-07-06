@@ -6,6 +6,7 @@ public record SkillNodeProgressDTO(
         UUID categoryId,
         String categoryName,
         String categoryIcon,
+        int ordre,
         int totalArticles,
         int completedArticles,
         String state
