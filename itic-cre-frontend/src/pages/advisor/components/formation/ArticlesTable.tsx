@@ -71,6 +71,19 @@ export default function ArticlesTable({
         </span>
       ),
     }),
+    col.accessor('createdByEmail', {
+      header: t('dashboard.formation.col_author'),
+      cell: ({ getValue }) => {
+        const email = getValue();
+        return email ? (
+          <div className="max-w-[180px]">
+            <TruncatedText text={email} className="text-slate-600 dark:text-slate-300" />
+          </div>
+        ) : (
+          <span className="text-slate-400 dark:text-slate-600">—</span>
+        );
+      },
+    }),
     col.accessor('actif', {
       header: t('dashboard.formation.col_status'),
       cell: ({ getValue }) => getValue() ? (
