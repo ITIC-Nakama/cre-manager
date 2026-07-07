@@ -124,8 +124,9 @@ export default function SkillTreePage() {
             minScale={0.4}
             maxScale={2}
             centerOnInit
-            limitToBounds={false}
-            wheel={{ step: 0.15 }}
+            limitToBounds={true}
+            wheel={{ step: 0.08 }}
+            panning={{ velocityDisabled: true }}
           >
             <TransformComponent
               wrapperStyle={{ width: '100%', height: '100%' }}
