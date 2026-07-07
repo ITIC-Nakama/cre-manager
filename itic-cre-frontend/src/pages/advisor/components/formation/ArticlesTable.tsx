@@ -71,13 +71,15 @@ export default function ArticlesTable({
         </span>
       ),
     }),
-    col.accessor('createdByEmail', {
+    col.display({
+      id: 'author',
       header: t('dashboard.formation.col_author'),
-      cell: ({ getValue }) => {
-        const email = getValue();
-        return email ? (
+      cell: ({ row }) => {
+        const { createdByFirstName, createdByLastName } = row.original;
+        const name = [createdByFirstName, createdByLastName].filter(Boolean).join(' ');
+        return name ? (
           <div className="max-w-[180px]">
-            <TruncatedText text={email} className="text-slate-600 dark:text-slate-300" />
+            <TruncatedText text={name} className="text-slate-600 dark:text-slate-300" />
           </div>
         ) : (
           <span className="text-slate-400 dark:text-slate-600">—</span>
