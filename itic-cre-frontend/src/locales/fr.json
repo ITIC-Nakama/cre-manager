@@ -293,6 +293,7 @@
       "no_articles_desc": "Commencez par créer un article pour instruire vos étudiants.",
       "col_title": "Titre",
       "col_category": "Catégorie",
+      "col_author": "Auteur",
       "col_status": "Statut",
       "col_quiz": "Quiz d'évaluation",
       "col_actions": "Actions",

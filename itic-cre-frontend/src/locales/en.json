@@ -293,6 +293,7 @@
       "no_articles_desc": "Start by creating an article to instruct your students.",
       "col_title": "Title",
       "col_category": "Category",
+      "col_author": "Author",
       "col_status": "Status",
       "col_quiz": "Evaluation Quiz",
       "col_actions": "Actions",
