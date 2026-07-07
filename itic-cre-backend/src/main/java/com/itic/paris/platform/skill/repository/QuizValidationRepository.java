@@ -23,4 +23,7 @@ public interface QuizValidationRepository extends JpaRepository<QuizValidation, 
             GROUP BY qv.quiz.article.categorie.id
             """)
     List<Object[]> countCompletedArticlesPerCategoryForStudent(@Param("studentId") UUID studentId);
+
+    @Query("SELECT qv.quiz.article.id FROM QuizValidation qv WHERE qv.student.id = :studentId")
+    List<UUID> findValidatedArticleIdsForStudent(@Param("studentId") UUID studentId);
 }

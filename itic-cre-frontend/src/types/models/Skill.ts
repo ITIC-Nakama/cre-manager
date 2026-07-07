@@ -43,10 +43,13 @@ export interface Answer {
   estCorrecte: boolean;
 }
 
+export type QuestionType = 'SINGLE' | 'MULTIPLE';
+
 export interface Question {
   id?: string;
   texte: string;
   ordre: number;
+  type?: QuestionType;
   answers: Answer[];
 }
 
