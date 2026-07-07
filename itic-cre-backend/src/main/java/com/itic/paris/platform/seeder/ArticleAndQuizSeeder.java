@@ -697,6 +697,8 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
         Question q = new Question();
         q.setTexte(texte);
         q.setOrdre(ordre);
+        long correctCount = answers.stream().filter(Answer::getEstCorrecte).count();
+        q.setType(correctCount == 1 ? QuestionType.SINGLE : QuestionType.MULTIPLE);
         answers.forEach(a -> a.setQuestion(q));
         q.setReponses(answers);
         return q;
