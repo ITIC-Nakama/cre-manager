@@ -150,7 +150,7 @@ export default function ContenuPage() {
 
   // ── ARTICLE HANDLERS ───────────────────────────────────────────────────────
 
-  const handleSaveArticle = async (data: { titre: string; contenu: string; categorieId: string; actif: boolean }) => {
+  const handleSaveArticle = async (data: { titre: string; contenu: string; categorieId: string; ordre: number; actif: boolean }) => {
     setSaving(true);
     try {
       if (articleModal.mode === 'create') {
@@ -158,6 +158,7 @@ export default function ContenuPage() {
           titre: data.titre,
           contenu: data.contenu,
           categorieId: data.categorieId,
+          ordre: data.ordre,
           actif: data.actif
         });
         toast.success(t('dashboard.formation.toast_article_created'));
@@ -385,6 +386,7 @@ export default function ContenuPage() {
         mode={articleModal.mode}
         articleId={articleModal.articleId}
         categories={categories}
+        articles={articles}
         saving={saving}
         onClose={() => setArticleModal({ isOpen: false, mode: 'create' })}
         onSave={handleSaveArticle}

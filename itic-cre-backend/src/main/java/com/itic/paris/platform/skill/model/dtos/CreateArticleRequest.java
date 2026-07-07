@@ -19,5 +19,8 @@ public class CreateArticleRequest {
     @NotNull
     private UUID categorieId;
 
+    @NotNull
+    private Integer ordre;
+
     private Boolean actif;
 }

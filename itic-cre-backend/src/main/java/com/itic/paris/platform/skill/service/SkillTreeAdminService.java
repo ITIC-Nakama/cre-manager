@@ -80,6 +80,7 @@ public class SkillTreeAdminService {
         article.setTitre(request.getTitre());
         article.setContenu(request.getContenu());
         article.setCategorie(category);
+        article.setOrdre(request.getOrdre());
         article.setActif(request.getActif() != null ? request.getActif() : false);
         article.setCreatedBy(getCurrentUser());
         return mapArticleToDTO(articleRepository.save(article));
@@ -88,7 +89,7 @@ public class SkillTreeAdminService {
     @Transactional(readOnly = true)
     public List<ArticleSummaryDTO> getArticles(UUID categoryId) {
         List<Article> articles = categoryId != null
-                ? articleRepository.findByCategorieIdOrderByDateCreationDesc(categoryId)
+                ? articleRepository.findByCategorieIdOrderByOrdreAsc(categoryId)
                 : articleRepository.findAll();
         return articles.stream().map(this::mapArticleToSummaryDTO).toList();
     }
@@ -103,6 +104,7 @@ public class SkillTreeAdminService {
         Article article = findArticle(id);
         if (request.getTitre() != null) article.setTitre(request.getTitre());
         if (request.getContenu() != null) article.setContenu(request.getContenu());
+        if (request.getOrdre() != null) article.setOrdre(request.getOrdre());
         if (request.getActif() != null) article.setActif(request.getActif());
         if (request.getCategorieId() != null) {
             SkillCategory cat = categoryRepository.findById(request.getCategorieId())
@@ -240,6 +242,7 @@ public class SkillTreeAdminService {
         return new ArticleSummaryDTO(
                 a.getId(), a.getTitre(),
                 a.getCategorie().getId(), a.getCategorie().getNom(),
+                a.getOrdre(),
                 quizRepository.existsByArticleId(a.getId()),
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,
@@ -256,6 +259,7 @@ public class SkillTreeAdminService {
         return new ArticleDTO(
                 a.getId(), a.getTitre(), a.getContenu(),
                 a.getCategorie().getId(), a.getCategorie().getNom(),
+                a.getOrdre(),
                 quizRepository.existsByArticleId(a.getId()),
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,

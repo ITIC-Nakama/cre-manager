@@ -48,13 +48,13 @@ export function fetchAdminArticleById(id: string): Promise<Article> {
   return apiClient.get(`/api/admin/skill-tree/articles/${id}`).then((r) => unwrap<Article>(r));
 }
 
-export function createArticle(data: { titre: string; contenu: string; categorieId: string; actif?: boolean }): Promise<Article> {
+export function createArticle(data: { titre: string; contenu: string; categorieId: string; ordre: number; actif?: boolean }): Promise<Article> {
   return apiClient.post('/api/admin/skill-tree/articles', data).then((r) => unwrap<Article>(r));
 }
 
 export function updateArticle(
   id: string,
-  data: { titre?: string; contenu?: string; categorieId?: string; actif?: boolean }
+  data: { titre?: string; contenu?: string; categorieId?: string; ordre?: number; actif?: boolean }
 ): Promise<Article> {
   return apiClient.put(`/api/admin/skill-tree/articles/${id}`, data).then((r) => unwrap<Article>(r));
 }

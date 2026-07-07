@@ -13,5 +13,6 @@ public class UpdateArticleRequest {
     private String contenu;
 
     private UUID categorieId;
+    private Integer ordre;
     private Boolean actif;
 }

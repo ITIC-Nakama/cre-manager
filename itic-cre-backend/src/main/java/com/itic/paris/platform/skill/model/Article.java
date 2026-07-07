@@ -31,6 +31,9 @@ public class Article {
     private SkillCategory categorie;
 
     @Column(nullable = false)
+    private Integer ordre;
+
+    @Column(nullable = false)
     private Boolean actif = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

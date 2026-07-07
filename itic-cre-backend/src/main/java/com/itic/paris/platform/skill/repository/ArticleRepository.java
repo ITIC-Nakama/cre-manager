@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
-    List<Article> findByCategorieIdOrderByDateCreationDesc(UUID categorieId);
-    List<Article> findByCategorieIdAndActifTrueOrderByDateCreationDesc(UUID categorieId);
+    List<Article> findByCategorieIdOrderByOrdreAsc(UUID categorieId);
+    List<Article> findByCategorieIdAndActifTrueOrderByOrdreAsc(UUID categorieId);
     boolean existsByCategorieId(UUID categorieId);
     boolean existsByCreatedById(UUID createdById);
 
