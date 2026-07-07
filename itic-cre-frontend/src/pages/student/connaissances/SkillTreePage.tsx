@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
@@ -44,6 +44,7 @@ export default function SkillTreePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading, isError } = useSkillTreeProgress();
+  const [isPanning, setIsPanning] = useState(false);
 
   const nodes = useMemo(() => data?.nodes ?? [], [data]);
 
@@ -126,10 +127,12 @@ export default function SkillTreePage() {
             centerOnInit
             limitToBounds={true}
             wheel={{ step: 0.08 }}
-
+            velocityAnimation={{ animationTime: 150, animationType: 'linear' }}
+            onPanningStart={() => setIsPanning(true)}
+            onPanningStop={() => setIsPanning(false)}
           >
             <TransformComponent
-              wrapperStyle={{ width: '100%', height: '100%' }}
+              wrapperStyle={{ width: '100%', height: '100%', cursor: isPanning ? 'grabbing' : 'grab' }}
               contentStyle={{ width: canvasWidth, height: canvasHeight }}
             >
               <div className="relative" style={{ width: canvasWidth, height: canvasHeight }}>
