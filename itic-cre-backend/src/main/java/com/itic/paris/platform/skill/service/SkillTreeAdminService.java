@@ -1,5 +1,7 @@
 package com.itic.paris.platform.skill.service;
 
+import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.User;
@@ -26,18 +28,22 @@ public class SkillTreeAdminService {
     private final QuestionRepository questionRepository;
     private final QuizValidationRepository quizValidationRepository;
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     // ── Categories ──────────────────────────────────────────────────────────
 
     @Transactional
     public SkillCategoryDTO createCategory(CreateCategorieRequest request) {
+        User actor = getCurrentUser();
         SkillCategory cat = new SkillCategory();
         cat.setNom(request.getNom());
         cat.setDescription(request.getDescription());
         cat.setOrdre(request.getOrdre());
         cat.setIcone(request.getIcone());
-        cat.setCreatedBy(getCurrentUser());
-        return mapCategoryToDTO(categoryRepository.save(cat));
+        cat.setCreatedBy(actor);
+        SkillCategory saved = categoryRepository.save(cat);
+        auditLogService.log(AuditAction.TUTO_CREATED, actor, "CATEGORY", saved.getId(), "Catégorie créée : " + saved.getNom());
+        return mapCategoryToDTO(saved);
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +63,9 @@ public class SkillTreeAdminService {
         if (request.getOrdre() != null) cat.setOrdre(request.getOrdre());
         if (request.getIcone() != null) cat.setIcone(request.getIcone());
         if (request.getActif() != null) cat.setActif(request.getActif());
-        return mapCategoryToDTO(categoryRepository.save(cat));
+        SkillCategory saved = categoryRepository.save(cat);
+        auditLogService.log(AuditAction.TUTO_UPDATED, getCurrentUser(), "CATEGORY", saved.getId(), "Catégorie modifiée : " + saved.getNom());
+        return mapCategoryToDTO(saved);
     }
 
     @Transactional
@@ -68,12 +76,14 @@ public class SkillTreeAdminService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CATEGORY_HAS_ARTICLES);
         }
         categoryRepository.delete(cat);
+        auditLogService.log(AuditAction.TUTO_DELETED, getCurrentUser(), "CATEGORY", id, "Catégorie supprimée : " + cat.getNom());
     }
 
     // ── Articles ─────────────────────────────────────────────────────────────
 
     @Transactional
     public ArticleDTO createArticle(CreateArticleRequest request) {
+        User actor = getCurrentUser();
         SkillCategory category = categoryRepository.findById(request.getCategorieId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.SKILL_CATEGORY_NOT_FOUND));
         Article article = new Article();
@@ -82,8 +92,10 @@ public class SkillTreeAdminService {
         article.setCategorie(category);
         article.setOrdre(request.getOrdre());
         article.setActif(request.getActif() != null ? request.getActif() : false);
-        article.setCreatedBy(getCurrentUser());
-        return mapArticleToDTO(articleRepository.save(article));
+        article.setCreatedBy(actor);
+        Article saved = articleRepository.save(article);
+        auditLogService.log(AuditAction.TUTO_CREATED, actor, "ARTICLE", saved.getId(), "Article créé : " + saved.getTitre());
+        return mapArticleToDTO(saved);
     }
 
     @Transactional(readOnly = true)
@@ -102,6 +114,7 @@ public class SkillTreeAdminService {
     @Transactional
     public ArticleDTO updateArticle(UUID id, UpdateArticleRequest request) {
         Article article = findArticle(id);
+        boolean wasActif = Boolean.TRUE.equals(article.getActif());
         if (request.getTitre() != null) article.setTitre(request.getTitre());
         if (request.getContenu() != null) article.setContenu(request.getContenu());
         if (request.getOrdre() != null) article.setOrdre(request.getOrdre());
@@ -111,7 +124,13 @@ public class SkillTreeAdminService {
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.SKILL_CATEGORY_NOT_FOUND));
             article.setCategorie(cat);
         }
-        return mapArticleToDTO(articleRepository.save(article));
+        Article saved = articleRepository.save(article);
+        boolean justPublished = !wasActif && Boolean.TRUE.equals(saved.getActif());
+        String description = justPublished
+                ? "Article publié : " + saved.getTitre()
+                : "Article modifié : " + saved.getTitre();
+        auditLogService.log(AuditAction.TUTO_UPDATED, getCurrentUser(), "ARTICLE", saved.getId(), description);
+        return mapArticleToDTO(saved);
     }
 
     @Transactional
@@ -121,6 +140,7 @@ public class SkillTreeAdminService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.ARTICLE_HAS_QUIZ);
         }
         articleRepository.delete(article);
+        auditLogService.log(AuditAction.TUTO_DELETED, getCurrentUser(), "ARTICLE", id, "Article supprimé : " + article.getTitre());
     }
 
     // ── Quiz ──────────────────────────────────────────────────────────────────
@@ -135,7 +155,9 @@ public class SkillTreeAdminService {
         quiz.setArticle(article);
         if (request.getScoreMinimum() != null) quiz.setScoreMinimum(request.getScoreMinimum());
         addQuestionsToQuiz(quiz, request.getQuestions());
-        return mapQuizToAdminDTO(quizRepository.save(quiz));
+        Quiz saved = quizRepository.save(quiz);
+        auditLogService.log(AuditAction.TUTO_CREATED, getCurrentUser(), "QUIZ", saved.getId(), "Quiz créé pour l'article : " + article.getTitre());
+        return mapQuizToAdminDTO(saved);
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +174,9 @@ public class SkillTreeAdminService {
         if (request.getScoreMinimum() != null) quiz.setScoreMinimum(request.getScoreMinimum());
         quiz.getQuestions().clear();
         addQuestionsToQuiz(quiz, request.getQuestions());
-        return mapQuizToAdminDTO(quizRepository.save(quiz));
+        Quiz saved = quizRepository.save(quiz);
+        auditLogService.log(AuditAction.TUTO_UPDATED, getCurrentUser(), "QUIZ", saved.getId(), "Quiz modifié pour l'article : " + saved.getArticle().getTitre());
+        return mapQuizToAdminDTO(saved);
     }
 
     @Transactional
@@ -162,7 +186,9 @@ public class SkillTreeAdminService {
         if (quizValidationRepository.existsByQuizId(id)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.QUIZ_HAS_VALIDATIONS);
         }
+        String articleTitre = quiz.getArticle().getTitre();
         quizRepository.delete(quiz);
+        auditLogService.log(AuditAction.TUTO_DELETED, getCurrentUser(), "QUIZ", id, "Quiz supprimé pour l'article : " + articleTitre);
     }
 
     @Transactional
@@ -170,15 +196,19 @@ public class SkillTreeAdminService {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.QUIZ_NOT_FOUND));
         quiz.getQuestions().add(buildQuestion(quiz, request));
-        return mapQuizToAdminDTO(quizRepository.save(quiz));
+        Quiz saved = quizRepository.save(quiz);
+        auditLogService.log(AuditAction.TUTO_UPDATED, getCurrentUser(), "QUIZ", saved.getId(), "Question ajoutée au quiz de l'article : " + saved.getArticle().getTitre());
+        return mapQuizToAdminDTO(saved);
     }
 
     @Transactional
     public void deleteQuestion(UUID questionId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.QUESTION_NOT_FOUND));
-        question.getQuiz().getQuestions().remove(question);
+        Quiz quiz = question.getQuiz();
+        quiz.getQuestions().remove(question);
         questionRepository.delete(question);
+        auditLogService.log(AuditAction.TUTO_UPDATED, getCurrentUser(), "QUIZ", quiz.getId(), "Question supprimée du quiz de l'article : " + quiz.getArticle().getTitre());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
