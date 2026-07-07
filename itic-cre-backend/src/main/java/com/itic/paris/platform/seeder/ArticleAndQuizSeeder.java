@@ -1,11 +1,14 @@
 package com.itic.paris.platform.seeder;
 
+import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.skill.model.*;
 import com.itic.paris.platform.skill.repository.ArticleRepository;
 import com.itic.paris.platform.skill.repository.QuizRepository;
 import com.itic.paris.platform.skill.repository.SkillCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -19,20 +22,27 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Order(5)
+@Order(25)
 @RequiredArgsConstructor
 public class ArticleAndQuizSeeder implements ApplicationRunner {
 
     private final SkillCategoryRepository categoryRepository;
     private final ArticleRepository articleRepository;
     private final QuizRepository quizRepository;
+    private final UserRepository userRepository;
+
+    @Value("${app.test.advisor.email:test.advisor@itic.fr}")
+    private String advisorEmail;
 
     private final Map<UUID, Integer> ordreCounters = new HashMap<>();
+    private User author;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         if (articleRepository.count() > 0) return;
+
+        author = userRepository.findByEmailIgnoreCase(advisorEmail).orElse(null);
 
         categoryRepository.findByActifTrueOrderByOrdreAsc().forEach(cat -> {
             switch (cat.getNom()) {
@@ -686,6 +696,7 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
         article.setCategorie(cat);
         article.setOrdre(ordreCounters.merge(cat.getId(), 1, Integer::sum));
         article.setActif(true);
+        article.setCreatedBy(author);
         return articleRepository.save(article);
     }
 
