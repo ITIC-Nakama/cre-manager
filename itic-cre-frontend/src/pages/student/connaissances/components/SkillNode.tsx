@@ -16,6 +16,8 @@ const STATE_STYLES: Record<SkillNodeProgress['state'], string> = {
   TO_DISCOVER: 'bg-gradient-to-br from-slate-600 to-slate-800 border-slate-500 shadow-slate-900/20',
 };
 
+const EMPTY_CIRCLE_STYLE = 'bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 border-slate-200 dark:border-slate-600 shadow-slate-200/20';
+
 interface SkillNodeProps {
   node: SkillNodeProgress;
   size: number;
@@ -36,12 +38,12 @@ export default function SkillNode({ node, size, x, y, onClick }: SkillNodeProps)
       disabled={!clickable}
       title={clickable ? node.categoryName : t('dashboard.connaissances.tree.node_empty')}
       className={`group absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform ${
-        clickable ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-50'
+        clickable ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'
       }`}
       style={{ left: x, top: y }}
     >
       <div
-        className={`relative flex items-center justify-center rounded-full border-4 shadow-lg text-white ${STATE_STYLES[node.state]}`}
+        className={`relative flex items-center justify-center rounded-full border-4 shadow-lg text-white ${clickable ? STATE_STYLES[node.state] : EMPTY_CIRCLE_STYLE}`}
         style={{ width: size, height: size }}
       >
         <span className="text-3xl select-none leading-none" role="img" aria-label={node.categoryName}>
