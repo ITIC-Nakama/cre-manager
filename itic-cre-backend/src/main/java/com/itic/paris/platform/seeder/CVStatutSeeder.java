@@ -1,4 +1,4 @@
-package com.itic.paris.platform.cv.seeder;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.repository.CVStatutRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@Order(2)
+@Order(3)
 @RequiredArgsConstructor
 public class CVStatutSeeder implements ApplicationRunner {
 

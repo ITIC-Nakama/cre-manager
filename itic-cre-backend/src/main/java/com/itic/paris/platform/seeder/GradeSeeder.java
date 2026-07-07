@@ -1,4 +1,4 @@
-package com.itic.paris.platform.gamification.seeder;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.repository.GradeRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@Order(2)
+@Order(3)
 @RequiredArgsConstructor
 public class GradeSeeder implements ApplicationRunner {
 

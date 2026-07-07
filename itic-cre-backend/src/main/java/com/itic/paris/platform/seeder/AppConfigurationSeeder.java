@@ -1,5 +1,8 @@
-package com.itic.paris.platform.shared.config;
+package com.itic.paris.platform.seeder;
 
+import com.itic.paris.platform.shared.config.AppConfiguration;
+import com.itic.paris.platform.shared.config.AppConfigurationKey;
+import com.itic.paris.platform.shared.config.AppConfigurationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -9,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Order(4)
+@Order(3)
 @RequiredArgsConstructor
 public class AppConfigurationSeeder implements ApplicationRunner {
 

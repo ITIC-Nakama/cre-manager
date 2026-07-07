@@ -1,4 +1,4 @@
-package com.itic.paris.platform.auth.core.database.seeders;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Role;
@@ -6,15 +6,20 @@ import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
+@Order(10)
 @RequiredArgsConstructor
-public class AdminBootstrapSeeder implements CommandLineRunner {
+public class AdminBootstrapSeeder implements ApplicationRunner {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -37,19 +42,14 @@ public class AdminBootstrapSeeder implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) {
-        if (!enabled || email == null || email.isBlank() || password == null || password.isBlank()) {
-            return;
-        }
+    public void run(ApplicationArguments args) {
+        if (!enabled || email == null || email.isBlank() || password == null || password.isBlank()) return;
+
         String normalizedEmail = email.trim().toLowerCase();
-        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            return;
-        }
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) return;
 
         Role adminRole = roleRepository.findByName(RoleEnum.ADMIN);
-        if (adminRole == null) {
-            return;
-        }
+        if (adminRole == null) return;
 
         Admin admin = new Admin();
         admin.setEmail(normalizedEmail);
@@ -61,5 +61,6 @@ public class AdminBootstrapSeeder implements CommandLineRunner {
         admin.setRole(adminRole);
 
         userRepository.save(admin);
+        log.info("Bootstrapped admin account: {}", normalizedEmail);
     }
 }

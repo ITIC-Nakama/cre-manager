@@ -1,4 +1,4 @@
-package com.itic.paris.platform.jobboard.seeder;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@Order(5)
+@Order(3)
 @RequiredArgsConstructor
 public class ContractTypeSeeder implements ApplicationRunner {
 
@@ -24,10 +24,10 @@ public class ContractTypeSeeder implements ApplicationRunner {
         if (contractTypeRepository.count() > 0) return;
 
         List<ContractType> types = List.of(
-                build("CDI",         "Contrat à Durée Indéterminée"),
-                build("CDD",         "Contrat à Durée Déterminée"),
-                build("Stage",       "Convention de stage (2 à 6 mois)"),
-                build("Alternance",  "Contrat d'apprentissage ou de professionnalisation")
+                build("CDI",        "Contrat à Durée Indéterminée"),
+                build("CDD",        "Contrat à Durée Déterminée"),
+                build("Stage",      "Convention de stage (2 à 6 mois)"),
+                build("Alternance", "Contrat d'apprentissage ou de professionnalisation")
         );
 
         contractTypeRepository.saveAll(types);

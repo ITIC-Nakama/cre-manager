@@ -1,4 +1,4 @@
-package com.itic.paris.platform.crm.seeder;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@Order(1)
+@Order(3)
 @RequiredArgsConstructor
 public class ApplicationStatusSeeder implements ApplicationRunner {
 
@@ -24,12 +24,12 @@ public class ApplicationStatusSeeder implements ApplicationRunner {
         if (statusRepository.count() > 0) return;
 
         List<ApplicationStatus> statuses = List.of(
-                build("À postuler",        1, "#9CA3AF", 0,  false, true),
-                build("Postulé",           2, "#3B82F6", 5,  true,  true),
-                build("Entretien décroché",3, "#F59E0B", 15, true,  true),
-                build("Entretien passé",   4, "#8B5CF6", 10, false, true),
-                build("Offre reçue",       5, "#10B981", 25, false, true),
-                build("Refusé",            6, "#EF4444", 0,  false, true)
+                build("À postuler",         1, "#9CA3AF", 0,  false, true),
+                build("Postulé",            2, "#3B82F6", 5,  true,  true),
+                build("Entretien décroché", 3, "#F59E0B", 15, true,  true),
+                build("Entretien passé",    4, "#8B5CF6", 10, false, true),
+                build("Offre reçue",        5, "#10B981", 25, false, true),
+                build("Refusé",             6, "#EF4444", 0,  false, true)
         );
 
         statusRepository.saveAll(statuses);

@@ -1,4 +1,4 @@
-package com.itic.paris.platform.gamification.seeder;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.gamification.model.GamificationConfig;
 import com.itic.paris.platform.gamification.model.enums.ActionXP;
@@ -24,12 +24,11 @@ public class GamificationConfigSeeder implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         if (configRepository.count() > 0) return;
 
-        // CANDIDATURE_STATUS_CHANGED n'est pas seedee ici : son XP est en realite
-        // determine par ApplicationStatus.gainXP (configurable par statut), pas par
-        // une valeur generique. Voir ApplicationService.changeStatus().
+        // CANDIDATURE_STATUS_CHANGED n'est pas seedée ici : son XP est déterminé
+        // par ApplicationStatus.gainXP (configurable par statut). Voir ApplicationService.
         List<GamificationConfig> configs = List.of(
                 build(ActionXP.CANDIDATURE_CREATED, 10, true),
-                build(ActionXP.QUIZ_COMPLETED, 40, true)
+                build(ActionXP.QUIZ_COMPLETED,      40, true)
         );
 
         configRepository.saveAll(configs);

@@ -1,4 +1,4 @@
-package com.itic.paris.platform.auth.core.database.seeders;
+package com.itic.paris.platform.seeder;
 
 import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Role;
@@ -6,31 +6,34 @@ import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 // TODO: SUPPRIMER CE SEEDER AVANT LA MISE EN PRODUCTION
+@Slf4j
 @Component
+@Order(20)
 @RequiredArgsConstructor
-@Order(10)
-public class TestAdminSeeder implements CommandLineRunner {
+public class TestAdminSeeder implements ApplicationRunner {
 
-    private final UserRepository  userRepository;
-    private final RoleRepository  roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
 
     @Value("${app.test.admin.email:test.admin@itic.fr}")
-    private String testEmail;
+    private String email;
 
     @Value("${app.test.admin.password:Test123!}")
-    private String testPassword;
+    private String password;
 
     @Value("${app.test.admin.first-name:Admin}")
     private String firstName;
@@ -40,22 +43,23 @@ public class TestAdminSeeder implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) {
+    public void run(ApplicationArguments args) {
         if (!enabled) return;
-        if (userRepository.existsByEmailIgnoreCase(testEmail)) return;
+        if (userRepository.existsByEmailIgnoreCase(email)) return;
 
         Role role = roleRepository.findByName(RoleEnum.ADMIN);
         if (role == null) return;
 
         Admin admin = new Admin();
-        admin.setEmail(testEmail);
+        admin.setEmail(email);
         admin.setFirstName(firstName);
         admin.setLastName(lastName);
-        admin.setPassword(passwordEncoder.encode(testPassword));
+        admin.setPassword(passwordEncoder.encode(password));
         admin.setEmailVerified(true);
         admin.setMustChangePassword(false);
         admin.setRole(role);
 
         userRepository.save(admin);
+        log.info("Seeded test admin: {}", email);
     }
 }
