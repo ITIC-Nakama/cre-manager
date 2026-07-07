@@ -423,6 +423,56 @@
       "default_option_2": "Option 2",
       "default_new_option": "Nouvelle Option"
     },
+    "connaissances": {
+      "tree": {
+        "title": "Connaissances",
+        "subtitle": "Explore l'arbre de compétences et gagne de l'XP en validant des quiz.",
+        "progress_label": "{{completed}}/{{total}} articles complétés",
+        "xp_total": "{{xp}} XP",
+        "domains_count_one": "{{count}} domaine",
+        "domains_count_other": "{{count}} domaines",
+        "legend_completed": "Complété",
+        "legend_in_progress": "En cours",
+        "legend_to_discover": "À découvrir",
+        "node_articles": "{{completed}}/{{total}} articles",
+        "node_completed_label": "Complété",
+        "node_empty": "Bientôt disponible",
+        "loading": "Chargement de l'arbre de compétences...",
+        "load_error": "Impossible de charger votre progression."
+      },
+      "category": {
+        "breadcrumb_root": "Connaissances",
+        "back": "Retour à l'arbre",
+        "no_articles": "Aucun article disponible dans cette catégorie pour le moment.",
+        "quiz_validated": "Quiz validé",
+        "quiz_available": "Quiz disponible",
+        "quiz_none": "Sans quiz",
+        "loading": "Chargement des articles...",
+        "load_error": "Impossible de charger les articles de cette catégorie."
+      },
+      "article": {
+        "back": "Retour",
+        "loading": "Chargement de l'article...",
+        "load_error": "Impossible de charger cet article."
+      },
+      "quiz": {
+        "title": "Quiz de validation",
+        "already_validated": "Quiz validé ✓",
+        "score_obtained": "Score obtenu : {{score}}%",
+        "min_score_info": "Score minimum requis : {{min}}%",
+        "submit": "Soumettre",
+        "submitting": "Envoi en cours...",
+        "retry": "Réessayer",
+        "success_title": "Quiz réussi !",
+        "success_xp": "+{{xp}} XP gagnée",
+        "already_validated_no_xp": "Tu avais déjà validé ce quiz, aucune XP supplémentaire n'a été attribuée.",
+        "fail_title": "Score insuffisant",
+        "fail_score": "Tu as obtenu {{score}}%, il faut au moins {{min}}% pour valider.",
+        "submit_error": "Erreur lors de la soumission du quiz.",
+        "loading": "Chargement du quiz...",
+        "load_error": "Impossible de charger le quiz."
+      }
+    },
     "gamification": {
       "title": "Gamification",
       "badge": "Espace Configuration",

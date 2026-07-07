@@ -423,6 +423,56 @@
       "default_option_2": "Option 2",
       "default_new_option": "New Option"
     },
+    "connaissances": {
+      "tree": {
+        "title": "Knowledge",
+        "subtitle": "Explore the skill tree and earn XP by passing quizzes.",
+        "progress_label": "{{completed}}/{{total}} articles completed",
+        "xp_total": "{{xp}} XP",
+        "domains_count_one": "{{count}} domain",
+        "domains_count_other": "{{count}} domains",
+        "legend_completed": "Completed",
+        "legend_in_progress": "In progress",
+        "legend_to_discover": "To discover",
+        "node_articles": "{{completed}}/{{total}} articles",
+        "node_completed_label": "Completed",
+        "node_empty": "Coming soon",
+        "loading": "Loading the skill tree...",
+        "load_error": "Unable to load your progress."
+      },
+      "category": {
+        "breadcrumb_root": "Knowledge",
+        "back": "Back to tree",
+        "no_articles": "No articles available in this category yet.",
+        "quiz_validated": "Quiz passed",
+        "quiz_available": "Quiz available",
+        "quiz_none": "No quiz",
+        "loading": "Loading articles...",
+        "load_error": "Unable to load this category's articles."
+      },
+      "article": {
+        "back": "Back",
+        "loading": "Loading the article...",
+        "load_error": "Unable to load this article."
+      },
+      "quiz": {
+        "title": "Validation quiz",
+        "already_validated": "Quiz passed ✓",
+        "score_obtained": "Score obtained: {{score}}%",
+        "min_score_info": "Minimum required score: {{min}}%",
+        "submit": "Submit",
+        "submitting": "Submitting...",
+        "retry": "Retry",
+        "success_title": "Quiz passed!",
+        "success_xp": "+{{xp}} XP earned",
+        "already_validated_no_xp": "You had already passed this quiz, no extra XP was awarded.",
+        "fail_title": "Score too low",
+        "fail_score": "You scored {{score}}%, at least {{min}}% is required to pass.",
+        "submit_error": "Error while submitting the quiz.",
+        "loading": "Loading the quiz...",
+        "load_error": "Unable to load the quiz."
+      }
+    },
     "gamification": {
       "title": "Gamification",
       "badge": "Configuration Space",
