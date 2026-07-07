@@ -150,7 +150,7 @@ public class SkillTreeStudentService {
             questionResults.add(new QuestionResultDTO(question.getId(), isCorrect));
         }
 
-        int score = total > 0 ? (correct * 100) / total : 0;
+        int score = total > 0 ? Math.round((correct * 100f) / total) : 0;
         boolean passed = score >= quiz.getScoreMinimum();
         int xpAwarded = 0;
 
