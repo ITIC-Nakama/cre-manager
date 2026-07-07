@@ -112,6 +112,24 @@ public class CVService {
         return buildCVResponse(cv);
     }
 
+    @Transactional
+    public void deleteMyCv(UUID studentId) {
+        CV cv = cvRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CV_NOT_FOUND));
+
+        if (cv.getFilePath() != null) {
+            cloudStorage.deleteFile(cv.getFilePath());
+        }
+
+        commentaireRepository.deleteByCvId(cv.getId());
+        cvRepository.delete(cv);
+
+        Student student = studentRepository.findById(studentId).orElse(null);
+        if (student != null) {
+            auditLogService.log(AuditAction.OTHER, student, cv.getId(), "CV supprimé par l'étudiant");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllCVs(UUID statutId) {
         List<CV> cvs;

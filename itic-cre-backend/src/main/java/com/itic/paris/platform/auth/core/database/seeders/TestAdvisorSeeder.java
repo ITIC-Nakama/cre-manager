@@ -12,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 // TODO: SUPPRIMER CE SEEDER AVANT LA MISE EN PRODUCTION
 @Component
@@ -22,6 +23,7 @@ public class TestAdvisorSeeder implements CommandLineRunner {
     private final UserRepository  userRepository;
     private final RoleRepository  roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate    jdbcTemplate;
 
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
@@ -60,6 +62,10 @@ public class TestAdvisorSeeder implements CommandLineRunner {
         advisor.setRole(role);
         advisor.setJobTitle(jobTitle);
 
-        userRepository.save(advisor);
+        Advisor saved = userRepository.saveAndFlush(advisor);
+
+        // Add dummy linked data so the advisor is soft-deleted during tests
+        jdbcTemplate.update("INSERT INTO skill_categories (id, nom, description, ordre, icone, actif, created_by_id, date_creation) VALUES (gen_random_uuid(), 'Test Category ' || ?, 'Description', 1, null, true, ?, now()) ON CONFLICT DO NOTHING",
+                saved.getId(), saved.getId());
     }
 }

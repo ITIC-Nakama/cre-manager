@@ -91,6 +91,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_first_name')} <span className="text-rose-500">*</span></label>
               <input
+                name="firstName"
                 type="text"
                 required
                 maxLength={50}
@@ -103,6 +104,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_last_name')} <span className="text-rose-500">*</span></label>
               <input
+                name="lastName"
                 type="text"
                 required
                 maxLength={50}
@@ -117,6 +119,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_email')} <span className="text-rose-500">*</span></label>
             <input
+              name="email"
               type="email"
               required
               value={email}
@@ -131,6 +134,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_password')}</label>
               <div className="flex items-center gap-2">
                 <input
+                  name="password"
                   type="text"
                   readOnly
                   value={password}
@@ -174,6 +178,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_job_title')}</label>
               <input
+                name="jobTitle"
                 type="text"
                 maxLength={120}
                 value={jobTitle}
@@ -196,6 +201,7 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
               {t('dashboard.conseillers.btn_cancel')}
             </button>
             <button
+              data-cy="btn-save-advisor"
               type="submit"
               disabled={saving}
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"

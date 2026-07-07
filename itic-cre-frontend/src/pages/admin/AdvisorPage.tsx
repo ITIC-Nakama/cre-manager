@@ -57,7 +57,7 @@ export default function AdvisorPage() {
     title: string;
     message: string;
     onConfirm: () => Promise<void>;
-  }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+  }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
@@ -176,6 +176,7 @@ export default function AdvisorPage() {
           </p>
         </div>
         <button
+          data-cy="btn-create-advisor"
           onClick={() => setModal({ isOpen: true, mode: 'create' })}
           className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
         >
@@ -271,6 +272,7 @@ export default function AdvisorPage() {
                       </button>
                       {advisor.active ? (
                         <button
+                          data-cy="btn-delete-advisor"
                           onClick={() => handleDelete(advisor)}
                           className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
                           title={t('dashboard.conseillers.actions.delete')}
@@ -279,6 +281,7 @@ export default function AdvisorPage() {
                         </button>
                       ) : (
                         <button
+                          data-cy="btn-reactivate-advisor"
                           onClick={() => handleReactivate(advisor)}
                           className="inline-flex p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
                           title={t('dashboard.conseillers.actions.reactivate')}

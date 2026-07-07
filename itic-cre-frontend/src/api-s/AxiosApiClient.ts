@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useUserStore } from '../store/UserStore';
 
-const apiBaseUrl = import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
+const apiBaseUrl = import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:8081/api/v1';
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,

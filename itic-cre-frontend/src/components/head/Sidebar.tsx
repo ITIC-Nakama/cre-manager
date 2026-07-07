@@ -108,6 +108,7 @@ function SidebarContent({
               <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
             </div>
             <button
+              id="btn-logout"
               onClick={() => logout().then(() => navigate('/login'))}
               className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
               title="Déconnexion"
@@ -141,6 +142,7 @@ function SidebarContent({
                 <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
               </div>
               <button
+                id="btn-logout"
                 onClick={() => logout().then(() => navigate('/login'))}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
                 title="Déconnexion"

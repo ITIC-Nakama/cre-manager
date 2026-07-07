@@ -15,6 +15,8 @@ import { Role } from './types/models/Auth'
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
 import StudentOffresPage from './pages/student/OffresPage'
+import StudentCandidaturesPage from './pages/student/CandidaturesPage'
+import StudentCVPage from './pages/student/CVPage'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/CandidaturesPage'
@@ -74,10 +76,10 @@ function App() {
         {/* Student Routes */}
         <Route element={<StudentLayout />}>
           <Route path="/student/dashboard"     element={<StudentDashboard />} />
-          <Route path="/student/candidatures"  element={<ComingSoonPage />} />
+          <Route path="/student/candidatures"  element={<StudentCandidaturesPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/formation"     element={<ComingSoonPage />} />
-          <Route path="/student/cv"            element={<ComingSoonPage />} />
+          <Route path="/student/cv"            element={<StudentCVPage />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 

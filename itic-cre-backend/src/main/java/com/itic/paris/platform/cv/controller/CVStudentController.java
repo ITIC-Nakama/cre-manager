@@ -34,6 +34,13 @@ public class CVStudentController {
         return ResponseEntity.ok(cvService.getMyCv(SecurityContextHelper.currentUserId()));
     }
 
+    @DeleteMapping
+    @Operation(summary = "Supprimer son CV (pour le remplacer ou annuler)")
+    public ResponseEntity<?> deleteMyCv() {
+        cvService.deleteMyCv(SecurityContextHelper.currentUserId());
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/comments")
     @Operation(summary = "Voir les commentaires du conseiller sur son CV")
     public ResponseEntity<?> getMyComments() {

@@ -36,3 +36,65 @@ export function useUpdateApplicationStatus() {
         },
     });
 }
+
+import {
+    fetchMyApplications,
+    createApplication,
+    updateApplication,
+    changeApplicationStatus,
+    deleteApplication,
+    type ApplicationFormData
+} from '../api-s/requests/ApplicationRequest';
+
+export function useMyApplications(params: ApplicationListParams = {}) {
+    return useQuery({
+        queryKey: ['my-applications', params],
+        queryFn: () => fetchMyApplications(params),
+        placeholderData: (prev) => prev,
+    });
+}
+
+export function useCreateApplication() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: createApplication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+        },
+    });
+}
+
+export function useUpdateApplication() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: ApplicationFormData }) =>
+            updateApplication(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+        },
+    });
+}
+
+export function useChangeApplicationStatus() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, statusId }: { id: string; statusId: string }) =>
+            changeApplicationStatus(id, statusId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+            // L'XP peut changer, donc on invalide aussi le résumé dashboard
+            queryClient.invalidateQueries({ queryKey: ['my-dashboard-summary'] });
+        },
+    });
+}
+
+export function useDeleteApplication() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteApplication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+            queryClient.invalidateQueries({ queryKey: ['my-dashboard-summary'] });
+        },
+    });
+}

@@ -38,3 +38,32 @@ export function updateApplicationStatus(id: string, data: { gainXP?: number; cou
 export function fetchContractTypes(): Promise<ContractType[]> {
     return apiClient.get('/jobboard/contract-types/active/list').then((response) => unwrap<ContractType[]>(response));
 }
+
+export interface ApplicationFormData {
+    entreprise: string;
+    poste: string;
+    typeContratId?: string;
+    lienOffre?: string;
+    contact?: string;
+    notes?: string;
+}
+
+export function fetchMyApplications(params: ApplicationListParams = {}): Promise<ApplicationPage> {
+    return apiClient.get('/applications', { params }).then((response) => unwrap<ApplicationPage>(response));
+}
+
+export function createApplication(data: ApplicationFormData): Promise<ApplicationRow> {
+    return apiClient.post('/applications', data).then((response) => unwrap<ApplicationRow>(response));
+}
+
+export function updateApplication(id: string, data: ApplicationFormData): Promise<ApplicationRow> {
+    return apiClient.put(`/applications/${id}`, data).then((response) => unwrap<ApplicationRow>(response));
+}
+
+export function changeApplicationStatus(id: string, statusId: string): Promise<ApplicationRow> {
+    return apiClient.patch(`/applications/${id}/status`, { statusId }).then((response) => unwrap<ApplicationRow>(response));
+}
+
+export function deleteApplication(id: string): Promise<void> {
+    return apiClient.delete(`/applications/${id}`);
+}

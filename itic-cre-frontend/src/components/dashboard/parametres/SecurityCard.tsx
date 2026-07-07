@@ -23,6 +23,7 @@ function SettingActionRow({ icon, title, subtitle, actionLabel, onAction }: {
         </div>
       </div>
       <button
+        data-cy="btn-change-password"
         onClick={onAction}
         className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary-400 cursor-pointer transition-colors shrink-0"
       >

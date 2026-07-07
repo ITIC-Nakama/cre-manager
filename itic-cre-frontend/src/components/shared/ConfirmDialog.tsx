@@ -55,6 +55,7 @@ export default function ConfirmDialog({
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
           <button
+            data-cy="btn-confirm-cancel"
             onClick={onClose}
             disabled={loading}
             className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
@@ -62,6 +63,7 @@ export default function ConfirmDialog({
             {cancelLabel ?? t('common.confirm_dialog.cancel')}
           </button>
           <button
+            data-cy="btn-confirm-accept"
             onClick={onConfirm}
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"

@@ -105,6 +105,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwAuthFilter(jwtAuthProvider), BasicAuthenticationFilter.class)
                 .addFilterAfter(new MustChangePasswordFilter(), JwAuthFilter.class)
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

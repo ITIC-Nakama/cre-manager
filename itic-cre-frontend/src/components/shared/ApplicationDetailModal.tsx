@@ -55,18 +55,20 @@ export default function ApplicationDetailModal({ application, onClose }: Props) 
                         )}
                     </div>
 
-                    <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3">
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                            {t('dashboard.candidatures.detail.student')}
-                        </p>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                            {application.student.firstName} {application.student.lastName}
-                        </p>
-                        <p className="text-xs text-slate-400">{application.student.email}</p>
-                        {application.student.promotion && (
-                            <p className="text-xs text-slate-400 mt-0.5">{application.student.promotion.nom}</p>
-                        )}
-                    </div>
+                    {application.student && (
+                        <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3">
+                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                                {t('dashboard.candidatures.detail.student')}
+                            </p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                {application.student.firstName} {application.student.lastName}
+                            </p>
+                            <p className="text-xs text-slate-400">{application.student.email}</p>
+                            {application.student.promotion && (
+                                <p className="text-xs text-slate-400 mt-0.5">{application.student.promotion.nom}</p>
+                            )}
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>

@@ -21,7 +21,7 @@ public class LocalStorageService implements ICloudStorage {
     @Value("${storage.local.directory:./uploads}")
     private String uploadDirectory;
 
-    @Value("${storage.local.base-url:http://localhost:8080/api/v1/files}")
+    @Value("${storage.local.base-url:http://localhost:8081/api/v1/files}")
     private String baseUrl;
 
     @Override
