@@ -44,6 +44,14 @@ function SidebarContent({
     i18n.changeLanguage((i18n.language || 'fr').startsWith('fr') ? 'en' : 'fr');
   };
 
+  const goToSettings = () => {
+    if (user?.role === Role.STUDENT) {
+      navigate('/student/parametres');
+    } else {
+      navigate('/supervisor/parametres');
+    }
+  };
+
   const lang = (i18n.language || 'fr').split('-')[0].toUpperCase();
   const fullName = user ? `${user.firstName} ${user.lastName}` : '';
   const roleLabel =
@@ -104,9 +112,9 @@ function SidebarContent({
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <div title={fullName}>
+            <button type="button" onClick={goToSettings} title={fullName} className="cursor-pointer hover:opacity-80 transition-opacity">
               <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
-            </div>
+            </button>
             <button
               id="btn-logout"
               onClick={() => logout().then(() => navigate('/login'))}
@@ -136,11 +144,13 @@ function SidebarContent({
               </button>
             </div>
             <div className="flex items-center gap-3">
-              <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{fullName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
-              </div>
+              <button type="button" onClick={goToSettings} className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer hover:opacity-80 transition-opacity">
+                <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{fullName}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
+                </div>
+              </button>
               <button
                 id="btn-logout"
                 onClick={() => logout().then(() => navigate('/login'))}

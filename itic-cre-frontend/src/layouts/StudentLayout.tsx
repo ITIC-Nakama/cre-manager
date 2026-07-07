@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { Role } from '../types/models/Auth';
 import RequireAuth from './RequireAuth';
 import Sidebar from '../components/head/Sidebar';
-import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Building2, Compass, FileText, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function StudentLayout() {
@@ -14,7 +14,7 @@ export default function StudentLayout() {
     { label: t('dashboard.sidebar.offres'),        icon: Building2,       to: '/student/offres' },
     { label: t('dashboard.sidebar.formation'),     icon: Compass,         to: '/student/connaissances' },
     { label: t('dashboard.sidebar.cv'),            icon: FileText,        to: '/student/cv' },
-    { label: t('dashboard.sidebar.profil'),        icon: User,            to: '/student/parametres' },
+    { label: t('dashboard.sidebar.parametres'),    icon: Settings,        to: '/student/parametres' },
   ];
 
   return (
