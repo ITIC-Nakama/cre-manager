@@ -58,6 +58,7 @@ export function useAddCVComment() {
     });
 }
 
+
 export function useDeleteCVComment() {
     const queryClient = useQueryClient();
     return useMutation({

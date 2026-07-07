@@ -1,5 +1,4 @@
-import { useTranslation } from 'react-i18next';
-import CustomSelect from '../../basics/CustomSelect';
+import SwitchLanguage from '../../basics/SwitchLanguage';
 
 function SettingRow({ icon, title, subtitle, action }: {
   icon: React.ReactNode;
@@ -23,20 +22,13 @@ function SettingRow({ icon, title, subtitle, action }: {
   );
 }
 
-const LANG_OPTIONS = [
-  { value: 'fr', label: 'Français' },
-  { value: 'en', label: 'English' },
-];
-
 export default function PreferencesCard() {
-  const { i18n } = useTranslation();
-  const currentLang = i18n.language ? i18n.language.split('-')[0] : 'fr';
 
   return (
     <div className="space-y-3">
       <h2 className="text-base font-bold text-slate-900 dark:text-white">Préférences</h2>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
 
         <SettingRow
           icon={
@@ -46,15 +38,7 @@ export default function PreferencesCard() {
           }
           title="Langue"
           subtitle="Langue de l'interface"
-          action={
-            <CustomSelect
-              id="pref-language"
-              value={currentLang}
-              options={LANG_OPTIONS}
-              onChange={(val) => i18n.changeLanguage(val)}
-              dropUp={false}
-            />
-          }
+          action={<SwitchLanguage />}
         />
       </div>
     </div>

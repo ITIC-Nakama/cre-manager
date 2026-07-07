@@ -38,7 +38,7 @@
     "sidebar": {
       "accueil": "Tableau de bord",
       "candidatures": "Candidatures",
-      "formation": "Formation",
+      "formation": "Connaissances",
       "cv": "Mon CV",
       "profil": "Profil",
       "etudiants": "Étudiants",
@@ -211,7 +211,7 @@
       "create_button": "Publier une offre",
       "search_placeholder": "Rechercher (intitulé, entreprise)…",
       "filter_all_contracts": "Tous les types de contrat",
-      "apply_button": "Postuler",
+      "apply_button": "Marquer comme posté",
       "already_applied": "Déjà postulé",
       "confirm_delete_title": "Supprimer l'offre",
       "confirm_delete": "Supprimer l'offre « {{title}} » ? Cette action est irréversible.",

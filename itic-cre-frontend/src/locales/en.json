@@ -38,7 +38,7 @@
     "sidebar": {
       "accueil": "Dashboard",
       "candidatures": "Applications",
-      "formation": "Training",
+      "formation": "Knowledge",
       "cv": "My CV",
       "profil": "Profile",
       "etudiants": "Students",
@@ -211,7 +211,7 @@
       "create_button": "Publish an offer",
       "search_placeholder": "Search (title, company)…",
       "filter_all_contracts": "All contract types",
-      "apply_button": "Apply",
+      "apply_button": "Mark as applied",
       "already_applied": "Already applied",
       "confirm_delete_title": "Delete offer",
       "confirm_delete": "Delete offer \"{{title}}\"? This action cannot be undone.",
