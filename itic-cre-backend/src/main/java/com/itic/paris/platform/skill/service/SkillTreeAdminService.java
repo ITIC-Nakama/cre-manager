@@ -187,10 +187,19 @@ public class SkillTreeAdminService {
     }
 
     private Question buildQuestion(Quiz quiz, CreateQuestionRequest req) {
+        QuestionType type = "SINGLE".equalsIgnoreCase(req.getType()) ? QuestionType.SINGLE : QuestionType.MULTIPLE;
+        if (type == QuestionType.SINGLE) {
+            long correctCount = req.getAnswers().stream().filter(CreateAnswerRequest::isEstCorrecte).count();
+            if (correctCount != 1) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.QUESTION_SINGLE_CHOICE_INVALID);
+            }
+        }
+
         Question q = new Question();
         q.setQuiz(quiz);
         q.setTexte(req.getTexte());
         q.setOrdre(req.getOrdre());
+        q.setType(type);
         req.getAnswers().forEach(a -> {
             Answer answer = new Answer();
             answer.setQuestion(q);
@@ -199,6 +208,10 @@ public class SkillTreeAdminService {
             q.getReponses().add(answer);
         });
         return q;
+    }
+
+    static String questionTypeName(Question q) {
+        return (q.getType() != null ? q.getType() : QuestionType.MULTIPLE).name();
     }
 
     private Article findArticle(UUID id) {
@@ -220,6 +233,10 @@ public class SkillTreeAdminService {
     }
 
     ArticleSummaryDTO mapArticleToSummaryDTO(Article a) {
+        return mapArticleToSummaryDTO(a, null);
+    }
+
+    ArticleSummaryDTO mapArticleToSummaryDTO(Article a, Boolean completed) {
         return new ArticleSummaryDTO(
                 a.getId(), a.getTitre(),
                 a.getCategorie().getId(), a.getCategorie().getNom(),
@@ -227,10 +244,15 @@ public class SkillTreeAdminService {
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,
                 a.getCreatedBy() != null ? a.getCreatedBy().getEmail() : null,
-                a.getDateCreation(), a.getDateModification());
+                a.getDateCreation(), a.getDateModification(),
+                completed);
     }
 
     ArticleDTO mapArticleToDTO(Article a) {
+        return mapArticleToDTO(a, null);
+    }
+
+    ArticleDTO mapArticleToDTO(Article a, Boolean completed) {
         return new ArticleDTO(
                 a.getId(), a.getTitre(), a.getContenu(),
                 a.getCategorie().getId(), a.getCategorie().getNom(),
@@ -238,13 +260,14 @@ public class SkillTreeAdminService {
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,
                 a.getCreatedBy() != null ? a.getCreatedBy().getEmail() : null,
-                a.getDateCreation(), a.getDateModification());
+                a.getDateCreation(), a.getDateModification(),
+                completed);
     }
 
     QuizAdminDTO mapQuizToAdminDTO(Quiz quiz) {
         List<QuestionAdminDTO> questions = quiz.getQuestions().stream()
                 .map(q -> new QuestionAdminDTO(
-                        q.getId(), q.getTexte(), q.getOrdre(),
+                        q.getId(), q.getTexte(), q.getOrdre(), questionTypeName(q),
                         q.getReponses().stream()
                                 .map(a -> new AnswerDTO(a.getId(), a.getTexte(), a.getEstCorrecte()))
                                 .toList()))

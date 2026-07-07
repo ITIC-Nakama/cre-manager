@@ -28,6 +28,11 @@ public class Question {
     @Column(nullable = false)
     private Integer ordre;
 
+    /** Nullable : absent = MULTIPLE (comportement historique avant l'introduction du choix unique). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_type")
+    private QuestionType type;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> reponses = new ArrayList<>();
 }

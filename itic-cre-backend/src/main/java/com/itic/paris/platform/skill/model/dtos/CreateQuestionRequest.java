@@ -16,6 +16,8 @@ public class CreateQuestionRequest {
     private String texte;
     @NotNull
     private Integer ordre;
+    /** "SINGLE" ou "MULTIPLE" ; absent ou invalide = MULTIPLE. */
+    private String type;
     @NotEmpty
     private List<@Valid CreateAnswerRequest> answers;
 }

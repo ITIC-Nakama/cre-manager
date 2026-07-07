@@ -14,5 +14,6 @@ public record ArticleDTO(
         UUID createdById,
         String createdByEmail,
         Instant dateCreation,
-        Instant dateModification
+        Instant dateModification,
+        Boolean completed
 ) {}

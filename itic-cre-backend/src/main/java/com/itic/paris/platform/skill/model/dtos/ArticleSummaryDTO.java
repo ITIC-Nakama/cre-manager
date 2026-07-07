@@ -13,5 +13,6 @@ public record ArticleSummaryDTO(
         UUID createdById,
         String createdByEmail,
         Instant dateCreation,
-        Instant dateModification
+        Instant dateModification,
+        Boolean completed
 ) {}

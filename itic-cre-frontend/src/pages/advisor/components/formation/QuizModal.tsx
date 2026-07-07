@@ -134,9 +134,31 @@ export default function QuizModal({
 
   const handleToggleCorrectAnswer = (qIndex: number, aIndex: number) => {
     const updated = [...questions];
-    updated[qIndex].answers = updated[qIndex].answers.map((ans, idx) =>
-      idx === aIndex ? { ...ans, estCorrecte: !ans.estCorrecte } : ans
-    );
+    const question = updated[qIndex];
+    if (question.type === 'SINGLE') {
+      // Radio behaviour: exactly one correct answer, can't uncheck the only one selected.
+      question.answers = question.answers.map((ans, idx) => ({ ...ans, estCorrecte: idx === aIndex }));
+    } else {
+      question.answers = question.answers.map((ans, idx) =>
+        idx === aIndex ? { ...ans, estCorrecte: !ans.estCorrecte } : ans
+      );
+    }
+    setQuestions(updated);
+  };
+
+  const handleToggleQuestionType = (qIndex: number) => {
+    const updated = [...questions];
+    const question = updated[qIndex];
+    const nextType = question.type === 'SINGLE' ? 'MULTIPLE' : 'SINGLE';
+    if (nextType === 'SINGLE') {
+      // Keep only the first correct answer so the question is immediately valid.
+      const firstCorrect = question.answers.findIndex(a => a.estCorrecte);
+      question.answers = question.answers.map((ans, idx) => ({
+        ...ans,
+        estCorrecte: idx === (firstCorrect === -1 ? 0 : firstCorrect)
+      }));
+    }
+    question.type = nextType;
     setQuestions(updated);
   };
 
@@ -160,9 +182,13 @@ export default function QuizModal({
         toast.error(t('dashboard.formation.toast_question_min_options', { num: i + 1 }));
         return;
       }
-      const hasCorrect = q.answers.some(a => a.estCorrecte);
-      if (!hasCorrect) {
+      const correctCount = q.answers.filter(a => a.estCorrecte).length;
+      if (correctCount === 0) {
         toast.error(t('dashboard.formation.toast_question_no_correct', { num: i + 1 }));
+        return;
+      }
+      if (q.type === 'SINGLE' && correctCount !== 1) {
+        toast.error(t('dashboard.formation.toast_question_single_choice_invalid', { num: i + 1 }));
         return;
       }
       const anyEmpty = q.answers.some(a => !a.texte.trim());
@@ -182,6 +208,7 @@ export default function QuizModal({
       questions: questions.map(q => ({
         texte: q.texte,
         ordre: q.ordre,
+        type: q.type ?? 'MULTIPLE',
         answers: q.answers.map(a => ({
           texte: a.texte,
           estCorrecte: a.estCorrecte
@@ -323,31 +350,50 @@ export default function QuizModal({
                     disabled={saving}
                     className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-600 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleToggleQuestionType(qIdx)}
+                    disabled={saving}
+                    title={t('dashboard.formation.label_question_type')}
+                    className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {question.type === 'SINGLE'
+                      ? t('dashboard.formation.question_type_single')
+                      : t('dashboard.formation.question_type_multiple')}
+                  </button>
                 </div>
 
                 {/* Answers section */}
                 <div className="pl-10 flex flex-col gap-3">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    {t('dashboard.formation.label_answers_options')} <span className="text-rose-500">*</span>
+                    {question.type === 'SINGLE'
+                      ? t('dashboard.formation.label_answers_options_single')
+                      : t('dashboard.formation.label_answers_options')} <span className="text-rose-500">*</span>
                   </label>
                   
                   <div className="flex flex-col gap-2">
                     {question.answers.map((answer, aIdx) => (
                       <div key={aIdx} className="flex items-center gap-3 group/ans">
                         
-                        {/* Checkbox for correct selection — multiple answers can be marked correct */}
+                        {/* Correct-answer marker — checkbox for MULTIPLE, radio dot for SINGLE */}
                         <button
                           type="button"
                           disabled={saving}
                           onClick={() => handleToggleCorrectAnswer(qIdx, aIdx)}
                           title={t('dashboard.formation.label_mark_correct')}
-                          className={`flex items-center justify-center h-5 w-5 rounded-md border transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                          className={`flex items-center justify-center h-5 w-5 border transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                            question.type === 'SINGLE' ? 'rounded-full' : 'rounded-md'
+                          } ${
                             answer.estCorrecte
                               ? 'bg-emerald-500 border-emerald-500 text-white'
                               : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500'
                           }`}
                         >
-                          {answer.estCorrecte && <Check className="h-3 w-3 stroke-[3]" />}
+                          {answer.estCorrecte && (
+                            question.type === 'SINGLE'
+                              ? <span className="h-2 w-2 rounded-full bg-white" />
+                              : <Check className="h-3 w-3 stroke-[3]" />
+                          )}
                         </button>
 
                         {/* Option text input */}

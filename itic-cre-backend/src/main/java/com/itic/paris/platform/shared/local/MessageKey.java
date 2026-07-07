@@ -101,6 +101,7 @@ public enum MessageKey {
     QUIZ_NOT_FOUND("quiz-not-found", "Quiz introuvable", "Quiz not found"),
     QUIZ_ALREADY_EXISTS("quiz-already-exists", "Un quiz existe déjà pour cet article", "A quiz already exists for this article"),
     QUESTION_NOT_FOUND("question-not-found", "Question introuvable", "Question not found"),
+    QUESTION_SINGLE_CHOICE_INVALID("question-single-choice-invalid", "Une question à choix unique doit avoir exactement une réponse correcte", "A single-choice question must have exactly one correct answer"),
     // Promotion messages
     PROMOTION_NOT_FOUND("promotion-not-found", "Promotion introuvable", "Promotion not found"),
     PROMOTION_NAME_ALREADY_EXISTS("promotion-name-already-exists", "Une promotion avec ce nom existe déjà", "A promotion with this name already exists"),

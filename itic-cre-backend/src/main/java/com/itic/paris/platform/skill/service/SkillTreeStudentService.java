@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ public class SkillTreeStudentService {
     private final ArticleRepository articleRepository;
     private final QuizRepository quizRepository;
     private final QuizValidationRepository quizValidationRepository;
+    private final ArticleReadRepository articleReadRepository;
     private final StudentRepository studentRepository;
     private final GamificationService gamificationService;
     private final SkillTreeAdminService skillTreeAdminService;
@@ -48,17 +50,43 @@ public class SkillTreeStudentService {
         if (!categoryRepository.existsById(categoryId)) {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.SKILL_CATEGORY_NOT_FOUND);
         }
+        Student student = getCurrentStudent();
+        Set<UUID> validatedArticleIds = new HashSet<>(quizValidationRepository.findValidatedArticleIdsForStudent(student.getId()));
+        Set<UUID> readArticleIds = new HashSet<>(articleReadRepository.findArticleIdsByStudentId(student.getId()));
+
         return articleRepository.findByCategorieIdAndActifTrueOrderByDateCreationDesc(categoryId).stream()
-                .map(skillTreeAdminService::mapArticleToSummaryDTO)
+                .map(a -> {
+                    boolean completed = quizRepository.existsByArticleId(a.getId())
+                            ? validatedArticleIds.contains(a.getId())
+                            : readArticleIds.contains(a.getId());
+                    return skillTreeAdminService.mapArticleToSummaryDTO(a, completed);
+                })
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ArticleDTO getArticleDetail(UUID id) {
         Article article = articleRepository.findById(id)
                 .filter(a -> Boolean.TRUE.equals(a.getActif()))
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ARTICLE_NOT_FOUND));
-        return skillTreeAdminService.mapArticleToDTO(article);
+
+        Student student = getCurrentStudent();
+        boolean hasQuiz = quizRepository.existsByArticleId(id);
+        boolean completed;
+        if (hasQuiz) {
+            Quiz quiz = quizRepository.findByArticleId(id).orElseThrow();
+            completed = quizValidationRepository.existsByStudentIdAndQuizId(student.getId(), quiz.getId());
+        } else {
+            if (!articleReadRepository.existsByStudentIdAndArticleId(student.getId(), id)) {
+                ArticleRead read = new ArticleRead();
+                read.setStudent(student);
+                read.setArticle(article);
+                articleReadRepository.save(read);
+            }
+            completed = true;
+        }
+
+        return skillTreeAdminService.mapArticleToDTO(article, completed);
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +100,7 @@ public class SkillTreeStudentService {
 
         List<QuestionStudentDTO> questions = quiz.getQuestions().stream()
                 .map(q -> new QuestionStudentDTO(
-                        q.getId(), q.getTexte(), q.getOrdre(),
+                        q.getId(), q.getTexte(), q.getOrdre(), SkillTreeAdminService.questionTypeName(q),
                         q.getReponses().stream()
                                 .map(a -> new StudentAnswerDTO(a.getId(), a.getTexte()))
                                 .toList()))
@@ -100,20 +128,26 @@ public class SkillTreeStudentService {
 
         int total = quiz.getQuestions().size();
         int correct = 0;
+        List<QuestionResultDTO> questionResults = new ArrayList<>();
 
         // A question is correct only if the student selected exactly the set of
         // answers marked estCorrecte=true — no more, no less (supports questions
         // with one or several correct answers).
         for (Question question : quiz.getQuestions()) {
             Set<UUID> submittedAnswerIds = submitted.get(question.getId());
-            if (submittedAnswerIds == null || !validQuestionIds.contains(question.getId())) continue;
+            if (submittedAnswerIds == null || !validQuestionIds.contains(question.getId())) {
+                questionResults.add(new QuestionResultDTO(question.getId(), false));
+                continue;
+            }
 
             Set<UUID> correctAnswerIds = question.getReponses().stream()
                     .filter(a -> Boolean.TRUE.equals(a.getEstCorrecte()))
                     .map(Answer::getId)
                     .collect(Collectors.toSet());
 
-            if (correctAnswerIds.equals(submittedAnswerIds)) correct++;
+            boolean isCorrect = correctAnswerIds.equals(submittedAnswerIds);
+            if (isCorrect) correct++;
+            questionResults.add(new QuestionResultDTO(question.getId(), isCorrect));
         }
 
         int score = total > 0 ? (correct * 100) / total : 0;
@@ -132,7 +166,7 @@ public class SkillTreeStudentService {
                     "Quiz validé : " + quiz.getArticle().getTitre());
         }
 
-        return new QuizResultDTO(score, passed, xpAwarded, alreadyValidated);
+        return new QuizResultDTO(score, passed, xpAwarded, alreadyValidated, questionResults);
     }
 
     @Transactional(readOnly = true)
@@ -146,9 +180,15 @@ public class SkillTreeStudentService {
             totalPerCategory.put((UUID) row[0], (Long) row[1]);
         }
 
+        // Un article compte comme complété soit via un quiz validé, soit — s'il n'a pas de quiz —
+        // via sa lecture (ArticleRead). Un article donné ne peut apparaître que dans l'une des deux
+        // requêtes, donc la somme ne double-compte jamais.
         Map<UUID, Long> completedPerCategory = new HashMap<>();
         for (Object[] row : quizValidationRepository.countCompletedArticlesPerCategoryForStudent(student.getId())) {
-            completedPerCategory.put((UUID) row[0], (Long) row[1]);
+            completedPerCategory.merge((UUID) row[0], (Long) row[1], Long::sum);
+        }
+        for (Object[] row : articleReadRepository.countReadArticlesPerCategoryForStudent(student.getId())) {
+            completedPerCategory.merge((UUID) row[0], (Long) row[1], Long::sum);
         }
 
         List<SkillNodeProgressDTO> nodes = categories.stream().map(cat -> {
