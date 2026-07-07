@@ -58,8 +58,8 @@ function SidebarContent({
       {/* Logo */}
       <div className={`border-b border-slate-100 dark:border-slate-800 flex items-center ${collapsed ? 'justify-center py-5' : 'px-5 py-5'}`}>
         {collapsed ? (
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0" title="ITIC Paris">
-            IT
+          <div className="flex items-center justify-center" title="ITIC Paris">
+            <img src="/favicon.svg" alt="ITIC Paris" className="h-9 w-9 shrink-0" />
           </div>
         ) : (
           <div className="inline-flex items-center rounded-xl px-4 py-2.5">
