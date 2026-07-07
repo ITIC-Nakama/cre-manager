@@ -277,6 +277,8 @@ public class SkillTreeAdminService {
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,
                 a.getCreatedBy() != null ? a.getCreatedBy().getEmail() : null,
+                a.getCreatedBy() != null ? a.getCreatedBy().getFirstName() : null,
+                a.getCreatedBy() != null ? a.getCreatedBy().getLastName() : null,
                 a.getDateCreation(), a.getDateModification(),
                 completed);
     }
@@ -294,6 +296,8 @@ public class SkillTreeAdminService {
                 a.getActif(),
                 a.getCreatedBy() != null ? a.getCreatedBy().getId() : null,
                 a.getCreatedBy() != null ? a.getCreatedBy().getEmail() : null,
+                a.getCreatedBy() != null ? a.getCreatedBy().getFirstName() : null,
+                a.getCreatedBy() != null ? a.getCreatedBy().getLastName() : null,
                 a.getDateCreation(), a.getDateModification(),
                 completed);
     }

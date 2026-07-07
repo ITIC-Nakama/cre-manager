@@ -20,6 +20,8 @@ export interface ArticleSummary {
   actif: boolean;
   createdById?: string;
   createdByEmail?: string;
+  createdByFirstName?: string;
+  createdByLastName?: string;
   dateCreation?: string;
   dateModification?: string;
 }
@@ -35,6 +37,8 @@ export interface Article {
   actif: boolean;
   createdById?: string;
   createdByEmail?: string;
+  createdByFirstName?: string;
+  createdByLastName?: string;
   dateCreation?: string;
   dateModification?: string;
 }

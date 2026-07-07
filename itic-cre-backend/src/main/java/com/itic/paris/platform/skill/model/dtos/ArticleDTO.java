@@ -14,6 +14,8 @@ public record ArticleDTO(
         Boolean actif,
         UUID createdById,
         String createdByEmail,
+        String createdByFirstName,
+        String createdByLastName,
         Instant dateCreation,
         Instant dateModification,
         Boolean completed
