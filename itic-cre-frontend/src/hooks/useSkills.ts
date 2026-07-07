@@ -13,8 +13,13 @@ import {
   createQuizForArticle,
   updateQuiz,
   deleteQuiz,
+  fetchSkillTreeProgress,
+  fetchStudentArticlesByCategory,
+  fetchStudentArticle,
+  fetchStudentQuiz,
+  submitStudentQuiz,
 } from '../api-s/requests/SkillRequest';
-import type { Question } from '../types/models/Skill';
+import type { Question, SubmitQuizPayload } from '../types/models/Skill';
 
 export function useAdminCategories() {
   return useQuery({
@@ -145,6 +150,51 @@ export function useDeleteCategory() {
     mutationFn: (id: string) => deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['skill-categories'] });
+    },
+  });
+}
+
+// ─── STUDENT SKILL TREE ─────────────────────────────────────────────────────
+
+export function useSkillTreeProgress() {
+  return useQuery({
+    queryKey: ['skill-tree-progress'],
+    queryFn: fetchSkillTreeProgress,
+  });
+}
+
+export function useStudentArticlesByCategory(categoryId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['student-articles', categoryId],
+    queryFn: () => fetchStudentArticlesByCategory(categoryId),
+    enabled: !!categoryId && enabled,
+  });
+}
+
+export function useStudentArticle(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ['student-article', id],
+    queryFn: () => fetchStudentArticle(id),
+    enabled: !!id && enabled,
+  });
+}
+
+export function useStudentQuiz(articleId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['student-quiz', articleId],
+    queryFn: () => fetchStudentQuiz(articleId),
+    enabled: !!articleId && enabled,
+  });
+}
+
+export function useSubmitQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (variables: { quizId: string; articleId: string; payload: SubmitQuizPayload }) =>
+      submitStudentQuiz(variables.quizId, variables.payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['skill-tree-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['student-quiz', variables.articleId] });
     },
   });
 }

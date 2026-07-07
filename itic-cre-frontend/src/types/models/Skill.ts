@@ -58,3 +58,54 @@ export interface Quiz {
   actif: boolean;
   questions: Question[];
 }
+
+// ─── STUDENT SKILL TREE ─────────────────────────────────────────────────────
+
+export type SkillNodeState = 'TO_DISCOVER' | 'IN_PROGRESS' | 'COMPLETED';
+
+export interface SkillNodeProgress {
+  categoryId: string;
+  categoryName: string;
+  categoryIcon: string;
+  ordre: number;
+  totalArticles: number;
+  completedArticles: number;
+  state: SkillNodeState;
+}
+
+export interface SkillTreeProgress {
+  nodes: SkillNodeProgress[];
+  xpTotal: number;
+  totalArticles: number;
+  completedArticles: number;
+}
+
+export interface StudentAnswer {
+  id: string;
+  texte: string;
+}
+
+export interface StudentQuestion {
+  id: string;
+  texte: string;
+  ordre: number;
+  answers: StudentAnswer[];
+}
+
+export interface StudentQuiz {
+  id: string;
+  scoreMinimum: number;
+  dejaValide: boolean;
+  questions: StudentQuestion[];
+}
+
+export interface QuizResult {
+  score: number;
+  passed: boolean;
+  xpAwarded: number;
+  dejaValide: boolean;
+}
+
+export interface SubmitQuizPayload {
+  answers: { questionId: string; reponseIds: string[] }[];
+}
