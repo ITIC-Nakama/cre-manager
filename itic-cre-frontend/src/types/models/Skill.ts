@@ -15,6 +15,7 @@ export interface ArticleSummary {
   titre: string;
   categoryId: string;
   categoryNom: string;
+  ordre: number;
   hasQuiz: boolean;
   actif: boolean;
   createdById?: string;
@@ -29,6 +30,7 @@ export interface Article {
   contenu: string;
   categoryId: string;
   categoryNom: string;
+  ordre: number;
   hasQuiz: boolean;
   actif: boolean;
   createdById?: string;

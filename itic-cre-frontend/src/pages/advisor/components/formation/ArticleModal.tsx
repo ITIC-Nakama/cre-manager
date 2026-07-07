@@ -5,16 +5,17 @@ import { toast } from 'sonner';
 import { fetchAdminArticleById } from '../../../../api-s/requests/SkillRequest';
 import TiptapEditor from '../../../../components/basics/TiptapEditor';
 import CustomSelect from '../../../../components/basics/CustomSelect';
-import type { SkillCategory } from '../../../../types/models/Skill';
+import type { SkillCategory, ArticleSummary } from '../../../../types/models/Skill';
 
 interface ArticleModalProps {
   isOpen: boolean;
   mode: 'create' | 'edit';
   articleId?: string;
   categories: SkillCategory[];
+  articles: ArticleSummary[];
   saving: boolean;
   onClose: () => void;
-  onSave: (data: { titre: string; contenu: string; categorieId: string; actif: boolean }) => void;
+  onSave: (data: { titre: string; contenu: string; categorieId: string; ordre: number; actif: boolean }) => void;
 }
 
 export default function ArticleModal({
@@ -22,6 +23,7 @@ export default function ArticleModal({
   mode,
   articleId,
   categories,
+  articles,
   saving,
   onClose,
   onSave
@@ -30,8 +32,14 @@ export default function ArticleModal({
   const [titre, setTitre] = useState('');
   const [contenu, setContenu] = useState('');
   const [categorieId, setCategorieId] = useState('');
+  const [ordre, setOrdre] = useState(1);
   const [actif, setActif] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const nextOrdreForCategory = (catId: string) => {
+    const inCategory = articles.filter(a => a.categoryId === catId);
+    return inCategory.length > 0 ? Math.max(...inCategory.map(a => a.ordre)) + 1 : 1;
+  };
 
   // Initialize form state when modal opens
   useEffect(() => {
@@ -41,11 +49,9 @@ export default function ArticleModal({
       setTitre('');
       setContenu('');
       setActif(false);
-      if (categories.length > 0) {
-        setCategorieId(categories[0].id);
-      } else {
-        setCategorieId('');
-      }
+      const defaultCategoryId = categories.length > 0 ? categories[0].id : '';
+      setCategorieId(defaultCategoryId);
+      setOrdre(defaultCategoryId ? nextOrdreForCategory(defaultCategoryId) : 1);
     } else if (mode === 'edit' && articleId) {
       const loadArticle = async () => {
         setLoading(true);
@@ -54,6 +60,7 @@ export default function ArticleModal({
           setTitre(art.titre);
           setContenu(art.contenu);
           setCategorieId(art.categoryId);
+          setOrdre(art.ordre);
           setActif(art.actif ?? true);
         } catch (err) {
           console.error(err);
@@ -75,6 +82,13 @@ export default function ArticleModal({
     }
   }, [isOpen, mode, categories, categorieId]);
 
+  const handleCategoryChange = (catId: string) => {
+    setCategorieId(catId);
+    if (mode === 'create') {
+      setOrdre(nextOrdreForCategory(catId));
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,7 +109,7 @@ export default function ArticleModal({
       toast.error(t('dashboard.formation.toast_select_category'));
       return;
     }
-    onSave({ titre, contenu, categorieId, actif });
+    onSave({ titre, contenu, categorieId, ordre, actif });
   };
 
   return (
@@ -142,9 +156,22 @@ export default function ArticleModal({
                 <CustomSelect
                   value={categorieId}
                   options={categories.map(cat => ({ value: cat.id, label: cat.nom }))}
-                  onChange={(val) => setCategorieId(val)}
+                  onChange={handleCategoryChange}
                   disabled={saving}
                   className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_order')} <span className="text-rose-500">*</span></label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={ordre}
+                  onChange={(e) => setOrdre(parseInt(e.target.value) || 1)}
+                  disabled={saving}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>

@@ -54,7 +54,7 @@ public class SkillTreeStudentService {
         Set<UUID> validatedArticleIds = new HashSet<>(quizValidationRepository.findValidatedArticleIdsForStudent(student.getId()));
         Set<UUID> readArticleIds = new HashSet<>(articleReadRepository.findArticleIdsByStudentId(student.getId()));
 
-        return articleRepository.findByCategorieIdAndActifTrueOrderByDateCreationDesc(categoryId).stream()
+        return articleRepository.findByCategorieIdAndActifTrueOrderByOrdreAsc(categoryId).stream()
                 .map(a -> {
                     boolean completed = quizRepository.existsByArticleId(a.getId())
                             ? validatedArticleIds.contains(a.getId())

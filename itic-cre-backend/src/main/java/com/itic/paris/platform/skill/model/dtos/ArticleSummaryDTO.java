@@ -8,6 +8,7 @@ public record ArticleSummaryDTO(
         String titre,
         UUID categoryId,
         String categoryNom,
+        Integer ordre,
         boolean hasQuiz,
         Boolean actif,
         UUID createdById,

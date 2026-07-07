@@ -12,7 +12,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -23,6 +26,8 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
     private final SkillCategoryRepository categoryRepository;
     private final ArticleRepository articleRepository;
     private final QuizRepository quizRepository;
+
+    private final Map<UUID, Integer> ordreCounters = new HashMap<>();
 
     @Override
     @Transactional
@@ -679,6 +684,7 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
         article.setTitre(titre);
         article.setContenu(contenu);
         article.setCategorie(cat);
+        article.setOrdre(ordreCounters.merge(cat.getId(), 1, Integer::sum));
         article.setActif(true);
         return articleRepository.save(article);
     }

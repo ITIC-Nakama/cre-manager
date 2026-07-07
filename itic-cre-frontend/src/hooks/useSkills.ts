@@ -68,7 +68,7 @@ export function useAdminArticleById(id: string, enabled = true) {
 export function useCreateArticle() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { titre: string; contenu: string; categorieId: string; actif?: boolean }) => createArticle(data),
+    mutationFn: (data: { titre: string; contenu: string; categorieId: string; ordre: number; actif?: boolean }) => createArticle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['skill-articles'] });
     },
@@ -78,7 +78,7 @@ export function useCreateArticle() {
 export function useUpdateArticle() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { titre?: string; contenu?: string; categorieId?: string; actif?: boolean } }) =>
+    mutationFn: ({ id, data }: { id: string; data: { titre?: string; contenu?: string; categorieId?: string; ordre?: number; actif?: boolean } }) =>
       updateArticle(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['skill-articles'] });
