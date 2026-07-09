@@ -49,6 +49,11 @@ export default function ArticleCard({ article, to }: { article: ArticleSummary; 
       <div className="mt-auto pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center">
         {article.hasQuiz ? (
           <QuizStatusBadge articleId={article.id} />
+        ) : article.completed ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="h-3 w-3" />
+            {t('dashboard.connaissances.category.read_badge')}
+          </span>
         ) : (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
             {t('dashboard.connaissances.category.quiz_none')}
