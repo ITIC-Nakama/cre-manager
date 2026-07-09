@@ -18,6 +18,7 @@ import StudentOffresPage from './pages/student/OffresPage'
 import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
+import QuizPage from './pages/student/connaissances/QuizPage'
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/CandidaturesPage'
@@ -82,6 +83,7 @@ function App() {
           <Route path="/student/connaissances"                        element={<SkillTreePage />} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
+          <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
           <Route path="/student/cv"            element={<ComingSoonPage />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>

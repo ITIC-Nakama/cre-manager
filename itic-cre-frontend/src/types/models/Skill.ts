@@ -24,6 +24,7 @@ export interface ArticleSummary {
   createdByLastName?: string;
   dateCreation?: string;
   dateModification?: string;
+  completed?: boolean;
 }
 
 export interface Article {
@@ -41,6 +42,7 @@ export interface Article {
   createdByLastName?: string;
   dateCreation?: string;
   dateModification?: string;
+  completed?: boolean;
 }
 
 export interface Answer {
@@ -98,6 +100,7 @@ export interface StudentQuestion {
   id: string;
   texte: string;
   ordre: number;
+  type?: QuestionType;
   answers: StudentAnswer[];
 }
 
@@ -108,11 +111,17 @@ export interface StudentQuiz {
   questions: StudentQuestion[];
 }
 
+export interface QuestionResult {
+  questionId: string;
+  correct: boolean;
+}
+
 export interface QuizResult {
   score: number;
   passed: boolean;
   xpAwarded: number;
   dejaValide: boolean;
+  questionResults: QuestionResult[];
 }
 
 export interface SubmitQuizPayload {
