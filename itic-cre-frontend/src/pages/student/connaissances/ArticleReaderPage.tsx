@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
@@ -11,8 +11,10 @@ import {
   Loader2,
   User,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSkillTreeProgress, useStudentArticle, useStudentArticlesByCategory } from '../../../hooks/useSkills';
 import Breadcrumb from './components/Breadcrumb';
+import QuizSection from './components/QuizSection';
 import TiptapContentStyles from '../../../components/basics/tiptap/TiptapContentStyles';
 
 const emojiMap: Record<string, string> = {
@@ -33,7 +35,7 @@ function estimateReadingMinutes(html: string): number {
 
 export default function ArticleReaderPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { categoryId = '', articleId = '' } = useParams<{ categoryId: string; articleId: string }>();
   const { data: article, isLoading, isError } = useStudentArticle(articleId);
   const { data: progress } = useSkillTreeProgress();
@@ -41,6 +43,14 @@ export default function ArticleReaderPage() {
 
   const [readProgress, setReadProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Articles sans quiz : le backend crée un ArticleRead au premier GET → invalider le cache de progression
+  useEffect(() => {
+    if (article && !article.hasQuiz) {
+      queryClient.invalidateQueries({ queryKey: ['skill-tree-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['student-articles', categoryId] });
+    }
+  }, [article?.id, article?.hasQuiz, categoryId, queryClient]);
 
   useEffect(() => {
     const scrollEl = contentRef.current?.closest('main');
@@ -176,23 +186,10 @@ export default function ArticleReaderPage() {
         />
       </div>
 
-      {/* Quiz CTA */}
+      {/* Quiz inline */}
       {article.hasQuiz && (
-        <div className="animate-fade-in-up anim-delay-200 flex items-center justify-between gap-4 rounded-2xl border border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/60 dark:bg-indigo-950/20 p-5">
-          <div className="flex flex-col gap-0.5">
-            <p className="font-bold text-slate-900 dark:text-white">{t('dashboard.connaissances.quiz.title')}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('dashboard.connaissances.article.take_quiz')}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate(`/student/connaissances/${categoryId}/${articleId}/quiz`)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer shadow-sm hover:shadow-md flex-shrink-0"
-          >
-            {t('dashboard.connaissances.article.take_quiz')}
-            <ArrowRight className="h-4 w-4" />
-          </button>
+        <div className="animate-fade-in-up anim-delay-200">
+          <QuizSection articleId={article.id} />
         </div>
       )}
 
