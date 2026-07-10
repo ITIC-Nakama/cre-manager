@@ -2,6 +2,7 @@ package com.itic.paris.platform.crm.model;
 
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.jobboard.model.ContractType;
+import com.itic.paris.platform.jobboard.model.JobOffer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -56,6 +57,13 @@ public class Application {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "status_id", nullable = false)
     private ApplicationStatus status;
+
+    /** Offre jobboard d'origine si créée automatiquement (null = créée manuellement) —
+      * permet de retrouver la candidature CRM lors d'un retrait/relance côté jobboard,
+      * et sert aussi à dériver "viaJobboard" côté DTO (pas besoin d'un champ séparé). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_job_offer_id")
+    private JobOffer sourceJobOffer;
 
     @CreationTimestamp
     @Column(name = "date_creation", nullable = false, updatable = false)

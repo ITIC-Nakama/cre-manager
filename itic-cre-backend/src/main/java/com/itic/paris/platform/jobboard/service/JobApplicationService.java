@@ -70,6 +70,7 @@ public class JobApplicationService {
         return jobApplicationRepository.countByJobOfferId(jobOfferId);
     }
 
+    @Transactional
     public void withdraw(UUID applicationId) {
         JobApplication application = jobApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_APPLICATION_NOT_FOUND));
@@ -79,7 +80,9 @@ public class JobApplicationService {
             throw new AppException(HttpStatus.FORBIDDEN, MessageKey.NOT_YOUR_APPLICATION);
         }
 
+        UUID jobOfferId = application.getJobOffer().getId();
         jobApplicationRepository.deleteById(applicationId);
+        applicationService.deleteFromJobboardWithdrawal(student.getId(), jobOfferId);
     }
 
     private JobApplicationDTO mapToDTO(JobApplication application) {

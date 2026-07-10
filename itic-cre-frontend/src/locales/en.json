@@ -213,6 +213,10 @@
       "filter_all_contracts": "All contract types",
       "apply_button": "Mark as applied",
       "already_applied": "Already applied",
+      "withdraw_hint": "Withdraw my application — the matching card will also be deleted from my application tracker.",
+      "withdraw_confirm_title": "Withdraw application",
+      "withdraw_confirm_message": "Withdraw your application to \"{{title}}\"? You'll be able to apply again later. Note: the matching card in your application tracker (CRM) will also be deleted.",
+      "withdraw_confirm_button": "Withdraw",
       "confirm_delete_title": "Delete offer",
       "confirm_delete": "Delete offer \"{{title}}\"? This action cannot be undone.",
       "table": {
@@ -267,7 +271,9 @@
         "action_error": "Something went wrong.",
         "applied": "Application sent! It has been added to your tracker.",
         "already_applied": "You already applied to this offer.",
-        "apply_error": "Unable to send the application."
+        "apply_error": "Unable to send the application.",
+        "withdrawn": "Application withdrawn.",
+        "withdraw_error": "Unable to withdraw the application."
       }
     },
     "notify_modal": {
