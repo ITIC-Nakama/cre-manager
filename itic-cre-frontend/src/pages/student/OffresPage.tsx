@@ -1,13 +1,14 @@
 import { useState, useRef, useMemo } from 'react';
 import {
     Search, Loader2, Briefcase, MapPin, FileSignature,
-    CheckCircle2, ExternalLink, ChevronLeft, ChevronRight,
+    CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, UserMinus,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer } from '../../hooks/useJobOffers';
+import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer, useWithdrawJobApplication } from '../../hooks/useJobOffers';
 import { useContractTypes } from '../../hooks/useApplications';
 import CustomSelect from '../../components/basics/CustomSelect';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 
 const PAGE_SIZE = 9;
 
@@ -22,11 +23,14 @@ export default function OffresPage() {
     const { data: contractTypes } = useContractTypes();
     const { data: myApplications } = useMyJobApplications();
     const applyMutation = useApplyToJobOffer();
+    const withdrawMutation = useWithdrawJobApplication();
+    const [withdrawTarget, setWithdrawTarget] = useState<{ applicationId: string; title: string } | null>(null);
 
-    const appliedOfferIds = useMemo(
-        () => new Set((myApplications?.content ?? []).map((a) => a.jobOfferId)),
-        [myApplications]
-    );
+    const appliedApplicationByOfferId = useMemo(() => {
+        const map = new Map<string, string>();
+        (myApplications?.content ?? []).forEach((a) => map.set(a.jobOfferId, a.id));
+        return map;
+    }, [myApplications]);
 
     const params = {
         page,
@@ -67,6 +71,17 @@ export default function OffresPage() {
             } else {
                 toast.error(t('dashboard.offres.toast.apply_error'));
             }
+        }
+    };
+
+    const handleWithdrawConfirm = async () => {
+        if (!withdrawTarget) return;
+        try {
+            await withdrawMutation.mutateAsync(withdrawTarget.applicationId);
+            toast.success(t('dashboard.offres.toast.withdrawn'));
+            setWithdrawTarget(null);
+        } catch {
+            toast.error(t('dashboard.offres.toast.withdraw_error'));
         }
     };
 
@@ -120,7 +135,8 @@ export default function OffresPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {offers.map((offer) => {
-                        const alreadyApplied = appliedOfferIds.has(offer.id);
+                        const applicationId = appliedApplicationByOfferId.get(offer.id);
+                        const alreadyApplied = !!applicationId;
                         return (
                             <div
                                 key={offer.id}
@@ -147,19 +163,28 @@ export default function OffresPage() {
                                 </p>
 
                                 <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                    <button
-                                        onClick={() => handleApply(offer.id)}
-                                        disabled={alreadyApplied || applyMutation.isPending}
-                                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed ${
-                                            alreadyApplied
-                                                ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400'
-                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60'
-                                        }`}
-                                    >
-                                        {alreadyApplied
-                                            ? <><CheckCircle2 className="h-4 w-4" />{t('dashboard.offres.already_applied')}</>
-                                            : t('dashboard.offres.apply_button')}
-                                    </button>
+                                    {alreadyApplied ? (
+                                        <>
+                                            <span className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400">
+                                                <CheckCircle2 className="h-4 w-4" />{t('dashboard.offres.already_applied')}
+                                            </span>
+                                            <button
+                                                onClick={() => setWithdrawTarget({ applicationId: applicationId!, title: offer.title })}
+                                                title={t('dashboard.offres.withdraw_hint')}
+                                                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                                            >
+                                                <UserMinus className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleApply(offer.id)}
+                                            disabled={applyMutation.isPending}
+                                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60"
+                                        >
+                                            {t('dashboard.offres.apply_button')}
+                                        </button>
+                                    )}
                                     {offer.externalLink && (
                                         <a
                                             href={offer.externalLink}
@@ -202,6 +227,16 @@ export default function OffresPage() {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={!!withdrawTarget}
+                title={t('dashboard.offres.withdraw_confirm_title')}
+                message={t('dashboard.offres.withdraw_confirm_message', { title: withdrawTarget?.title ?? '' })}
+                confirmLabel={t('dashboard.offres.withdraw_confirm_button')}
+                loading={withdrawMutation.isPending}
+                onConfirm={handleWithdrawConfirm}
+                onClose={() => setWithdrawTarget(null)}
+            />
         </div>
     );
 }

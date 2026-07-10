@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -111,25 +112,28 @@ public class ApplicationService {
             return mapToDTO(application, appConfigurationService.getStaleAlertDays());
         }
 
+        // Doit être évalué AVANT recordHistory : une fois l'historique enregistré, cette
+        // requête retrouverait la ligne qu'on vient d'insérer et renverrait toujours true.
+        boolean alreadyReached = historyRepository
+                .existsByApplicationIdAndNewStatusId(application.getId(), newStatus.getId());
+
         application.setStatus(newStatus);
         Application saved = applicationRepository.save(application);
         recordHistory(saved, currentStatus, newStatus);
 
-        if (newStatus.getGainXP() > 0) {
-            boolean alreadyReached = historyRepository
-                    .existsByApplicationIdAndNewStatusId(application.getId(), newStatus.getId());
-            if (!alreadyReached) {
-                gamificationService.awardXP(
-                        application.getStudent(),
-                        ActionXP.CANDIDATURE_STATUS_CHANGED,
-                        newStatus.getGainXP(),
-                        newStatus.getNom() + " — " + application.getEntreprise());
-            }
+        int xpAwarded = 0;
+        if (newStatus.getGainXP() > 0 && !alreadyReached) {
+            xpAwarded = newStatus.getGainXP();
+            gamificationService.awardXP(
+                    application.getStudent(),
+                    ActionXP.CANDIDATURE_STATUS_CHANGED,
+                    xpAwarded,
+                    newStatus.getNom() + " — " + application.getEntreprise());
         }
 
         updateLastActivity(application.getStudent());
 
-        return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
+        return mapToDTO(saved, appConfigurationService.getStaleAlertDays(), xpAwarded);
     }
 
     @Transactional
@@ -151,20 +155,28 @@ public class ApplicationService {
         application.setLienOffre(jobOffer.getExternalLink());
         application.setNotes("Candidature créée automatiquement via le Jobboard");
         application.setStatus(postuleStatus);
+        application.setSourceJobOffer(jobOffer);
 
         Application saved = applicationRepository.save(application);
         recordHistory(saved, null, postuleStatus);
 
-        if (postuleStatus.getGainXP() > 0) {
-            gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED,
-                    postuleStatus.getGainXP(), "Candidature Jobboard : " + jobOffer.getCompany());
-        } else {
-            int xp = gamificationService.getConfiguredXP(ActionXP.CANDIDATURE_CREATED);
-            gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED, xp,
-                    "Candidature Jobboard : " + jobOffer.getCompany());
-        }
+        int xp = postuleStatus.getGainXP() > 0
+                ? postuleStatus.getGainXP()
+                : gamificationService.getConfiguredXP(ActionXP.CANDIDATURE_CREATED);
+        gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED, xp,
+                "Candidature Jobboard : " + jobOffer.getCompany());
 
         updateLastActivity(student);
+    }
+
+    /**
+     * Supprime la candidature CRM liée suite à un retrait côté jobboard. Ne fait rien si
+     * aucune candidature liée n'existe.
+     */
+    @Transactional
+    public void deleteFromJobboardWithdrawal(UUID studentId, UUID jobOfferId) {
+        applicationRepository.findByStudentIdAndSourceJobOfferId(studentId, jobOfferId)
+                .ifPresent(applicationRepository::delete);
     }
 
     private ContractType resolveContractType(UUID typeContratId) {
@@ -198,6 +210,10 @@ public class ApplicationService {
     }
 
     private ApplicationDTO mapToDTO(Application a, int staleAlertDays) {
+        return mapToDTO(a, staleAlertDays, 0);
+    }
+
+    private ApplicationDTO mapToDTO(Application a, int staleAlertDays, int xpAwarded) {
         ContractTypeDTO contractTypeDTO = null;
         if (a.getTypeContrat() != null) {
             ContractType ct = a.getTypeContrat();
@@ -213,9 +229,13 @@ public class ApplicationService {
         boolean stale = a.getStatus().getDeclencheAlerte()
                 && a.getDateModification().isBefore(Instant.now().minus(staleAlertDays, ChronoUnit.DAYS));
 
+        List<UUID> reachedStatusIds = historyRepository.findDistinctNewStatusIdByApplicationId(a.getId());
+        boolean viaJobboard = a.getSourceJobOffer() != null;
+
         return new ApplicationDTO(
                 a.getId(), a.getEntreprise(), a.getPoste(), contractTypeDTO,
                 a.getLienOffre(), a.getContact(), a.getNotes(),
-                statusDTO, stale, a.getDateCreation(), a.getDateModification());
+                statusDTO, stale, viaJobboard, reachedStatusIds, xpAwarded,
+                a.getDateCreation(), a.getDateModification());
     }
 }

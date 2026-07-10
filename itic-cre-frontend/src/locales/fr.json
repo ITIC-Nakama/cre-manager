@@ -213,6 +213,10 @@
       "filter_all_contracts": "Tous les types de contrat",
       "apply_button": "Marquer comme posté",
       "already_applied": "Déjà postulé",
+      "withdraw_hint": "Retirer ma candidature — la carte correspondante sera aussi supprimée de mon suivi de candidatures.",
+      "withdraw_confirm_title": "Retirer ma candidature",
+      "withdraw_confirm_message": "Retirer votre candidature à « {{title}} » ? Vous pourrez postuler à nouveau plus tard. Remarque : la carte correspondante dans votre suivi de candidatures (CRM) sera également supprimée.",
+      "withdraw_confirm_button": "Retirer",
       "confirm_delete_title": "Supprimer l'offre",
       "confirm_delete": "Supprimer l'offre « {{title}} » ? Cette action est irréversible.",
       "table": {
@@ -267,7 +271,9 @@
         "action_error": "Une erreur est survenue.",
         "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",
-        "apply_error": "Impossible d'envoyer la candidature."
+        "apply_error": "Impossible d'envoyer la candidature.",
+        "withdrawn": "Candidature retirée.",
+        "withdraw_error": "Impossible de retirer la candidature."
       }
     },
     "notify_modal": {

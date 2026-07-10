@@ -21,19 +21,19 @@ public class ApplicationStatusSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (statusRepository.count() > 0) return;
+        if (statusRepository.count() == 0) {
+            List<ApplicationStatus> statuses = List.of(
+                    build("À postuler",         1, "#9CA3AF", 0,  false, true),
+                    build("Postulé",            2, "#3B82F6", 5,  true,  true),
+                    build("Entretien décroché", 3, "#F59E0B", 15, true,  true),
+                    build("Entretien passé",    4, "#8B5CF6", 10, false, true),
+                    build("Offre reçue",        5, "#10B981", 25, false, true),
+                    build("Refusé",             6, "#EF4444", 0,  false, true)
+            );
 
-        List<ApplicationStatus> statuses = List.of(
-                build("À postuler",         1, "#9CA3AF", 0,  false, true),
-                build("Postulé",            2, "#3B82F6", 5,  true,  true),
-                build("Entretien décroché", 3, "#F59E0B", 15, true,  true),
-                build("Entretien passé",    4, "#8B5CF6", 10, false, true),
-                build("Offre reçue",        5, "#10B981", 25, false, true),
-                build("Refusé",             6, "#EF4444", 0,  false, true)
-        );
-
-        statusRepository.saveAll(statuses);
-        log.info("Seeded {} ApplicationStatus entries", statuses.size());
+            statusRepository.saveAll(statuses);
+            log.info("Seeded {} ApplicationStatus entries", statuses.size());
+        }
     }
 
     private ApplicationStatus build(String nom, int ordre, String couleur,
