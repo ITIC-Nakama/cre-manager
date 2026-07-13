@@ -138,7 +138,9 @@ public class ApplicationService {
 
     @Transactional
     public void delete(UUID id) {
-        applicationRepository.delete(getOwnedApplication(id));
+        Application application = getOwnedApplication(id);
+        historyRepository.deleteByApplicationId(application.getId());
+        applicationRepository.delete(application);
     }
 
     @Transactional
@@ -176,7 +178,10 @@ public class ApplicationService {
     @Transactional
     public void deleteFromJobboardWithdrawal(UUID studentId, UUID jobOfferId) {
         applicationRepository.findByStudentIdAndSourceJobOfferId(studentId, jobOfferId)
-                .ifPresent(applicationRepository::delete);
+                .ifPresent(application -> {
+                    historyRepository.deleteByApplicationId(application.getId());
+                    applicationRepository.delete(application);
+                });
     }
 
     private ContractType resolveContractType(UUID typeContratId) {

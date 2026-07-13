@@ -12,4 +12,6 @@ public interface ApplicationHistoryRepository extends JpaRepository<ApplicationH
     boolean existsByApplicationIdAndNewStatusId(UUID applicationId, UUID newStatusId);
 
     List<UUID> findDistinctNewStatusIdByApplicationId(UUID applicationId);
+
+    void deleteByApplicationId(UUID applicationId);
 }
