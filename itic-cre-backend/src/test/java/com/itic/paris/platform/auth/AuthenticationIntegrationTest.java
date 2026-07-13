@@ -55,6 +55,12 @@ public class AuthenticationIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private com.itic.paris.platform.auth.repository.OtpRepository otpRepository;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private org.springframework.mail.javamail.JavaMailSender mailSender;
+
     private Role studentRole;
     private Role advisorRole;
 
@@ -165,5 +171,59 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testOtpVerificationAndLoginFlow() throws Exception {
+        // 1. Register a student via register endpoint
+        java.util.Map<String, Object> registerMap = java.util.Map.of(
+                "email", "register.verify@itic.fr",
+                "firstName", "Reggie",
+                "lastName", "Verifier",
+                "password", "Password123!"
+        );
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerMap)))
+                .andExpect(status().isCreated());
+
+        // Verify initially unverified
+        com.itic.paris.platform.auth.model.User createdUser = userRepository.findByEmailIgnoreCase("register.verify@itic.fr")
+                .orElseThrow();
+        assertThat(createdUser.isEmailVerified()).isFalse();
+
+        // 2. Fetch the generated OTP from OtpRepository
+        var activeOtps = otpRepository.findByUserAndUsedAtIsNull(createdUser);
+        assertThat(activeOtps).hasSize(1);
+        String code = activeOtps.get(0).getCode();
+
+        // 3. Validate the OTP via validation endpoint
+        java.util.Map<String, Object> validateMap = java.util.Map.of(
+                "email", "register.verify@itic.fr",
+                "code", code
+        );
+
+        mockMvc.perform(post("/auth/otp/validate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validateMap)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.OTP_VALIDATED.getKey()));
+
+        // Verify verified status in DB
+        createdUser = userRepository.findByEmailIgnoreCase("register.verify@itic.fr").orElseThrow();
+        assertThat(createdUser.isEmailVerified()).isTrue();
+
+        // 4. Perform successful login
+        UserLoginDto loginDto = UserLoginDto.builder()
+                .email("register.verify@itic.fr")
+                .password("Password123!")
+                .build();
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.user.email").value("register.verify@itic.fr"));
     }
 }
