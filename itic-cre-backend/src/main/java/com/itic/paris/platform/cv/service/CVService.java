@@ -256,8 +256,9 @@ public class CVService {
         response.put("updatedAt", cv.getUpdatedAt());
         response.put("url", cloudStorage.getFile(cv.getFilePath()));
         response.put("studentId", cv.getStudent().getId());
+        response.put("xpAwarded", cv.getXpAwarded());
 
-        // Inline student info so callers don't need a second request
+        // Inclure les informations de l'étudiant pour éviter une seconde requête
         Map<String, Object> studentMap = new HashMap<>();
         Student student = cv.getStudent();
         studentMap.put("id", student.getId());

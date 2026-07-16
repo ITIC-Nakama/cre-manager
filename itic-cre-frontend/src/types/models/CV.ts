@@ -25,6 +25,17 @@ export interface CVRow {
     student?: CVStudentInfo; // enriched on frontend from dashboard data
 }
 
+export interface CVResponse {
+    id: string;
+    url: string;
+    nomFichier?: string;
+    uploadedAt: string;
+    updatedAt: string | null;
+    xpAwarded: boolean;
+    statut: CVStatut;
+    studentId: string;
+}
+
 export interface CVComment {
     id: string;
     contenu: string;

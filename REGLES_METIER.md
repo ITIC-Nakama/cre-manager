@@ -79,6 +79,15 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Une candidature est `stale` si **et seulement si** : son statut actuel a `declencheAlerte = true` **ET** `dateModification` date de plus de N jours.
 - `dateModification` est mise à jour automatiquement (Hibernate `@UpdateTimestamp`) à chaque sauvegarde de la candidature.
 
+### Tâches automatiques (À faire aujourd'hui)
+Les tâches affichées sur le tableau de bord de l'étudiant sont calculées dynamiquement par le serveur :
+- **Pas de candidature (`NO_APPLICATION`)** : Ajouté s'il n'a aucune candidature enregistrée (Libellé : *"Ajouter votre première candidature"*).
+- **Relance nécessaire (`STALE_APPLICATION`)** : Ajouté pour chaque candidature stagnante (stale) dans le CRM (Libellé : *"Relancer [Nom de l'entreprise]"*). Limité aux 3 plus anciennes candidatures stagnantes.
+- **Pas de CV déposé (`NO_CV`)** : Ajouté si l'étudiant n'a pas encore téléversé son premier CV (Libellé : *"Déposer votre CV"*).
+- **CV à corriger (`CV_TO_CORRECT`)** : Ajouté si le conseiller a attribué le statut "À corriger" au CV de l'étudiant (Libellé : *"Corriger votre CV"*).
+
+Ces libellés sont traduits dynamiquement par le backend selon la langue spécifiée dans les en-têtes HTTP de la requête cliente.
+
 ---
 
 ## 3. Jobboard — Offres d'emploi
@@ -134,12 +143,19 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 
 ## 6. CV — Dépôt et validation
 
-- Un étudiant a **un seul CV actif** (relation 1:1 `student_id` unique) ; déposer un nouveau fichier **remplace** l'ancien (l'ancien fichier est supprimé du stockage) et repasse le statut à "En attente".
-- Statuts par défaut (CRUD complet par l'admin, contrairement aux statuts CRM) : **En attente** (0 XP), **Validé** (30 XP), **À corriger** (0 XP).
-- **N'importe quel statut** avec `gainXP > 0` attribue l'XP — pas seulement "Validé" — que ce soit atteint via le dépôt initial ou un changement manuel par un conseiller.
-- Un flag `xpAwarded` empêche de re-toucher l'XP en rebasculant entre statuts pour le **même** fichier déposé.
-- `xpAwarded` se **réinitialise à `false`** à chaque nouveau dépôt de CV — un étudiant peut donc re-gagner l'XP de validation sur une nouvelle version corrigée de son CV.
-- Les commentaires de conseiller sur un CV déclenchent un email à l'étudiant (asynchrone, après commit de la transaction).
+- **Dépôt unique & Remplacement** : Un étudiant a **un seul CV actif** (relation 1:1 `student_id` unique). Déposer un nouveau fichier remplace l'ancien. L'action affiche une modale de confirmation indiquant que l'historique et le statut actuel seront réinitialisés, effectue une suppression physique du fichier du stockage Cloud/Local, et recrée une nouvelle entité de CV au statut "En attente".
+- **Statuts par défaut** (CRUD complet par l'admin, contrairement aux statuts CRM) : **En attente** (0 XP), **Validé** (30 XP), **À corriger** (0 XP).
+- **Gain de points XP** : N'importe quel statut avec `gainXP > 0` attribue l'XP (pas seulement "Validé"), que ce soit atteint via le dépôt initial ou un changement manuel par un conseiller.
+- **Sécurité anti-double gain** : Un flag `xpAwarded` empêche de regagner de l'XP en rebasculant entre statuts pour le **même** fichier déposé. Ce flag se réinitialise à `false` à chaque nouveau dépôt de CV, permettant ainsi à un étudiant de remporter de l'XP de validation sur une nouvelle version corrigée.
+- **Étapes du Cycle de Validation (Timeline/CycleStrip)** :
+  - **Étape 0 (Dépôt du CV)** : Actif dès qu'un fichier PDF est présent.
+  - **Étape 1 (Relecture conseiller)** : Actif lorsque le CV est au statut "En attente".
+  - **Étape 2 (Statut attribué)** : Actif dès que le conseiller a sélectionné un statut définitif (ex: Validé, À corriger).
+  - **Étape 3 (XP gagnés)** : Actif si le statut final a attribué de l'XP (statut validé et `xpAwarded = true`).
+- **Commentaires d'évaluation** :
+  - Les commentaires rédigés par un conseiller sur le CV d'un étudiant sont récupérés chronologiquement via `/api/cv/comments`.
+  - Chaque commentaire affiche le nom complet du conseiller, sa photo de profil, sa fonction, la date au format `JJ/MM/AAAA` et le corps du message.
+  - L'ajout d'un commentaire déclenche un email asynchrone d'alerte envoyé directement à l'étudiant concerné.
 
 ---
 
@@ -160,6 +176,15 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 
 - Lecture réservée à `ADMIN` uniquement (pas même les conseillers).
 - Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `OTHER`.
+
+---
+
+## 9. Internationalisation (i18n)
+
+- **Gestion des langues** : Support complet du Français (`fr`) et de l'Anglais (`en`).
+- **Traduction Frontend** : Tous les libellés statiques, formulaires, messages de validation, timelines et modales sont gérés côté client via `react-i18next`.
+- **Changement de langue optimiste** : Lors du changement de langue, la traduction locale s'applique instantanément et les requêtes React Query (comme le tableau de bord) sont invalidées en arrière-plan. La synchronisation avec le profil utilisateur en base de données s'exécute de manière asynchrone sans bloquer l'interface.
+- **Traduction Backend** : Les textes dynamiques générés par le serveur (ex: libellés des tâches du tableau de bord étudiant "À faire aujourd'hui") sont traduits à la volée. Le backend résout la langue en lisant prioritairement les en-têtes HTTP de la requête (`x-auth-user-lang` et `Accept-Language`), assurant une synchronisation parfaite avec l'état actif de l'interface client.
 
 ---
 

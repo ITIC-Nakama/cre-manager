@@ -1,18 +1,44 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Globe, ChevronDown } from "lucide-react";
+import { useUserStore } from "../../store/UserStore";
+import { toUserProfileDTO } from "../../types/models/User";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateProfile } from "../../hooks/useAuth";
 
 export default function SwitchLanguage() {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { user, setUser } = useUserStore();
+  const queryClient = useQueryClient();
+  const updateProfile = useUpdateProfile();
 
   const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
     setIsOpen(false);
+
+    // Mettre à jour la langue locale et rafraîchir le dashboard immédiatement
+    i18n.changeLanguage(lang);
+    queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
+
+    // Synchronisation facultative avec la base de données en arrière-plan
+    if (user) {
+      updateProfile.mutate(
+        { lang },
+        {
+          onSuccess: (data) => {
+            const updated = toUserProfileDTO(data);
+            setUser(updated);
+          },
+          onError: (err) => {
+            console.error("Échec de la synchronisation de la langue sur le backend :", err);
+          },
+        }
+      );
+    }
   };
 
-  // Close dropdown on click outside
+  // Fermer le menu déroulant lors d'un clic à l'extérieur
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (

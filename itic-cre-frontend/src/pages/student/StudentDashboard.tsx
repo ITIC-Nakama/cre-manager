@@ -1,5 +1,7 @@
 import { useUserStore } from '../../store/UserStore';
 import { useMyDashboardSummary } from '../../hooks/useStudentDashboard';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Briefcase,
   CheckCircle2,
@@ -10,6 +12,7 @@ import {
   Trophy,
   Medal,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 
 function formatDate(iso: string) {
@@ -17,6 +20,7 @@ function formatDate(iso: string) {
 }
 
 export default function StudentDashboard() {
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const firstName = user?.firstName || 'Étudiant';
   const { data, isLoading } = useMyDashboardSummary();
@@ -30,10 +34,10 @@ export default function StudentDashboard() {
   const tauxReponse = total > 0 ? Math.round((repondues / total) * 100) : 0;
 
   const stats = [
-    { label: 'Candidatures envoyées', value: String(total), icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'En attente de réponse', value: String(enAttente), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-    { label: 'Entretiens obtenus', value: String(entretiens), icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'Taux de réponse', value: total > 0 ? `${tauxReponse}%` : '—', icon: TrendingUp, color: 'text-violet-500', bg: 'bg-violet-500/10' },
+    { label: t('dashboard.home.stats.sent', 'Candidatures envoyées'), value: String(total), icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: t('dashboard.home.stats.pending', 'En attente de réponse'), value: String(enAttente), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: t('dashboard.home.stats.interviews', 'Entretiens obtenus'), value: String(entretiens), icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: t('dashboard.home.stats.response_rate', 'Taux de réponse'), value: `${tauxReponse}%`, icon: TrendingUp, color: 'text-violet-500', bg: 'bg-violet-500/10' },
   ];
 
   if (isLoading) {
@@ -44,17 +48,45 @@ export default function StudentDashboard() {
     );
   }
 
+  const cvNeedsCorrection = data?.cv.hasCv && data.cv.statut && (data.cv.statut.toLowerCase().includes('corriger') || data.cv.statut.toLowerCase().includes('à corriger'));
+
   return (
     <div className="flex flex-col gap-8 pb-12 animate-fadeIn">
       {/* Welcome header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Bonjour, {firstName} 👋
+          {t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName })}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Voici un aperçu de vos candidatures et de votre activité récente.
+          {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}
         </p>
       </div>
+
+      {/* Alert CV to correct */}
+      {cvNeedsCorrection && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 ">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <span className="absolute inline-flex h-6 w-6 rounded-full bg-amber-400/70 dark:bg-amber-500/20 animate-ping" />
+              <AlertTriangle className="h-5 w-5 relative z-10" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                {t('dashboard.tasks.cv_alert_title', 'Action requise sur votre CV')}
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                {t('dashboard.tasks.cv_alert_desc', 'Votre conseiller a demandé des corrections sur votre CV. Veuillez le modifier et le renvoyer.')}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/student/cv"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+          >
+            {t('dashboard.tasks.cv_alert_btn', 'Corriger mon CV')}
+          </Link>
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -83,7 +115,7 @@ export default function StudentDashboard() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <Trophy className="h-4 w-4 text-primary" />
-            Progression
+            {t('dashboard.home.gamification.title', 'Progression')}
           </h2>
           {data && (
             <div className="flex flex-col gap-4">
@@ -107,11 +139,17 @@ export default function StudentDashboard() {
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    {data.gamification.gradeNext.xpMinimum - data.gamification.xpTotal} XP avant {data.gamification.gradeNext.nom}
+                    {t('dashboard.home.gamification.next_grade', {
+                      xp: data.gamification.gradeNext.xpMinimum - data.gamification.xpTotal,
+                      name: data.gamification.gradeNext.nom,
+                      defaultValue: '{{xp}} XP avant {{name}}'
+                    })}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Grade maximum atteint 🎉</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  {t('dashboard.home.gamification.max_grade', 'Grade maximum atteint 🎉')}
+                </p>
               )}
             </div>
           )}
@@ -121,12 +159,22 @@ export default function StudentDashboard() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <Medal className="h-4 w-4 text-primary" />
-            Classement {data?.ranking.scopedToPromotion ? 'de ta promotion' : 'général'}
+            {t('dashboard.home.ranking.title', {
+              scope: data?.ranking.scopedToPromotion
+                ? t('dashboard.home.ranking.promotion', 'de ta promotion')
+                : t('dashboard.home.ranking.general', 'général'),
+              defaultValue: 'Classement {{scope}}'
+            })}
           </h2>
           {data && (
             <div className="flex flex-col gap-3">
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                Tu es <span className="font-bold text-slate-900 dark:text-white">#{data.ranking.rank}</span> sur {data.ranking.totalStudents}
+                {t('dashboard.home.ranking.rank_prefix', 'Tu es')}{' '}
+                <span className="font-bold text-slate-900 dark:text-white">#{data.ranking.rank}</span>{' '}
+                {t('dashboard.home.ranking.rank_suffix', {
+                  total: data.ranking.totalStudents,
+                  defaultValue: 'sur {{total}}'
+                })}
               </p>
               <div className="flex flex-col gap-1.5">
                 {data.ranking.top3.map((entry, idx) => (
@@ -156,7 +204,7 @@ export default function StudentDashboard() {
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
-              Candidatures récentes
+              {t('dashboard.home.applications.title', 'Candidatures récentes')}
             </h2>
           </div>
           {data && data.candidatures.recentes.length > 0 ? (
@@ -186,10 +234,10 @@ export default function StudentDashboard() {
                 <Briefcase className="h-5 w-5 text-slate-400" />
               </div>
               <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                Aucune candidature pour le moment
+                {t('dashboard.home.applications.empty', 'Aucune candidature pour le moment')}
               </p>
               <p className="text-xs text-slate-400 dark:text-slate-500 max-w-xs">
-                Commencez par ajouter votre première candidature pour suivre son évolution ici.
+                {t('dashboard.home.applications.empty_desc', 'Commencez par ajouter votre première candidature pour suivre son évolution ici.')}
               </p>
             </div>
           )}
@@ -199,7 +247,7 @@ export default function StudentDashboard() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <Bell className="h-4 w-4 text-primary" />
-            À faire aujourd'hui
+            {t('dashboard.home.tasks.title', "À faire aujourd'hui")}
           </h2>
           {data && data.afaireAujourdhui.length > 0 ? (
             <div className="flex flex-col gap-2">
@@ -213,7 +261,9 @@ export default function StudentDashboard() {
           ) : (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
               <Bell className="h-8 w-8 text-slate-300 dark:text-slate-700" />
-              <p className="text-xs text-slate-400 dark:text-slate-500">Rien à signaler, continue comme ça !</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {t('dashboard.home.tasks.empty', 'Rien à signaler, continue comme ça !')}
+              </p>
             </div>
           )}
         </div>
