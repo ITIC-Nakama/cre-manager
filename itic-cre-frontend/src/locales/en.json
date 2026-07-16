@@ -924,7 +924,7 @@
       },
       "replaceModal": {
         "title": "Replace your CV?",
-        "body": "You are about to upload the file {{name}}.",
+        "body": "You are about to upload the file",
         "warning": "This action will replace your current CV, reset your CV validation status, and make the eligible XP rewards available again for this cycle. Your previous comments will be kept for your information.",
         "cancel": "Cancel",
         "confirm": "Replace CV"
