@@ -56,7 +56,45 @@
     },
     "home": {
       "title": "Tableau de bord",
-      "subtitle": "Bienvenue {{name}}."
+      "subtitle": "Bienvenue {{name}}.",
+      "greeting": "Bonjour, {{name}} 👋",
+      "desc": "Voici un aperçu de vos candidatures et de votre activité récente.",
+      "stats": {
+        "sent": "Candidatures envoyées",
+        "pending": "En attente de réponse",
+        "interviews": "Entretiens obtenus",
+        "response_rate": "Taux de réponse"
+      },
+      "gamification": {
+        "title": "Progression",
+        "next_grade": "{{xp}} XP avant {{name}}",
+        "max_grade": "Grade maximum atteint 🎉"
+      },
+      "ranking": {
+        "title": "Classement {{scope}}",
+        "promotion": "de ta promotion",
+        "general": "général",
+        "rank_prefix": "Tu es",
+        "rank_suffix": "sur {{total}}"
+      },
+      "applications": {
+        "title": "Candidatures récentes",
+        "empty": "Aucune candidature pour le moment",
+        "empty_desc": "Commencez par ajouter votre première candidature pour suivre son évolution ici."
+      },
+      "tasks": {
+        "title": "À faire aujourd'hui",
+        "empty": "Rien à signaler, continue comme ça !"
+      }
+    },
+    "tasks": {
+      "no_cv": "Déposer votre CV",
+      "cv_to_correct": "Corriger votre CV",
+      "no_application": "Ajouter votre première candidature",
+      "stale_application": "Relancer {{company}}",
+      "cv_alert_title": "Action requise sur votre CV",
+      "cv_alert_desc": "Votre conseiller a demandé des corrections sur votre CV. Veuillez le modifier et le renvoyer.",
+      "cv_alert_btn": "Corriger mon CV"
     },
     "pages": {
       "parametres": {
@@ -845,5 +883,62 @@
         "content": "Pour toute question relative à vos données, contactez dpo@itic-cre.fr."
       }
     }
-  }
+  },
+  "studentCv": {
+      "title": "Mon CV Professionnel",
+      "subtitle": "Gérez votre CV et suivez sa validation par votre conseiller.",
+      "timeline": {
+        "step0": "Dépôt du CV",
+        "step0Desc": "Fichier téléversé",
+        "step1": "Relecture conseiller",
+        "step1Desc": "En attente de revue",
+        "step2": "Statut attribué",
+        "step2Desc": "Décision conseiller",
+        "step3": "XP gagnés",
+        "step3Desc": "Bonus débloqué"
+      },
+      "dropzone": {
+        "dragDrop": "Glissez-déposez votre CV ici, ou",
+        "browse": "parcourez vos fichiers",
+        "pdfOnly": "Format PDF uniquement · 10 Mo maximum",
+        "uploading": "Envoi en cours...",
+        "doNotClose": "Ne fermez pas cette page.",
+        "errorPdf": "Format non supporté. Veuillez déposer un fichier PDF uniquement.",
+        "errorSize": "Le fichier est trop volumineux ({{size}} Mo). La taille maximale autorisée est de 10 Mo."
+      },
+      "sheet": {
+        "uploadedAt": "Déposé le {{date}}",
+        "updatedAt": "Mis à jour le {{date}}",
+        "xpAwarded": "+{{xp}} XP gagnés",
+        "xpToAward": "+{{xp}} XP à la validation",
+        "viewBtn": "Voir mon CV",
+        "replaceBtn": "Remplacer mon CV",
+        "cancelReplaceBtn": "Annuler le remplacement",
+        "fallbackName": "Mon CV.pdf"
+      },
+      "comments": {
+        "title": "Retours du conseiller",
+        "empty": "Aucun commentaire pour le moment.",
+        "emptyDesc": "Votre conseiller vous informera de ses retours ici.",
+        "fallbackAdvisor": "Conseiller"
+      },
+      "replaceModal": {
+        "title": "Remplacer votre CV ?",
+        "body": "Vous vous apprêtez à téléverser le fichier",
+        "warning": "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.",
+        "cancel": "Annuler",
+        "confirm": "Remplacer le CV"
+      },
+      "toast": {
+        "sent": "CV envoyé au conseiller.",
+        "replaced": "CV remplacé — statut réinitialisé.",
+        "errorSend": "Une erreur est survenue lors de l'envoi.",
+        "errorReplace": "Une erreur est survenue lors du remplacement."
+      },
+      "error": {
+        "title": "Impossible de charger votre CV",
+        "desc": "Une erreur réseau est survenue. Veuillez réessayer.",
+        "retry": "Réessayer"
+      }
+    }
 }

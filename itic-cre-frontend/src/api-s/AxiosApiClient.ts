@@ -17,6 +17,13 @@ apiClient.interceptors.request.use(
     if (!(config.data instanceof FormData)) {
       config.headers['Content-Type'] = 'application/json';
     }
+
+    // Transmettre la langue active au backend pour l'internationalisation des messages
+    const lang = localStorage.getItem('i18nextLng') || 'fr';
+    const cleanLang = lang.split('-')[0]; // ex: "en-US" -> "en"
+    config.headers['Accept-Language'] = cleanLang;
+    config.headers['x-auth-user-lang'] = cleanLang;
+
     return config;
   },
   (error) => Promise.reject(error)

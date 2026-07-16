@@ -107,9 +107,10 @@ export function ChangePasswordRequest(data: ChangePasswordDTO) {
 }
 
 export interface UpdateProfileData {
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     jobTitle?: string;
+    lang?: string;
 }
 
 // Mettre à jour le profil de l'utilisateur connecté (nom, prénom, fonction)

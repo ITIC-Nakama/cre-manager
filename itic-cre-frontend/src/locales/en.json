@@ -56,7 +56,45 @@
     },
     "home": {
       "title": "Dashboard",
-      "subtitle": "Welcome {{name}}."
+      "subtitle": "Welcome {{name}}.",
+      "greeting": "Hello, {{name}} 👋",
+      "desc": "Here is an overview of your applications and recent activity.",
+      "stats": {
+        "sent": "Applications sent",
+        "pending": "Awaiting response",
+        "interviews": "Interviews scheduled",
+        "response_rate": "Response rate"
+      },
+      "gamification": {
+        "title": "Progression",
+        "next_grade": "{{xp}} XP before {{name}}",
+        "max_grade": "Maximum grade reached 🎉"
+      },
+      "ranking": {
+        "title": "Ranking: {{scope}}",
+        "promotion": "your class",
+        "general": "general",
+        "rank_prefix": "You are",
+        "rank_suffix": "out of {{total}}"
+      },
+      "applications": {
+        "title": "Recent Applications",
+        "empty": "No applications yet",
+        "empty_desc": "Start by adding your first application to track its progress here."
+      },
+      "tasks": {
+        "title": "To do today",
+        "empty": "Nothing to report, keep it up!"
+      }
+    },
+    "tasks": {
+      "no_cv": "Upload your CV",
+      "cv_to_correct": "Correct your CV",
+      "no_application": "Add your first application",
+      "stale_application": "Follow up with {{company}}",
+      "cv_alert_title": "Action required on your CV",
+      "cv_alert_desc": "Your advisor requested corrections on your CV. Please edit and submit it again.",
+      "cv_alert_btn": "Correct my CV"
     },
     "pages": {
       "parametres": {
@@ -845,5 +883,62 @@
         "content": "For any questions relative to your data, contact dpo@itic-cre.fr."
       }
     }
-  }
+  },
+  "studentCv": {
+      "title": "My Professional CV",
+      "subtitle": "Manage your CV and track its validation by your advisor.",
+      "timeline": {
+        "step0": "CV Upload",
+        "step0Desc": "File uploaded",
+        "step1": "Advisor Review",
+        "step1Desc": "Awaiting review",
+        "step2": "Status Assigned",
+        "step2Desc": "Advisor decision",
+        "step3": "XP Earned",
+        "step3Desc": "Bonus unlocked"
+      },
+      "dropzone": {
+        "dragDrop": "Drag & drop your CV here, or",
+        "browse": "browse your files",
+        "pdfOnly": "PDF format only · 10 MB maximum",
+        "uploading": "Uploading...",
+        "doNotClose": "Do not close this page.",
+        "errorPdf": "Unsupported format. Please upload a PDF file only.",
+        "errorSize": "The file is too large ({{size}} MB). The maximum allowed size is 10 MB."
+      },
+      "sheet": {
+        "uploadedAt": "Uploaded on {{date}}",
+        "updatedAt": "Updated on {{date}}",
+        "xpAwarded": "+{{xp}} XP earned",
+        "xpToAward": "+{{xp}} XP upon validation",
+        "viewBtn": "View my CV",
+        "replaceBtn": "Replace my CV",
+        "cancelReplaceBtn": "Cancel replacement",
+        "fallbackName": "My CV.pdf"
+      },
+      "comments": {
+        "title": "Advisor feedback",
+        "empty": "No comments yet.",
+        "emptyDesc": "Your advisor will post comments here.",
+        "fallbackAdvisor": "Advisor"
+      },
+      "replaceModal": {
+        "title": "Replace your CV?",
+        "body": "You are about to upload the file",
+        "warning": "This action will replace your current CV, reset your CV validation status, and make the eligible XP rewards available again for this cycle. Your previous comments will be kept for your information.",
+        "cancel": "Cancel",
+        "confirm": "Replace CV"
+      },
+      "toast": {
+        "sent": "CV sent to advisor.",
+        "replaced": "CV replaced — status reset.",
+        "errorSend": "An error occurred during submission.",
+        "errorReplace": "An error occurred during replacement."
+      },
+      "error": {
+        "title": "Unable to load your CV",
+        "desc": "A network error occurred. Please try again.",
+        "retry": "Retry"
+      }
+    }
 }

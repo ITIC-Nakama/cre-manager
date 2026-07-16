@@ -8,6 +8,10 @@ import {
     fetchCVComments,
     deleteCVComment,
     fetchCVStats,
+    fetchMyCV,
+    fetchMyComments,
+    uploadMyCV,
+    fetchCVByStudent,
 } from '../api-s/requests/CVRequest';
 import type { CVListParams } from '../api-s/requests/CVRequest';
 import type { CVStatut } from '../types/models/CV';
@@ -84,5 +88,39 @@ export function useCVStats() {
     return useQuery({
         queryKey: ['cv-stats'],
         queryFn: fetchCVStats,
+    });
+}
+
+export function useMyCV() {
+    return useQuery({
+        queryKey: ['my-cv'],
+        queryFn: fetchMyCV,
+        retry: false, // évite de réessayer sur une 404 (comportement normal si aucun CV n'est déposé)
+    });
+}
+
+export function useMyComments() {
+    return useQuery({
+        queryKey: ['my-cv-comments'],
+        queryFn: fetchMyComments,
+    });
+}
+
+export function useUploadMyCV() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (file: File) => uploadMyCV(file),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-cv'] });
+            queryClient.invalidateQueries({ queryKey: ['my-cv-comments'] });
+        },
+    });
+}
+
+export function useCVByStudent(studentId: string | null) {
+    return useQuery({
+        queryKey: ['cv-student', studentId],
+        queryFn: () => fetchCVByStudent(studentId!),
+        enabled: !!studentId,
     });
 }
