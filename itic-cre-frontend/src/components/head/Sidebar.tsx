@@ -8,6 +8,9 @@ import { ThemeStorageKey, SidebarCollapsedStorageKey } from '../../types/storage
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import UserAvatar from '../shared/UserAvatar';
+import { toUserProfileDTO } from '../../types/models/User';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUpdateProfile } from '../../hooks/useAuth';
 
 export interface NavItem {
   label: string;
@@ -28,10 +31,12 @@ function SidebarContent({
   onNavClick?: () => void;
   collapsed?: boolean;
 }) {
-  const { user, logout } = useUserStore();
+  const { user, setUser, logout } = useUserStore();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const queryClient = useQueryClient();
+  const updateProfile = useUpdateProfile();
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -41,7 +46,27 @@ function SidebarContent({
   };
 
   const toggleLang = () => {
-    i18n.changeLanguage((i18n.language || 'fr').startsWith('fr') ? 'en' : 'fr');
+    const nextLang = (i18n.language || 'fr').startsWith('fr') ? 'en' : 'fr';
+
+    // Mettre à jour la langue locale et rafraîchir le dashboard immédiatement
+    i18n.changeLanguage(nextLang);
+    queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
+
+    // Synchronisation facultative avec la base de données en arrière-plan
+    if (user) {
+      updateProfile.mutate(
+        { lang: nextLang },
+        {
+          onSuccess: (data) => {
+            const updated = toUserProfileDTO(data);
+            setUser(updated);
+          },
+          onError: (err) => {
+            console.error("Échec de la synchronisation de la langue sur le backend :", err);
+          },
+        }
+      );
+    }
   };
 
   const lang = (i18n.language || 'fr').split('-')[0].toUpperCase();

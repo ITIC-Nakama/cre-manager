@@ -120,7 +120,11 @@ public enum MessageKey {
     CV_COMMENT_NOT_FOUND("cv-comment-not-found", "Commentaire de CV introuvable", "CV comment not found"),
     CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles."),
     ARTICLE_HAS_QUIZ("article-has-quiz", "Impossible de supprimer l'article car il contient un quiz. Supprimez d'abord le quiz.", "Cannot delete article because it contains a quiz. Delete the quiz first."),
-    QUIZ_HAS_VALIDATIONS("quiz-has-validations", "Impossible de supprimer ce quiz car des étudiants l'ont déjà validé.", "Cannot delete this quiz because students have already validated it.");
+    QUIZ_HAS_VALIDATIONS("quiz-has-validations", "Impossible de supprimer ce quiz car des étudiants l'ont déjà validé.", "Cannot delete this quiz because students have already validated it."),
+    TASK_NO_APPLICATION("task-no-application", "Ajouter votre première candidature", "Add your first application"),
+    TASK_STALE_PREFIX("task-stale-prefix", "Relancer ", "Follow up with "),
+    TASK_NO_CV("task-no-cv", "Déposer votre CV", "Upload your CV"),
+    TASK_CV_TO_CORRECT("task-cv-to-correct", "Corriger votre CV", "Correct your CV");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

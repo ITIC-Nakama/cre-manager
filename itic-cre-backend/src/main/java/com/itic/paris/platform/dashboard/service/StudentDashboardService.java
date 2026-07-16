@@ -6,9 +6,7 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
-import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.repository.CVRepository;
-import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.dashboard.model.dtos.*;
 import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.model.dtos.GradeDTO;
@@ -16,8 +14,13 @@ import com.itic.paris.platform.gamification.repository.GradeRepository;
 import com.itic.paris.platform.gamification.service.GamificationAdminService;
 import com.itic.paris.platform.gamification.service.GamificationService;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
+import com.itic.paris.platform.shared.local.LanguageUtil;
 import com.itic.paris.platform.shared.local.MessageKey;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +38,13 @@ public class StudentDashboardService {
     private final StudentRepository studentRepository;
     private final ApplicationRepository applicationRepository;
     private final CVRepository cvRepository;
-    private final CVStatutRepository cvStatutRepository;
     private final GradeRepository gradeRepository;
     private final GamificationService gamificationService;
     private final GamificationAdminService gamificationAdminService;
     private final AppConfigurationService appConfigurationService;
+
+    @Autowired(required = false)
+    private HttpServletRequest request;
 
     @Transactional(readOnly = true)
     public StudentDashboardSummaryDTO getSummary() {
@@ -50,10 +55,19 @@ public class StudentDashboardService {
 
         int staleAlertDays = appConfigurationService.getStaleAlertDays();
 
+        String lang = student.getLang();
+        try {
+            if (request != null) {
+                lang = LanguageUtil.resolveLang(request);
+            }
+        } catch (Exception e) {
+            // Fallback en cas d'environnement hors requête HTTP (comme les tests unitaires)
+        }
+
         GamificationSummaryDTO gamification = buildGamificationSummary(student);
         CvSummaryDTO cvSummary = buildCvSummary(studentId);
         ApplicationStatsDTO applicationStats = buildApplicationStats(studentId, staleAlertDays);
-        List<TaskDTO> tasks = buildTasks(studentId, applicationStats, cvSummary, staleAlertDays);
+        List<TaskDTO> tasks = buildTasks(studentId, applicationStats, cvSummary, staleAlertDays, lang);
         RankingDTO ranking = buildRanking(student);
 
         return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking);
@@ -162,11 +176,11 @@ public class StudentDashboardService {
     }
 
     private List<TaskDTO> buildTasks(UUID studentId, ApplicationStatsDTO appStats,
-                                     CvSummaryDTO cvSummary, int staleAlertDays) {
+                                     CvSummaryDTO cvSummary, int staleAlertDays, String lang) {
         List<TaskDTO> tasks = new ArrayList<>();
 
         if (appStats.getTotal() == 0) {
-            tasks.add(new TaskDTO("NO_APPLICATION", "Ajouter votre première candidature", null));
+            tasks.add(new TaskDTO("NO_APPLICATION", MessageKey.TASK_NO_APPLICATION.translate(lang), null));
         } else {
             Instant staleThreshold = Instant.now().minus(staleAlertDays, ChronoUnit.DAYS);
             applicationRepository.findStaleByStudentId(studentId, staleThreshold)
@@ -174,27 +188,24 @@ public class StudentDashboardService {
                     .limit(3)
                     .forEach(a -> tasks.add(new TaskDTO(
                             "STALE_APPLICATION",
-                            "Relancer " + a.getEntreprise(),
+                            MessageKey.TASK_STALE_PREFIX.translate(lang) + a.getEntreprise(),
                             a.getId().toString()
                     )));
         }
 
         if (!cvSummary.isHasCv()) {
-            tasks.add(new TaskDTO("NO_CV", "Déposer votre CV", null));
+            tasks.add(new TaskDTO("NO_CV", MessageKey.TASK_NO_CV.translate(lang), null));
         } else {
-            List<CVStatut> activeStatuts = cvStatutRepository.findAllByActifTrueOrderByOrdreAsc();
-            if (!activeStatuts.isEmpty()) {
-                int maxOrdre = activeStatuts.get(activeStatuts.size() - 1).getOrdre();
-                cvRepository.findByStudentId(studentId).ifPresent(cv -> {
-                    if (cv.getStatut().getOrdre() < maxOrdre) {
-                        tasks.add(new TaskDTO(
-                                "CV_TO_CORRECT",
-                                "Corriger votre CV",
-                                cv.getId().toString()
-                        ));
-                    }
-                });
-            }
+            cvRepository.findByStudentId(studentId).ifPresent(cv -> {
+                String statutNom = cv.getStatut().getNom().toLowerCase();
+                if (statutNom.contains("corriger") || statutNom.contains("à corriger")) {
+                    tasks.add(new TaskDTO(
+                            "CV_TO_CORRECT",
+                            MessageKey.TASK_CV_TO_CORRECT.translate(lang),
+                            cv.getId().toString()
+                    ));
+                }
+            });
         }
 
         return tasks;
