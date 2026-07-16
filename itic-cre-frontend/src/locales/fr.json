@@ -924,7 +924,7 @@
       },
       "replaceModal": {
         "title": "Remplacer votre CV ?",
-        "body": "Vous vous apprêtez à téléverser le fichier {{name}}.",
+        "body": "Vous vous apprêtez à téléverser le fichier",
         "warning": "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.",
         "cancel": "Annuler",
         "confirm": "Remplacer le CV"
