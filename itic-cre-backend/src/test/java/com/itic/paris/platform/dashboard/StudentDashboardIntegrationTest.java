@@ -166,9 +166,24 @@ public class StudentDashboardIntegrationTest {
         // When: Reload dashboard summary
         StudentDashboardSummaryDTO updatedSummary = studentDashboardService.getSummary();
 
-        // Then: Tasks NO_APPLICATION and NO_CV should have disappeared
+        // Then: Tasks NO_APPLICATION and NO_CV should have disappeared, and CV_TO_CORRECT should not be present
         List<String> updatedTaskTypes = updatedSummary.getAFaireAujourdhui().stream().map(TaskDTO::getType).toList();
         assertThat(updatedTaskTypes).doesNotContain("NO_APPLICATION", "NO_CV");
+        assertThat(updatedTaskTypes).doesNotContain("CV_TO_CORRECT");
+
+        // Given: Change CV status to "À corriger"
+        CVStatut aCorrigerStatut = cvStatutRepository.findAll().stream()
+                .filter(s -> s.getNom().equalsIgnoreCase("À corriger"))
+                .findFirst().orElseThrow();
+        cv.setStatut(aCorrigerStatut);
+        cvRepository.save(cv);
+
+        // When: Reload dashboard summary
+        StudentDashboardSummaryDTO finalSummary = studentDashboardService.getSummary();
+        List<String> finalTaskTypes = finalSummary.getAFaireAujourdhui().stream().map(TaskDTO::getType).toList();
+
+        // Then: Should contain CV_TO_CORRECT
+        assertThat(finalTaskTypes).contains("CV_TO_CORRECT");
     }
 
     @Test

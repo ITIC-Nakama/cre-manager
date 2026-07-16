@@ -14,6 +14,7 @@ import { Role } from './types/models/Auth'
 
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
+import StudentCVPage from './pages/student/cv/StudentCVPage'
 import StudentOffresPage from './pages/student/OffresPage'
 import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
@@ -84,7 +85,7 @@ function App() {
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
-          <Route path="/student/cv"            element={<ComingSoonPage />} />
+          <Route path="/student/cv"            element={<StudentCVPage />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 

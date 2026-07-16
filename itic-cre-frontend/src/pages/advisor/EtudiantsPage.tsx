@@ -20,12 +20,14 @@ import { exportStudentsCsv } from '../../utils/csvExport';
 import { fetchAllStudents } from '../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../components/shared/StudentDetailModal';
+import CVDetailModal from '../../components/shared/CVDetailModal';
 import TruncatedText from '../../components/shared/TruncatedText';
 import CustomSelect from '../../components/basics/CustomSelect';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import type { StudentRow } from '../../types/models/Dashboard';
+import { useCVByStudent, useCVStatuts } from '../../hooks/useCV';
 
 type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
 
@@ -50,6 +52,7 @@ export default function EtudiantsPage() {
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
+    const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
@@ -58,6 +61,9 @@ export default function EtudiantsPage() {
     const { data: promotions } = usePromotions();
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
+
+    const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
+    const { data: cvStatuts = [] } = useCVStatuts();
 
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -383,6 +389,20 @@ export default function EtudiantsPage() {
                                             </td>
                                         ))}
                                         <td className="px-6 py-4 text-right space-x-1">
+                                            {row.original.hasCv && (
+                                                <button
+                                                    onClick={() => setViewingCvStudentId(row.original.id)}
+                                                    disabled={studentCvLoading && viewingCvStudentId === row.original.id}
+                                                    className="inline-flex p-1.5 rounded-lg text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer disabled:opacity-50"
+                                                    title={t('dashboard.etudiants.actions.view_cv', 'Voir CV')}
+                                                >
+                                                    {studentCvLoading && viewingCvStudentId === row.original.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <FileText className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => setViewingStudent(row.original)}
                                                 className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
@@ -490,6 +510,14 @@ export default function EtudiantsPage() {
                 onConfirm={handleConfirm}
                 onClose={closeConfirm}
             />
+
+            {viewingCvStudentId && studentCv && (
+                <CVDetailModal
+                    cv={studentCv}
+                    statuts={cvStatuts}
+                    onClose={() => setViewingCvStudentId(null)}
+                />
+            )}
         </div>
     );
 }

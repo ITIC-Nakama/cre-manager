@@ -170,7 +170,8 @@ Authorization: Bearer <token>  (ou cookie)
 ### Fonctionnalités implémentées
 
 - **Auth Flow complet** : inscription étudiant avec validation OTP, connexion, changement de mot de passe obligatoire pour les comptes créés par un admin.
-- **Espace étudiant** : dashboard, CRM kanban des candidatures, jobboard (recherche + candidature en un clic), skill tree (catégories/articles/quiz avec XP), upload et suivi du CV.
+- **Espace étudiant** : dashboard, CRM kanban des candidatures, jobboard (recherche + candidature en un clic), skill tree (catégories/articles/quiz avec XP), page **Mon CV** complète (glisser-déposer de fichier PDF, suivi de la timeline de validation avec gains d'XP en temps réel, panel des commentaires d'évaluation du conseiller).
 - **Espace conseiller/admin** : gestion des candidatures et étudiants, validation des CV avec commentaires, gestion du contenu (catégories/articles/quiz), gestion des offres d'emploi, page **Gamification** (configuration des points XP par action/statut de candidature/statut de CV, gestion des grades).
+- **Internationalisation (i18n)** : Support bilingue complet (Français / Anglais) sur l'ensemble de la plateforme. Changement de langue optimiste instantané côté client et traduction dynamique côté serveur basée sur la détection des en-têtes de requête HTTP.
 - **Composants partagés** : modale de confirmation générique (`ConfirmDialog`) utilisée pour toutes les suppressions, design responsive avec navigation (`DashboardNavBar`) et logo officiel ITIC Paris.
 
