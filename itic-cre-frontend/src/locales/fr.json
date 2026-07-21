@@ -292,6 +292,7 @@
           "view_offer": "Voir l'offre",
           "notes": "Notes",
           "no_notes": "Aucune note.",
+          "notes_save": "Enregistrer les notes",
           "created_at": "Créée le {{date}}",
           "updated_at": "Mise à jour le {{date}}",
           "edit_button": "Modifier",

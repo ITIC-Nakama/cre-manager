@@ -292,6 +292,7 @@
           "view_offer": "View offer",
           "notes": "Notes",
           "no_notes": "No notes.",
+          "notes_save": "Save notes",
           "created_at": "Created on {{date}}",
           "updated_at": "Updated on {{date}}",
           "edit_button": "Edit",

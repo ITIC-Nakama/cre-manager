@@ -13,10 +13,9 @@ export interface CandidaturePage {
     number: number;
 }
 
-// L'étudiant ne suit qu'un petit nombre de candidatures — on récupère tout en une
-// page pour gérer les onglets "En cours"/"Terminées" côté client (cf. fetchMyJobApplications).
+// L'étudiant récupère toutes ses candidatures en une seule requête non paginée côté client.
 export function fetchMyCandidatures(): Promise<CandidaturePage> {
-    return apiClient.get('/applications', { params: { size: 100 } }).then((response) => unwrap<CandidaturePage>(response));
+    return apiClient.get('/applications', { params: { size: 1000 } }).then((response) => unwrap<CandidaturePage>(response));
 }
 
 export function fetchCandidatureById(id: string): Promise<Candidature> {

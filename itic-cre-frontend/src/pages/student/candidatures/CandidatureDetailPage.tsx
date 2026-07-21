@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, ExternalLink, Loader2, Pencil, RotateCcw, Trash2, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ExternalLink, Loader2, NotebookPen, Pencil, RotateCcw, Save, Trash2, XCircle } from 'lucide-react';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useApplicationStatuses } from '../../../hooks/useApplications';
@@ -29,6 +29,10 @@ export default function CandidatureDetailPage() {
     const changeStatusMutation = useChangeCandidatureStatus();
     const deleteMutation = useDeleteCandidature();
 
+    // État de l'éditeur inline de notes
+    const [notesValue, setNotesValue] = useState<string | null>(null);
+    const notesHaveChanged = notesValue !== null && notesValue !== (candidature?.notes ?? '');
+
     const handleChangeStatus = async (statusId: string) => {
         if (!candidature) return;
         try {
@@ -48,6 +52,27 @@ export default function CandidatureDetailPage() {
         await updateMutation.mutateAsync({ id: candidature.id, payload });
         toast.success(t('dashboard.candidatures.student.toast.updated'));
         setFormOpen(false);
+    };
+
+    const handleSaveNotes = async () => {
+        if (!candidature || notesValue === null) return;
+        try {
+            await updateMutation.mutateAsync({
+                id: candidature.id,
+                payload: {
+                    entreprise: candidature.entreprise,
+                    poste: candidature.poste,
+                    typeContratId: candidature.typeContrat?.id ?? '',
+                    lienOffre: candidature.lienOffre ?? '',
+                    contact: candidature.contact ?? '',
+                    notes: notesValue,
+                },
+            });
+            toast.success(t('dashboard.candidatures.student.toast.updated'));
+            setNotesValue(null); // Réinitialise l'état après sauvegarde
+        } catch {
+            toast.error(t('dashboard.candidatures.student.toast.action_error'));
+        }
     };
 
     const handleDelete = async () => {
@@ -205,16 +230,31 @@ export default function CandidatureDetailPage() {
                 )}
 
                 <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                        {t('dashboard.candidatures.student.detail.notes')}
-                    </p>
-                    {candidature.notes ? (
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3">
-                            {candidature.notes}
+                    <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <NotebookPen className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.student.detail.notes')}
                         </p>
-                    ) : (
-                        <p className="text-sm text-slate-400">{t('dashboard.candidatures.student.detail.no_notes')}</p>
-                    )}
+                        {notesHaveChanged && (
+                            <button
+                                onClick={handleSaveNotes}
+                                disabled={updateMutation.isPending}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                {updateMutation.isPending
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <Save className="h-3 w-3" />}
+                                {t('dashboard.candidatures.student.detail.notes_save')}
+                            </button>
+                        )}
+                    </div>
+                    <textarea
+                        rows={4}
+                        placeholder={t('dashboard.candidatures.student.detail.no_notes')}
+                        value={notesValue ?? (candidature.notes ?? '')}
+                        onChange={(e) => setNotesValue(e.target.value)}
+                        className="w-full text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors placeholder:text-slate-400"
+                    />
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
