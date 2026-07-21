@@ -134,8 +134,17 @@ public class ApplicationService {
 
             // Nettoyer l'historique pour les étapes supérieures au nouveau statut
             historyRepository.deleteByApplicationIdAndNewStatusOrdreGreaterThan(application.getId(), newStatus.getOrdre());
-        } else {
-            // Cas 2 : Avancement vers une étape suivante
+
+            application.setStatus(newStatus);
+            Application saved = applicationRepository.save(application);
+            recordHistory(saved, currentStatus, newStatus);
+            updateLastActivity(application.getStudent());
+
+            return mapToDTO(saved, appConfigurationService.getStaleAlertDays(), xpAwarded);
+        }
+
+        // Cas 2 : Passage au statut "Refusé" (ordre 6)
+        if (newStatus.getOrdre() == 6) {
             boolean alreadyReached = historyRepository
                     .existsByApplicationIdAndNewStatusId(application.getId(), newStatus.getId());
 
@@ -147,15 +156,45 @@ public class ApplicationService {
                         xpAwarded,
                         newStatus.getNom() + " — " + application.getEntreprise());
             }
+
+            application.setStatus(newStatus);
+            Application saved = applicationRepository.save(application);
+            recordHistory(saved, currentStatus, newStatus);
+            updateLastActivity(application.getStudent());
+
+            return mapToDTO(saved, appConfigurationService.getStaleAlertDays(), xpAwarded);
         }
 
-        application.setStatus(newStatus);
-        Application saved = applicationRepository.save(application);
-        recordHistory(saved, currentStatus, newStatus);
+        // Cas 3 : Avancement / Saut d'étapes vers une étape supérieure -> valider toutes les étapes intermédiaires
+        List<ApplicationStatus> stepsToProcess = statusRepository
+                .findByOrdreBetweenAndActifTrueOrderByOrdreAsc(currentStatus.getOrdre() + 1, newStatus.getOrdre());
 
-        updateLastActivity(application.getStudent());
+        ApplicationStatus prev = currentStatus;
+        Application savedApp = application;
 
-        return mapToDTO(saved, appConfigurationService.getStaleAlertDays(), xpAwarded);
+        for (ApplicationStatus st : stepsToProcess) {
+            boolean alreadyReached = historyRepository
+                    .existsByApplicationIdAndNewStatusId(application.getId(), st.getId());
+
+            if (st.getGainXP() > 0 && !alreadyReached) {
+                int xp = st.getGainXP();
+                xpAwarded += xp;
+                gamificationService.awardXP(
+                        application.getStudent(),
+                        ActionXP.CANDIDATURE_STATUS_CHANGED,
+                        xp,
+                        st.getNom() + " — " + application.getEntreprise());
+            }
+
+            savedApp.setStatus(st);
+            savedApp = applicationRepository.save(savedApp);
+            recordHistory(savedApp, prev, st);
+            prev = st;
+        }
+
+        updateLastActivity(savedApp.getStudent());
+
+        return mapToDTO(savedApp, appConfigurationService.getStaleAlertDays(), xpAwarded);
     }
 
     @Transactional
