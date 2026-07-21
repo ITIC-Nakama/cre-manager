@@ -21,7 +21,7 @@ export default function StudentLayout() {
     <RequireAuth allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
         <Sidebar navItems={navItems} />
-        <main className="flex-1 overflow-y-auto min-h-screen lg:pl-0 pt-16 lg:pt-0">
+        <main className="flex-1 overflow-y-auto min-h-screen lg:pl-0 pt-14 lg:pt-0">
           <div className="max-w-screen-xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <Outlet />
           </div>
@@ -30,3 +30,4 @@ export default function StudentLayout() {
     </RequireAuth>
   );
 }
+
