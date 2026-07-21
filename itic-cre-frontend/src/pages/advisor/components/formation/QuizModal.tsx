@@ -136,7 +136,6 @@ export default function QuizModal({
     const updated = [...questions];
     const question = updated[qIndex];
     if (question.type === 'SINGLE') {
-      // Radio behaviour: exactly one correct answer, can't uncheck the only one selected.
       question.answers = question.answers.map((ans, idx) => ({ ...ans, estCorrecte: idx === aIndex }));
     } else {
       question.answers = question.answers.map((ans, idx) =>
@@ -151,7 +150,6 @@ export default function QuizModal({
     const question = updated[qIndex];
     const nextType = question.type === 'SINGLE' ? 'MULTIPLE' : 'SINGLE';
     if (nextType === 'SINGLE') {
-      // Keep only the first correct answer so the question is immediately valid.
       const firstCorrect = question.answers.findIndex(a => a.estCorrecte);
       question.answers = question.answers.map((ans, idx) => ({
         ...ans,
@@ -222,43 +220,45 @@ export default function QuizModal({
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-fadeIn flex flex-col">
       {/* Header bar */}
-      <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800/80 px-6 py-4 flex justify-between items-center z-10">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row gap-3 sm:items-center justify-between z-10 shadow-sm">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
             disabled={saving}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
               {quiz ? t('dashboard.formation.modal_edit_quiz') : t('dashboard.formation.modal_create_quiz')}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t('dashboard.formation.label_article_prefix')} <span className="font-semibold text-indigo-600 dark:text-indigo-400">{articleTitle}</span>
-            </p>
+            {articleTitle && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {t('dashboard.formation.label_article_prefix')} <span className="font-semibold text-indigo-600 dark:text-indigo-400">{articleTitle}</span>
+              </p>
+            )}
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-auto">
           {quiz && (
             <button
               onClick={() => onDelete(quiz.id)}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 text-sm font-semibold transition-colors hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-colors hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4" />
-              {t('dashboard.formation.btn_delete_quiz')}
+              <span>{t('dashboard.formation.btn_delete_quiz')}</span>
             </button>
           )}
           <button
             onClick={handleSave}
             disabled={saving || loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-white" />}
-            {t('dashboard.formation.btn_save_quiz')}
+            <span>{t('dashboard.formation.btn_save_quiz')}</span>
           </button>
         </div>
       </div>
@@ -270,24 +270,24 @@ export default function QuizModal({
         </div>
       ) : (
         /* Form Content */
-        <div className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
+        <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col gap-6">
           
           {/* Settings Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
               <Settings className="h-4 w-4 text-indigo-500" />
               {t('dashboard.formation.general_config')}
             </h4>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                   {t('dashboard.formation.min_score')}
                 </label>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
                   {t('dashboard.formation.min_score_desc')}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <input
                   type="number"
                   min={1}
@@ -304,7 +304,7 @@ export default function QuizModal({
 
           {/* Questions list */}
           <div className="flex flex-col gap-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h4 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <HelpCircle className="h-5 w-5 text-indigo-500" />
                 {t('dashboard.formation.questions_count', { count: questions.length })}
@@ -313,7 +313,7 @@ export default function QuizModal({
                 type="button"
                 onClick={handleAddQuestion}
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <Plus className="h-3.5 w-3.5" />
                 {t('dashboard.formation.btn_add_question')}
@@ -323,23 +323,14 @@ export default function QuizModal({
             {questions.map((question, qIdx) => (
               <div 
                 key={qIdx}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col gap-4 relative group"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col gap-4 min-w-0"
               >
-                {/* Delete Question Button */}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveQuestion(qIdx)}
-                  disabled={saving}
-                  className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={t('dashboard.formation.btn_delete_question')}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-sm font-bold">
+                {/* Question Title & Actions Header Row */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-sm font-bold shrink-0">
                     {qIdx + 1}
                   </span>
+                  
                   <input
                     type="text"
                     required
@@ -348,40 +339,53 @@ export default function QuizModal({
                     onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
                     placeholder={t('dashboard.formation.placeholder_question_text')}
                     disabled={saving}
-                    className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-600 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-[160px] bg-transparent border-b border-slate-200 dark:border-slate-800 hover:border-slate-300 focus:border-indigo-600 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-colors text-sm sm:text-base disabled:opacity-60"
                   />
-                  <button
-                    type="button"
-                    onClick={() => handleToggleQuestionType(qIdx)}
-                    disabled={saving}
-                    title={t('dashboard.formation.label_question_type')}
-                    className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {question.type === 'SINGLE'
-                      ? t('dashboard.formation.question_type_single')
-                      : t('dashboard.formation.question_type_multiple')}
-                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleQuestionType(qIdx)}
+                      disabled={saving}
+                      title={t('dashboard.formation.label_question_type')}
+                      className="rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {question.type === 'SINGLE'
+                        ? t('dashboard.formation.question_type_single')
+                        : t('dashboard.formation.question_type_multiple')}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveQuestion(qIdx)}
+                      disabled={saving}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                      title={t('dashboard.formation.btn_delete_question')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Answers section */}
-                <div className="pl-10 flex flex-col gap-3">
+                <div className="pl-0 sm:pl-9 flex flex-col gap-3 min-w-0">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     {question.type === 'SINGLE'
                       ? t('dashboard.formation.label_answers_options_single')
                       : t('dashboard.formation.label_answers_options')} <span className="text-rose-500">*</span>
                   </label>
                   
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 min-w-0">
                     {question.answers.map((answer, aIdx) => (
-                      <div key={aIdx} className="flex items-center gap-3 group/ans">
+                      <div key={aIdx} className="flex items-center gap-2 sm:gap-3 min-w-0">
                         
-                        {/* Correct-answer marker — checkbox for MULTIPLE, radio dot for SINGLE */}
+                        {/* Correct-answer marker */}
                         <button
                           type="button"
                           disabled={saving}
                           onClick={() => handleToggleCorrectAnswer(qIdx, aIdx)}
                           title={t('dashboard.formation.label_mark_correct')}
-                          className={`flex items-center justify-center h-5 w-5 border transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                          className={`flex items-center justify-center h-5 w-5 border transition-all cursor-pointer shrink-0 disabled:opacity-50 ${
                             question.type === 'SINGLE' ? 'rounded-full' : 'rounded-md'
                           } ${
                             answer.estCorrecte
@@ -405,7 +409,7 @@ export default function QuizModal({
                           onChange={(e) => handleAnswerTextChange(qIdx, aIdx, e.target.value)}
                           placeholder={t('dashboard.formation.placeholder_answer_text', { num: aIdx + 1 })}
                           disabled={saving}
-                          className={`flex-1 rounded-xl border px-3.5 py-1.5 text-sm focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                          className={`flex-1 min-w-0 rounded-xl border px-3 py-1.5 text-xs sm:text-sm focus:outline-none transition-all disabled:opacity-60 ${
                             answer.estCorrecte
                               ? 'border-emerald-500/30 bg-emerald-50/10 dark:bg-emerald-950/10 dark:border-emerald-800/30 text-emerald-900 dark:text-emerald-300'
                               : 'border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/50 dark:text-slate-100'
@@ -417,7 +421,7 @@ export default function QuizModal({
                           type="button"
                           onClick={() => handleRemoveAnswer(qIdx, aIdx)}
                           disabled={question.answers.length <= 2 || saving}
-                          className="p-1 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-0 cursor-pointer"
+                          className="p-1 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-0 cursor-pointer shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -430,7 +434,7 @@ export default function QuizModal({
                     type="button"
                     onClick={() => handleAddAnswer(qIdx)}
                     disabled={saving}
-                    className="self-start inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="self-start inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1 font-semibold cursor-pointer disabled:opacity-50"
                   >
                     <Plus className="h-3 w-3" />
                     {t('dashboard.formation.btn_add_option')}
@@ -444,7 +448,7 @@ export default function QuizModal({
             type="button"
             onClick={handleAddQuestion}
             disabled={saving}
-            className="py-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="py-5 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             <Plus className="h-6 w-6" />
             <span className="font-bold text-sm">{t('dashboard.formation.btn_add_question_dashed')}</span>
