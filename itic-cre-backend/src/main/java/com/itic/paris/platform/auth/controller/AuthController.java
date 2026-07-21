@@ -88,7 +88,8 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(request));
         }
-        return ResponseEntity.ok(userProfileService.updateUser(id, updateDto));
+        var saved = userProfileService.updateUser(id, updateDto);
+        return ResponseEntity.ok(authService.sanitizeUser(saved));
     }
 
     @PutMapping("/users/me")
@@ -99,7 +100,8 @@ public class AuthController {
             return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(request));
         }
         UUID currentUserId = SecurityContextHelper.currentUserId();
-        return ResponseEntity.ok(userProfileService.updateUser(currentUserId, updateDto));
+        var saved = userProfileService.updateUser(currentUserId, updateDto);
+        return ResponseEntity.ok(authService.sanitizeUser(saved));
     }
 
     @PostMapping(value = "/users/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

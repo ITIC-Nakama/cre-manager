@@ -33,7 +33,7 @@ function SidebarContent({
 }) {
   const { user, setUser, logout } = useUserStore();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
@@ -119,63 +119,84 @@ function SidebarContent({
       </nav>
 
       {/* Bottom: theme + lang + user */}
-      <div className={`border-t border-slate-100 dark:border-slate-800 space-y-3 ${collapsed ? 'px-2 pt-3 pb-4' : 'px-4 pt-3 pb-4'}`}>
-        {collapsed ? (
-          <div className="flex flex-col items-center gap-2.5">
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title={isDark ? 'Mode clair' : 'Mode sombre'}
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            <div title={fullName}>
-              <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
-            </div>
-            <button
-              onClick={() => logout().then(() => navigate('/login'))}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
-              title="Déconnexion"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={toggleLang}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Globe className="h-3.5 w-3.5" />
-                {lang}
-              </button>
-              <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
-              <button
-                onClick={toggleTheme}
-                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
-              >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{fullName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
+      {(() => {
+        const profilePath = user?.role === Role.STUDENT ? '/student/parametres' : '/supervisor/parametres';
+        return (
+          <div className={`border-t border-slate-100 dark:border-slate-800 space-y-3 ${collapsed ? 'px-2 pt-3 pb-4' : 'px-4 pt-3 pb-4'}`}>
+            {collapsed ? (
+              <div className="flex flex-col items-center gap-2.5">
+                <button
+                  onClick={toggleTheme}
+                  className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title={isDark ? 'Mode clair' : 'Mode sombre'}
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => {
+                    onNavClick?.();
+                    navigate(profilePath);
+                  }}
+                  className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title={fullName}
+                >
+                  <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
+                </button>
+                <button
+                  onClick={() => logout().then(() => navigate('/login'))}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                  title="Déconnexion"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => logout().then(() => navigate('/login'))}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
-                title="Déconnexion"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={toggleLang}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    {lang}
+                  </button>
+                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                  <button
+                    onClick={toggleTheme}
+                    className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
+                  >
+                    {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    onClick={() => {
+                      onNavClick?.();
+                      navigate(profilePath);
+                    }}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 p-1 -m-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group/user"
+                    title={t('dashboard.sidebar.profil', 'Profil')}
+                  >
+                    <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover/user:text-indigo-600 dark:group-hover/user:text-indigo-400 truncate transition-colors">{fullName}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => logout().then(() => navigate('/login'))}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer flex-shrink-0"
+                    title="Déconnexion"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

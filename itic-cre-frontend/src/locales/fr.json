@@ -51,7 +51,7 @@
       "promotions": "Promotions",
       "audit": "Journal d'audit",
       "configuration": "Configuration",
-      "parametres": "Paramètres",
+      "parametres": "Profil",
       "logout": "Déconnexion"
     },
     "home": {
@@ -98,8 +98,8 @@
     },
     "pages": {
       "parametres": {
-        "title": "Paramètres",
-        "description": "Gérez vos préférences et la sécurité de votre compte."
+        "title": "Profil",
+        "description": "Gérez vos informations et préférences de compte."
       }
     },
     "advisor": {

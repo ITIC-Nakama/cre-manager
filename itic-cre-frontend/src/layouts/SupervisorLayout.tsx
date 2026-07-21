@@ -6,14 +6,14 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, Settings
+  ScrollText, User
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 
 export default function SupervisorLayout() {
   const { t } = useTranslation();
-  const user = useUserStore((state) => state.user);
+  const { user } = useUserStore();
 
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
@@ -34,7 +34,7 @@ export default function SupervisorLayout() {
   const navItems: NavItem[] = [
     ...commonItems,
     ...(user?.role === Role.ADMIN ? adminItems : []),
-    { label: t('dashboard.sidebar.parametres'), icon: Settings, to: '/supervisor/parametres' },
+    { label: t('dashboard.sidebar.profil'), icon: User, to: '/supervisor/parametres' },
   ];
 
   return (
