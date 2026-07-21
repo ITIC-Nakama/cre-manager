@@ -39,6 +39,8 @@ export default function CandidatureDetailPage() {
             const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId });
             if (result.xpAwarded > 0) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed_xp', { xp: result.xpAwarded }));
+            } else if (result.xpAwarded < 0) {
+                toast.info(t('dashboard.candidatures.student.toast.status_rollback_xp', `Statut réinitialisé (${result.xpAwarded} XP)`));
             } else {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed'));
             }

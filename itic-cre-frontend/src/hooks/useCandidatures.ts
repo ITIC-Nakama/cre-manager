@@ -46,7 +46,11 @@ export function useChangeCandidatureStatus() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ id, statusId }: { id: string; statusId: string }) => changeCandidatureStatus(id, statusId),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
+            queryClient.invalidateQueries({ queryKey: ['me'] });
+            queryClient.invalidateQueries({ queryKey: ['gamification'] });
+        },
     });
 }
 

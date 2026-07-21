@@ -41,6 +41,22 @@ public class GamificationService {
         studentRepository.save(student);
     }
 
+    @Transactional
+    public void revokeXP(Student student, ActionXP action, int points, String description) {
+        if (points <= 0) return;
+
+        XPHistory xp = new XPHistory();
+        xp.setStudent(student);
+        xp.setAction(action);
+        xp.setPoints(-points);
+        xp.setDescription(description);
+        xpHistoryRepository.save(xp);
+
+        student.setXpTotal(Math.max(0, student.getXpTotal() - points));
+        student.setLastActivity(Instant.now());
+        studentRepository.save(student);
+    }
+
     public int getConfiguredXP(ActionXP action) {
         return gamificationConfigRepository.findByAction(action)
                 .filter(GamificationConfig::getActive)
