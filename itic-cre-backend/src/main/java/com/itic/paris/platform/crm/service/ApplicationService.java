@@ -112,24 +112,46 @@ public class ApplicationService {
             return mapToDTO(application, appConfigurationService.getStaleAlertDays());
         }
 
-        // Doit être évalué AVANT recordHistory : une fois l'historique enregistré, cette
-        // requête retrouverait la ligne qu'on vient d'insérer et renverrait toujours true.
-        boolean alreadyReached = historyRepository
-                .existsByApplicationIdAndNewStatusId(application.getId(), newStatus.getId());
+        int xpAwarded = 0;
+
+        // Cas 1 : Retour en arrière (newStatus.ordre < currentStatus.ordre)
+        if (newStatus.getOrdre() < currentStatus.getOrdre()) {
+            List<ApplicationStatus> rolledBackStatuses = historyRepository
+                    .findNewStatusesByApplicationIdAndOrdreGreaterThan(application.getId(), newStatus.getOrdre());
+
+            int xpToRevoke = rolledBackStatuses.stream()
+                    .mapToInt(s -> s.getGainXP() != null ? s.getGainXP() : 0)
+                    .sum();
+
+            if (xpToRevoke > 0) {
+                gamificationService.revokeXP(
+                        application.getStudent(),
+                        ActionXP.CANDIDATURE_STATUS_CHANGED,
+                        xpToRevoke,
+                        "Retour arrière candidature — " + application.getEntreprise());
+                xpAwarded = -xpToRevoke;
+            }
+
+            // Nettoyer l'historique pour les étapes supérieures au nouveau statut
+            historyRepository.deleteByApplicationIdAndNewStatusOrdreGreaterThan(application.getId(), newStatus.getOrdre());
+        } else {
+            // Cas 2 : Avancement vers une étape suivante
+            boolean alreadyReached = historyRepository
+                    .existsByApplicationIdAndNewStatusId(application.getId(), newStatus.getId());
+
+            if (newStatus.getGainXP() > 0 && !alreadyReached) {
+                xpAwarded = newStatus.getGainXP();
+                gamificationService.awardXP(
+                        application.getStudent(),
+                        ActionXP.CANDIDATURE_STATUS_CHANGED,
+                        xpAwarded,
+                        newStatus.getNom() + " — " + application.getEntreprise());
+            }
+        }
 
         application.setStatus(newStatus);
         Application saved = applicationRepository.save(application);
         recordHistory(saved, currentStatus, newStatus);
-
-        int xpAwarded = 0;
-        if (newStatus.getGainXP() > 0 && !alreadyReached) {
-            xpAwarded = newStatus.getGainXP();
-            gamificationService.awardXP(
-                    application.getStudent(),
-                    ActionXP.CANDIDATURE_STATUS_CHANGED,
-                    xpAwarded,
-                    newStatus.getNom() + " — " + application.getEntreprise());
-        }
 
         updateLastActivity(application.getStudent());
 
