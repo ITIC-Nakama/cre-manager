@@ -194,7 +194,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile toggle button */}
+      {/* Bouton burger mobile */}
       <button
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer"
         onClick={() => setMobileOpen(true)}
@@ -203,7 +203,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
         <Menu className="h-5 w-5 text-slate-600 dark:text-slate-400" />
       </button>
 
-      {/* Mobile backdrop */}
+      {/* Backdrop mobile */}
       {mobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
@@ -211,7 +211,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
         />
       )}
 
-      {/* Mobile sidebar */}
+      {/* Sidebar mobile (drawer) */}
       <aside
         className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
@@ -227,7 +227,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
         <SidebarContent navItems={navItems} onNavClick={() => setMobileOpen(false)} />
       </aside>
 
-      {/* Desktop sidebar */}
+      {/* Sidebar desktop */}
       <aside
         className={`hidden lg:flex flex-col min-h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 relative transition-all duration-300 ${
           collapsed ? 'w-20' : 'w-64'
