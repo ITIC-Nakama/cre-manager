@@ -49,6 +49,9 @@ public abstract class User {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
+    @Column(name = "pending_email")
+    private String pendingEmail;
+
     /** true pour les comptes créés par un admin (mot de passe temporaire). */
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword = false;

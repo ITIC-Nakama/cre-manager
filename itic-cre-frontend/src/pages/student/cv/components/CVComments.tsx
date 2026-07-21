@@ -1,6 +1,7 @@
 import { MessageSquare } from 'lucide-react';
 import type { CVComment } from '../../../../types/models/CV';
 import { useTranslation } from 'react-i18next';
+import UserAvatar from '../../../../components/shared/UserAvatar';
 
 interface Props {
   comments: CVComment[];
@@ -49,9 +50,6 @@ export default function CVComments({ comments }: Props) {
             const advisorName = comment.advisor
               ? `${comment.advisor.firstName} ${comment.advisor.lastName}`
               : t('studentCv.comments.fallbackAdvisor', 'Conseiller');
-            const initials = comment.advisor
-              ? `${comment.advisor.firstName[0]}${comment.advisor.lastName[0]}`.toUpperCase()
-              : 'C';
 
             return (
               <div
@@ -59,9 +57,12 @@ export default function CVComments({ comments }: Props) {
                 className="flex gap-3.5 p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80 rounded-xl animate-fadeIn"
               >
                 {/* Avatar */}
-                <div className="h-9 w-9 rounded-xl bg-indigo-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm shadow-indigo-500/10">
-                  {initials}
-                </div>
+                <UserAvatar
+                  profilePicture={comment.advisor?.profilePicture}
+                  firstName={comment.advisor?.firstName ?? 'C'}
+                  lastName={comment.advisor?.lastName ?? ''}
+                  className="h-9 w-9 flex-shrink-0"
+                />
 
                 {/* Texte du commentaire & Métadonnées */}
                 <div className="flex flex-col gap-1 min-w-0">

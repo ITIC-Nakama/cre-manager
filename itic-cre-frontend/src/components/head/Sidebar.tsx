@@ -73,10 +73,10 @@ function SidebarContent({
   const fullName = user ? `${user.firstName} ${user.lastName}` : '';
   const roleLabel =
     user?.role === Role.STUDENT
-      ? 'Postulant'
+      ? t('roles.student', 'Étudiant')
       : user?.role === Role.ADMIN
-      ? 'Admin'
-      : 'Conseiller';
+      ? t('roles.admin', 'Admin')
+      : t('roles.advisor', 'Conseiller');
 
   return (
     <div className="flex flex-col h-full">

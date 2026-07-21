@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, User, ChevronDown, Trash2 } from 'lucide-react';
+import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useCVComments, useUpdateCVStatus, useAddCVComment, useDeleteCVComment } from '../../hooks/useCV';
 import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
+import UserAvatar from './UserAvatar';
 
 interface Props {
     cv: CVRow;
@@ -222,9 +223,12 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     return (
                                         <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-5 animate-fadeIn min-w-0">
                                             <div className="flex items-center gap-2.5 mb-3 min-w-0">
-                                                <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
-                                                    <User className="h-4 w-4 text-indigo-500" />
-                                                </div>
+                                                <UserAvatar
+                                                    profilePicture={c.advisor?.profilePicture}
+                                                    firstName={c.advisor?.firstName ?? 'C'}
+                                                    lastName={c.advisor?.lastName ?? ''}
+                                                    className="h-8 w-8 flex-shrink-0"
+                                                />
                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
                                                     {c.advisor
                                                         ? `${c.advisor.firstName} ${c.advisor.lastName}`

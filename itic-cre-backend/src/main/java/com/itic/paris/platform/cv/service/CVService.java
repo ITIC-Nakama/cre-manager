@@ -236,6 +236,9 @@ public class CVService {
             advisorMap.put("id", comment.getAdvisor().getId());
             advisorMap.put("firstName", comment.getAdvisor().getFirstName());
             advisorMap.put("lastName", comment.getAdvisor().getLastName());
+            advisorMap.put("profilePicture", comment.getAdvisor().getProfilePicture() != null
+                    ? cloudStorage.getFile(comment.getAdvisor().getProfilePicture())
+                    : null);
             response.put("advisor", advisorMap);
         } else {
             response.put("advisor", null);

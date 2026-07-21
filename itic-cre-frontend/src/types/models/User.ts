@@ -10,6 +10,7 @@ export interface UserProfileDTO {
     profilePicture?: string | null;
     jobTitle?: string | null;
     lang?: string;
+    pendingEmail?: string | null;
 }
 
 // Converts the raw API user into the frontend-friendly DTO
@@ -32,9 +33,10 @@ export function toUserProfileDTO(apiUser: any): UserProfileDTO {
         firstName: apiUser.firstName,
         lastName: apiUser.lastName,
         role,
-        mustChangePassword: apiUser.mustChangePassword ?? false,
-        profilePicture: apiUser.profilePicture ?? null,
-        jobTitle: apiUser.jobTitle ?? null,
-        lang: apiUser.lang ?? 'fr',
+        mustChangePassword: Boolean(apiUser.mustChangePassword),
+        profilePicture: apiUser.profilePicture,
+        jobTitle: apiUser.jobTitle,
+        lang: apiUser.lang,
+        pendingEmail: apiUser.pendingEmail,
     };
 }
