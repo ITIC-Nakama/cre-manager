@@ -239,6 +239,77 @@
         "stale": "Late",
         "created_at": "Created on {{date}}",
         "updated_at": "Updated on {{date}}"
+      },
+      "student": {
+        "title": "My applications",
+        "subtitle_one": "{{count}} application tracked",
+        "subtitle_other": "{{count}} applications tracked",
+        "add_button": "Add an application",
+        "empty_in_progress": "No applications in progress.",
+        "empty_completed": "No completed applications.",
+        "tabs": {
+          "in_progress": "In progress",
+          "completed": "Completed"
+        },
+        "card": {
+          "via_jobboard": "Via the job board",
+          "today": "Today",
+          "days_ago_one": "{{count}} day ago",
+          "days_ago_other": "{{count}} days ago",
+          "stale_days_one": "{{count}} day with no update",
+          "stale_days_other": "{{count}} days with no update",
+          "next_step_button": "Next step",
+          "next_step_xp": "+{{xp}} XP"
+        },
+        "form": {
+          "create_title": "Add an application",
+          "edit_title": "Edit application",
+          "entreprise_label": "Company",
+          "poste_label": "Position",
+          "contract_label": "Contract type",
+          "no_contract_type": "No contract type",
+          "link_label": "Job offer link",
+          "contact_label": "Contact",
+          "notes_label": "Notes",
+          "cancel": "Cancel",
+          "save": "Save",
+          "length_error": "Must be between {{min}} and {{max}} characters.",
+          "save_error": "Failed to save the application."
+        },
+        "toast": {
+          "created": "Application added.",
+          "updated": "Application updated.",
+          "deleted": "Application deleted.",
+          "status_changed": "Status updated.",
+          "status_changed_xp": "Status updated — +{{xp}} XP!",
+          "action_error": "An error occurred."
+        },
+        "detail": {
+          "back": "Back to applications",
+          "stale": "Overdue",
+          "contract": "Contract type",
+          "contact": "Contact",
+          "view_offer": "View offer",
+          "notes": "Notes",
+          "no_notes": "No notes.",
+          "created_at": "Created on {{date}}",
+          "updated_at": "Updated on {{date}}",
+          "edit_button": "Edit",
+          "delete_button": "Delete",
+          "confirm_delete_title": "Delete application",
+          "confirm_delete_message": "Delete the application \"{{poste}}\" at {{entreprise}}? This action is irreversible.",
+          "mark_refused_button": "Mark as rejected",
+          "refused_banner_title": "Application rejected",
+          "refused_banner_message": "This application has been marked as rejected.",
+          "reopen_button": "Reopen (back to Applied)",
+          "not_found": "Application not found."
+        },
+        "stepper": {
+          "current_label": "Current step",
+          "go_back_button": "Go back to previous step",
+          "go_forward_button": "Move to this step",
+          "xp_preview": "+{{xp}} XP"
+        }
       }
     },
     "offres": {

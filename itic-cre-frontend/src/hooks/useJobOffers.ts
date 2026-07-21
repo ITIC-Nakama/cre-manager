@@ -83,6 +83,7 @@ export function useApplyToJobOffer() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['job-applications'] });
             queryClient.invalidateQueries({ queryKey: ['applications'] });
+            queryClient.invalidateQueries({ queryKey: ['my-candidatures'] });
         },
     });
 }
@@ -91,6 +92,9 @@ export function useWithdrawJobApplication() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => withdrawJobApplication(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['job-applications'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['job-applications'] });
+            queryClient.invalidateQueries({ queryKey: ['my-candidatures'] });
+        },
     });
 }

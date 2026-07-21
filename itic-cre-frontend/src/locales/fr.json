@@ -239,6 +239,77 @@
         "stale": "En retard",
         "created_at": "Créée le {{date}}",
         "updated_at": "Mise à jour le {{date}}"
+      },
+      "student": {
+        "title": "Mes candidatures",
+        "subtitle_one": "{{count}} candidature suivie",
+        "subtitle_other": "{{count}} candidatures suivies",
+        "add_button": "Ajouter une candidature",
+        "empty_in_progress": "Aucune candidature en cours.",
+        "empty_completed": "Aucune candidature terminée.",
+        "tabs": {
+          "in_progress": "En cours",
+          "completed": "Terminées"
+        },
+        "card": {
+          "via_jobboard": "Via le jobboard",
+          "today": "Aujourd'hui",
+          "days_ago_one": "il y a {{count}} jour",
+          "days_ago_other": "il y a {{count}} jours",
+          "stale_days_one": "{{count}} jour sans nouvelle",
+          "stale_days_other": "{{count}} jours sans nouvelle",
+          "next_step_button": "Étape suivante",
+          "next_step_xp": "+{{xp}} XP"
+        },
+        "form": {
+          "create_title": "Ajouter une candidature",
+          "edit_title": "Modifier la candidature",
+          "entreprise_label": "Entreprise",
+          "poste_label": "Poste",
+          "contract_label": "Type de contrat",
+          "no_contract_type": "Aucun type de contrat",
+          "link_label": "Lien de l'offre",
+          "contact_label": "Contact",
+          "notes_label": "Notes",
+          "cancel": "Annuler",
+          "save": "Enregistrer",
+          "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
+          "save_error": "Échec de l'enregistrement de la candidature."
+        },
+        "toast": {
+          "created": "Candidature ajoutée.",
+          "updated": "Candidature mise à jour.",
+          "deleted": "Candidature supprimée.",
+          "status_changed": "Statut mis à jour.",
+          "status_changed_xp": "Statut mis à jour — +{{xp}} XP !",
+          "action_error": "Une erreur est survenue."
+        },
+        "detail": {
+          "back": "Retour aux candidatures",
+          "stale": "En retard",
+          "contract": "Type de contrat",
+          "contact": "Contact",
+          "view_offer": "Voir l'offre",
+          "notes": "Notes",
+          "no_notes": "Aucune note.",
+          "created_at": "Créée le {{date}}",
+          "updated_at": "Mise à jour le {{date}}",
+          "edit_button": "Modifier",
+          "delete_button": "Supprimer",
+          "confirm_delete_title": "Supprimer la candidature",
+          "confirm_delete_message": "Supprimer la candidature « {{poste}} » chez {{entreprise}} ? Cette action est irréversible.",
+          "mark_refused_button": "Marquer comme refusée",
+          "refused_banner_title": "Candidature refusée",
+          "refused_banner_message": "Cette candidature a été marquée comme refusée.",
+          "reopen_button": "Rouvrir (repasser en Postulé)",
+          "not_found": "Candidature introuvable."
+        },
+        "stepper": {
+          "current_label": "Étape actuelle",
+          "go_back_button": "Revenir à l'étape précédente",
+          "go_forward_button": "Passer à cette étape",
+          "xp_preview": "+{{xp}} XP"
+        }
       }
     },
     "offres": {
