@@ -83,7 +83,7 @@ export default function LoginPage() {
                     </div>
 
                     {/* Help box */}
-                    <div className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-5">
+                    <div className="rounded-2xl bg-white/15 border border-white/20 p-5">
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.login.help_title')}</p>
                         <p className="text-white/70 text-sm">
                             {t('auth.login.help_contact')}{' '}

@@ -73,7 +73,7 @@ export default function CVComments({ comments }: Props) {
                       {formatCommentDate(comment.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words whitespace-pre-line">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words [overflow-wrap:anywhere] min-w-0 max-w-full whitespace-pre-line">
                     {comment.contenu}
                   </p>
                 </div>

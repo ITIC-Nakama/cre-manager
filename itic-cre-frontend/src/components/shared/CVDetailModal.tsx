@@ -79,7 +79,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] flex flex-col">
@@ -220,29 +220,29 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     const isCommentOwner = user && c.advisor && String(c.advisor.id) === String(user.id);
                                     const isUserAdmin = user && user.role === Role.ADMIN;
                                     return (
-                                        <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-5 animate-fadeIn">
-                                            <div className="flex items-center gap-2.5 mb-3">
+                                        <div key={c.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-5 animate-fadeIn min-w-0">
+                                            <div className="flex items-center gap-2.5 mb-3 min-w-0">
                                                 <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
                                                     <User className="h-4 w-4 text-indigo-500" />
                                                 </div>
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
                                                     {c.advisor
                                                         ? `${c.advisor.firstName} ${c.advisor.lastName}`
                                                         : 'Conseiller'}
                                                 </span>
-                                                <span className="text-sm text-slate-400 ml-auto">{formatDateTime(c.createdAt)}</span>
+                                                <span className="text-sm text-slate-400 ml-auto flex-shrink-0">{formatDateTime(c.createdAt)}</span>
                                                 {(isCommentOwner || isUserAdmin) && (
                                                     <button
                                                         onClick={() => handleDeleteComment(c.id)}
                                                         disabled={deleteComment.isPending}
-                                                        className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 ml-1"
+                                                        className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 ml-1 flex-shrink-0"
                                                         title={t('dashboard.cv.detail.delete_comment', 'Supprimer le commentaire')}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-base text-slate-800 dark:text-slate-200 whitespace-pre-wrap pl-10 leading-relaxed">{c.contenu}</p>
+                                            <p className="text-sm sm:text-base text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-words [overflow-wrap:anywhere] min-w-0 max-w-full leading-relaxed">{c.contenu}</p>
                                         </div>
                                     );
                                 })
