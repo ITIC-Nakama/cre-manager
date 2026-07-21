@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Camera, Medal } from 'lucide-react';
+import { Loader2, Camera, Medal, Star, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -92,14 +92,27 @@ export default function ProfileCard() {
               className="hidden"
             />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs text-slate-400">{user.email}</p>
             {isStudent && dashboardSummary && (
-              <span className="inline-flex items-center gap-1 mt-1.5 pe-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
-                <Medal className="h-3 w-3" />
-                {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {/* Grade */}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold border border-amber-100 dark:border-amber-900/40">
+                  <Medal className="h-3 w-3" />
+                  {dashboardSummary.gamification.grade.nom}
+                </span>
+                {/* XP Total */}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-100 dark:border-indigo-900/40">
+                  <Zap className="h-3 w-3" />
+                  {dashboardSummary.gamification.xpTotal} XP
+                </span>
+                {/* Rang */}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-100 dark:border-emerald-900/40">
+                  <Star className="h-3 w-3" />
+                  {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
+                </span>
+              </div>
             )}
           </div>
         </div>
