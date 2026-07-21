@@ -161,6 +161,7 @@ export default function SkillTreePage() {
                     size={NODE_SIZE}
                     x={positions[i].x}
                     y={positions[i].y}
+                    isPanning={isPanning}
                     onClick={() => navigate(`/student/connaissances/${node.categoryId}`)}
                   />
                 ))}
