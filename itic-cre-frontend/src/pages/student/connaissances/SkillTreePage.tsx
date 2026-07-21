@@ -174,7 +174,7 @@ export default function SkillTreePage() {
 
         {/* Legend */}
         {!isLoading && !isError && nodes.length > 0 && (
-          <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-3 py-2 text-xs">
+          <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-3 py-2 text-xs">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-orange-400 to-orange-600" />
               <span className="text-slate-600 dark:text-slate-300">{t('dashboard.connaissances.tree.legend_completed')}</span>

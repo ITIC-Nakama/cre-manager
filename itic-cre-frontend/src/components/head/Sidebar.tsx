@@ -206,7 +206,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
       {/* Backdrop mobile */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-40 bg-black/50"
           onClick={() => setMobileOpen(false)}
         />
       )}
