@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ApplicationStatusRepository extends JpaRepository<ApplicationStatus, UUID> {
     Optional<ApplicationStatus> findByOrdre(int ordre);
+    java.util.List<ApplicationStatus> findByOrdreBetweenAndActifTrueOrderByOrdreAsc(int minOrdre, int maxOrdre);
     boolean existsByNom(String nom);
 }

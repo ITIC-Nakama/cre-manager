@@ -17,7 +17,7 @@ export default function CandidatureStepper({ candidature, statuses, changing, re
     return (
         <ol>
             {steps.map((step, idx) => {
-                const reached = candidature.reachedStatusIds.includes(step.id);
+                const reached = candidature.reachedStatusIds.includes(step.id) || step.ordre <= candidature.status.ordre;
                 const isCurrent = step.id === candidature.status.id;
                 const isPrevious = !readOnly && step.ordre === candidature.status.ordre - 1;
                 const isFuture = !readOnly && step.ordre > candidature.status.ordre;
