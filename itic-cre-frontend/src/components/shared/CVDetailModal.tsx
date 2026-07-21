@@ -255,12 +255,12 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                     {t('dashboard.cv.detail.add_comment', 'Ajouter un commentaire')}
                                 </label>
-                                <span className="text-xs text-slate-400">{newComment.length}/1000</span>
+                                <span className="text-xs text-slate-400">{newComment.length}/4000</span>
                             </div>
                             <textarea
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
-                                maxLength={1000}
+                                maxLength={4000}
                                 rows={4}
                                 placeholder={t('dashboard.cv.detail.comment_placeholder', 'Votre commentaire pour l\'étudiant…')}
                                 className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3.5 py-3 text-base text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"

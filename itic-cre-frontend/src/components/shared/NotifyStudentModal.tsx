@@ -63,13 +63,13 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
                 {t('dashboard.notify_modal.message_label')}{' '}
                 <span className="font-normal text-slate-400">{t('dashboard.notify_modal.message_optional')}</span>
               </label>
-              <span className="text-xs text-slate-400">{message.length}/1000</span>
+              <span className="text-xs text-slate-400">{message.length}/4000</span>
             </div>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('dashboard.notify_modal.message_placeholder')}
-              maxLength={1000}
+              maxLength={4000}
               rows={5}
               className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
