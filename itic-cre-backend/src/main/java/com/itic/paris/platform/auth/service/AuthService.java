@@ -269,7 +269,7 @@ public class AuthService {
         return response;
     }
 
-    private Map<String, Object> sanitizeUser(User user) {
+    public Map<String, Object> sanitizeUser(User user) {
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", user.getId());
         profile.put("email", user.getEmail());

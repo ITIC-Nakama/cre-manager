@@ -78,10 +78,10 @@ export default function ParametresPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-          {t('dashboard.pages.parametres.title', 'Paramètres')}
+          {t('dashboard.pages.parametres.title', 'Profil')}
         </h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium">
-          {t('dashboard.pages.parametres.description', 'Gérez vos préférences et la sécurité de votre compte.')}
+          {t('dashboard.pages.parametres.description', 'Gérez vos informations et préférences de compte.')}
         </p>
       </div>
 

@@ -51,7 +51,7 @@
       "promotions": "Cohorts",
       "audit": "Audit Log",
       "configuration": "Configuration",
-      "parametres": "Settings",
+      "parametres": "Profile",
       "logout": "Logout"
     },
     "home": {
@@ -98,8 +98,8 @@
     },
     "pages": {
       "parametres": {
-        "title": "Settings",
-        "description": "Manage your preferences and account security."
+        "title": "Profile",
+        "description": "Manage your profile information and account preferences."
       }
     },
     "advisor": {
