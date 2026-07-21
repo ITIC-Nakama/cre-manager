@@ -109,6 +109,7 @@ export function ChangePasswordRequest(data: ChangePasswordDTO) {
 export interface UpdateProfileData {
     firstName?: string;
     lastName?: string;
+    email?: string;
     jobTitle?: string;
     lang?: string;
 }
@@ -139,4 +140,22 @@ export function UploadProfilePictureRequest(file: File) {
             console.error('Échec de la mise à jour de la photo de profil :', error);
             throw error;
         });
+}
+
+// Confirmer le changement d'email avec le code OTP
+export function ConfirmEmailChangeRequest(code: string) {
+    return apiClient.post('/auth/users/me/confirm-email-change', { code })
+        .then(response => response.data.data ?? response.data);
+}
+
+// Annuler la demande de changement d'email
+export function CancelEmailChangeRequest() {
+    return apiClient.delete('/auth/users/me/pending-email')
+        .then(response => response.data.data ?? response.data);
+}
+
+// Renvoyer le code OTP pour la demande de changement d'email
+export function ResendEmailChangeOtpRequest() {
+    return apiClient.post('/auth/users/me/resend-email-change-otp')
+        .then(response => response.data.data ?? response.data);
 }

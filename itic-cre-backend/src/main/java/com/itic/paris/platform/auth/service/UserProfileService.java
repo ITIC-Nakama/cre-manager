@@ -59,17 +59,15 @@ public class UserProfileService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
 
-        boolean emailChanged = false;
-        if (updateDto.getEmail() != null && !updateDto.getEmail().equalsIgnoreCase(user.getEmail())) {
-            Optional<User> existing = userLookupService.findUserByEmail(updateDto.getEmail());
+        boolean emailChangeRequested = false;
+        if (updateDto.getEmail() != null && !updateDto.getEmail().trim().equalsIgnoreCase(user.getEmail())) {
+            String newEmail = updateDto.getEmail().trim();
+            Optional<User> existing = userLookupService.findUserByEmail(newEmail);
             if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
                 throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
             }
-            user.setEmail(updateDto.getEmail());
-            if (user instanceof Student) {
-                user.setEmailVerified(false);
-                emailChanged = true;
-            }
+            user.setPendingEmail(newEmail);
+            emailChangeRequested = true;
         }
 
         if (updateDto.getFirstName() != null) {
@@ -97,8 +95,8 @@ public class UserProfileService {
         }
 
         User saved = userRepository.save(user);
-        if (emailChanged) {
-            otpService.sendEmailVerificationOtp(saved, saved.getLang());
+        if (emailChangeRequested && saved.getPendingEmail() != null) {
+            otpService.sendEmailVerificationOtpToEmail(saved, saved.getPendingEmail(), saved.getLang());
         }
         if (plainPassword != null) {
             notificationEmailService.sendAccountCredentials(
@@ -109,6 +107,55 @@ public class UserProfileService {
                 "Mise à jour profil : " + saved.getEmail()));
 
         return saved;
+    }
+
+    @Transactional
+    public User confirmEmailChange(UUID userId, String code) {
+        User rawUser = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        User user = (User) Hibernate.unproxy(rawUser);
+
+        if (user.getPendingEmail() == null || user.getPendingEmail().isEmpty()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.REQUEST_PROCESSING_FAILED);
+        }
+
+        otpService.validateOtpForUser(user, code);
+
+        Optional<User> existing = userLookupService.findUserByEmail(user.getPendingEmail());
+        if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
+            user.setPendingEmail(null);
+            userRepository.save(user);
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
+        }
+
+        user.setEmail(user.getPendingEmail());
+        user.setPendingEmail(null);
+        user.setEmailVerified(true);
+        User saved = userRepository.save(user);
+
+        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.USER_UPDATED, actor, saved.getId(),
+                "Changement d'email confirmé : " + saved.getEmail()));
+
+        return saved;
+    }
+
+    @Transactional
+    public User cancelEmailChange(UUID userId) {
+        User rawUser = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        User user = (User) Hibernate.unproxy(rawUser);
+        user.setPendingEmail(null);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void resendEmailChangeOtp(UUID userId) {
+        User rawUser = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        User user = (User) Hibernate.unproxy(rawUser);
+        if (user.getPendingEmail() != null && !user.getPendingEmail().isEmpty()) {
+            otpService.sendEmailVerificationOtpToEmail(user, user.getPendingEmail(), user.getLang());
+        }
     }
 
     /**

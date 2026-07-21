@@ -10,7 +10,10 @@ import {
     UpdatePasswordRequest,
     ChangePasswordRequest,
     UpdateProfileRequest,
-    UploadProfilePictureRequest
+    UploadProfilePictureRequest,
+    ConfirmEmailChangeRequest,
+    CancelEmailChangeRequest,
+    ResendEmailChangeOtpRequest
 } from '../api-s/requests/AuthRequest';
 
 export const useLogin = () => {
@@ -55,4 +58,16 @@ export const useUpdateProfile = () => {
 
 export const useUploadProfilePicture = () => {
     return useMutation({ mutationFn: UploadProfilePictureRequest });
+};
+
+export const useConfirmEmailChange = () => {
+    return useMutation({ mutationFn: ConfirmEmailChangeRequest });
+};
+
+export const useCancelEmailChange = () => {
+    return useMutation({ mutationFn: CancelEmailChangeRequest });
+};
+
+export const useResendEmailChangeOtp = () => {
+    return useMutation({ mutationFn: ResendEmailChangeOtpRequest });
 };

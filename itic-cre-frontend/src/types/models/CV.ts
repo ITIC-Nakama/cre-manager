@@ -44,5 +44,6 @@ export interface CVComment {
         id: string;
         firstName: string;
         lastName: string;
+        profilePicture?: string | null;
     };
 }

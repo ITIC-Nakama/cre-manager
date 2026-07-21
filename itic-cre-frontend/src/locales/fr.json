@@ -7,6 +7,11 @@
       "deleting": "Suppression…"
     }
   },
+  "roles": {
+    "student": "Étudiant",
+    "admin": "Administrateur",
+    "advisor": "Conseiller"
+  },
   "nav": {
     "how_it_works": "Comment ça marche ?",
     "faq": "FAQ",

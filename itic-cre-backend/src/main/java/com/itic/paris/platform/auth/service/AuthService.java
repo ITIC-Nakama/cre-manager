@@ -277,6 +277,7 @@ public class AuthService {
         profile.put("lastName", user.getLastName());
         profile.put("lang", user.getLang());
         profile.put("emailVerified", user.isEmailVerified());
+        profile.put("pendingEmail", user.getPendingEmail());
         profile.put("mustChangePassword", user.isMustChangePassword());
         profile.put("role", user.getRole());
         profile.put("profilePicture", user.getProfilePicture() != null 

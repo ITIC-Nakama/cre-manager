@@ -226,4 +226,102 @@ public class AuthenticationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.user.email").value("register.verify@itic.fr"));
     }
+
+    @Test
+    public void testEmailChangeFlow_ShouldSetPendingEmailWithoutLoggingOutUser() throws Exception {
+        Student student = new Student();
+        student.setEmail("current.email@itic.fr");
+        student.setFirstName("Charlie");
+        student.setLastName("Delta");
+        student.setPassword(passwordEncoder.encode("Password123!"));
+        student.setEmailVerified(true);
+        student.setRole(studentRole);
+        student = userRepository.save(student);
+
+        CustomUserDetails details = CustomUserDetails.builder()
+                .id(student.getId())
+                .email(student.getEmail())
+                .role(student.getRole())
+                .lang("fr")
+                .mustChangePassword(false)
+                .build();
+
+        String token = (String) jwtAuthProvider.createToken(details).get("token");
+
+        // 1. Initiate email change via PUT /auth/users/me
+        java.util.Map<String, Object> updateMap = java.util.Map.of("email", "pending.email@itic.fr");
+
+        mockMvc.perform(put("/auth/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateMap)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("current.email@itic.fr"))
+                .andExpect(jsonPath("$.data.pendingEmail").value("pending.email@itic.fr"));
+
+        // Verify in DB that active email is unchanged and pendingEmail is set
+        var updatedStudent = userRepository.findById(student.getId()).orElseThrow();
+        assertThat(updatedStudent.getEmail()).isEqualTo("current.email@itic.fr");
+        assertThat(updatedStudent.getPendingEmail()).isEqualTo("pending.email@itic.fr");
+        assertThat(updatedStudent.isEmailVerified()).isTrue();
+
+        // 2. Fetch the generated OTP from repository
+        var activeOtps = otpRepository.findByUserAndUsedAtIsNull(updatedStudent);
+        assertThat(activeOtps).hasSize(1);
+        String code = activeOtps.get(0).getCode();
+
+        // 3. Confirm email change via POST /auth/users/me/confirm-email-change
+        mockMvc.perform(post("/auth/users/me/confirm-email-change")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("code", code))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("pending.email@itic.fr"))
+                .andExpect(jsonPath("$.data.pendingEmail").value(org.hamcrest.Matchers.nullValue()));
+
+        // Verify in DB that email is updated and pendingEmail is cleared
+        updatedStudent = userRepository.findById(student.getId()).orElseThrow();
+        assertThat(updatedStudent.getEmail()).isEqualTo("pending.email@itic.fr");
+        assertThat(updatedStudent.getPendingEmail()).isNull();
+        assertThat(updatedStudent.isEmailVerified()).isTrue();
+    }
+
+    @Test
+    public void testCancelEmailChange_ShouldClearPendingEmail() throws Exception {
+        Student student = new Student();
+        student.setEmail("cancel.email@itic.fr");
+        student.setFirstName("Echo");
+        student.setLastName("Foxtrot");
+        student.setPassword(passwordEncoder.encode("Password123!"));
+        student.setEmailVerified(true);
+        student.setRole(studentRole);
+        student = userRepository.save(student);
+
+        CustomUserDetails details = CustomUserDetails.builder()
+                .id(student.getId())
+                .email(student.getEmail())
+                .role(student.getRole())
+                .lang("fr")
+                .mustChangePassword(false)
+                .build();
+
+        String token = (String) jwtAuthProvider.createToken(details).get("token");
+
+        // Initiate change
+        mockMvc.perform(put("/auth/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("email", "should.cancel@itic.fr"))))
+                .andExpect(status().isOk());
+
+        // Cancel change
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/auth/users/me/pending-email")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pendingEmail").value(org.hamcrest.Matchers.nullValue()));
+
+        var updatedStudent = userRepository.findById(student.getId()).orElseThrow();
+        assertThat(updatedStudent.getEmail()).isEqualTo("cancel.email@itic.fr");
+        assertThat(updatedStudent.getPendingEmail()).isNull();
+    }
 }

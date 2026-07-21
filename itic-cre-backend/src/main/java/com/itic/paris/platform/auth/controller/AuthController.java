@@ -104,6 +104,34 @@ public class AuthController {
         return ResponseEntity.ok(authService.sanitizeUser(saved));
     }
 
+    @PostMapping("/users/me/confirm-email-change")
+    @Operation(summary = "Confirmer le changement d'adresse e-mail avec le code OTP")
+    public ResponseEntity<?> confirmEmailChange(@RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        if (code == null || code.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Le code OTP est requis"));
+        }
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        var saved = userProfileService.confirmEmailChange(currentUserId, code.trim());
+        return ResponseEntity.ok(authService.sanitizeUser(saved));
+    }
+
+    @DeleteMapping("/users/me/pending-email")
+    @Operation(summary = "Annuler la demande de changement d'adresse e-mail en attente")
+    public ResponseEntity<?> cancelEmailChange() {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        var saved = userProfileService.cancelEmailChange(currentUserId);
+        return ResponseEntity.ok(authService.sanitizeUser(saved));
+    }
+
+    @PostMapping("/users/me/resend-email-change-otp")
+    @Operation(summary = "Renvoyer le code OTP pour la demande de changement d'adresse e-mail")
+    public ResponseEntity<?> resendEmailChangeOtp() {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        userProfileService.resendEmailChangeOtp(currentUserId);
+        return ResponseEntity.ok(Map.of("message", "Code OTP renvoyé"));
+    }
+
     @PostMapping(value = "/users/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Mettre à jour la photo de profil de l'utilisateur connecté")
     public ResponseEntity<?> updateProfilePicture(@RequestParam("file") MultipartFile file) throws IOException {

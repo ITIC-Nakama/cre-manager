@@ -38,6 +38,11 @@ public class OtpService {
 
     @Transactional
     public void sendEmailVerificationOtp(User user, String lang) {
+        sendEmailVerificationOtpToEmail(user, user.getEmail(), lang);
+    }
+
+    @Transactional
+    public void sendEmailVerificationOtpToEmail(User user, String targetEmail, String lang) {
         cleanupExpiredOtps();
         invalidateActiveOtps(user);
 
@@ -50,7 +55,7 @@ public class OtpService {
 
         String normalizedLang = normalizeLang(lang);
         eventPublisher.publishEvent(new OtpEmailEvent(
-                user.getEmail(),
+                targetEmail,
                 user.getFirstName(),
                 normalizedLang,
                 code,
@@ -88,6 +93,24 @@ public class OtpService {
             user.setEmailVerified(true);
             userRepository.save(user);
         }
+    }
+
+    @Transactional
+    public void validateOtpForUser(User user, String code) {
+        cleanupExpiredOtps();
+        Otp otp = otpRepository.findTopByUserAndUsedAtIsNullOrderByCreatedAtDesc(user)
+                .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, MessageKey.OTP_NOT_FOUND));
+
+        Instant now = Instant.now();
+        if (otp.getExpiresAt().isBefore(now)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.OTP_EXPIRED);
+        }
+        if (!otp.getCode().equals(code)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.OTP_INVALID);
+        }
+
+        otp.setUsedAt(now);
+        otpRepository.save(otp);
     }
 
     private void invalidateActiveOtps(User user) {
