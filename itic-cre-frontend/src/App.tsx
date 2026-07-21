@@ -16,6 +16,8 @@ import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/StudentDashboard'
 import StudentCVPage from './pages/student/cv/StudentCVPage'
 import StudentOffresPage from './pages/student/OffresPage'
+import CandidaturesListPage from './pages/student/candidatures/CandidaturesListPage'
+import CandidatureDetailPage from './pages/student/candidatures/CandidatureDetailPage'
 import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
@@ -24,7 +26,6 @@ import AdvisorDashboard from './pages/advisor/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/CandidaturesPage'
 import SupervisorOffresPage from './pages/advisor/OffresPage'
-import ComingSoonPage from './pages/ComingSoonPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/CVValidationPage'
 import ContenuPage from './pages/advisor/ContenuPage'
@@ -79,7 +80,8 @@ function App() {
         {/* Student Routes */}
         <Route element={<StudentLayout />}>
           <Route path="/student/dashboard"     element={<StudentDashboard />} />
-          <Route path="/student/candidatures"  element={<ComingSoonPage />} />
+          <Route path="/student/candidatures"  element={<CandidaturesListPage />} />
+          <Route path="/student/candidatures/:id" element={<CandidatureDetailPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/connaissances"                        element={<SkillTreePage />} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
