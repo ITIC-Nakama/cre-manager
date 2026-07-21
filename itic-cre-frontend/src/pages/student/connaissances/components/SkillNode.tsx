@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Check, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SkillNodeProgress } from '../../../../types/models/Skill';
@@ -18,23 +19,58 @@ const STATE_STYLES: Record<SkillNodeProgress['state'], string> = {
 
 const EMPTY_CIRCLE_STYLE = 'bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 border-slate-200 dark:border-slate-600 shadow-slate-200/20';
 
+export function formatCategoryTitle(text: string, maxLength = 65): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '…';
+}
+
 interface SkillNodeProps {
   node: SkillNodeProgress;
   size: number;
   x: number;
   y: number;
+  isPanning?: boolean;
   onClick: () => void;
 }
 
-export default function SkillNode({ node, size, x, y, onClick }: SkillNodeProps) {
+export default function SkillNode({ node, size, x, y, isPanning = false, onClick }: SkillNodeProps) {
   const { t } = useTranslation();
+  const pointerDownPosRef = useRef<{ x: number; y: number } | null>(null);
   const displayIcon = emojiMap[node.categoryIcon] || node.categoryIcon || '📄';
   const clickable = node.totalArticles > 0;
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isPanning) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (pointerDownPosRef.current) {
+      const dx = Math.abs(e.clientX - pointerDownPosRef.current.x);
+      const dy = Math.abs(e.clientY - pointerDownPosRef.current.y);
+      const dist = Math.hypot(dx, dy);
+      pointerDownPosRef.current = null;
+      if (dist > 6) { // Dragged > 6px -> pan gesture, ignore click
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+    }
+
+    onClick();
+  };
 
   return (
     <button
       type="button"
-      onClick={onClick}
+      onPointerDown={handlePointerDown}
+      onClick={handleClick}
       disabled={!clickable}
       title={clickable ? node.categoryName : t('dashboard.connaissances.tree.node_empty')}
       className={`group absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform ${
@@ -62,9 +98,12 @@ export default function SkillNode({ node, size, x, y, onClick }: SkillNodeProps)
         )}
       </div>
 
-      <div className="flex flex-col items-center gap-0.5 max-w-32">
-        <span className="text-xs font-bold text-slate-900 dark:text-white text-center line-clamp-1 px-2 py-0.5 rounded-full bg-white/90 dark:bg-slate-900/90 shadow-sm">
-          {node.categoryName}
+      <div className="flex flex-col items-center gap-0.5 max-w-[210px]">
+        <span
+          title={node.categoryName}
+          className="text-xs font-bold text-slate-900 dark:text-white text-center px-2.5 py-1 rounded-xl bg-white/95 dark:bg-slate-900/95 shadow-sm border border-slate-200/60 dark:border-slate-800/60 leading-tight break-words max-w-full"
+        >
+          {formatCategoryTitle(node.categoryName, 65)}
         </span>
         <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
           {node.state === 'COMPLETED'
