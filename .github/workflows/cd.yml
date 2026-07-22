@@ -98,6 +98,14 @@ jobs:
           # 1. Configuration de l'environnement du Backend sur le serveur
           echo "$ENV_DATA" > itic-cre-backend/.env
           
+          # S'assurer que STORAGE_LOCAL_DIR pointe vers un dossier persistant hors du workspace git
+          if ! grep -q "STORAGE_LOCAL_DIR" itic-cre-backend/.env; then
+            echo "STORAGE_LOCAL_DIR=/var/itic-cre/uploads" >> itic-cre-backend/.env
+          fi
+          
+          sudo mkdir -p /var/itic-cre/uploads
+          sudo chown -R github-runner:github-runner /var/itic-cre
+          
           # Ajuster les permissions pour s'assurer que le runner peut manipuler les fichiers
           sudo chown -R github-runner:github-runner itic-cre-backend
           
