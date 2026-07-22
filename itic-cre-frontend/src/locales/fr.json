@@ -857,6 +857,7 @@
         "toast_updated": "Profil mis à jour avec succès !",
         "toast_update_error": "Erreur lors de la mise à jour du profil.",
         "toast_picture_updated": "Photo de profil mise à jour avec succès !",
+        "toast_picture_error": "Erreur lors de la mise à jour de la photo de profil.",
         "rank": "Rang #{{rank}} sur {{total}}"
       },
       "gdpr": {

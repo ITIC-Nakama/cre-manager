@@ -71,14 +71,14 @@ export default function ProfileCard() {
         setShowOtpModal(true);
         toast.info(t('dashboard.parametres.profile.toast_otp_sent', `Un code OTP a été envoyé à ${updated.pendingEmail}.`));
       } else {
-        toast.success(t('dashboard.parametres.profile.toast_updated'));
+        toast.success(t('dashboard.parametres.profile.toast_updated', 'Profil mis à jour avec succès !'));
       }
     } catch (err: any) {
       console.error(err);
       if (err.response?.data?.messageKey === 'email-already-in-use') {
         toast.error(t('auth.register.email_exists', 'Cet e-mail est déjà utilisé.'));
       } else {
-        toast.error(t('dashboard.parametres.profile.toast_update_error'));
+        toast.error(t('dashboard.parametres.profile.toast_update_error', 'Erreur lors de la mise à jour du profil.'));
       }
     }
   };
@@ -136,10 +136,10 @@ export default function ProfileCard() {
     try {
       const { profilePictureUrl } = await uploadPictureMutation.mutateAsync(file);
       setUser({ ...user, profilePicture: profilePictureUrl });
-      toast.success(t('dashboard.parametres.profile.toast_picture_updated'));
+      toast.success(t('dashboard.parametres.profile.toast_picture_updated', 'Photo de profil mise à jour avec succès !'));
     } catch (err) {
       console.error(err);
-      toast.error(t('dashboard.parametres.profile.toast_picture_error'));
+      toast.error(t('dashboard.parametres.profile.toast_picture_error', 'Erreur lors de la mise à jour de la photo de profil.'));
     } finally {
       setUploadingPicture(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
