@@ -67,13 +67,20 @@ export default function SkillNode({ node, size, x, y, isPanning = false, onClick
   };
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={clickable ? 0 : -1}
       onPointerDown={handlePointerDown}
       onClick={handleClick}
-      disabled={!clickable}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-disabled={!clickable}
       title={clickable ? node.categoryName : t('dashboard.connaissances.tree.node_empty')}
-      className={`group absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform ${
+      className={`group absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 transition-transform select-none ${
         clickable ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'
       }`}
       style={{ left: x, top: y }}
@@ -113,6 +120,6 @@ export default function SkillNode({ node, size, x, y, isPanning = false, onClick
               : t('dashboard.connaissances.tree.node_empty')}
         </span>
       </div>
-    </button>
+    </div>
   );
 }
