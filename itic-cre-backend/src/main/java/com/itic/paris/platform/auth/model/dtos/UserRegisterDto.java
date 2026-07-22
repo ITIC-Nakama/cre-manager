@@ -32,4 +32,6 @@ public class UserRegisterDto {
     @Size(min = 8, max = 128)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    private boolean privacyAccepted = false;
 }

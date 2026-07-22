@@ -36,6 +36,10 @@ import PromotionsPage from './pages/admin/PromotionsPage'
 import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
+import TermsPage from './pages/legal/TermsPage'
+import CookieBanner from './components/common/CookieBanner'
+
 // Redirection component based on role
 function DashboardRedirect() {
   return (
@@ -72,6 +76,10 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
         </Route>
+
+        {/* Public Legal Pages */}
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Root dashboard redirection */}
         <Route path="/dashboard" element={<DashboardRedirect />} />
@@ -116,6 +124,7 @@ function App() {
       </Routes>
       
       <Toaster richColors position="top-right" />
+      <CookieBanner />
     </BrowserRouter>
   )
 }

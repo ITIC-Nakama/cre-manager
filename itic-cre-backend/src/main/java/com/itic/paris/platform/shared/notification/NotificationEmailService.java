@@ -46,10 +46,17 @@ public class NotificationEmailService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOtpRequested(OtpEmailEvent event) {
         String html = emailTemplateService.renderOtpVerificationEmail(
-                event.lang(), event.firstName(), event.code(), event.expirationMinutes());
-        String subject = "en".equals(event.lang())
-                ? "Verify your ITIC CRE account"
-                : "Vérification de votre compte ITIC CRE";
+                event.lang(), event.firstName(), event.code(), event.expirationMinutes(), event.isEmailChange());
+        String subject;
+        if (event.isEmailChange()) {
+            subject = "en".equals(event.lang())
+                    ? "Confirm your new email address — ITIC CRE"
+                    : "Confirmation de votre nouvel email — ITIC CRE";
+        } else {
+            subject = "en".equals(event.lang())
+                    ? "Verify your ITIC CRE account"
+                    : "Vérification de votre compte ITIC CRE";
+        }
         sendHtml(event.email(), subject, html);
     }
 

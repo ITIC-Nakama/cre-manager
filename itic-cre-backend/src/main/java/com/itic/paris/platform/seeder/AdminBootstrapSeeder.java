@@ -59,6 +59,9 @@ public class AdminBootstrapSeeder implements ApplicationRunner {
         admin.setEmailVerified(true);
         admin.setMustChangePassword(true);
         admin.setRole(adminRole);
+        admin.setPrivacyAccepted(true);
+        admin.setPrivacyAcceptedAt(java.time.Instant.now());
+        admin.setPrivacyPolicyVersion("1.0");
 
         userRepository.save(admin);
         log.info("Bootstrapped admin account: {}", normalizedEmail);

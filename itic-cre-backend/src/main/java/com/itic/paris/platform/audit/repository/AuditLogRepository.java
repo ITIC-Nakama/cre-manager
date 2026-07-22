@@ -24,4 +24,6 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
             "(CAST(:from AS timestamp) IS NULL OR a.createdAt >= :from) AND " +
             "(CAST(:to AS timestamp) IS NULL OR a.createdAt <= :to)")
     Page<AuditLog> findAllByFilter(AuditAction action, String search, Instant from, Instant to, Pageable pageable);
+
+    long deleteByCreatedAtBefore(Instant cutoff);
 }

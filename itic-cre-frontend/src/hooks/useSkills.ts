@@ -18,8 +18,10 @@ import {
   fetchStudentArticle,
   fetchStudentQuiz,
   submitStudentQuiz,
+  exportSkillTree,
+  importSkillTree,
 } from '../api-s/requests/SkillRequest';
-import type { Question, SubmitQuizPayload } from '../types/models/Skill';
+import type { Question, SubmitQuizPayload, SkillTreeExportData } from '../types/models/Skill';
 
 export function useAdminCategories() {
   return useQuery({
@@ -198,3 +200,22 @@ export function useSubmitQuiz() {
     },
   });
 }
+
+export function useExportSkillTree() {
+  return useMutation({
+    mutationFn: exportSkillTree,
+  });
+}
+
+export function useImportSkillTree() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SkillTreeExportData) => importSkillTree(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['skill-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['skill-articles'] });
+      queryClient.invalidateQueries({ queryKey: ['skill-tree-progress'] });
+    },
+  });
+}
+

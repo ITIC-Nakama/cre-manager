@@ -96,7 +96,7 @@ public class UserProfileService {
 
         User saved = userRepository.save(user);
         if (emailChangeRequested && saved.getPendingEmail() != null) {
-            otpService.sendEmailVerificationOtpToEmail(saved, saved.getPendingEmail(), saved.getLang());
+            otpService.sendEmailVerificationOtpToEmail(saved, saved.getPendingEmail(), saved.getLang(), true);
         }
         if (plainPassword != null) {
             notificationEmailService.sendAccountCredentials(
@@ -154,7 +154,7 @@ public class UserProfileService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
         if (user.getPendingEmail() != null && !user.getPendingEmail().isEmpty()) {
-            otpService.sendEmailVerificationOtpToEmail(user, user.getPendingEmail(), user.getLang());
+            otpService.sendEmailVerificationOtpToEmail(user, user.getPendingEmail(), user.getLang(), true);
         }
     }
 

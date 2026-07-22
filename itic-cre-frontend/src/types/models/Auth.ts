@@ -20,6 +20,7 @@ export interface RegisterDTO{
     roleId: Role;
     lang: string;
     promotionId?: string;
+    privacyAccepted?: boolean;
 }
 
 export interface OtpSendDTO {

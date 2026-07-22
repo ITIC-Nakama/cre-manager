@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import ProfileCard from '../../components/dashboard/parametres/ProfileCard';
 import PreferencesCard from '../../components/dashboard/parametres/PreferencesCard';
 import SecurityCard from '../../components/dashboard/parametres/SecurityCard';
+import GdprCard from '../../components/dashboard/parametres/GdprCard';
 import { useUpdatePassword } from '../../hooks/useAuth';
 
 export default function ParametresPage() {
@@ -90,6 +91,8 @@ export default function ParametresPage() {
       <PreferencesCard />
 
       <SecurityCard onChangePassword={() => setModalOpen(true)} />
+
+      <GdprCard />
 
       {/* Bottom logout button */}
       <button

@@ -6,15 +6,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
     List<Article> findByCategorieIdOrderByOrdreAsc(UUID categorieId);
     List<Article> findByCategorieIdAndActifTrueOrderByOrdreAsc(UUID categorieId);
+    Optional<Article> findByTitreAndCategorieId(String titre, UUID categorieId);
     boolean existsByCategorieId(UUID categorieId);
     boolean existsByCreatedById(UUID createdById);
 
     @Query("SELECT a.categorie.id, COUNT(a) FROM Article a WHERE a.actif = true AND a.categorie.actif = true GROUP BY a.categorie.id")
     List<Object[]> countActiveArticlesPerCategory();
 }
+

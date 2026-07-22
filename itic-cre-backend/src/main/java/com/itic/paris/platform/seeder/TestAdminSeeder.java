@@ -58,6 +58,9 @@ public class TestAdminSeeder implements ApplicationRunner {
         admin.setEmailVerified(true);
         admin.setMustChangePassword(false);
         admin.setRole(role);
+        admin.setPrivacyAccepted(true);
+        admin.setPrivacyAcceptedAt(java.time.Instant.now());
+        admin.setPrivacyPolicyVersion("1.0");
 
         userRepository.save(admin);
         log.info("Seeded test admin: {}", email);

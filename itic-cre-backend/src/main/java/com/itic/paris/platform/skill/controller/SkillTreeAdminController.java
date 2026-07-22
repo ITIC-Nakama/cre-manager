@@ -127,4 +127,17 @@ public class SkillTreeAdminController {
         skillTreeAdminService.deleteQuestion(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/export")
+    @Operation(summary = "Exporter l'arbre de compétences en JSON")
+    public ResponseEntity<SkillTreeExportDataDTO> exportSkillTree() {
+        return ResponseEntity.ok(skillTreeAdminService.exportSkillTree());
+    }
+
+    @PostMapping("/import")
+    @Operation(summary = "Importer l'arbre de compétences depuis un objet JSON")
+    public ResponseEntity<SkillTreeImportResultDTO> importSkillTree(@Valid @RequestBody SkillTreeExportDataDTO request) {
+        return ResponseEntity.ok(skillTreeAdminService.importSkillTree(request));
+    }
 }
+
