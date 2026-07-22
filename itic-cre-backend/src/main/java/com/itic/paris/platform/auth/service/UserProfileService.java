@@ -130,7 +130,7 @@ public class UserProfileService {
         user.setEmailVerified(true);
         User saved = userRepository.save(user);
 
-        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.USER_UPDATED, actor, saved.getId(),
+        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.EMAIL_VERIFIED, actor, saved.getId(),
                 "Changement d'email confirmé : " + saved.getEmail()));
 
         return saved;
