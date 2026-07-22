@@ -255,7 +255,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
         <SidebarContent navItems={navItems} collapsed={collapsed} />
         <button
           onClick={toggleCollapsed}
-          className="absolute -right-3.5 top-20 h-7 w-7 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer transition-colors z-10"
+          className="absolute -right-3.5 top-16 -translate-y-1/2 h-7 w-7 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer transition-colors z-10"
           aria-label={collapsed ? 'Agrandir le menu' : 'Réduire le menu'}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
