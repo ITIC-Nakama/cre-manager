@@ -81,16 +81,14 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={`border-b border-slate-100 dark:border-slate-800 flex items-center ${collapsed ? 'justify-center py-5' : 'px-5 py-5'}`}>
+      <div className={`border-b border-slate-100 dark:border-slate-800 flex items-center shrink-0 h-16 ${collapsed ? 'justify-center px-3' : 'px-5'}`}>
         {collapsed ? (
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0" title="ITIC Paris">
-            IT
-          </div>
+          <img src="/favicon.svg" alt="ITIC Paris" className="h-7 w-auto shrink-0" />
         ) : (
-          <div className="inline-flex items-center rounded-xl px-4 py-2.5">
+          <>
             <img src={logoDark} alt="ITIC Paris" className="h-7 w-auto dark:hidden" />
             <img src={logoWhite} alt="ITIC Paris" className="h-7 w-auto hidden dark:block" />
-          </div>
+          </>
         )}
       </div>
 
