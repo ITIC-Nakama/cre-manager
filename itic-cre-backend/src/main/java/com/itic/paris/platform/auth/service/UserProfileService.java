@@ -103,9 +103,6 @@ public class UserProfileService {
                     saved.getEmail(), saved.getFirstName(), saved.getLang(), plainPassword, false);
         }
 
-        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.USER_UPDATED, actor, saved.getId(),
-                "Mise à jour profil : " + saved.getEmail()));
-
         return saved;
     }
 
@@ -232,9 +229,6 @@ public class UserProfileService {
 
         user.setProfilePicture(path);
         userRepository.save(user);
-
-        // Audit de la mise à jour
-        auditLogService.log(AuditAction.USER_UPDATED, user, user.getId(), "Photo de profil mise à jour");
 
         return cloudStorage.getFile(path);
     }

@@ -3,7 +3,6 @@ export const AUDIT_ACTION_COLORS: Record<string, string> = {
     LOGOUT: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800',
     STUDENT_REGISTERED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
     STAFF_USER_CREATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
-    USER_UPDATED: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30',
     USER_DELETED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
     USER_DEACTIVATED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
     USER_REACTIVATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',

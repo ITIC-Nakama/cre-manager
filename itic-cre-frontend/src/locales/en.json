@@ -759,7 +759,6 @@
         "LOGOUT": "Staff Logout",
         "STUDENT_REGISTERED": "Student Registration",
         "STAFF_USER_CREATED": "Staff User Created",
-        "USER_UPDATED": "User Updated",
         "USER_DELETED": "User Deleted",
         "USER_DEACTIVATED": "Account Deactivated",
         "USER_REACTIVATED": "Account Reactivated",
