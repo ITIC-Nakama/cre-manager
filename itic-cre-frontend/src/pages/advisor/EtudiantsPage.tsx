@@ -176,6 +176,19 @@ export default function EtudiantsPage() {
             ),
             enableSorting: false,
         }),
+        col.accessor('lastActivity', {
+            header: t('dashboard.etudiants.table.last_activity'),
+            cell: ({ getValue }) => {
+                const val = getValue();
+                if (!val) return <span className="text-xs text-slate-400">—</span>;
+                const date = new Date(val);
+                return (
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
+                        {date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                );
+            },
+        }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
