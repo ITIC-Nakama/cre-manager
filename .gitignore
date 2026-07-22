@@ -40,6 +40,6 @@ build/
 *.log
 
 ### Dossier uploader ###
-uploads/*
-
+uploads/
+**/uploads/
 *.ps1
