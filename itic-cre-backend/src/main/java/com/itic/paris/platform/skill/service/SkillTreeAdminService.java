@@ -15,7 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -317,5 +320,179 @@ public class SkillTreeAdminService {
                 quiz.getScoreMinimum(),
                 quiz.getActif(),
                 questions);
+    }
+
+    // ── Export / Import ───────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public SkillTreeExportDataDTO exportSkillTree() {
+        List<SkillCategory> categories = categoryRepository.findAll().stream()
+                .sorted((a, b) -> a.getOrdre().compareTo(b.getOrdre()))
+                .toList();
+
+        List<ExportCategoryDTO> exportCategories = new ArrayList<>();
+        for (SkillCategory cat : categories) {
+            ExportCategoryDTO catDto = new ExportCategoryDTO();
+            catDto.setNom(cat.getNom());
+            catDto.setDescription(cat.getDescription());
+            catDto.setOrdre(cat.getOrdre());
+            catDto.setIcone(cat.getIcone());
+            catDto.setActif(cat.getActif());
+
+            List<Article> articles = articleRepository.findByCategorieIdOrderByOrdreAsc(cat.getId());
+            List<ExportArticleDTO> exportArticles = new ArrayList<>();
+            for (Article art : articles) {
+                ExportArticleDTO artDto = new ExportArticleDTO();
+                artDto.setTitre(art.getTitre());
+                artDto.setContenu(art.getContenu());
+                artDto.setOrdre(art.getOrdre());
+                artDto.setActif(art.getActif());
+
+                Optional<Quiz> quizOpt = quizRepository.findByArticleId(art.getId());
+                if (quizOpt.isPresent()) {
+                    Quiz quiz = quizOpt.get();
+                    ExportQuizDTO quizDto = new ExportQuizDTO();
+                    quizDto.setScoreMinimum(quiz.getScoreMinimum());
+                    quizDto.setActif(quiz.getActif());
+
+                    List<ExportQuestionDTO> exportQuestions = new ArrayList<>();
+                    for (Question q : quiz.getQuestions()) {
+                        ExportQuestionDTO qDto = new ExportQuestionDTO();
+                        qDto.setTexte(q.getTexte());
+                        qDto.setOrdre(q.getOrdre());
+                        qDto.setType(questionTypeName(q));
+
+                        List<ExportAnswerDTO> exportAnswers = new ArrayList<>();
+                        for (Answer a : q.getReponses()) {
+                            exportAnswers.add(new ExportAnswerDTO(a.getTexte(), a.getEstCorrecte()));
+                        }
+                        qDto.setReponses(exportAnswers);
+                        exportQuestions.add(qDto);
+                    }
+                    quizDto.setQuestions(exportQuestions);
+                    artDto.setQuiz(quizDto);
+                }
+                exportArticles.add(artDto);
+            }
+            catDto.setArticles(exportArticles);
+            exportCategories.add(catDto);
+        }
+
+        return new SkillTreeExportDataDTO("1.0", Instant.now(), exportCategories);
+    }
+
+    @Transactional
+    public SkillTreeImportResultDTO importSkillTree(SkillTreeExportDataDTO importData) {
+        if (importData == null || importData.getCategories() == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_REQUEST_BODY);
+        }
+
+        User actor = getCurrentUser();
+        int catCreated = 0;
+        int catUpdated = 0;
+        int artCreated = 0;
+        int artUpdated = 0;
+        int quizImported = 0;
+
+        for (ExportCategoryDTO catDto : importData.getCategories()) {
+            if (catDto.getNom() == null || catDto.getNom().trim().isEmpty()) {
+                continue;
+            }
+
+            Optional<SkillCategory> existingCat = categoryRepository.findByNom(catDto.getNom());
+            SkillCategory category;
+            if (existingCat.isPresent()) {
+                category = existingCat.get();
+                if (catDto.getDescription() != null) category.setDescription(catDto.getDescription());
+                if (catDto.getOrdre() != null) category.setOrdre(catDto.getOrdre());
+                if (catDto.getIcone() != null) category.setIcone(catDto.getIcone());
+                if (catDto.getActif() != null) category.setActif(catDto.getActif());
+                category = categoryRepository.save(category);
+                catUpdated++;
+            } else {
+                category = new SkillCategory();
+                category.setNom(catDto.getNom());
+                category.setDescription(catDto.getDescription());
+                category.setOrdre(catDto.getOrdre() != null ? catDto.getOrdre() : 1);
+                category.setIcone(catDto.getIcone());
+                category.setActif(catDto.getActif() != null ? catDto.getActif() : true);
+                category.setCreatedBy(actor);
+                category = categoryRepository.save(category);
+                catCreated++;
+            }
+
+            if (catDto.getArticles() != null) {
+                for (ExportArticleDTO artDto : catDto.getArticles()) {
+                    if (artDto.getTitre() == null || artDto.getTitre().trim().isEmpty()) {
+                        continue;
+                    }
+
+                    Optional<Article> existingArt = articleRepository.findByTitreAndCategorieId(artDto.getTitre(), category.getId());
+                    Article article;
+                    if (existingArt.isPresent()) {
+                        article = existingArt.get();
+                        if (artDto.getContenu() != null) article.setContenu(artDto.getContenu());
+                        if (artDto.getOrdre() != null) article.setOrdre(artDto.getOrdre());
+                        if (artDto.getActif() != null) article.setActif(artDto.getActif());
+                        article = articleRepository.save(article);
+                        artUpdated++;
+                    } else {
+                        article = new Article();
+                        article.setTitre(artDto.getTitre());
+                        article.setContenu(artDto.getContenu() != null ? artDto.getContenu() : "");
+                        article.setCategorie(category);
+                        article.setOrdre(artDto.getOrdre() != null ? artDto.getOrdre() : 1);
+                        article.setActif(artDto.getActif() != null ? artDto.getActif() : true);
+                        article.setCreatedBy(actor);
+                        article = articleRepository.save(article);
+                        artCreated++;
+                    }
+
+                    if (artDto.getQuiz() != null && artDto.getQuiz().getQuestions() != null) {
+                        ExportQuizDTO quizDto = artDto.getQuiz();
+                        Optional<Quiz> existingQuiz = quizRepository.findByArticleId(article.getId());
+                        Quiz quiz;
+                        if (existingQuiz.isPresent()) {
+                            quiz = existingQuiz.get();
+                            quiz.setScoreMinimum(quizDto.getScoreMinimum() != null ? quizDto.getScoreMinimum() : 80);
+                            if (quizDto.getActif() != null) quiz.setActif(quizDto.getActif());
+                            quiz.getQuestions().clear();
+                        } else {
+                            quiz = new Quiz();
+                            quiz.setArticle(article);
+                            quiz.setScoreMinimum(quizDto.getScoreMinimum() != null ? quizDto.getScoreMinimum() : 80);
+                            quiz.setActif(quizDto.getActif() != null ? quizDto.getActif() : true);
+                        }
+
+                        for (ExportQuestionDTO qDto : quizDto.getQuestions()) {
+                            Question q = new Question();
+                            q.setQuiz(quiz);
+                            q.setTexte(qDto.getTexte() != null ? qDto.getTexte() : "");
+                            q.setOrdre(qDto.getOrdre() != null ? qDto.getOrdre() : 1);
+                            q.setType("SINGLE".equalsIgnoreCase(qDto.getType()) ? QuestionType.SINGLE : QuestionType.MULTIPLE);
+
+                            if (qDto.getReponses() != null) {
+                                for (ExportAnswerDTO aDto : qDto.getReponses()) {
+                                    Answer answer = new Answer();
+                                    answer.setQuestion(q);
+                                    answer.setTexte(aDto.getTexte() != null ? aDto.getTexte() : "");
+                                    answer.setEstCorrecte(aDto.isEstCorrecte());
+                                    q.getReponses().add(answer);
+                                }
+                            }
+                            quiz.getQuestions().add(q);
+                        }
+                        quizRepository.save(quiz);
+                        quizImported++;
+                    }
+                }
+            }
+        }
+
+        auditLogService.log(AuditAction.TUTO_CREATED, actor, "SKILL_TREE", null, 
+                String.format("Import JSON effectué : %d cat créées, %d cat modifiées, %d art créés, %d art modifiés, %d quiz", 
+                        catCreated, catUpdated, artCreated, artUpdated, quizImported));
+
+        return new SkillTreeImportResultDTO(catCreated, catUpdated, artCreated, artUpdated, quizImported);
     }
 }

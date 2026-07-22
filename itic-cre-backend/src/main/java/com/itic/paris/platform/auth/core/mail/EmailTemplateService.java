@@ -24,11 +24,16 @@ public class EmailTemplateService {
     private String brandName;
 
     public String renderOtpVerificationEmail(String lang, String firstName, String code, long expirationMinutes) {
+        return renderOtpVerificationEmail(lang, firstName, code, expirationMinutes, false);
+    }
+
+    public String renderOtpVerificationEmail(String lang, String firstName, String code, long expirationMinutes, boolean isEmailChange) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));
         context.setVariable("firstName", firstName != null ? firstName.trim() : "");
         context.setVariable("code", code);
         context.setVariable("expirationMinutes", expirationMinutes);
+        context.setVariable("isEmailChange", isEmailChange);
         context.setVariable("brandName", brandName);
         context.setVariable("bleuNuit", BLEU_NUIT);
         context.setVariable("rougeItic", ROUGE_ITIC);

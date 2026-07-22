@@ -58,6 +58,9 @@ public class TestStudentSeeder implements ApplicationRunner {
         student.setEmailVerified(true);
         student.setMustChangePassword(false);
         student.setRole(role);
+        student.setPrivacyAccepted(true);
+        student.setPrivacyAcceptedAt(java.time.Instant.now());
+        student.setPrivacyPolicyVersion("1.0");
 
         userRepository.save(student);
         log.info("Seeded test student: {}", email);

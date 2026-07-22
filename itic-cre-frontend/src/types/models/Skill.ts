@@ -127,3 +127,55 @@ export interface QuizResult {
 export interface SubmitQuizPayload {
   answers: { questionId: string; reponseIds: string[] }[];
 }
+
+// ─── EXPORT / IMPORT ────────────────────────────────────────────────────────
+
+export interface ExportAnswer {
+  texte: string;
+  estCorrecte: boolean;
+}
+
+export interface ExportQuestion {
+  texte: string;
+  ordre: number;
+  type?: string;
+  reponses: ExportAnswer[];
+}
+
+export interface ExportQuiz {
+  scoreMinimum: number;
+  actif: boolean;
+  questions: ExportQuestion[];
+}
+
+export interface ExportArticle {
+  titre: string;
+  contenu: string;
+  ordre: number;
+  actif: boolean;
+  quiz?: ExportQuiz;
+}
+
+export interface ExportCategory {
+  nom: string;
+  description: string;
+  ordre: number;
+  icone: string;
+  actif: boolean;
+  articles: ExportArticle[];
+}
+
+export interface SkillTreeExportData {
+  version: string;
+  exportedAt: string;
+  categories: ExportCategory[];
+}
+
+export interface SkillTreeImportResult {
+  categoriesCreated: number;
+  categoriesUpdated: number;
+  articlesCreated: number;
+  articlesUpdated: number;
+  quizzesImported: number;
+}
+

@@ -11,4 +11,6 @@ public interface CVCommentaireRepository extends JpaRepository<CVCommentaire, UU
     List<CVCommentaire> findAllByCvIdOrderByCreatedAtDesc(UUID cvId);
 
     boolean existsByAdvisorId(UUID advisorId);
+
+    void deleteByCvId(UUID cvId);
 }

@@ -20,6 +20,7 @@ import java.util.List;
 
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OtpService {
 
@@ -36,13 +37,11 @@ public class OtpService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    @Transactional
     public void sendEmailVerificationOtp(User user, String lang) {
-        sendEmailVerificationOtpToEmail(user, user.getEmail(), lang);
+        sendEmailVerificationOtpToEmail(user, user.getEmail(), lang, false);
     }
 
-    @Transactional
-    public void sendEmailVerificationOtpToEmail(User user, String targetEmail, String lang) {
+    public void sendEmailVerificationOtpToEmail(User user, String targetEmail, String lang, boolean isEmailChange) {
         cleanupExpiredOtps();
         invalidateActiveOtps(user);
 
@@ -59,17 +58,16 @@ public class OtpService {
                 user.getFirstName(),
                 normalizedLang,
                 code,
-                expirationMinutes));
+                expirationMinutes,
+                isEmailChange));
     }
 
-    @Transactional
     public void sendEmailVerificationOtp(String email, String lang) {
         User user = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         sendEmailVerificationOtp(user, lang);
     }
 
-    @Transactional
     public void validateEmailOtp(String email, String code) {
         cleanupExpiredOtps();
         User user = userLookupService.findUserByEmail(email)
@@ -95,7 +93,6 @@ public class OtpService {
         }
     }
 
-    @Transactional
     public void validateOtpForUser(User user, String code) {
         cleanupExpiredOtps();
         Otp otp = otpRepository.findTopByUserAndUsedAtIsNullOrderByCreatedAtDesc(user)

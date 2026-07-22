@@ -60,6 +60,15 @@ public abstract class User {
     @Column(nullable = false, columnDefinition = "boolean not null default true")
     private boolean active = true;
 
+    @Column(name = "privacy_accepted", nullable = false)
+    private boolean privacyAccepted = false;
+
+    @Column(name = "privacy_accepted_at")
+    private Instant privacyAcceptedAt;
+
+    @Column(name = "privacy_policy_version", length = 10)
+    private String privacyPolicyVersion = "1.0";
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Instant createdAt;

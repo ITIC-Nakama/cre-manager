@@ -5,5 +5,10 @@ public record OtpEmailEvent(
         String firstName,
         String lang,
         String code,
-        long expirationMinutes
-) {}
+        long expirationMinutes,
+        boolean isEmailChange
+) {
+    public OtpEmailEvent(String email, String firstName, String lang, String code, long expirationMinutes) {
+        this(email, firstName, lang, code, expirationMinutes, false);
+    }
+}

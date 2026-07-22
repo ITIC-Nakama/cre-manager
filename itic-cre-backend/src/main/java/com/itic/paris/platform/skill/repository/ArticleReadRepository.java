@@ -25,4 +25,6 @@ public interface ArticleReadRepository extends JpaRepository<ArticleRead, UUID> 
             GROUP BY ar.article.categorie.id
             """)
     List<Object[]> countReadArticlesPerCategoryForStudent(@Param("studentId") UUID studentId);
+
+    List<ArticleRead> findAllByStudentId(UUID studentId);
 }

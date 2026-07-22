@@ -61,6 +61,7 @@ public enum MessageKey {
     TOKEN_INVALID("token-invalid", "Jeton invalide", "Invalid token"),
     USER_NO_ROLE("user-no-role", "L'utilisateur n'a pas de rôle assigné", "User has no role assigned"),
     INVALID_REQUEST_BODY("invalid-request-body", "Corps de la requête malformé ou illisible", "Malformed or unreadable request body"),
+    PRIVACY_POLICY_REQUIRED("privacy-policy-required", "Vous devez accepter la politique de confidentialité.", "You must accept the privacy policy."),
     REQUEST_PROCESSING_FAILED("request-processing-failed", "Échec du traitement de la requête", "Request processing failed"),
     LOGOUT_SUCCESS("logout-success", "Déconnexion réussie", "Logout successful"),
     SUCCESS("success", "Succès", "Success"),

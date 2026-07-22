@@ -14,4 +14,6 @@ public interface XPHistoryRepository extends JpaRepository<XPHistory, UUID> {
     Page<XPHistory> findByStudentIdOrderByDateAttributionDesc(UUID studentId, Pageable pageable);
 
     List<XPHistory> findTop10ByStudentIdOrderByDateAttributionDesc(UUID studentId);
+
+    List<XPHistory> findAllByStudentIdOrderByDateAttributionDesc(UUID studentId);
 }

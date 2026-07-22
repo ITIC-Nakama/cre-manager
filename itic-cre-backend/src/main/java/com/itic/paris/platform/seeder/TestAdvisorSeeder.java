@@ -62,6 +62,9 @@ public class TestAdvisorSeeder implements ApplicationRunner {
         advisor.setMustChangePassword(false);
         advisor.setRole(role);
         advisor.setJobTitle(jobTitle);
+        advisor.setPrivacyAccepted(true);
+        advisor.setPrivacyAcceptedAt(java.time.Instant.now());
+        advisor.setPrivacyPolicyVersion("1.0");
 
         userRepository.save(advisor);
         log.info("Seeded test advisor: {}", email);

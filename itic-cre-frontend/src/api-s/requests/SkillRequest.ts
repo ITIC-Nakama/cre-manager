@@ -9,6 +9,8 @@ import type {
   StudentQuiz,
   QuizResult,
   SubmitQuizPayload,
+  SkillTreeExportData,
+  SkillTreeImportResult,
 } from '../../types/models/Skill';
 
 function unwrap<T>(response: { data: unknown }): T {
@@ -116,3 +118,14 @@ export function fetchStudentQuiz(articleId: string): Promise<StudentQuiz> {
 export function submitStudentQuiz(quizId: string, payload: SubmitQuizPayload): Promise<QuizResult> {
   return apiClient.post(`/api/skill-tree/quizzes/${quizId}/submit`, payload).then((r) => unwrap<QuizResult>(r));
 }
+
+// ─── EXPORT / IMPORT ────────────────────────────────────────────────────────
+
+export function exportSkillTree(): Promise<SkillTreeExportData> {
+  return apiClient.get('/api/admin/skill-tree/export').then((r) => unwrap<SkillTreeExportData>(r));
+}
+
+export function importSkillTree(data: SkillTreeExportData): Promise<SkillTreeImportResult> {
+  return apiClient.post('/api/admin/skill-tree/import', data).then((r) => unwrap<SkillTreeImportResult>(r));
+}
+

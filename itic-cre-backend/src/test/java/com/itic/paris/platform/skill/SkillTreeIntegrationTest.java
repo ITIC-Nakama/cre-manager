@@ -6,10 +6,9 @@ import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.skill.model.*;
-import com.itic.paris.platform.skill.model.dtos.QuizAnswerItem;
-import com.itic.paris.platform.skill.model.dtos.QuizResultDTO;
-import com.itic.paris.platform.skill.model.dtos.SubmitQuizRequest;
+import com.itic.paris.platform.skill.model.dtos.*;
 import com.itic.paris.platform.skill.repository.*;
+import com.itic.paris.platform.skill.service.SkillTreeAdminService;
 import com.itic.paris.platform.skill.service.SkillTreeStudentService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +31,9 @@ public class SkillTreeIntegrationTest {
 
     @Autowired
     private SkillTreeStudentService skillTreeStudentService;
+
+    @Autowired
+    private SkillTreeAdminService skillTreeAdminService;
 
     @Autowired
     private SkillCategoryRepository categoryRepository;
@@ -257,5 +259,34 @@ public class SkillTreeIntegrationTest {
 
         Student studentAfterSecond = studentRepository.findById(testStudent.getId()).orElseThrow();
         assertThat(studentAfterSecond.getXpTotal()).isEqualTo(firstXpTotal);
+    }
+
+    @Test
+    public void testExportAndImportSkillTree() {
+        // When: Export
+        SkillTreeExportDataDTO exportData = skillTreeAdminService.exportSkillTree();
+
+        // Then: Should contain category & article from setUp
+        assertThat(exportData.getCategories()).isNotEmpty();
+        assertThat(exportData.getCategories().get(0).getArticles()).isNotEmpty();
+
+        // When: Import back with modification
+        ExportCategoryDTO catToImport = new ExportCategoryDTO(
+            "Nouvelle Catégorie Importée",
+            "Description importée",
+            10,
+            "🚀",
+            true,
+            List.of(new ExportArticleDTO("Article Importé", "Contenu importé", 1, true, null))
+        );
+        SkillTreeExportDataDTO importData = new SkillTreeExportDataDTO("1.0", null, List.of(catToImport));
+
+        SkillTreeImportResultDTO importResult = skillTreeAdminService.importSkillTree(importData);
+
+        // Then: Import result summary assertions
+        assertThat(importResult.getCategoriesCreated()).isEqualTo(1);
+        assertThat(importResult.getArticlesCreated()).isEqualTo(1);
+
+        assertThat(categoryRepository.findByNom("Nouvelle Catégorie Importée")).isPresent();
     }
 }

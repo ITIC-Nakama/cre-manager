@@ -20,6 +20,9 @@ public final class UserMapper {
         student.setXpTotal(0);
         student.setLastActivity(Instant.now());
         student.setPromotion(promotion);
+        student.setPrivacyAccepted(dto.isPrivacyAccepted());
+        student.setPrivacyAcceptedAt(dto.isPrivacyAccepted() ? Instant.now() : null);
+        student.setPrivacyPolicyVersion("1.0");
         mapCommonFields(student, dto.getEmail(), dto.getFirstName(), dto.getLastName(),
                 dto.getPhoneNumber(), dto.getPassword(), dto.getLang(), role);
         return student;

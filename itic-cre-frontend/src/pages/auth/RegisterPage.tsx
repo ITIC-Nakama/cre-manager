@@ -51,6 +51,7 @@ export default function RegisterPage() {
             roleId: Role.STUDENT,
             lang: getBrowserLang(),
             promotionId,
+            privacyAccepted: Boolean(data.privacyAccepted),
         };
 
         mutate(registerDto, {
@@ -289,6 +290,33 @@ export default function RegisterPage() {
                             </div>
                             {errors.password && (
                                 <p className="text-red-500 text-xs">{errors.password.message as string}</p>
+                            )}
+                        </div>
+
+                        {/* Privacy & Terms Consent */}
+                        <div className="space-y-1.5 pt-1">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    disabled={isPending}
+                                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#3f74ff] focus:ring-[#3f74ff] dark:border-slate-600 dark:bg-slate-700 cursor-pointer"
+                                    {...register('privacyAccepted', {
+                                        required: t('auth.register.privacy_required'),
+                                    })}
+                                />
+                                <span className="text-xs text-slate-600 dark:text-slate-400 leading-normal">
+                                    {t('auth.register.privacy_label')}{' '}
+                                    <Link to="/privacy" target="_blank" className="text-[#3f74ff] font-medium hover:underline">
+                                        {t('auth.register.privacy_link')}
+                                    </Link>{' '}
+                                    {t('auth.register.terms_label') && `${t('auth.register.terms_label').toLowerCase()} `}
+                                    <Link to="/terms" target="_blank" className="text-[#3f74ff] font-medium hover:underline">
+                                        {t('auth.register.terms_link')}
+                                    </Link>.
+                                </span>
+                            </label>
+                            {errors.privacyAccepted && (
+                                <p className="text-red-500 text-xs pl-7">{errors.privacyAccepted.message as string}</p>
                             )}
                         </div>
 

@@ -26,4 +26,6 @@ public interface QuizValidationRepository extends JpaRepository<QuizValidation, 
 
     @Query("SELECT qv.quiz.article.id FROM QuizValidation qv WHERE qv.student.id = :studentId")
     List<UUID> findValidatedArticleIdsForStudent(@Param("studentId") UUID studentId);
+
+    List<QuizValidation> findAllByStudentId(UUID studentId);
 }

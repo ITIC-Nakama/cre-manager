@@ -76,7 +76,8 @@ public class AuthenticationIntegrationTest {
                 "email", "new.student@itic.fr",
                 "firstName", "Alice",
                 "lastName", "Smith",
-                "password", "Password123!"
+                "password", "Password123!",
+                "privacyAccepted", true
         );
 
         mockMvc.perform(post("/auth/register")
@@ -88,6 +89,26 @@ public class AuthenticationIntegrationTest {
         assertThat(createdUser).isPresent();
         assertThat(createdUser.get().isEmailVerified()).isFalse();
         assertThat(createdUser.get().getRole().getName()).isEqualTo(RoleEnum.STUDENT);
+    }
+
+    @Test
+    public void testRegisterStudent_WithoutPrivacyAccepted_ShouldReturnBadRequest() throws Exception {
+        java.util.Map<String, Object> registerMap = java.util.Map.of(
+                "email", "noprivacy.student@itic.fr",
+                "firstName", "Bob",
+                "lastName", "NoPrivacy",
+                "password", "Password123!",
+                "privacyAccepted", false
+        );
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value("privacy-policy-required"));
+
+        Optional<com.itic.paris.platform.auth.model.User> userOpt = userRepository.findByEmailIgnoreCase("noprivacy.student@itic.fr");
+        assertThat(userOpt).isEmpty();
     }
 
     @Test
@@ -180,7 +201,8 @@ public class AuthenticationIntegrationTest {
                 "email", "register.verify@itic.fr",
                 "firstName", "Reggie",
                 "lastName", "Verifier",
-                "password", "Password123!"
+                "password", "Password123!",
+                "privacyAccepted", true
         );
 
         mockMvc.perform(post("/auth/register")

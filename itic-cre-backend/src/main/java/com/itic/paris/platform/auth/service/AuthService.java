@@ -70,6 +70,9 @@ public class AuthService {
 
     @Transactional
     public User registerStudent(UserRegisterDto userDto) {
+        if (!userDto.isPrivacyAccepted()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.PRIVACY_POLICY_REQUIRED);
+        }
         if (userLookupService.existsByEmail(userDto.getEmail())) {
             throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
         }
