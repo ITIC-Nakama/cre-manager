@@ -31,6 +31,9 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
     private final QuizRepository quizRepository;
     private final UserRepository userRepository;
 
+    @Value("${app.test.seeders.enabled:false}")
+    private boolean enabled;
+
     @Value("${app.test.advisor.email:test.advisor@itic.fr}")
     private String advisorEmail;
 
@@ -40,6 +43,7 @@ public class ArticleAndQuizSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        if (!enabled) return;
         if (articleRepository.count() > 0) return;
 
         author = userRepository.findByEmailIgnoreCase(advisorEmail).orElse(null);
