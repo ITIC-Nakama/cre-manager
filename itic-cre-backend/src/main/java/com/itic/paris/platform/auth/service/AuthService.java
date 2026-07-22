@@ -62,8 +62,10 @@ public class AuthService {
         }
 
         touchStudentActivity(user);
-        auditLogService.log(AuditAction.LOGIN, user, user.getId(),
-                "Connexion réussie — " + UserMapper.roleOf(user));
+        if (!(user instanceof Student)) {
+            auditLogService.log(AuditAction.LOGIN, user, user.getId(),
+                    "Connexion réussie — " + UserMapper.roleOf(user));
+        }
 
         return buildTokenResponse(buildCustomUserDetails(user), user);
     }
@@ -181,8 +183,11 @@ public class AuthService {
 
 
     public void logLogout() {
-        currentActor().ifPresent(actor ->
-                auditLogService.log(AuditAction.LOGOUT, actor, actor.getId(), "Déconnexion"));
+        currentActor().ifPresent(actor -> {
+            if (!(actor instanceof Student)) {
+                auditLogService.log(AuditAction.LOGOUT, actor, actor.getId(), "Déconnexion");
+            }
+        });
     }
 
 

@@ -45,7 +45,7 @@ export default function AuditLogPanel() {
                             className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800"
                         >
                             <span className={`inline-flex px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${auditActionColor(log.action)}`}>
-                                {log.action}
+                                {t(`dashboard.audit_page.actions.${log.action}`, { defaultValue: log.action })}
                             </span>
                             <span className="flex-1 text-slate-600 dark:text-slate-400 truncate px-2">
                                 {log.description ?? (`${log.targetType ?? ''} ${log.targetId ?? ''}`.trim() || '—')}

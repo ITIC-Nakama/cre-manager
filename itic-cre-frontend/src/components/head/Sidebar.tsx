@@ -250,7 +250,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
 
       {/* Sidebar desktop */}
       <aside
-        className={`hidden lg:flex flex-col min-h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 relative transition-all duration-300 ${
+        className={`hidden lg:flex flex-col h-screen sticky top-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 relative transition-all duration-300 ${
           collapsed ? 'w-20' : 'w-64'
         }`}
       >

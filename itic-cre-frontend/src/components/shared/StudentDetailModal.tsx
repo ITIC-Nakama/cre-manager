@@ -103,7 +103,7 @@ export default function StudentDetailModal({ student, onClose }: Props) {
                                     {student.applicationCount}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-0.5">
-                                    Total candidatures
+                                    {t('dashboard.etudiants.detail.total_applications')}
                                 </p>
                             </div>
                             <div>
@@ -112,7 +112,7 @@ export default function StudentDetailModal({ student, onClose }: Props) {
                                 </p>
                                 <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                                     {student.staleApplicationCount > 0 && <AlertCircle className="h-3 w-3 text-amber-500" />}
-                                    Candidatures en retard
+                                    {t('dashboard.etudiants.detail.stale_applications')}
                                 </p>
                             </div>
                         </div>
@@ -121,7 +121,7 @@ export default function StudentDetailModal({ student, onClose }: Props) {
                     {/* Activity tracking */}
                     <div className="flex items-center gap-2 text-xs text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-                        <span>Dernière activité : {formatDateTime(student.lastActivity)}</span>
+                        <span>{t('dashboard.etudiants.detail.last_activity', { date: formatDateTime(student.lastActivity) })}</span>
                     </div>
                 </div>
             </div>

@@ -39,7 +39,10 @@ export default function AuditLogsPage() {
 
   const actionOptions = [
     { value: '', label: t('dashboard.audit_page.filter_all_actions') },
-    ...AUDIT_ACTIONS.map((action) => ({ value: action, label: action })),
+    ...AUDIT_ACTIONS.map((action) => ({
+      value: action,
+      label: t(`dashboard.audit_page.actions.${action}`, { defaultValue: action }),
+    })),
   ];
 
   const handleSearch = (value: string) => {
@@ -151,8 +154,8 @@ export default function AuditLogsPage() {
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${auditActionColor(log.action)}`}>
-                        {log.action}
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${auditActionColor(log.action)}`}>
+                        {t(`dashboard.audit_page.actions.${log.action}`, { defaultValue: log.action })}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-[360px]">
