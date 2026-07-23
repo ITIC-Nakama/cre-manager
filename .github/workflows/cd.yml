@@ -23,7 +23,7 @@ jobs:
       - name: Build Backend with Maven
         run: |
           cd itic-cre-backend
-          mvn -B -DskipTests package
+          mvn -B package
 
       # Compilation du Frontend React
       - name: Set up Node.js

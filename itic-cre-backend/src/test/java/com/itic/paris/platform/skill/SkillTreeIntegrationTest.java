@@ -268,7 +268,11 @@ public class SkillTreeIntegrationTest {
 
         // Then: Should contain category & article from setUp
         assertThat(exportData.getCategories()).isNotEmpty();
-        assertThat(exportData.getCategories().get(0).getArticles()).isNotEmpty();
+        ExportCategoryDTO techCat = exportData.getCategories().stream()
+                .filter(c -> "Technique".equals(c.getNom()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(techCat.getArticles()).isNotEmpty();
 
         // When: Import back with modification
         ExportCategoryDTO catToImport = new ExportCategoryDTO(
