@@ -82,9 +82,9 @@ public class GdprIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.email").value("gdpr.student@itic.fr"))
-                .andExpect(jsonPath("$.firstName").value("Jean"))
-                .andExpect(jsonPath("$.lastName").value("Dupont"));
+                .andExpect(jsonPath("$.data.userProfile.email").value("gdpr.student@itic.fr"))
+                .andExpect(jsonPath("$.data.userProfile.firstName").value("Jean"))
+                .andExpect(jsonPath("$.data.userProfile.lastName").value("Dupont"));
     }
 
     @Test
@@ -92,13 +92,13 @@ public class GdprIntegrationTest {
         mockMvc.perform(delete("/gdpr/delete-account")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"));
+                .andExpect(jsonPath("$.data.status").value("success"));
 
         User updatedUser = userRepository.findById(testStudent.getId()).orElseThrow();
         assertThat(updatedUser.isActive()).isFalse();
-        assertThat(updatedUser.isEmailVerified()).isFalse();
+        assertThat(updatedUser.isPrivacyAccepted()).isFalse();
         assertThat(updatedUser.getFirstName()).isEqualTo("Anonyme");
-        assertThat(updatedUser.getLastName()).isEqualTo("Utilisateur");
+        assertThat(updatedUser.getLastName()).isEqualTo("Utilisateur RGPD");
         assertThat(updatedUser.getEmail()).startsWith("deleted_");
     }
 }
