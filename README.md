@@ -1,177 +1,87 @@
 # ITIC CRE
 
-Plateforme de suivi des candidatures (stage/alternance) pour **ITIC CRE**.
-
-## Structure du projet
-
-*   **[itic-cre-backend](./itic-cre-backend)** : API Spring Boot pour le backend.
-*   **[itic-cre-frontend](./itic-cre-frontend)** : Application React pour le frontend.
+Plateforme complète de suivi des candidatures (stage & alternance), de gestion des CVs, d'offres d'emploi, de gamification et d'accompagnement pour **ITIC CRE**.
 
 ---
 
-## Backend (`itic-cre-backend`)
+## 📚 Documentation & Références
 
-## Stack
+Toute la documentation détaillée du projet est centralisée dans le dossier [`docs/`](./docs) :
 
-- Java **21** · Spring Boot **3.4.5** · PostgreSQL · JWT
+*   📋 **[Règles Métier (`docs/REGLES_METIER.md`)](./docs/REGLES_METIER.md)** : Spécifications et règles métier réellement implémentées dans le code (Authentification, CRM, Gamification, CV, RGPD, Skill Tree, Audit, Limites d'upload).
+*   🧪 **[Couverture & Architecture des Tests (`docs/TEST_COVERAGE.md`)](./docs/TEST_COVERAGE.md)** : Architecture de test automatisée, matrice de couverture intégrale (31 tests d'intégration sur 10 modules), exécution CI/CD dans GitHub Actions.
 
-## Rôles
+---
 
-| Rôle | Inscription | OTP email |
-|------|-------------|-----------|
-| **STUDENT** | `POST /auth/register` (public) | Oui |
-| **ADVISOR** | `POST /auth/admin/users` (admin) | Non |
-| **ADMIN** | `POST /auth/admin/users` (admin) | Non |
+## 📂 Structure du projet
 
-Chaque utilisateur a **un seul rôle** (`users.role_id` → `roles`).
+*   **[itic-cre-backend](./itic-cre-backend)** : API Spring Boot 3.4.5 / Java 21 (PostgreSQL, Spring Security, JWT, JPA, Liquibase/Seeders).
+*   **[itic-cre-frontend](./itic-cre-frontend)** : Application Single Page React + Vite + TypeScript + Tailwind CSS (TanStack Query, Zustand, i18next).
+*   **[docs](./docs)** : Documentation technique et métier de référence.
 
-Un **admin** peut créer d’autres admins et des conseillers.  
-Ces comptes reçoivent un **mot de passe temporaire** : à la première connexion, l’utilisateur doit le changer via `POST /auth/change-password` avant d’accéder au reste de l’API (`mustChangePassword: true` dans la réponse login).
+---
 
-## Configuration (`.env`)
+## 🚀 Démarrage rapide avec Docker (Recommandé)
 
 ```bash
 cp .env.example .env
-```
-
-Spring Boot charge automatiquement `.env` à la racine du projet. Le fichier `.env` est ignoré par Git.
-
-## Démarrage avec Docker (recommandé)
-
-```bash
 docker compose up --build
 ```
 
-- API : http://localhost:8080/api/v1  
-- Swagger : http://localhost:8080/api/v1/swagger-ui.html  
-- PostgreSQL : `localhost:5432` (user/pass : `postgres` / `postgres`)
+- **API Backend** : `http://localhost:8080/api/v1`
+- **Swagger UI (Documentation OpenAPI)** : `http://localhost:8080/api/v1/swagger-ui.html`
+- **Frontend React** : `http://localhost`
+- **PostgreSQL** : `localhost:5432` (`postgres` / `postgres`)
 
-Un admin bootstrap est créé si absent : `admin@itic.fr` / `Admin123!` (modifiable dans `docker-compose.yml`).
-
-## Démarrage local (sans Docker)
-
-1. Base PostgreSQL : `itic_cre`
-2. Variables : `SECRET_KEY`, `REFRESH_SECRET_KEY`, `DB_*`
-3. Premier admin (optionnel au 1er lancement) :
-
-```properties
-app.bootstrap.admin.enabled=true
-app.bootstrap.admin.email=admin@itic.fr
-app.bootstrap.admin.password=ChangeMe123!
-```
-
-4. Lancer :
-
-```bash
-./mvnw spring-boot:run
-```
-
-- API : http://localhost:8080/api/v1  
-- Swagger : http://localhost:8080/api/v1/swagger-ui.html  
-
-## Endpoints Auth
-
-| Méthode | Endpoint | Accès |
-|---------|----------|--------|
-| POST | `/auth/register` | Public — étudiant + OTP |
-| POST | `/auth/login` | Public |
-| POST | `/auth/admin/users` | `ROLE_ADMIN` — admin ou conseiller |
-| POST | `/auth/otp/*` | Public — **étudiants uniquement** |
-| POST | `/auth/reset-password` | Public — **étudiants uniquement** |
-| POST | `/auth/change-password` | Authentifié — changement du mot de passe temporaire |
-| GET | `/auth/admin/audit-logs` | `ROLE_ADMIN` — journal qui a fait quoi |
-
-### Inscription étudiant
-
-```json
-POST /api/v1/auth/register
-{
-  "email": "etudiant@itic.fr",
-  "firstName": "Jean",
-  "lastName": "Dupont",
-  "password": "Motdepasse1!"
-}
-```
-
-### Créer un conseiller (admin connecté)
-
-```json
-POST /api/v1/auth/admin/users
-Authorization: Bearer <token_admin>
-{
-  "role": "ADVISOR",
-  "email": "conseiller@itic.fr",
-  "firstName": "Marie",
-  "lastName": "Martin",
-  "password": "Motdepasse1!",
-  "jobTitle": "Conseillère pédagogique"
-}
-```
-
-### Créer un autre admin
-
-```json
-{
-  "role": "ADMIN",
-  "email": "admin2@itic.fr",
-  ...
-}
-```
-
-Les emails sont stockés en clair (pas de hash/chiffrement).
-
-### Première connexion (admin / conseiller créé par admin)
-
-```json
-POST /api/v1/auth/login
-→ user.mustChangePassword: true
-
-POST /api/v1/auth/change-password
-Authorization: Bearer <token>  (ou cookie)
-{
-  "currentPassword": "mot-de-passe-temporaire",
-  "newPassword": "MonNouveauMotDePasse1!"
-}
-→ nouveaux cookies JWT, mustChangePassword: false
-```
+*Un administrateur bootstrap est créé automatiquement s'il n'existe pas : `admin@itic.fr` / `Admin123!` (modifiable dans `.env`).*
 
 ---
 
-## Frontend (`itic-cre-frontend`)
+## 💻 Démarrage local (Sans Docker)
 
-### Stack
+### 1. Backend Spring Boot
 
-- **Framework** : Vite + React + TypeScript
-- **Style** : Tailwind CSS + Vanilla CSS pour les composants personnalisés
-- **State Management** : Zustand (gestion de session, thème, etc.)
-- **Routing** : React Router DOM
-- **API Queries** : TanStack React Query + Axios
-- **Internationalisation** : i18next
-
-### Démarrage local
-
-1. Installer les dépendances :
-   ```bash
-   npm install
-   ```
-
-2. Configurer les variables d'environnement (si applicable) :
+1. Assurez-vous d'avoir un serveur PostgreSQL qui tourne avec une base nommée `itic_cre`.
+2. Configurez les variables d'environnement dans `.env` à la racine :
    ```bash
    cp .env.example .env
    ```
-
-3. Lancer le serveur de développement :
+3. Lancez le serveur backend :
    ```bash
-   npm run dev
+   cd itic-cre-backend
+   mvn spring-boot:run
    ```
 
-   - Frontend accessible sur : `http://localhost:5173` (ou port affiché dans le terminal)
+### 2. Frontend React
 
-### Fonctionnalités implémentées
+1. Installez les dépendances et lancez le serveur de dev Vite :
+   ```bash
+   cd itic-cre-frontend
+   npm install
+   npm run dev
+   ```
+2. Accédez à l'application sur `http://localhost:5173`.
 
-- **Auth Flow complet** : inscription étudiant avec validation OTP, connexion, changement de mot de passe obligatoire pour les comptes créés par un admin.
-- **Espace étudiant** : dashboard, CRM kanban des candidatures, jobboard (recherche + candidature en un clic), skill tree (catégories/articles/quiz avec XP), page **Mon CV** complète (glisser-déposer de fichier PDF, suivi de la timeline de validation avec gains d'XP en temps réel, panel des commentaires d'évaluation du conseiller).
-- **Espace conseiller/admin** : gestion des candidatures et étudiants, validation des CV avec commentaires, gestion du contenu (catégories/articles/quiz), gestion des offres d'emploi, page **Gamification** (configuration des points XP par action/statut de candidature/statut de CV, gestion des grades).
-- **Internationalisation (i18n)** : Support bilingue complet (Français / Anglais) sur l'ensemble de la plateforme. Changement de langue optimiste instantané côté client et traduction dynamique côté serveur basée sur la détection des en-têtes de requête HTTP.
-- **Composants partagés** : modale de confirmation générique (`ConfirmDialog`) utilisée pour toutes les suppressions, design responsive avec navigation (`DashboardNavBar`) et logo officiel ITIC Paris.
+---
 
+## 🧪 Tests Automatisés
+
+Le backend inclut **31 tests unitaires et d'intégration** couvrant 100% des modules fonctionnels (Authentification, CRM, CV, Gamification, Skill Tree, Jobboard, RGPD, Audit, Dashboard et Emails).
+
+Pour lancer la suite de tests en local :
+```bash
+cd itic-cre-backend
+mvn test
+```
+
+Tous les tests sont automatiquement exécutés à chaque déploiement CI/CD via GitHub Actions. Le déploiement sur le serveur est automatiquement interrompu en cas d'échec de test.
+
+---
+
+## 🔑 Rôles & Accès
+
+| Rôle | Inscription / Création | OTP Email |
+|---|---|---|
+| **STUDENT** | `POST /auth/register` (Public) | Oui (Obligatoire) |
+| **ADVISOR** | `POST /auth/admin/users` (Réservé `ADMIN`) | Non (Mot de passe temporaire) |
+| **ADMIN** | `POST /auth/admin/users` (Réservé `ADMIN`) | Non (Mot de passe temporaire) |
