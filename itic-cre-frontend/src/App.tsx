@@ -1,6 +1,7 @@
 import './App.css'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
+import OfflineBanner from './components/common/OfflineBanner'
 import StudentLayout from './layouts/StudentLayout'
 import SupervisorLayout from './layouts/SupervisorLayout'
 import AuthLayout from './layouts/AuthLayout'
@@ -66,6 +67,7 @@ function RoleBasedRedirect() {
 function App() {
   return ( 
     <BrowserRouter>
+      <OfflineBanner />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/home" element={<Navigate to="/login" replace />} />
