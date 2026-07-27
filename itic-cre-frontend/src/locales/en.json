@@ -22,6 +22,9 @@
     "admin": "Admin",
     "advisor": "Advisor"
   },
+  "pwa": {
+    "update_available": "A new version of the application is available!"
+  },
   "nav": {
     "how_it_works": "How it works?",
     "faq": "FAQ",

@@ -3,20 +3,18 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import './i18n'
+import i18n from './i18n'
 import App from './App.tsx'
 import { registerSW } from 'virtual:pwa-register'
+import { toast } from 'sonner'
 
-// Auto-update du Service Worker en arrière-plan
+// Auto-update du Service Worker en arrière-plan avec alerte Toast
 registerSW({
   immediate: true,
   onNeedRefresh() {
-    console.log('Nouvelle version mobile ITIC-CRE disponible, mise à jour du cache...');
-  },
-  onOfflineReady() {
-    console.log('Application mobile ITIC-CRE prête pour une utilisation hors-ligne.');
+    toast.info(i18n.t('pwa.update_available'));
   }
 });
-
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,4 +33,3 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
-
