@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie, X, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function CookieBanner() {
+    const { t } = useTranslation();
     const [accepted, setAccepted] = useState(true);
 
     useEffect(() => {
@@ -27,21 +29,21 @@ export default function CookieBanner() {
                         <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#3f74ff]">
                             <Cookie className="w-4 h-4" />
                         </div>
-                        <span>Gestion des Cookies Essentiels</span>
+                        <span>{t('common.cookie_banner.title')}</span>
                     </div>
                     <button
                         onClick={handleAccept}
                         className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
-                        aria-label="Fermer"
+                        aria-label={t('common.cookie_banner.close')}
                     >
                         <X className="w-4 h-4" />
                     </button>
                 </div>
 
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    ITIC-CRE utilise uniquement des cookies de session strictement nécessaires (authentification sécurisée JWT et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.{' '}
+                    {t('common.cookie_banner.text')}{' '}
                     <Link to="/privacy" className="text-[#3f74ff] underline hover:text-blue-700 font-medium">
-                        En savoir plus
+                        {t('common.cookie_banner.learn_more')}
                     </Link>.
                 </p>
 
@@ -51,7 +53,7 @@ export default function CookieBanner() {
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#3f74ff] hover:bg-[#2a5de5] text-white transition-all shadow-md shadow-blue-500/20 cursor-pointer"
                     >
                         <Check className="w-3.5 h-3.5" />
-                        J'ai compris
+                        {t('common.cookie_banner.accept')}
                     </button>
                 </div>
             </div>

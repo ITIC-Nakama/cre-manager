@@ -5,6 +5,16 @@
       "confirm": "Confirm",
       "delete": "Delete",
       "deleting": "Deleting…"
+    },
+    "offline_banner": {
+      "text": "You are currently offline. Viewing cached data."
+    },
+    "cookie_banner": {
+      "title": "Essential Cookies Management",
+      "close": "Close",
+      "text": "ITIC-CRE only uses strictly necessary session cookies (secure JWT authentication and language preference). No advertising or third-party tracking cookies are used.",
+      "learn_more": "Learn more",
+      "accept": "Got it"
     }
   },
   "roles": {
