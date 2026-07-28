@@ -21,7 +21,7 @@ export default function ParametresPage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -74,7 +74,7 @@ export default function ParametresPage() {
   };
 
   return (
-    <div id="parametres-page" className="space-y-6 max-w-4xl mx-auto pb-12 animate-fadeIn text-slate-800 dark:text-slate-100">
+    <div id="parametres-page" className="space-y-6 max-w-4xl mx-auto  animate-fadeIn text-slate-800 dark:text-slate-100">
 
       {/* Page header */}
       <div className="flex flex-col gap-1">
@@ -108,7 +108,7 @@ export default function ParametresPage() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 animate-fadeIn">
           <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl shadow-xl p-6 overflow-hidden">
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function ParametresPage() {
 
             {/* Modal Body / Form */}
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              
+
               {/* Current Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">

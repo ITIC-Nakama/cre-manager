@@ -112,7 +112,7 @@ export default function CandidaturesPage() {
                 </div>
             ),
         }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
     const statusOptions = useMemo(() => [
@@ -184,7 +184,7 @@ export default function CandidaturesPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6  animate-fadeIn">
 
             {/* Header */}
             <div>
@@ -234,11 +234,10 @@ export default function CandidaturesPage() {
                 />
                 <button
                     onClick={handleStaleToggle}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                        staleOnly
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${staleOnly
                             ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400'
                             : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
+                        }`}
                 >
                     <AlertCircle className="h-4 w-4" />
                     {t('dashboard.candidatures.filter_stale_only')}
@@ -283,9 +282,8 @@ export default function CandidaturesPage() {
                                     <tr
                                         key={row.id}
                                         onClick={() => setSelectedApplication(row.original)}
-                                        className={`cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${
-                                            row.original.stale ? 'border-l-2 border-l-amber-400' : ''
-                                        }`}
+                                        className={`cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${row.original.stale ? 'border-l-2 border-l-amber-400' : ''
+                                            }`}
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <td key={cell.id} className="px-6 py-4">
@@ -328,11 +326,10 @@ export default function CandidaturesPage() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setPage(pageNum)}
-                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                                            pageNum === page
+                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${pageNum === page
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                        }`}
+                                            }`}
                                     >
                                         {pageNum + 1}
                                     </button>

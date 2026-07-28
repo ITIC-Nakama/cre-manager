@@ -103,7 +103,7 @@ export default function StudentCVPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fadeIn">
+    <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Titre */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">

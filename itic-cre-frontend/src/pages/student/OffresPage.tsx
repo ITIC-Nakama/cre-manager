@@ -86,7 +86,7 @@ export default function OffresPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6  animate-fadeIn">
 
             {/* Header */}
             <div>

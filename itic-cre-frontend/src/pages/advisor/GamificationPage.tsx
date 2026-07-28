@@ -52,7 +52,7 @@ export default function GamificationPage() {
     title: string;
     message: string;
     onConfirm: () => Promise<void>;
-  }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+  }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
@@ -154,7 +154,7 @@ export default function GamificationPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-fadeIn text-slate-800 dark:text-slate-100">
+    <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

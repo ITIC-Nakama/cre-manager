@@ -112,7 +112,7 @@ export default function CandidatureDetailPage() {
     const isRefused = candidature.status.ordre === 6;
 
     return (
-        <div className="flex flex-col gap-6 pb-12 max-w-3xl animate-fadeIn">
+        <div className="flex flex-col gap-6  max-w-3xl animate-fadeIn">
             <Link
                 to="/student/candidatures"
                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 w-fit"

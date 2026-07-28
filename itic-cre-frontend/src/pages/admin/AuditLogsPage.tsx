@@ -68,7 +68,7 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-fadeIn text-slate-800 dark:text-slate-100">
+    <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
 
       {/* Header */}
       <div>

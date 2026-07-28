@@ -36,7 +36,7 @@ export default function CandidaturesListPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6 pb-4 animate-fadeIn">
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -49,10 +49,10 @@ export default function CandidaturesListPage() {
                 </div>
                 <button
                     onClick={() => setFormOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-semibold transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
                 >
                     <Plus className="h-4 w-4" />
-                    {t('dashboard.candidatures.student.add_button')}
+                    <span>{t('dashboard.candidatures.student.add_button')}</span>
                 </button>
             </div>
 

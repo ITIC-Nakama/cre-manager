@@ -30,7 +30,7 @@ export default function CategoryArticlesPage() {
   const displayIcon = node ? emojiMap[node.categoryIcon] || node.categoryIcon || '📄' : '📄';
 
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+    <div className="flex flex-col gap-6  animate-fadeIn">
       <Breadcrumb
         items={[
           { label: t('dashboard.connaissances.category.breadcrumb_root'), to: '/student/connaissances' },

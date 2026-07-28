@@ -58,7 +58,7 @@ export default function OffresPage() {
         title: string;
         message: string;
         onConfirm: () => Promise<void>;
-    }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+    }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
     const [confirmLoading, setConfirmLoading] = useState(false);
 
     const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
@@ -163,11 +163,10 @@ export default function OffresPage() {
         col.accessor('active', {
             header: t('dashboard.offres.table.status'),
             cell: ({ getValue }) => (
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    getValue()
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getValue()
                         ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                }`}>
+                    }`}>
                     {getValue() ? t('dashboard.offres.table.active') : t('dashboard.offres.table.inactive')}
                 </span>
             ),
@@ -176,7 +175,7 @@ export default function OffresPage() {
             header: t('dashboard.offres.table.created_at'),
             cell: ({ getValue }) => <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(getValue())}</span>,
         }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
     const table = useReactTable({
@@ -188,7 +187,7 @@ export default function OffresPage() {
     });
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6  animate-fadeIn">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -292,11 +291,10 @@ export default function OffresPage() {
                                             </button>
                                             <button
                                                 onClick={() => handleToggleActive(row.original)}
-                                                className={`inline-flex p-1.5 rounded-lg transition-all cursor-pointer ${
-                                                    row.original.active
+                                                className={`inline-flex p-1.5 rounded-lg transition-all cursor-pointer ${row.original.active
                                                         ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
                                                         : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                                                }`}
+                                                    }`}
                                                 title={row.original.active ? t('dashboard.offres.actions.deactivate') : t('dashboard.offres.actions.activate')}
                                             >
                                                 {row.original.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}

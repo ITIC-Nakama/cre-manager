@@ -51,7 +51,7 @@ export default function StudentDashboard() {
   const cvNeedsCorrection = data?.cv.hasCv && data.cv.statut && (data.cv.statut.toLowerCase().includes('corriger') || data.cv.statut.toLowerCase().includes('à corriger'));
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fadeIn">
+    <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Welcome header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -180,9 +180,8 @@ export default function StudentDashboard() {
                 {data.ranking.top3.map((entry, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm ${
-                      entry.me ? 'bg-indigo-50 dark:bg-indigo-950/30 font-semibold' : ''
-                    }`}
+                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm ${entry.me ? 'bg-indigo-50 dark:bg-indigo-950/30 font-semibold' : ''
+                      }`}
                   >
                     <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                       <span className="text-slate-400 w-4">{idx + 1}.</span>

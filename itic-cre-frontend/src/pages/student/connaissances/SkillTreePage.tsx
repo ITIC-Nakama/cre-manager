@@ -63,7 +63,7 @@ export default function SkillTreePage() {
   const pct = data && data.totalArticles > 0 ? Math.round((data.completedArticles / data.totalArticles) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+    <div className="flex flex-col gap-6  animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">

@@ -35,7 +35,7 @@ export default function AdvisorDashboard() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fadeIn text-slate-800 dark:text-slate-100">
+    <div className="flex flex-col gap-8  animate-fadeIn text-slate-800 dark:text-slate-100">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

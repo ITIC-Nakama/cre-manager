@@ -32,7 +32,7 @@ import ArticlesTable from './components/formation/ArticlesTable';
 export default function ContenuPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'articles' | 'categories'>('articles');
-  
+
   // React Query Hooks
   const { data: categories = [], isLoading: loadingCategories } = useAdminCategories();
   const { data: articles = [], isLoading: loadingArticles } = useAdminArticles();
@@ -82,7 +82,7 @@ export default function ContenuPage() {
       try {
         const jsonText = event.target?.result as string;
         const parsedData = JSON.parse(jsonText);
-        
+
         const res = await importMutation.mutateAsync(parsedData);
         toast.success(
           t('dashboard.formation.toast_import_success', {
@@ -128,7 +128,7 @@ export default function ContenuPage() {
     title: string;
     message: string;
     onConfirm: () => Promise<void>;
-  }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+  }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
@@ -309,8 +309,8 @@ export default function ContenuPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12 animate-fadeIn text-slate-800 dark:text-slate-100">
-      
+    <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -368,22 +368,20 @@ export default function ContenuPage() {
       <div className="flex border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={() => setActiveTab('articles')}
-          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-            activeTab === 'articles'
+          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'articles'
               ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-          }`}
+            }`}
         >
           <BookOpen className="h-4 w-4" />
           {t('dashboard.formation.tab_articles')}
         </button>
         <button
           onClick={() => setActiveTab('categories')}
-          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-            activeTab === 'categories'
+          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'categories'
               ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-          }`}
+            }`}
         >
           <Folder className="h-4 w-4" />
           {t('dashboard.formation.tab_categories')}
@@ -392,7 +390,7 @@ export default function ContenuPage() {
 
       {/* Content Container */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
-        
+
         {loading && (
           <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -413,7 +411,7 @@ export default function ContenuPage() {
               </button>
             </div>
 
-            <ArticlesTable 
+            <ArticlesTable
               articles={articles}
               onQuizClick={(id, title) => setQuizModal({ isOpen: true, articleId: id, articleTitle: title })}
               onEditClick={(id) => setArticleModal({ isOpen: true, mode: 'edit', articleId: id })}

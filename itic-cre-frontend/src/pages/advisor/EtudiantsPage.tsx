@@ -70,7 +70,7 @@ export default function EtudiantsPage() {
         title: string;
         message: string;
         onConfirm: () => Promise<void>;
-    }>({ isOpen: false, title: '', message: '', onConfirm: async () => {} });
+    }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
     const [confirmLoading, setConfirmLoading] = useState(false);
 
     const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
@@ -160,11 +160,10 @@ export default function EtudiantsPage() {
             cell: ({ getValue, row }) => (
                 <div className="flex items-center">
                     {row.original.accountActive ? (
-                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            getValue()
+                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${getValue()
                                 ? 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
                                 : 'bg-rose-100/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40'
-                        }`}>
+                            }`}>
                             {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
                         </span>
                     ) : (
@@ -189,7 +188,7 @@ export default function EtudiantsPage() {
                 );
             },
         }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
     const filterOptions = useMemo(() => [
@@ -212,9 +211,9 @@ export default function EtudiantsPage() {
         page,
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
-        isActive:  filterStatus === 'active' ? true  : filterStatus === 'inactive' ? false : undefined,
-        hasCv:     filterStatus === 'no-cv'  ? false : undefined,
-        hasStale:  filterStatus === 'stale'  ? true  : undefined,
+        isActive: filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : undefined,
+        hasCv: filterStatus === 'no-cv' ? false : undefined,
+        hasStale: filterStatus === 'stale' ? true : undefined,
         promotionId: promotionFilter || undefined,
     };
 
@@ -301,7 +300,7 @@ export default function EtudiantsPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6  animate-fadeIn">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -483,11 +482,10 @@ export default function EtudiantsPage() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setPage(pageNum)}
-                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                                            pageNum === page
+                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${pageNum === page
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                        }`}
+                                            }`}
                                     >
                                         {pageNum + 1}
                                     </button>

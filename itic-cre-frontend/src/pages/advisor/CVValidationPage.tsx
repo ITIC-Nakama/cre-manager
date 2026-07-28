@@ -123,7 +123,7 @@ export default function CVValidationPage() {
                 <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(getValue())}</span>
             ),
         }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
     const table = useReactTable({
@@ -145,7 +145,7 @@ export default function CVValidationPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-12 animate-fadeIn">
+        <div className="flex flex-col gap-6  animate-fadeIn">
 
             {/* Header */}
             <div>
@@ -191,9 +191,8 @@ export default function CVValidationPage() {
                             <button
                                 key={s.id}
                                 onClick={() => handleStatutChange(statutFilter === s.id ? '' : s.id)}
-                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                                    statutFilter === s.id ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
-                                }`}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${statutFilter === s.id ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                    }`}
                                 style={{
                                     background: `${s.couleur}18`,
                                     color: s.couleur,
@@ -284,11 +283,10 @@ export default function CVValidationPage() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setPage(pageNum)}
-                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                                            pageNum === safePage
+                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${pageNum === safePage
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                        }`}
+                                            }`}
                                     >
                                         {pageNum + 1}
                                     </button>
