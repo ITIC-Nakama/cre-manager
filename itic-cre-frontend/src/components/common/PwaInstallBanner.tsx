@@ -15,20 +15,24 @@ export default function PwaInstallBanner() {
   const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
-    // 1. Ne rien faire si déjà en mode autonome PWA
+    // 1. Vérifier si l'application est lancée en mode autonome ou déjà installée
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+      window.matchMedia('(display-mode: minimal-ui)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      localStorage.getItem('pwa_installed') === 'true' ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
     if (isStandalone) return;
 
-    // 2. Ne rien faire si fermé récemment (cooldown 7 jours)
+    // 2. Vérifier si fermé récemment (cooldown 7 jours)
     const dismissedUntil = localStorage.getItem('pwa_banner_dismissed_until');
     if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
       return;
     }
 
-    // 3. Détecter iOS Safari (qui nécessite des instructions manuelle sur le menu Partager)
+    // 3. Détecter iOS Safari
     const userAgent = window.navigator.userAgent.toLowerCase();
     const iosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIos(iosDevice);
@@ -37,17 +41,26 @@ export default function PwaInstallBanner() {
       setShowBanner(true);
     }
 
-    // 4. Détecter le déclenchement natif Chrome / Android (déclenché uniquement en HTTPS ou PWA valide)
+    // 4. Écouter le déclenchement natif Chrome / Android / Desktop
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowBanner(true);
     };
 
+    // 5. Écouter la confirmation d'installation réussie du navigateur
+    const handleAppInstalled = () => {
+      localStorage.setItem('pwa_installed', 'true');
+      setShowBanner(false);
+      setDeferredPrompt(null);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -63,6 +76,7 @@ export default function PwaInstallBanner() {
     const choiceResult = await deferredPrompt.userChoice;
 
     if (choiceResult.outcome === 'accepted') {
+      localStorage.setItem('pwa_installed', 'true');
       setShowBanner(false);
     }
     setDeferredPrompt(null);
