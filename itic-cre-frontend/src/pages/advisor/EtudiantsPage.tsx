@@ -7,10 +7,9 @@ import {
     type SortingState,
 } from '@tanstack/react-table';
 import {
-    Search, SlidersHorizontal, Mail, Eye, Loader2,
+    Search, SlidersHorizontal, Eye, Loader2,
     AlertCircle, Star, FileText, ChevronUp, ChevronDown,
     ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap,
-    UserX, UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -105,7 +104,7 @@ export default function EtudiantsPage() {
             cell: ({ getValue }) => {
                 const value = getValue();
                 return value ? (
-                    <TruncatedText text={value} className="max-w-[160px] text-slate-500 dark:text-slate-400 text-sm" />
+                    <TruncatedText text={value} className="max-w-[240px] text-slate-500 dark:text-slate-400 text-sm" />
                 ) : (
                     <span className="text-slate-300 dark:text-slate-600">—</span>
                 );
@@ -367,7 +366,7 @@ export default function EtudiantsPage() {
                             {table.getHeaderGroups().map((hg) => (
                                 <tr key={hg.id} className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     {hg.headers.map((header) => (
-                                        <th key={header.id} className="px-6 py-4">
+                                        <th key={header.id} className="px-4 py-3.5">
                                             {header.column.getCanSort() ? (
                                                 <button
                                                     onClick={header.column.getToggleSortingHandler()}
@@ -381,7 +380,7 @@ export default function EtudiantsPage() {
                                             )}
                                         </th>
                                     ))}
-                                    <th className="px-6 py-4 text-right">{t('dashboard.etudiants.table.actions')}</th>
+                                    <th className="px-4 py-3.5 text-right">{t('dashboard.etudiants.table.actions')}</th>
                                 </tr>
                             ))}
                         </thead>
@@ -402,58 +401,34 @@ export default function EtudiantsPage() {
                                 table.getRowModel().rows.map((row) => (
                                     <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                         {row.getVisibleCells().map((cell) => (
-                                            <td key={cell.id} className="px-6 py-4">
+                                            <td key={cell.id} className="px-4 py-3.5">
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </td>
                                         ))}
-                                        <td className="px-6 py-4 text-right space-x-1">
-                                            {row.original.hasCv && (
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                                            <div className="inline-flex items-center justify-end gap-1">
+                                                {row.original.hasCv && (
+                                                    <button
+                                                        onClick={() => setViewingCvStudentId(row.original.id)}
+                                                        disabled={studentCvLoading && viewingCvStudentId === row.original.id}
+                                                        className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer disabled:opacity-50"
+                                                        title={t('dashboard.etudiants.actions.view_cv', 'Voir CV')}
+                                                    >
+                                                        {studentCvLoading && viewingCvStudentId === row.original.id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <FileText className="h-4 w-4" />
+                                                        )}
+                                                    </button>
+                                                )}
                                                 <button
-                                                    onClick={() => setViewingCvStudentId(row.original.id)}
-                                                    disabled={studentCvLoading && viewingCvStudentId === row.original.id}
-                                                    className="inline-flex p-1.5 rounded-lg text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer disabled:opacity-50"
-                                                    title={t('dashboard.etudiants.actions.view_cv', 'Voir CV')}
+                                                    onClick={() => setViewingStudent(row.original)}
+                                                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                                                    title={t('dashboard.etudiants.actions.view')}
                                                 >
-                                                    {studentCvLoading && viewingCvStudentId === row.original.id ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <FileText className="h-4 w-4" />
-                                                    )}
+                                                    <Eye className="h-4 w-4" />
                                                 </button>
-                                            )}
-                                            <button
-                                                onClick={() => setViewingStudent(row.original)}
-                                                className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
-                                                title={t('dashboard.etudiants.actions.view')}
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setSelectedStudent(row.original)}
-                                                className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                                                title={t('dashboard.etudiants.actions.notify')}
-                                            >
-                                                <Mail className="h-4 w-4" />
-                                            </button>
-                                            {isAdmin && (
-                                                row.original.accountActive ? (
-                                                    <button
-                                                        onClick={() => handleDeactivateStudent(row.original)}
-                                                        className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
-                                                        title={t('dashboard.etudiants.actions.deactivate')}
-                                                    >
-                                                        <UserX className="h-4 w-4" />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleReactivateStudent(row.original)}
-                                                        className="inline-flex p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
-                                                        title={t('dashboard.etudiants.actions.reactivate')}
-                                                    >
-                                                        <UserCheck className="h-4 w-4" />
-                                                    </button>
-                                                )
-                                            )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -515,6 +490,9 @@ export default function EtudiantsPage() {
                 <StudentDetailModal
                     student={viewingStudent}
                     onClose={() => setViewingStudent(null)}
+                    onNotify={(s) => setSelectedStudent(s)}
+                    onToggleActive={(s) => s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)}
+                    isAdmin={isAdmin}
                 />
             )}
 

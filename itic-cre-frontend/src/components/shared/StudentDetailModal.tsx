@@ -1,10 +1,13 @@
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 interface Props {
     student: StudentRow;
     onClose: () => void;
+    onNotify?: (student: StudentRow) => void;
+    onToggleActive?: (student: StudentRow) => void;
+    isAdmin?: boolean;
 }
 
 function formatDateTime(iso: string | null) {
@@ -15,12 +18,12 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, isAdmin }: Props) {
     const { t } = useTranslation();
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
@@ -123,6 +126,44 @@ export default function StudentDetailModal({ student, onClose }: Props) {
                         <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
                         <span>{t('dashboard.etudiants.detail.last_activity', { date: formatDateTime(student.lastActivity) })}</span>
                     </div>
+
+                    {/* Actions Footer */}
+                    {(onNotify || (isAdmin && onToggleActive)) && (
+                        <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                            {onNotify && (
+                                <button
+                                    type="button"
+                                    onClick={() => { onClose(); onNotify(student); }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                                >
+                                    <Mail className="h-3.5 w-3.5" />
+                                    <span>{t('dashboard.etudiants.actions.notify')}</span>
+                                </button>
+                            )}
+
+                            {isAdmin && onToggleActive && (
+                                student.accountActive ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onToggleActive(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
+                                    >
+                                        <UserX className="h-3.5 w-3.5" />
+                                        <span>{t('dashboard.etudiants.actions.deactivate')}</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onToggleActive(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                                    >
+                                        <UserCheck className="h-3.5 w-3.5" />
+                                        <span>{t('dashboard.etudiants.actions.reactivate')}</span>
+                                    </button>
+                                )
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

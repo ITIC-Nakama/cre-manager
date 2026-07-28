@@ -11,7 +11,10 @@ import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
+import com.itic.paris.platform.cv.repository.CVRepository;
+import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import com.itic.paris.platform.skill.repository.ArticleRepository;
 import com.itic.paris.platform.skill.repository.SkillCategoryRepository;
@@ -44,6 +47,9 @@ public class UserProfileService {
     private final JobOfferRepository jobOfferRepository;
     private final ArticleRepository articleRepository;
     private final SkillCategoryRepository skillCategoryRepository;
+    private final CVRepository cvRepository;
+    private final ApplicationRepository applicationRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
     public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
@@ -168,21 +174,32 @@ public class UserProfileService {
         boolean hasLinkedContent = cvCommentaireRepository.existsByAdvisorId(id)
                 || jobOfferRepository.existsByCreatedById(id)
                 || articleRepository.existsByCreatedById(id)
-                || skillCategoryRepository.existsByCreatedById(id);
+                || skillCategoryRepository.existsByCreatedById(id)
+                || cvRepository.existsByStudentId(id)
+                || applicationRepository.existsByStudentId(id)
+                || jobApplicationRepository.existsByStudentId(id);
 
         User actor = currentActor().orElse(null);
         String label = user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")";
 
-        if (hasLinkedContent) {
+        if (hasLinkedContent || user instanceof Student) {
             user.setActive(false);
             User saved = userRepository.save(user);
             auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(), "Compte désactivé : " + label);
             return new DeleteOrDeactivateResult(false, saved);
         }
 
-        auditLogService.log(AuditAction.USER_DELETED, actor, user.getId(), "Suppression compte : " + label);
-        userRepository.delete(user);
-        return new DeleteOrDeactivateResult(true, null);
+        try {
+            auditLogService.log(AuditAction.USER_DELETED, actor, user.getId(), "Suppression compte : " + label);
+            userRepository.delete(user);
+            userRepository.flush();
+            return new DeleteOrDeactivateResult(true, null);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            user.setActive(false);
+            User saved = userRepository.save(user);
+            auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(), "Compte désactivé : " + label);
+            return new DeleteOrDeactivateResult(false, saved);
+        }
     }
 
     @Transactional

@@ -122,12 +122,13 @@ export default function SkillTreePage() {
         ) : (
           <TransformWrapper
             initialScale={1}
-            minScale={0.4}
+            minScale={0.5}
             maxScale={2}
             centerOnInit
             limitToBounds={true}
-            wheel={{ step: 0.08 }}
-            velocityAnimation={{ animationTime: 150, animationType: 'linear' }}
+            wheel={{ step: 0.03 }}
+            panning={{ velocityDisabled: true }}
+            doubleClick={{ disabled: true }}
             onPanningStart={() => setIsPanning(true)}
             onPanningStop={() => setIsPanning(false)}
           >
