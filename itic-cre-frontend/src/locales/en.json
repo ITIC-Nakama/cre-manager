@@ -27,7 +27,8 @@
     "banner_title": "Install ITIC CRE",
     "banner_subtitle": "Quick access & offline mode",
     "banner_button": "Install",
-    "ios_title": "Install on iPhone / iPad"
+    "ios_title": "Install on iPhone / iPad",
+    "android_title": "Install on Android"
   },
   "nav": {
     "how_it_works": "How it works?",
