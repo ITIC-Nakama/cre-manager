@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -54,7 +54,7 @@ html.dark {
 html, body {
   overflow-x: hidden;
   max-width: 100%;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Roboto', sans-serif;
   background-color: #F5F5F5;
   color: #333333;
 }
@@ -65,7 +65,7 @@ html.dark body {
 }
 
 @theme {
-  --font-sans: 'Poppins', sans-serif;
+  --font-sans: 'Roboto', sans-serif;
 
   /* Primary: TechSchool Blue */
   --color-primary:     #3f74ff;
@@ -165,12 +165,19 @@ html.dark body {
   from { opacity: 0; transform: translateX(-24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .anim-delay-100 { animation-delay: 100ms; }
 .anim-delay-200 { animation-delay: 200ms; }

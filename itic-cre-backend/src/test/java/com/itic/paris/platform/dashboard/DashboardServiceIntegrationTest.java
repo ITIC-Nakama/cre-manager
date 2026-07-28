@@ -1,0 +1,115 @@
+package com.itic.paris.platform.dashboard;
+
+import com.itic.paris.platform.auth.model.Role;
+import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
+import com.itic.paris.platform.auth.repository.RoleRepository;
+import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.model.ApplicationStatus;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.dashboard.service.DashboardService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@Transactional
+public class DashboardServiceIntegrationTest {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApplicationStatusRepository applicationStatusRepository;
+
+    private Student activeStudent;
+    private Student inactiveStudent;
+    private Application activeApp;
+    private Application inactiveApp;
+
+    @BeforeEach
+    public void setUp() {
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        ApplicationStatus status = applicationStatusRepository.findAll().get(0);
+
+        // Étudiant actif (active = true)
+        activeStudent = new Student();
+        activeStudent.setEmail("active.student@itic.fr");
+        activeStudent.setFirstName("Jean");
+        activeStudent.setLastName("Actif");
+        activeStudent.setPassword("Password123!");
+        activeStudent.setEmailVerified(true);
+        activeStudent.setActive(true);
+        activeStudent.setRole(studentRole);
+        activeStudent = studentRepository.save(activeStudent);
+
+        // Candidature étudiant actif
+        activeApp = new Application();
+        activeApp.setStudent(activeStudent);
+        activeApp.setEntreprise("Google");
+        activeApp.setPoste("Dev Java");
+        activeApp.setStatus(status);
+        activeApp.setDateModification(Instant.now());
+        activeApp = applicationRepository.save(activeApp);
+
+        // Étudiant désactivé (active = false)
+        inactiveStudent = new Student();
+        inactiveStudent.setEmail("inactive.student@itic.fr");
+        inactiveStudent.setFirstName("Pierre");
+        inactiveStudent.setLastName("Desactive");
+        inactiveStudent.setPassword("Password123!");
+        inactiveStudent.setEmailVerified(true);
+        inactiveStudent.setActive(false);
+        inactiveStudent.setRole(studentRole);
+        inactiveStudent = studentRepository.save(inactiveStudent);
+
+        // Candidature étudiant désactivé
+        inactiveApp = new Application();
+        inactiveApp.setStudent(inactiveStudent);
+        inactiveApp.setEntreprise("Microsoft");
+        inactiveApp.setPoste("Dev React");
+        inactiveApp.setStatus(status);
+        inactiveApp.setDateModification(Instant.now());
+        inactiveApp = applicationRepository.save(inactiveApp);
+    }
+
+    @Test
+    public void testGetApplicationListFilterActiveStudentsOnly() {
+        // When activeStudentsOnly = true
+        Page<Map<String, Object>> activeOnlyPage = dashboardService.getApplicationList(
+                null, null, null, null, null, true, PageRequest.of(0, 50)
+        );
+
+        // Then : ne doit contenir QUE la candidature de l'étudiant actif
+        assertThat(activeOnlyPage.getContent()).hasSize(1);
+        assertThat(activeOnlyPage.getContent().get(0).get("id")).isEqualTo(activeApp.getId());
+
+        // When activeStudentsOnly = false (ou null)
+        Page<Map<String, Object>> allPage = dashboardService.getApplicationList(
+                null, null, null, null, null, false, PageRequest.of(0, 50)
+        );
+
+        // Then : doit inclure les candidatures des étudiants actifs ET désactivés (au moins 2)
+        assertThat(allPage.getContent().size()).isGreaterThanOrEqualTo(2);
+    }
+}

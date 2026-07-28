@@ -8,6 +8,6 @@ import lombok.Data;
 public class CVCommentaireCreateDto {
 
     @NotBlank
-    @Size(min = 2, max = 4000)
+    @Size(min = 2, max = 10000)
     private String contenu;
 }

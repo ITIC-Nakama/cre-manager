@@ -41,17 +41,17 @@ export default function ParametresPage() {
     e.preventDefault();
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Veuillez remplir tous les champs.");
+      toast.error(t('dashboard.parametres.password_modal.toast_fill_all'));
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+      toast.error(t('dashboard.parametres.password_modal.toast_min_length'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas.");
+      toast.error(t('dashboard.parametres.password_modal.toast_mismatch'));
       return;
     }
 
@@ -59,14 +59,14 @@ export default function ParametresPage() {
       { currentPassword, newPassword },
       {
         onSuccess: () => {
-          toast.success("Votre mot de passe a été mis à jour avec succès !");
+          toast.success(t('dashboard.parametres.password_modal.toast_success'));
           setModalOpen(false);
           setCurrentPassword('');
           setNewPassword('');
           setConfirmPassword('');
         },
         onError: (err: any) => {
-          const errMsg = err?.response?.data?.message || "Une erreur est survenue lors de la modification du mot de passe.";
+          const errMsg = err?.response?.data?.message || t('dashboard.parametres.password_modal.toast_error');
           toast.error(errMsg);
         }
       }
@@ -79,10 +79,10 @@ export default function ParametresPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-          {t('dashboard.pages.parametres.title', 'Profil')}
+          {t('dashboard.pages.parametres.title')}
         </h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium">
-          {t('dashboard.pages.parametres.description', 'Gérez vos informations et préférences de compte.')}
+          {t('dashboard.pages.parametres.description')}
         </p>
       </div>
 
@@ -101,7 +101,7 @@ export default function ParametresPage() {
         className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700"
       >
         <LogOut className="h-4 w-4" />
-        <span>Se déconnecter</span>
+        <span>{t('dashboard.parametres.logout')}</span>
       </button>
 
       {/* Modal Overlay for Password Change */}
@@ -113,7 +113,7 @@ export default function ParametresPage() {
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-indigo-500" />
-                Modifier le mot de passe
+                {t('dashboard.parametres.password_modal.title')}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -129,7 +129,7 @@ export default function ParametresPage() {
               {/* Current Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Mot de passe actuel
+                  {t('dashboard.parametres.password_modal.label_current')}
                 </label>
                 <div className="relative">
                   <input
@@ -153,7 +153,7 @@ export default function ParametresPage() {
               {/* New Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Nouveau mot de passe
+                  {t('dashboard.parametres.password_modal.label_new')}
                 </label>
                 <div className="relative">
                   <input
@@ -177,7 +177,7 @@ export default function ParametresPage() {
               {/* Confirm New Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Confirmer le nouveau mot de passe
+                  {t('dashboard.parametres.password_modal.label_confirm')}
                 </label>
                 <div className="relative">
                   <input
@@ -203,16 +203,18 @@ export default function ParametresPage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-850 border border-slate-250 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 rounded-xl text-sm transition-colors cursor-pointer"
+                  className="flex-1 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 rounded-xl text-sm transition-colors cursor-pointer"
                 >
-                  Annuler
+                  {t('dashboard.parametres.password_modal.btn_cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-sm transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {isPending ? "Modification..." : "Enregistrer"}
+                  {isPending
+                    ? t('dashboard.parametres.password_modal.btn_saving')
+                    : t('dashboard.parametres.password_modal.btn_save')}
                 </button>
               </div>
 

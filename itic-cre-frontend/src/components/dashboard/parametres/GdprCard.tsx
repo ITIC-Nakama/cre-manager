@@ -84,7 +84,7 @@ export default function GdprCard() {
                             type="button"
                             onClick={handleExportData}
                             disabled={exportMutation.isPending}
-                            className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                            className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                         >
                             <Download className="h-3.5 w-3.5" />
                             {exportMutation.isPending ? t('dashboard.parametres.gdpr.exporting_btn') : t('dashboard.parametres.gdpr.export_btn')}

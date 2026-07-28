@@ -79,7 +79,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 <GraduationCap className="h-3.5 w-3.5" />
                                 {t('dashboard.etudiants.table.promotion')}
                             </p>
-                            <p className="text-sm font-medium text-slate-850 dark:text-slate-200">
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                                 {student.promotion?.nom || '—'}
                             </p>
                         </div>
@@ -88,7 +88,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 <Star className="h-3.5 w-3.5 text-violet-400" />
                                 {t('dashboard.etudiants.table.grade_xp').split(' / ')[0]}
                             </p>
-                            <p className="text-sm font-medium text-slate-850 dark:text-slate-200 flex items-center gap-1">
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1">
                                 <span>{student.grade?.nom || '—'}</span>
                                 <span className="text-xs text-slate-400 font-normal">({student.xpTotal} XP)</span>
                             </p>

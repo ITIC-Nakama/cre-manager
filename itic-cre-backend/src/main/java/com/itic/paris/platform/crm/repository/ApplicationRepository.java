@@ -36,8 +36,11 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
     @Query("SELECT a.student.id, COUNT(a) FROM Application a WHERE a.student.id IN :studentIds GROUP BY a.student.id")
     List<Object[]> countGroupedByStudentId(List<UUID> studentIds);
 
-    @Query("SELECT a FROM Application a WHERE a.status.declencheAlerte = true AND a.dateModification < :threshold")
+    @Query("SELECT a FROM Application a JOIN FETCH a.student s JOIN FETCH a.status st WHERE st.declencheAlerte = true AND a.dateModification < :threshold ORDER BY a.dateModification ASC")
     List<Application> findStaleApplications(Instant threshold);
+
+    @Query("SELECT COUNT(a) FROM Application a WHERE a.status.declencheAlerte = true AND a.dateModification < :threshold")
+    long countStaleApplications(Instant threshold);
 
     long countByDateCreationAfter(Instant since);
 
@@ -48,6 +51,68 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
     @Query("SELECT a.status.nom, a.status.couleur, COUNT(a) FROM Application a WHERE a.student.id = :studentId GROUP BY a.status.id, a.status.nom, a.status.couleur ORDER BY COUNT(a) DESC")
     List<Object[]> countGroupedByStatusForStudent(UUID studentId);
 
+    long countByStudentPromotionId(UUID promotionId);
+
     @Query("SELECT a FROM Application a WHERE a.student.id = :studentId AND a.status.declencheAlerte = true AND a.dateModification < :threshold ORDER BY a.dateModification ASC")
     List<Application> findStaleByStudentId(UUID studentId, Instant threshold);
+
+    @Query("""
+        SELECT a FROM Application a
+        JOIN a.student s
+        LEFT JOIN s.promotion p
+        JOIN a.status st
+        LEFT JOIN a.typeContrat tc
+        WHERE (:activeStudentsOnly IS NULL OR :activeStudentsOnly = false OR s.active = true)
+          AND (:promotionId IS NULL OR p.id = :promotionId)
+          AND (:statusId IS NULL OR st.id = :statusId)
+          AND (:typeContratId IS NULL OR tc.id = :typeContratId)
+          AND (:stale IS NULL OR :stale = false OR (st.declencheAlerte = true AND a.dateModification < :staleThreshold))
+          AND (:search IS NULL OR :search = ''
+               OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(a.entreprise) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(a.poste) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    Page<Application> findAllWithFilters(
+            @org.springframework.data.repository.query.Param("promotionId") UUID promotionId,
+            @org.springframework.data.repository.query.Param("statusId") UUID statusId,
+            @org.springframework.data.repository.query.Param("typeContratId") UUID typeContratId,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("stale") Boolean stale,
+            @org.springframework.data.repository.query.Param("staleThreshold") Instant staleThreshold,
+            @org.springframework.data.repository.query.Param("activeStudentsOnly") Boolean activeStudentsOnly,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT DISTINCT s FROM Application a
+        JOIN a.student s
+        LEFT JOIN s.promotion p
+        JOIN a.status st
+        LEFT JOIN a.typeContrat tc
+        WHERE (:activeStudentsOnly IS NULL OR :activeStudentsOnly = false OR s.active = true)
+          AND (:promotionId IS NULL OR p.id = :promotionId)
+          AND (:statusId IS NULL OR st.id = :statusId)
+          AND (:typeContratId IS NULL OR tc.id = :typeContratId)
+          AND (:stale IS NULL OR :stale = false OR (st.declencheAlerte = true AND a.dateModification < :staleThreshold))
+          AND (:search IS NULL OR :search = ''
+               OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(a.entreprise) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(a.poste) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    Page<com.itic.paris.platform.auth.model.Student> findDistinctStudentsWithFilters(
+            @org.springframework.data.repository.query.Param("promotionId") UUID promotionId,
+            @org.springframework.data.repository.query.Param("statusId") UUID statusId,
+            @org.springframework.data.repository.query.Param("typeContratId") UUID typeContratId,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("stale") Boolean stale,
+            @org.springframework.data.repository.query.Param("staleThreshold") Instant staleThreshold,
+            @org.springframework.data.repository.query.Param("activeStudentsOnly") Boolean activeStudentsOnly,
+            Pageable pageable
+    );
 }

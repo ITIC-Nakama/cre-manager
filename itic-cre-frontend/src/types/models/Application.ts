@@ -47,8 +47,12 @@ export interface ApplicationStudent {
     firstName: string;
     lastName: string;
     email: string;
+    profilePicture: string | null;
     promotion: { id: string; nom: string } | null;
+    accountActive: boolean;
 }
+
+
 
 export interface ApplicationRow {
     id: string;

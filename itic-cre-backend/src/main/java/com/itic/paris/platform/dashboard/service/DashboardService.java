@@ -53,11 +53,7 @@ public class DashboardService {
     // ─── Overview ────────────────────────────────────────────────────────────
 
     public Map<String, Object> getOverview() {
-        List<Student> allStudents = studentRepository.findAll();
-        List<UUID> studentIds = allStudents.stream().map(Student::getId).toList();
-        List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
-
-        long totalStudents = allStudents.size();
+        long totalStudents = studentRepository.count();
         long totalApplications = applicationRepository.count();
         long totalCvs = cvRepository.count();
         double averageXp = studentRepository.averageXp();
@@ -66,12 +62,11 @@ public class DashboardService {
         long activeStudents = studentRepository.countByLastActivityAfter(inactiveThreshold);
         long inactiveStudents = totalStudents - activeStudents;
 
-        List<UUID> studentsWithCvIds = studentIds.isEmpty() ? List.of()
-                : cvRepository.findStudentIdsWithCv(studentIds);
-        long studentsWithoutCv = totalStudents - studentsWithCvIds.size();
+        long studentsWithCvCount = cvRepository.countStudentsWithCv();
+        long studentsWithoutCv = totalStudents - studentsWithCvCount;
 
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
-        long staleApplicationsCount = applicationRepository.findStaleApplications(staleThreshold).size();
+        long staleApplicationsCount = applicationRepository.countStaleApplications(staleThreshold);
 
         long recentApplications7d = applicationRepository.countByDateCreationAfter(
                 Instant.now().minus(7, ChronoUnit.DAYS));
@@ -94,7 +89,8 @@ public class DashboardService {
                         "count", row[3]
                 )).toList();
 
-        List<Map<String, Object>> gradeDistribution = buildGradeDistribution(allStudents, allGrades);
+        List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
+        List<Map<String, Object>> gradeDistribution = buildGradeDistribution(allGrades);
 
         List<Map<String, Object>> topStudents = studentRepository.findTop5ByOrderByXpTotalDesc()
                 .stream().map(s -> buildStudentSummary(s, allGrades)).toList();
@@ -154,21 +150,13 @@ public class DashboardService {
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
         return promotionRepository.findAll().stream().map(promo -> {
-            List<Student> students = studentRepository.findAllByPromotionId(promo.getId());
-            List<UUID> studentIds = students.stream().map(Student::getId).toList();
-
-            long studentCount = students.size();
-            double avgXp = studentIds.isEmpty() ? 0
+            long studentCount = studentRepository.countByPromotionId(promo.getId());
+            double avgXp = studentCount == 0 ? 0
                     : studentRepository.averageXpByPromotion(promo.getId());
-            long totalApps = studentIds.isEmpty() ? 0
-                    : applicationRepository.countByStudentIdIn(studentIds);
-            long cvsUploaded = studentIds.isEmpty() ? 0
-                    : cvRepository.countByStudentIdIn(studentIds);
-            long activeCount = students.stream()
-                    .filter(s -> s.getLastActivity() != null && s.getLastActivity().isAfter(inactiveThreshold))
-                    .count();
-
-            List<Map<String, Object>> gradeDistrib = buildGradeDistribution(students, allGrades);
+            long activeCount = studentRepository.countByLastActivityAfter(inactiveThreshold);
+            long totalApps = applicationRepository.countByStudentPromotionId(promo.getId());
+            long cvsUploaded = cvRepository.countByStudentPromotionId(promo.getId());
+            List<Map<String, Object>> gradeDistrib = buildPromotionGradeDistribution(promo.getId(), allGrades);
 
             Map<String, Object> stat = new LinkedHashMap<>();
             stat.put("promotion", Map.of(
@@ -192,14 +180,23 @@ public class DashboardService {
     public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
                                                      Boolean isActive, Boolean hasCv, Boolean hasStale,
                                                      Pageable pageable) {
-        List<Student> students = promotionId != null
-                ? studentRepository.findAllByPromotionId(promotionId)
-                : studentRepository.findAll();
-
-        List<UUID> studentIds = students.stream().map(Student::getId).toList();
-        List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
+
+        Page<Student> studentPage = studentRepository.findWithFilters(
+                promotionId,
+                search,
+                isActive,
+                inactiveThreshold,
+                hasCv,
+                hasStale,
+                staleThreshold,
+                pageable
+        );
+
+        List<Student> students = studentPage.getContent();
+        List<UUID> studentIds = students.stream().map(Student::getId).toList();
+        List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
 
         Set<UUID> studentIdsWithCv = studentIds.isEmpty() ? Set.of()
                 : new HashSet<>(cvRepository.findStudentIdsWithCv(studentIds));
@@ -213,129 +210,164 @@ public class DashboardService {
                         .filter(a -> studentIds.contains(a.getStudent().getId()))
                         .collect(Collectors.groupingBy(a -> a.getStudent().getId(), Collectors.counting()));
 
-        List<Map<String, Object>> fullList = students.stream()
-                .sorted(Comparator.comparingInt(Student::getXpTotal).reversed())
-                .map(student -> {
-                    Grade grade = resolveGrade(student.getXpTotal(), allGrades);
-                    boolean active = student.getLastActivity() != null
-                            && student.getLastActivity().isAfter(inactiveThreshold);
-                    long staleCount = staleCountByStudent.getOrDefault(student.getId(), 0L);
-                    boolean cvPresent = studentIdsWithCv.contains(student.getId());
+        List<Map<String, Object>> content = students.stream().map(student -> {
+            Grade grade = resolveGrade(student.getXpTotal(), allGrades);
+            boolean active = student.getLastActivity() != null
+                    && student.getLastActivity().isAfter(inactiveThreshold);
+            long staleCount = staleCountByStudent.getOrDefault(student.getId(), 0L);
+            boolean cvPresent = studentIdsWithCv.contains(student.getId());
 
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("id", student.getId());
-                    row.put("firstName", student.getFirstName());
-                    row.put("lastName", student.getLastName());
-                    row.put("email", student.getEmail());
-                    row.put("promotion", student.getPromotion() != null
-                            ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
-                            : null);
-                    row.put("xpTotal", student.getXpTotal());
-                    row.put("grade", grade != null
-                            ? Map.of("nom", grade.getNom(), "icone", grade.getIcone() != null ? grade.getIcone() : "")
-                            : null);
-                    row.put("lastActivity", student.getLastActivity());
-                    row.put("isActive", active);
-                    row.put("accountActive", student.isActive());
-                    row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
-                    row.put("staleApplicationCount", staleCount);
-                    row.put("hasCv", cvPresent);
-                    return row;
-                })
-                .filter(row -> {
-                    if (search != null && !search.isBlank()) {
-                        String q = search.toLowerCase();
-                        String name = (row.get("firstName") + " " + row.get("lastName")).toLowerCase();
-                        String email = ((String) row.get("email")).toLowerCase();
-                        if (!name.contains(q) && !email.contains(q)) return false;
-                    }
-                    if (isActive != null && !isActive.equals(row.get("isActive"))) return false;
-                    if (hasCv != null && !hasCv.equals(row.get("hasCv"))) return false;
-                    if (Boolean.TRUE.equals(hasStale) && (Long) row.get("staleApplicationCount") == 0L) return false;
-                    return true;
-                })
-                .toList();
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", student.getId());
+            row.put("firstName", student.getFirstName());
+            row.put("lastName", student.getLastName());
+            row.put("email", student.getEmail());
+            row.put("promotion", student.getPromotion() != null
+                    ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
+                    : null);
+            row.put("xpTotal", student.getXpTotal());
+            row.put("grade", grade != null
+                    ? Map.of("nom", grade.getNom(), "icone", grade.getIcone() != null ? grade.getIcone() : "")
+                    : null);
+            row.put("lastActivity", student.getLastActivity());
+            row.put("isActive", active);
+            row.put("accountActive", student.isActive());
+            row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
+            row.put("staleApplicationCount", staleCount);
+            row.put("hasCv", cvPresent);
+            return row;
+        }).toList();
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), fullList.size());
-        List<Map<String, Object>> content = start >= fullList.size() ? List.of() : fullList.subList(start, end);
-
-        return new PageImpl<>(content, pageable, fullList.size());
+        return new PageImpl<>(content, pageable, studentPage.getTotalElements());
     }
 
     // ─── Application list (toutes promotions) ──────────────────────────────────
 
     public Page<Map<String, Object>> getApplicationList(UUID promotionId, UUID statusId, UUID typeContratId,
-                                                          String search, Boolean stale, Pageable pageable) {
+                                                          String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
 
-        List<Map<String, Object>> fullList = applicationRepository.findAll().stream()
-                .filter(app -> promotionId == null
-                        || (app.getStudent().getPromotion() != null
-                            && promotionId.equals(app.getStudent().getPromotion().getId())))
-                .filter(app -> statusId == null || statusId.equals(app.getStatus().getId()))
-                .filter(app -> typeContratId == null
-                        || (app.getTypeContrat() != null && typeContratId.equals(app.getTypeContrat().getId())))
-                .map(app -> {
-                    Student student = app.getStudent();
-                    Map<String, Object> studentRow = new LinkedHashMap<>();
-                    studentRow.put("id", student.getId());
-                    studentRow.put("firstName", student.getFirstName());
-                    studentRow.put("lastName", student.getLastName());
-                    studentRow.put("email", student.getEmail());
-                    studentRow.put("promotion", student.getPromotion() != null
-                            ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
-                            : null);
+        Page<Application> page = applicationRepository.findAllWithFilters(
+                promotionId,
+                statusId,
+                typeContratId,
+                search,
+                stale,
+                staleThreshold,
+                activeStudentsOnly,
+                pageable
+        );
 
-                    boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
-                            && app.getDateModification().isBefore(staleThreshold);
+        List<Map<String, Object>> content = page.getContent().stream().map(app -> {
+            Student student = app.getStudent();
+            Map<String, Object> studentRow = new LinkedHashMap<>();
+            studentRow.put("id", student.getId());
+            studentRow.put("firstName", student.getFirstName());
+            studentRow.put("lastName", student.getLastName());
+            studentRow.put("email", student.getEmail());
+            studentRow.put("profilePicture", student.getProfilePicture() != null
+                    ? cloudStorage.getFile(student.getProfilePicture())
+                    : null);
+            studentRow.put("promotion", student.getPromotion() != null
+                    ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
+                    : null);
 
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("id", app.getId());
-                    row.put("student", studentRow);
-                    row.put("entreprise", app.getEntreprise());
-                    row.put("poste", app.getPoste());
-                    row.put("typeContrat", app.getTypeContrat() != null
-                            ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
-                            : null);
-                    row.put("lienOffre", app.getLienOffre());
-                    row.put("contact", app.getContact());
-                    row.put("notes", app.getNotes());
-                    row.put("status", Map.of(
-                            "id", app.getStatus().getId(),
-                            "nom", app.getStatus().getNom(),
-                            "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
-                            "declencheAlerte", app.getStatus().getDeclencheAlerte()
-                    ));
-                    row.put("stale", isStale);
-                    row.put("dateCreation", app.getDateCreation());
-                    row.put("dateModification", app.getDateModification());
-                    return row;
-                })
-                .filter(row -> {
-                    if (search != null && !search.isBlank()) {
-                        String q = search.toLowerCase();
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> studentRow = (Map<String, Object>) row.get("student");
-                        String name = (studentRow.get("firstName") + " " + studentRow.get("lastName")).toLowerCase();
-                        String email = ((String) studentRow.get("email")).toLowerCase();
-                        String entreprise = ((String) row.get("entreprise")).toLowerCase();
-                        String poste = ((String) row.get("poste")).toLowerCase();
-                        if (!name.contains(q) && !email.contains(q) && !entreprise.contains(q) && !poste.contains(q)) {
-                            return false;
-                        }
-                    }
-                    if (Boolean.TRUE.equals(stale) && !Boolean.TRUE.equals(row.get("stale"))) return false;
-                    return true;
-                })
-                .sorted(Comparator.comparing((Map<String, Object> row) -> (Instant) row.get("dateModification")).reversed())
-                .toList();
+            boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
+                    && app.getDateModification().isBefore(staleThreshold);
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), fullList.size());
-        List<Map<String, Object>> content = start >= fullList.size() ? List.of() : fullList.subList(start, end);
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", app.getId());
+            row.put("student", studentRow);
+            row.put("entreprise", app.getEntreprise());
+            row.put("poste", app.getPoste());
+            row.put("typeContrat", app.getTypeContrat() != null
+                    ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
+                    : null);
+            row.put("lienOffre", app.getLienOffre());
+            row.put("contact", app.getContact());
+            row.put("notes", app.getNotes());
+            row.put("status", Map.of(
+                    "id", app.getStatus().getId(),
+                    "nom", app.getStatus().getNom(),
+                    "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
+                    "declencheAlerte", app.getStatus().getDeclencheAlerte()
+            ));
+            row.put("stale", isStale);
+            row.put("dateCreation", app.getDateCreation());
+            row.put("dateModification", app.getDateModification());
+            return row;
+        }).toList();
 
-        return new PageImpl<>(content, pageable, fullList.size());
+        return new PageImpl<>(content, pageable, page.getTotalElements());
+    }
+
+    public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, UUID statusId, UUID typeContratId,
+                                                                     String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
+        Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
+
+        Page<Student> studentPage = applicationRepository.findDistinctStudentsWithFilters(
+                promotionId,
+                statusId,
+                typeContratId,
+                search,
+                stale,
+                staleThreshold,
+                activeStudentsOnly,
+                pageable
+        );
+
+        List<Map<String, Object>> content = studentPage.getContent().stream().map(student -> {
+            List<Application> studentApps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
+
+            List<Map<String, Object>> appRows = studentApps.stream()
+                    .filter(app -> statusId == null || statusId.equals(app.getStatus().getId()))
+                    .filter(app -> typeContratId == null || (app.getTypeContrat() != null && typeContratId.equals(app.getTypeContrat().getId())))
+                    .filter(app -> !Boolean.TRUE.equals(stale) || (Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte()) && app.getDateModification().isBefore(staleThreshold)))
+                    .map(app -> {
+                        boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
+                                && app.getDateModification().isBefore(staleThreshold);
+
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        row.put("id", app.getId());
+                        row.put("entreprise", app.getEntreprise());
+                        row.put("poste", app.getPoste());
+                        row.put("typeContrat", app.getTypeContrat() != null
+                                ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
+                                : null);
+                        row.put("lienOffre", app.getLienOffre());
+                        row.put("contact", app.getContact());
+                        row.put("notes", app.getNotes());
+                        row.put("status", Map.of(
+                                "id", app.getStatus().getId(),
+                                "nom", app.getStatus().getNom(),
+                                "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
+                                "declencheAlerte", app.getStatus().getDeclencheAlerte()
+                        ));
+                        row.put("stale", isStale);
+                        row.put("dateCreation", app.getDateCreation());
+                        row.put("dateModification", app.getDateModification());
+                        return row;
+                    }).toList();
+
+            long staleCount = appRows.stream().filter(a -> Boolean.TRUE.equals(a.get("stale"))).count();
+
+            Map<String, Object> group = new LinkedHashMap<>();
+            group.put("studentId", student.getId());
+            group.put("firstName", student.getFirstName());
+            group.put("lastName", student.getLastName());
+            group.put("email", student.getEmail());
+            group.put("profilePicture", student.getProfilePicture() != null
+                    ? cloudStorage.getFile(student.getProfilePicture())
+                    : null);
+            group.put("promotion", student.getPromotion() != null
+                    ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
+                    : null);
+            group.put("applications", appRows);
+            group.put("staleCount", staleCount);
+            return group;
+        }).toList();
+
+        return new PageImpl<>(content, pageable, studentPage.getTotalElements());
     }
 
     // ─── Student detail ──────────────────────────────────────────────────────
@@ -462,16 +494,21 @@ public class DashboardService {
         return current;
     }
 
-    private List<Map<String, Object>> buildGradeDistribution(List<Student> students, List<Grade> grades) {
-        Map<String, Long> dist = new LinkedHashMap<>();
-        for (Grade g : grades) dist.put(g.getNom(), 0L);
-        for (Student s : students) {
-            Grade g = resolveGrade(s.getXpTotal(), grades);
-            if (g != null) dist.merge(g.getNom(), 1L, Long::sum);
+    private List<Map<String, Object>> buildGradeDistribution(List<Grade> grades) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (int i = 0; i < grades.size(); i++) {
+            Grade g = grades.get(i);
+            long count;
+            if (i < grades.size() - 1) {
+                int minXp = g.getXpMinimum();
+                int maxXp = grades.get(i + 1).getXpMinimum() - 1;
+                count = studentRepository.countByXpTotalBetween(minXp, maxXp);
+            } else {
+                count = studentRepository.countByXpTotalGreaterThanEqual(g.getXpMinimum());
+            }
+            list.add(Map.of("grade", g.getNom(), "count", count));
         }
-        return dist.entrySet().stream()
-                .map(e -> Map.<String, Object>of("grade", e.getKey(), "count", e.getValue()))
-                .toList();
+        return list;
     }
 
     private Map<String, Object> buildStudentSummary(Student s, List<Grade> allGrades) {
@@ -484,5 +521,21 @@ public class DashboardService {
         m.put("grade", grade != null ? grade.getNom() : null);
         m.put("promotion", s.getPromotion() != null ? s.getPromotion().getName() : null);
         return m;
+    }
+    private List<Map<String, Object>> buildPromotionGradeDistribution(UUID promotionId, List<Grade> grades) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (int i = 0; i < grades.size(); i++) {
+            Grade g = grades.get(i);
+            long count;
+            if (i < grades.size() - 1) {
+                int minXp = g.getXpMinimum();
+                int maxXp = grades.get(i + 1).getXpMinimum() - 1;
+                count = studentRepository.countByPromotionIdAndXpTotalBetween(promotionId, minXp, maxXp);
+            } else {
+                count = studentRepository.countByPromotionIdAndXpTotalGreaterThanEqual(promotionId, g.getXpMinimum());
+            }
+            list.add(Map.of("grade", g.getNom(), "count", count));
+        }
+        return list;
     }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import SwitchLanguage from '../../basics/SwitchLanguage';
 
 function SettingRow({ icon, title, subtitle, action }: {
@@ -23,10 +24,11 @@ function SettingRow({ icon, title, subtitle, action }: {
 }
 
 export default function PreferencesCard() {
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-slate-900 dark:text-white">Préférences</h2>
+      <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('dashboard.parametres.preferences.title')}</h2>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
 
@@ -36,12 +38,13 @@ export default function PreferencesCard() {
               <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>
           }
-          title="Langue"
-          subtitle="Langue de l'interface"
+          title={t('dashboard.parametres.preferences.language_title')}
+          subtitle={t('dashboard.parametres.preferences.language_subtitle')}
           action={<SwitchLanguage />}
         />
       </div>
     </div>
   );
 }
+
 

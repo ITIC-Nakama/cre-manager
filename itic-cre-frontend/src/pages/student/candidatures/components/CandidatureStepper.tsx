@@ -13,14 +13,17 @@ interface Props {
 export default function CandidatureStepper({ candidature, statuses, changing, readOnly = false, onChangeStatus }: Props) {
     const { t } = useTranslation();
     const steps = statuses.filter((s) => s.ordre >= 2 && s.ordre <= 5).sort((a, b) => a.ordre - b.ordre);
+    // Statut hors pipeline (ex : Refusé ordre=6) → on ne compare pas les ordres, seulement reachedStatusIds
+    const isOutsidePipeline = !steps.some((s) => s.id === candidature.status.id);
 
     return (
         <ol>
             {steps.map((step, idx) => {
-                const reached = candidature.reachedStatusIds.includes(step.id) || step.ordre <= candidature.status.ordre;
-                const isCurrent = step.id === candidature.status.id;
-                const isPrevious = !readOnly && step.ordre === candidature.status.ordre - 1;
-                const isFuture = !readOnly && step.ordre > candidature.status.ordre;
+                const reached = candidature.reachedStatusIds.includes(step.id)
+                    || (!isOutsidePipeline && step.ordre <= candidature.status.ordre);
+                const isCurrent = !isOutsidePipeline && step.id === candidature.status.id;
+                const isPrevious = !readOnly && !isOutsidePipeline && step.ordre === candidature.status.ordre - 1;
+                const isFuture = !readOnly && !isOutsidePipeline && step.ordre > candidature.status.ordre;
                 const xpPreview = step.gainXP > 0 && !reached;
 
                 return (

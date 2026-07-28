@@ -900,7 +900,33 @@
         "modal_deleting": "Suppression...",
         "toast_delete_success": "Votre compte a été anonymisé et désactivé.",
         "toast_delete_error": "Erreur lors de la suppression de votre compte."
-      }
+      },
+      "preferences": {
+        "title": "Préférences",
+        "language_title": "Langue",
+        "language_subtitle": "Langue de l'interface"
+      },
+      "security": {
+        "title": "Sécurité",
+        "password_title": "Mot de passe",
+        "password_subtitle": "Modifiez le mot de passe de votre compte",
+        "btn_change": "Modifier"
+      },
+      "password_modal": {
+        "title": "Modifier le mot de passe",
+        "label_current": "Mot de passe actuel",
+        "label_new": "Nouveau mot de passe",
+        "label_confirm": "Confirmer le nouveau mot de passe",
+        "btn_cancel": "Annuler",
+        "btn_save": "Enregistrer",
+        "btn_saving": "Modification...",
+        "toast_fill_all": "Veuillez remplir tous les champs.",
+        "toast_min_length": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+        "toast_mismatch": "Les mots de passe ne correspondent pas.",
+        "toast_success": "Votre mot de passe a été mis à jour avec succès !",
+        "toast_error": "Une erreur est survenue lors de la modification du mot de passe."
+      },
+      "logout": "Se déconnecter"
     }
   },
   "cta": {

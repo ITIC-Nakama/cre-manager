@@ -58,15 +58,29 @@ public class DashboardController {
     }
 
     @GetMapping("/applications")
-    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale")
+    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale/activeStudentsOnly")
     public ResponseEntity<?> applications(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) UUID statusId,
             @RequestParam(required = false) UUID typeContratId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
+            @RequestParam(required = false) Boolean activeStudentsOnly,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getApplicationList(promotionId, statusId, typeContratId, search, stale, pageable));
+        return ResponseEntity.ok(dashboardService.getApplicationList(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+    }
+
+    @GetMapping("/applications/grouped-by-student")
+    @Operation(summary = "Liste paginée des étudiants avec leurs candidatures — pagination 100% backend")
+    public ResponseEntity<?> applicationsGroupedByStudent(
+            @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) UUID statusId,
+            @RequestParam(required = false) UUID typeContratId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean stale,
+            @RequestParam(required = false) Boolean activeStudentsOnly,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
     }
 
     @GetMapping("/students/{studentId}")

@@ -75,26 +75,26 @@ public class StudentDashboardService {
 
     private RankingDTO buildRanking(Student student) {
         boolean scopedToPromotion = student.getPromotion() != null;
-        List<Student> pool = scopedToPromotion
-                ? studentRepository.findAllByPromotionId(student.getPromotion().getId())
-                : studentRepository.findAll();
+        UUID promotionId = scopedToPromotion ? student.getPromotion().getId() : null;
 
-        List<Student> sorted = pool.stream()
-                .sorted((a, b) -> b.getXpTotal() - a.getXpTotal())
-                .toList();
+        long higherXpCount = scopedToPromotion
+                ? studentRepository.countByPromotionIdAndXpTotalGreaterThan(promotionId, student.getXpTotal())
+                : studentRepository.countByXpTotalGreaterThan(student.getXpTotal());
+        int rank = (int) higherXpCount + 1;
 
-        int rank = 1;
-        for (Student s : sorted) {
-            if (s.getId().equals(student.getId())) break;
-            rank++;
-        }
+        long totalStudents = scopedToPromotion
+                ? studentRepository.countByPromotionId(promotionId)
+                : studentRepository.count();
 
-        List<RankingEntryDTO> top3 = sorted.stream()
-                .limit(3)
+        List<Student> top3Pool = scopedToPromotion
+                ? studentRepository.findTop3ByPromotionIdOrderByXpTotalDesc(promotionId)
+                : studentRepository.findTop3ByOrderByXpTotalDesc();
+
+        List<RankingEntryDTO> top3 = top3Pool.stream()
                 .map(s -> new RankingEntryDTO(s.getFirstName(), s.getLastName(), s.getXpTotal(), s.getId().equals(student.getId())))
                 .toList();
 
-        return new RankingDTO(rank, sorted.size(), scopedToPromotion, top3);
+        return new RankingDTO(rank, (int) totalStudents, scopedToPromotion, top3);
     }
 
     private GamificationSummaryDTO buildGamificationSummary(Student student) {

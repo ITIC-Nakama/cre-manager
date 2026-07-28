@@ -1,4 +1,5 @@
 import { Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SecurityCardProps {
   onChangePassword: () => void;
@@ -33,20 +34,23 @@ function SettingActionRow({ icon, title, subtitle, actionLabel, onAction }: {
 }
 
 export default function SecurityCard({ onChangePassword }: SecurityCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-slate-900 dark:text-white">Sécurité</h2>
+      <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('dashboard.parametres.security.title')}</h2>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <SettingActionRow
           icon={<Shield className="h-5 w-5" />}
-          title="Mot de passe"
-          subtitle="Modifiez le mot de passe de votre compte"
-          actionLabel="Modifier"
+          title={t('dashboard.parametres.security.password_title')}
+          subtitle={t('dashboard.parametres.security.password_subtitle')}
+          actionLabel={t('dashboard.parametres.security.btn_change')}
           onAction={onChangePassword}
         />
       </div>
     </div>
   );
 }
+
 

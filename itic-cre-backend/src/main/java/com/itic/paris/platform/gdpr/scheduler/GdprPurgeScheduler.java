@@ -54,9 +54,7 @@ public class GdprPurgeScheduler {
         // 3. Anonymisation des comptes étudiants inactifs depuis > 3 ans (1095 jours)
         try {
             Instant cutoffInactive = Instant.now().minus(1095, ChronoUnit.DAYS);
-            List<Student> inactiveStudents = studentRepository.findAll().stream()
-                    .filter(s -> s.isActive() && s.getLastActivity() != null && s.getLastActivity().isBefore(cutoffInactive))
-                    .toList();
+            List<Student> inactiveStudents = studentRepository.findAllByActiveTrueAndLastActivityBefore(cutoffInactive);
 
             for (Student student : inactiveStudents) {
                 gdprService.anonymizeAndDeactivateUser(student);

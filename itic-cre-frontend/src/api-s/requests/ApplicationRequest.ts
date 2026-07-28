@@ -13,6 +13,17 @@ export interface ApplicationPage {
     number: number;
 }
 
+export interface ApplicationStudent {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture: string | null;
+    promotion: { id: string; nom: string } | null;
+    accountActive: boolean;
+}
+
+
 export interface ApplicationListParams {
     page?: number;
     size?: number;
@@ -21,10 +32,33 @@ export interface ApplicationListParams {
     promotionId?: string;
     typeContratId?: string;
     stale?: boolean;
+    activeStudentsOnly?: boolean;
+}
+
+export interface StudentGroupDTO {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture: string | null;
+    promotion: { id: string; nom: string } | null;
+    applications: ApplicationRow[];
+    staleCount: number;
+}
+
+export interface ApplicationGroupedPage {
+    content: StudentGroupDTO[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
 }
 
 export function fetchApplicationList(params: ApplicationListParams = {}): Promise<ApplicationPage> {
     return apiClient.get('/dashboard/applications', { params }).then((response) => unwrap<ApplicationPage>(response));
+}
+
+export function fetchApplicationGroupedList(params: ApplicationListParams = {}): Promise<ApplicationGroupedPage> {
+    return apiClient.get('/dashboard/applications/grouped-by-student', { params }).then((response) => unwrap<ApplicationGroupedPage>(response));
 }
 
 export function fetchApplicationStatuses(): Promise<ApplicationStatus[]> {

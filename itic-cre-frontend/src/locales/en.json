@@ -900,7 +900,33 @@
         "modal_deleting": "Deleting...",
         "toast_delete_success": "Your account has been anonymized and deactivated.",
         "toast_delete_error": "Error while deleting your account."
-      }
+      },
+      "preferences": {
+        "title": "Preferences",
+        "language_title": "Language",
+        "language_subtitle": "Interface language"
+      },
+      "security": {
+        "title": "Security",
+        "password_title": "Password",
+        "password_subtitle": "Change your account password",
+        "btn_change": "Change"
+      },
+      "password_modal": {
+        "title": "Change password",
+        "label_current": "Current password",
+        "label_new": "New password",
+        "label_confirm": "Confirm new password",
+        "btn_cancel": "Cancel",
+        "btn_save": "Save",
+        "btn_saving": "Updating...",
+        "toast_fill_all": "Please fill in all fields.",
+        "toast_min_length": "The new password must be at least 8 characters long.",
+        "toast_mismatch": "Passwords do not match.",
+        "toast_success": "Your password has been updated successfully!",
+        "toast_error": "An error occurred while changing the password."
+      },
+      "logout": "Log out"
     }
   },
   "cta": {
