@@ -40,6 +40,7 @@ import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
 import TermsPage from './pages/legal/TermsPage'
 import CookieBanner from './components/common/CookieBanner'
+import PwaInstallBanner from './components/common/PwaInstallBanner'
 
 // Redirection component based on role
 function DashboardRedirect() {
@@ -127,6 +128,7 @@ function App() {
       
       <Toaster richColors position="top-right" />
       <CookieBanner />
+      <PwaInstallBanner />
     </BrowserRouter>
   )
 }

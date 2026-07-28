@@ -23,7 +23,11 @@
     "advisor": "Conseiller"
   },
   "pwa": {
-    "update_available": "Une nouvelle version de l'application est disponible !"
+    "update_available": "Une nouvelle version de l'application est disponible !",
+    "banner_title": "Installer ITIC CRE",
+    "banner_subtitle": "Accès rapide & mode hors-ligne",
+    "banner_button": "Installer",
+    "ios_title": "Installer sur iPhone / iPad"
   },
   "nav": {
     "how_it_works": "Comment ça marche ?",

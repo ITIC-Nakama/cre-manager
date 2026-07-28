@@ -23,7 +23,11 @@
     "advisor": "Advisor"
   },
   "pwa": {
-    "update_available": "A new version of the application is available!"
+    "update_available": "A new version of the application is available!",
+    "banner_title": "Install ITIC CRE",
+    "banner_subtitle": "Quick access & offline mode",
+    "banner_button": "Install",
+    "ios_title": "Install on iPhone / iPad"
   },
   "nav": {
     "how_it_works": "How it works?",
