@@ -71,7 +71,7 @@ public class DashboardController {
     }
 
     @GetMapping("/applications/grouped-by-student")
-    @Operation(summary = "Liste paginée des étudiants avec leurs candidatures — pagination 100% backend")
+    @Operation(summary = "Liste paginée des étudiants avec leurs candidatures")
     public ResponseEntity<?> applicationsGroupedByStudent(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) UUID statusId,

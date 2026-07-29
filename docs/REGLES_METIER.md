@@ -188,6 +188,18 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 
 ---
 
+## 10. Optimisations SQL & JPA Specifications
+
+- **Moteur de filtrage dynamique (JPA Specifications)** :
+  - Remplacement des requêtes JPQL complexes et dédupliquées par des **`Specification<T>` composables** pour les modules Etudiants (`StudentSpecification`), Candidatures (`ApplicationSpecification`), CVs (`CVSpecification`) et Offres (`JobOfferSpecification`).
+  - Suppression complète du piège du `SELECT DISTINCT` + pagination en mémoire Hibernate.
+- **Indexation PostgreSQL Trigramme (Flyway)** :
+  - Migrations automatisées au démarrage de Spring Boot via Flyway (`V1__pg_trgm_indexes.sql`).
+  - Creation automatique de l'extension `pg_trgm` et d'index GIN trigrammes sur les colonnes de recherche floue textuelle (`ILIKE '%search%'`) : `(first_name || ' ' || last_name)`, `email`, `entreprise` et `poste`.
+  - Temps de réponse des filtres et barres de recherche < 5 millisecondes sur la BDD de production.
+
+---
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

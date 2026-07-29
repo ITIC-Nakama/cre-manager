@@ -18,7 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
+import com.itic.paris.platform.jobboard.specification.JobOfferSpecification ;
 import java.util.UUID;
 
 @Service
@@ -56,30 +56,21 @@ public class JobOfferService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
     }
 
-    public Page<JobOfferDTO> getActiveOffers(Pageable pageable) {
-        return jobOfferRepository.findByActiveTrue(pageable)
-                .map(this::mapToDTO);
-    }
-
     public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, Pageable pageable) {
-        String q = (search != null && !search.isBlank()) ? search : "";
-        return jobOfferRepository.searchActive(q, contractTypeId, pageable)
+        return jobOfferRepository.findAll(JobOfferSpecification.activeWithFilters(search, contractTypeId), pageable)
                 .map(this::mapToDTO);
     }
 
     public Page<JobOfferDTO> searchByCompany(String company, Pageable pageable) {
-        return jobOfferRepository.findByActiveTrueAndCompanyContainingIgnoreCase(company, pageable)
-                .map(this::mapToDTO);
+        return getActiveOffers(company, null, pageable);
     }
 
     public Page<JobOfferDTO> searchByTitle(String title, Pageable pageable) {
-        return jobOfferRepository.findByActiveTrueAndTitleContainingIgnoreCase(title, pageable)
-                .map(this::mapToDTO);
+        return getActiveOffers(title, null, pageable);
     }
 
     public Page<JobOfferDTO> getByContractType(UUID contractTypeId, Pageable pageable) {
-        return jobOfferRepository.findByActiveTrueAndContractTypeId(contractTypeId, pageable)
-                .map(this::mapToDTO);
+        return getActiveOffers(null, contractTypeId, pageable);
     }
 
     public JobOfferDTO update(UUID id, CreateJobOfferRequest request) {
@@ -115,9 +106,7 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, Pageable pageable) {
-        Page<JobOffer> page = (search != null && !search.isBlank())
-                ? jobOfferRepository.search(search, pageable)
-                : jobOfferRepository.findAll(pageable);
+        Page<JobOffer> page = jobOfferRepository.findAll(JobOfferSpecification.withSearch(search), pageable);
         return page.map(this::mapToDTO);
     }
 

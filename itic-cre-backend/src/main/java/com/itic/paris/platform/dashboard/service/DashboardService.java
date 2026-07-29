@@ -19,6 +19,9 @@ import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
+import com.itic.paris.platform.auth.specification.StudentSpecification;
+import com.itic.paris.platform.crm.specification.ApplicationSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -156,7 +159,7 @@ public class DashboardService {
             long activeCount = studentRepository.countByLastActivityAfter(inactiveThreshold);
             long totalApps = applicationRepository.countByStudentPromotionId(promo.getId());
             long cvsUploaded = cvRepository.countByStudentPromotionId(promo.getId());
-            List<Map<String, Object>> gradeDistrib = buildPromotionGradeDistribution(promo.getId(), allGrades);
+            List<Map<String, Object>> gradeDistrib = buildGradeDistribution(promo.getId(), allGrades);
 
             Map<String, Object> stat = new LinkedHashMap<>();
             stat.put("promotion", Map.of(
@@ -183,16 +186,10 @@ public class DashboardService {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
-        Page<Student> studentPage = studentRepository.findWithFilters(
-                promotionId,
-                search,
-                isActive,
-                inactiveThreshold,
-                hasCv,
-                hasStale,
-                staleThreshold,
-                pageable
+        Specification<Student> spec = StudentSpecification.withStudentListFilters(
+                promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold
         );
+        Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
         List<Student> students = studentPage.getContent();
         List<UUID> studentIds = students.stream().map(Student::getId).toList();
@@ -247,16 +244,10 @@ public class DashboardService {
                                                           String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
 
-        Page<Application> page = applicationRepository.findAllWithFilters(
-                promotionId,
-                statusId,
-                typeContratId,
-                search,
-                stale,
-                staleThreshold,
-                activeStudentsOnly,
-                pageable
+        Specification<Application> spec = ApplicationSpecification.withFilters(
+                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
         );
+        Page<Application> page = applicationRepository.findAll(spec, pageable);
 
         List<Map<String, Object>> content = page.getContent().stream().map(app -> {
             Student student = app.getStudent();
@@ -305,16 +296,10 @@ public class DashboardService {
                                                                      String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
 
-        Page<Student> studentPage = applicationRepository.findDistinctStudentsWithFilters(
-                promotionId,
-                statusId,
-                typeContratId,
-                search,
-                stale,
-                staleThreshold,
-                activeStudentsOnly,
-                pageable
+        Specification<Student> spec = StudentSpecification.withApplicationFilters(
+                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
         );
+        Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
         List<Map<String, Object>> content = studentPage.getContent().stream().map(student -> {
             List<Application> studentApps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
@@ -495,6 +480,10 @@ public class DashboardService {
     }
 
     private List<Map<String, Object>> buildGradeDistribution(List<Grade> grades) {
+        return buildGradeDistribution(null, grades);
+    }
+
+    private List<Map<String, Object>> buildGradeDistribution(UUID promotionId, List<Grade> grades) {
         List<Map<String, Object>> list = new ArrayList<>();
         for (int i = 0; i < grades.size(); i++) {
             Grade g = grades.get(i);
@@ -502,9 +491,13 @@ public class DashboardService {
             if (i < grades.size() - 1) {
                 int minXp = g.getXpMinimum();
                 int maxXp = grades.get(i + 1).getXpMinimum() - 1;
-                count = studentRepository.countByXpTotalBetween(minXp, maxXp);
+                count = (promotionId == null)
+                        ? studentRepository.countByXpTotalBetween(minXp, maxXp)
+                        : studentRepository.countByPromotionIdAndXpTotalBetween(promotionId, minXp, maxXp);
             } else {
-                count = studentRepository.countByXpTotalGreaterThanEqual(g.getXpMinimum());
+                count = (promotionId == null)
+                        ? studentRepository.countByXpTotalGreaterThanEqual(g.getXpMinimum())
+                        : studentRepository.countByPromotionIdAndXpTotalGreaterThanEqual(promotionId, g.getXpMinimum());
             }
             list.add(Map.of("grade", g.getNom(), "count", count));
         }
@@ -521,21 +514,5 @@ public class DashboardService {
         m.put("grade", grade != null ? grade.getNom() : null);
         m.put("promotion", s.getPromotion() != null ? s.getPromotion().getName() : null);
         return m;
-    }
-    private List<Map<String, Object>> buildPromotionGradeDistribution(UUID promotionId, List<Grade> grades) {
-        List<Map<String, Object>> list = new ArrayList<>();
-        for (int i = 0; i < grades.size(); i++) {
-            Grade g = grades.get(i);
-            long count;
-            if (i < grades.size() - 1) {
-                int minXp = g.getXpMinimum();
-                int maxXp = grades.get(i + 1).getXpMinimum() - 1;
-                count = studentRepository.countByPromotionIdAndXpTotalBetween(promotionId, minXp, maxXp);
-            } else {
-                count = studentRepository.countByPromotionIdAndXpTotalGreaterThanEqual(promotionId, g.getXpMinimum());
-            }
-            list.add(Map.of("grade", g.getNom(), "count", count));
-        }
-        return list;
     }
 }

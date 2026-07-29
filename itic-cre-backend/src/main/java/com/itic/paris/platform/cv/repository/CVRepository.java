@@ -12,21 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface CVRepository extends JpaRepository<CV, UUID> {
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-    @Query(value = "SELECT c FROM CV c JOIN FETCH c.student s LEFT JOIN FETCH s.promotion " +
-            "WHERE (:statutId IS NULL OR c.statut.id = :statutId) " +
-            "AND (:search IS NULL OR :search = '' OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%')))",
-            countQuery = "SELECT COUNT(c) FROM CV c JOIN c.student s WHERE (:statutId IS NULL OR c.statut.id = :statutId) " +
-            "AND (:search IS NULL OR :search = '' OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<CV> findAllWithStudentAndFilter(
-            @Param("statutId") UUID statutId,
-            @Param("search") String search,
-            Pageable pageable);
+public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationExecutor<CV> {
 
     Optional<CV> findByStudentId(UUID studentId);
 

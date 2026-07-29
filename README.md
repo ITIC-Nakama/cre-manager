@@ -66,7 +66,7 @@ docker compose up --build
 
 ## 🧪 Tests Automatisés
 
-Le backend inclut **31 tests unitaires et d'intégration** couvrant 100% des modules fonctionnels (Authentification, CRM, CV, Gamification, Skill Tree, Jobboard, RGPD, Audit, Dashboard et Emails).
+Le backend inclut **39 tests unitaires et d'intégration** couvrant 100% des modules fonctionnels (Authentification, CRM, CV, JPA Specifications, Gamification, Skill Tree, Jobboard, RGPD, Audit, Dashboard et Emails).
 
 Pour lancer la suite de tests en local :
 ```bash

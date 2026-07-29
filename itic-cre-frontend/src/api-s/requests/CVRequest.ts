@@ -33,8 +33,8 @@ export function fetchCVStatuts(): Promise<CVStatut[]> {
     return apiClient.get('/cv/statuts').then((r) => unwrap<CVStatut[]>(r));
 }
 
-/** PUT /cv/statuts/{id} — mettre à jour la configuration d'un statut de CV (corps complet requis par le backend) */
-export function updateCVStatutConfig(id: string, data: Omit<CVStatut, 'id'>): Promise<CVStatut> {
+/** PUT /cv/statuts/{id} — mettre à jour la configuration d'un statut de CV */
+export function updateCVStatutConfig(id: string, data: Partial<Omit<CVStatut, 'id'>>): Promise<CVStatut> {
     return apiClient.put(`/cv/statuts/${id}`, data).then((r) => unwrap<CVStatut>(r));
 }
 

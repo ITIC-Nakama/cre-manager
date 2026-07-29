@@ -76,7 +76,7 @@ export function useDeleteCVComment() {
 export function useUpdateCVStatutConfig() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: Omit<CVStatut, 'id'> }) =>
+        mutationFn: ({ id, data }: { id: string; data: Partial<Omit<CVStatut, 'id'>> }) =>
             updateCVStatutConfig(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cv-statuts'] });

@@ -3,6 +3,7 @@ package com.itic.paris.platform.cv.service;
 import com.itic.paris.platform.audit.model.AuditAction;
 import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.cv.specification.CVSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.itic.paris.platform.auth.model.Advisor;
@@ -127,7 +128,7 @@ public class CVService {
 
     @Transactional(readOnly = true)
     public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, Pageable pageable) {
-        Page<CV> page = cvRepository.findAllWithStudentAndFilter(statutId, search, pageable);
+        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search), pageable);
         return page.map(this::buildCVResponse);
     }
 
