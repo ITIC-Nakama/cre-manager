@@ -233,8 +233,17 @@ export default function AdvisorPage() {
                         <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-sm font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
                           {advisor.firstName[0]}{advisor.lastName[0]}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-slate-900 dark:text-white">{advisor.firstName} {advisor.lastName}</span>
+                          {advisor.role?.name === 'ADMIN' ? (
+                            <span className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-purple-200 dark:border-purple-800">
+                              Admin
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-blue-200 dark:border-blue-800">
+                              Conseiller
+                            </span>
+                          )}
                           {!advisor.active && (
                             <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
                               {t('dashboard.conseillers.status.inactive')}
@@ -252,7 +261,7 @@ export default function AdvisorPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {advisor.jobTitle || <span className="text-slate-300 dark:text-slate-600">—</span>}
+                      {advisor.jobTitle || (advisor.role?.name === 'ADMIN' ? 'Administrateur' : <span className="text-slate-300 dark:text-slate-600">—</span>)}
                     </td>
                     <td className="px-6 py-4 text-right space-x-1">
                       <button

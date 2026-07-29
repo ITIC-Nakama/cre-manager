@@ -8,4 +8,10 @@ export interface Advisor {
   mustChangePassword: boolean;
   active: boolean;
   createdAt: string;
+  role?: {
+    id: number;
+    name: 'ADMIN' | 'ADVISOR' | 'STUDENT';
+    description?: string;
+  };
 }
+

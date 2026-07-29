@@ -102,4 +102,12 @@ public abstract class User {
             }
         }
     }
+
+    public String getJobTitle() {
+        if (this instanceof Advisor advisor) {
+            return advisor.getJobTitle();
+        }
+        return null;
+    }
 }
+
