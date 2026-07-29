@@ -108,7 +108,13 @@
       "tasks": {
         "title": "À faire aujourd'hui",
         "empty": "Rien à signaler, continue comme ça !"
-      }
+      },
+      "emergency_banner": {
+        "title": "Relance requise",
+        "description": "Des candidatures en attente nécessitent votre attention.",
+        "button": "Voir les candidatures"
+      },
+      "my_account": "Mon compte"
     },
     "tasks": {
       "no_cv": "Déposer votre CV",
@@ -122,7 +128,9 @@
     "pages": {
       "parametres": {
         "title": "Profil",
-        "description": "Gérez vos informations et préférences de compte."
+        "description": "Gérez vos informations et préférences de compte.",
+        "theme_toggle_light": "Passer en mode clair",
+        "theme_toggle_dark": "Passer en mode sombre"
       }
     },
     "advisor": {
@@ -141,7 +149,8 @@
         "stale_sub": "Sans mise à jour depuis +10 j.",
         "cvs_label": "CVs à examiner",
         "cvs_sub_one": "{{count}} CV déposé",
-        "cvs_sub_other": "{{count}} CVs déposés"
+        "cvs_sub_other": "{{count}} CVs déposés",
+        "cvs_sub": "En attente de validation"
       },
       "cvs_panel": {
         "title": "CVs par statut",
@@ -165,7 +174,9 @@
         "stale_badge_one": "{{count}} en retard",
         "stale_badge_other": "{{count}} en retard",
         "no_cv": "Sans CV",
-        "ok": "✓ OK"
+        "ok": "✓ OK",
+        "subtitle": "Liste des étudiants et statut de relance",
+        "stale_badge": "Relance nécessaire"
       },
       "audit": {
         "title": "Audit Logs & Activités Système",
@@ -173,6 +184,21 @@
         "entries_other": "{{count}} entrées",
         "showing_latest": "{{count}} dernières sur {{total}}",
         "empty": "Aucun log enregistré."
+      },
+      "toast_reminder_sent": "Relance envoyée avec succès !",
+      "toast_reminder_error": "Erreur lors de l'envoi de la relance.",
+      "quick_publish_offer": "Publier une offre",
+      "quick_view_apps": "Voir les candidatures",
+      "status_distribution_title": "Répartition des candidatures",
+      "status_distribution_empty": "Aucune donnée disponible",
+      "stale_card": {
+        "title": "Candidatures en retard",
+        "message": "{{count}} candidatures nécessitent une relance.",
+        "btn_view": "Consulter"
+      },
+      "all_clean_card": {
+        "title": "Tout est à jour !",
+        "message": "Aucune candidature n'est en retard de relance."
       }
     },
     "etudiants": {
@@ -206,7 +232,8 @@
         "empty": "Aucun étudiant ne correspond à vos critères.",
         "last_activity": "Dernière connexion",
         "stale_one": "{{count}} en retard",
-        "stale_other": "{{count}} en retard"
+        "stale_other": "{{count}} en retard",
+        "stale": "Relance nécessaire"
       },
       "detail": {
         "total_applications": "Total candidatures",
@@ -215,7 +242,8 @@
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants"
+        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants",
+        "info": "Affichage de {{from}} à {{to}} sur {{total}} étudiants"
       },
       "actions": {
         "view": "Consulter le dossier",
@@ -225,14 +253,17 @@
         "view_wip": "Dossier de {{name}} — en cours de développement",
         "export_success_one": "{{count}} étudiant exporté.",
         "export_success_other": "{{count}} étudiants exportés.",
-        "export_error": "Impossible d'exporter les données."
+        "export_error": "Impossible d'exporter les données.",
+        "export_success": "Export réalisé avec succès !",
+        "view_cv": "Voir CV"
       },
       "confirm_deactivate_title": "Désactiver l'étudiant",
       "confirm_deactivate": "Êtes-vous sûr de vouloir désactiver le compte de \"{{name}}\" ? Il ne pourra plus se connecter, mais son historique sera conservé. Vous pourrez le réactiver à tout moment.",
       "toast_deactivated": "Compte désactivé avec succès !",
       "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
       "toast_reactivated": "Compte réactivé avec succès !",
-      "toast_reactivate_error": "Erreur lors de la réactivation du compte."
+      "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
+      "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants."
     },
     "candidatures": {
       "title": "Candidatures",
@@ -274,7 +305,8 @@
         "notes": "Notes",
         "stale": "En retard",
         "created_at": "Créée le {{date}}",
-        "updated_at": "Mise à jour le {{date}}"
+        "updated_at": "Mise à jour le {{date}}",
+        "back": "Retour aux candidatures"
       },
       "student": {
         "title": "Mes candidatures",
@@ -295,7 +327,9 @@
           "stale_days_one": "{{count}} jour sans nouvelle",
           "stale_days_other": "{{count}} jours sans nouvelle",
           "next_step_button": "Étape suivante",
-          "next_step_xp": "+{{xp}} XP"
+          "next_step_xp": "+{{xp}} XP",
+          "stale_days": "En attente depuis {{days}}j",
+          "days_ago": "Il y a {{days}} jours"
         },
         "form": {
           "create_title": "Ajouter une candidature",
@@ -318,7 +352,8 @@
           "deleted": "Candidature supprimée.",
           "status_changed": "Statut mis à jour.",
           "status_changed_xp": "Statut mis à jour — +{{xp}} XP !",
-          "action_error": "Une erreur est survenue."
+          "action_error": "Une erreur est survenue.",
+          "status_rollback_xp": "Statut révisé (points XP réajustés)"
         },
         "detail": {
           "back": "Retour aux candidatures",
@@ -346,8 +381,11 @@
           "go_back_button": "Revenir à l'étape précédente",
           "go_forward_button": "Passer à cette étape",
           "xp_preview": "+{{xp}} XP"
-        }
-      }
+        },
+        "subtitle": "Suivez l'évolution de vos candidatures et opportunités de stage ou d'alternance."
+      },
+      "student_count": "{{count}} étudiants",
+      "pagination_info": "Page {{current}} sur {{total}}"
     },
     "offres": {
       "title": "Offres d'emploi",
@@ -382,13 +420,15 @@
         "edit": "Modifier",
         "activate": "Réactiver",
         "deactivate": "Désactiver",
-        "delete": "Supprimer"
+        "delete": "Supprimer",
+        "view_details": "Voir détails"
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} offre",
         "info_other": "Page {{current}} sur {{total}} — {{count}} offres",
         "prev": "Précédent",
-        "next": "Suivant"
+        "next": "Suivant",
+        "info": "Affichage de {{from}} à {{to}} sur {{total}} offres"
       },
       "form": {
         "create_title": "Publier une offre",
@@ -420,7 +460,8 @@
         "apply_error": "Impossible d'envoyer la candidature.",
         "withdrawn": "Candidature retirée.",
         "withdraw_error": "Impossible de retirer la candidature."
-      }
+      },
+      "subtitle": "Consultez et gérez l'ensemble des offres d'emploi et d'alternance."
     },
     "notify_modal": {
       "message_label": "Message personnalisé",
@@ -587,7 +628,16 @@
       "default_new_question": "Nouvelle Question ?",
       "default_option_1": "Option 1",
       "default_option_2": "Option 2",
-      "default_new_option": "Nouvelle Option"
+      "default_new_option": "Nouvelle Option",
+      "no_articles_short": "Aucun article",
+      "toast_title_too_long": "Le titre ne doit pas dépasser 200 caractères.",
+      "pagination": {
+        "info": "Affichage de {{from}} à {{to}} sur {{total}} articles",
+        "prev": "Précédent",
+        "next": "Suivant"
+      },
+      "toast_question_too_long": "La question est trop longue.",
+      "toast_question_option_too_long": "Une option de réponse est trop longue."
     },
     "connaissances": {
       "tree": {
@@ -604,7 +654,8 @@
         "node_completed_label": "Complété",
         "node_empty": "Bientôt disponible",
         "loading": "Chargement de l'arbre de compétences...",
-        "load_error": "Impossible de charger votre progression."
+        "load_error": "Impossible de charger votre progression.",
+        "domains_count": "{{count}} domaines"
       },
       "category": {
         "breadcrumb_root": "Connaissances",
@@ -788,7 +839,8 @@
       "toast_delete_error": "Erreur lors de la suppression du conseiller.",
       "toast_deactivated": "Le conseiller a des données associées : son compte a été désactivé plutôt que supprimé.",
       "toast_reactivated": "Conseiller réactivé avec succès !",
-      "toast_reactivate_error": "Erreur lors de la réactivation du conseiller."
+      "toast_reactivate_error": "Erreur lors de la réactivation du conseiller.",
+      "subtitle": "Gérez les comptes conseillers et leurs permissions de suivi."
     },
     "audit_page": {
       "title": "Journal d'audit",
@@ -837,7 +889,8 @@
         "info": "Page {{current}} sur {{total}} — {{count}} entrées",
         "prev": "Précédent",
         "next": "Suivant"
-      }
+      },
+      "subtitle": "Consultez l'historique des actions et évènements de sécurité sur la plateforme."
     },
     "promotions": {
       "title": "Promotions",
@@ -851,7 +904,8 @@
         "actions": "Actions",
         "student_count_one": "{{count}} étudiant",
         "student_count_other": "{{count}} étudiants",
-        "empty": "Aucune promotion pour le moment."
+        "empty": "Aucune promotion pour le moment.",
+        "student_count": "{{count}} étudiants"
       },
       "actions": {
         "edit": "Modifier",
@@ -888,7 +942,8 @@
       "currently_in": "actuellement dans {{name}}",
       "btn_add_student": "Ajouter",
       "toast_student_assigned": "Étudiant affecté à la promotion avec succès !",
-      "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant."
+      "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant.",
+      "subtitle": "Gérez les promotions, filières et effectifs étudiants d'ITIC Paris."
     },
     "parametres": {
       "profile": {
@@ -903,7 +958,18 @@
         "toast_update_error": "Erreur lors de la mise à jour du profil.",
         "toast_picture_updated": "Photo de profil mise à jour avec succès !",
         "toast_picture_error": "Erreur lors de la mise à jour de la photo de profil.",
-        "rank": "Rang #{{rank}} sur {{total}}"
+        "rank": "Rang #{{rank}} sur {{total}}",
+        "toast_otp_sent": "Un code de vérification vous a été envoyé par email.",
+        "toast_email_confirmed": "Votre adresse email a été modifiée avec succès.",
+        "toast_email_change_cancelled": "Changement d'email annulé.",
+        "pending_email_title": "Modification d'email en attente",
+        "pending_email_desc": "Veuillez saisir le code reçu sur {{email}} pour valider le changement.",
+        "btn_enter_otp": "Saisir le code",
+        "btn_cancel": "Annuler",
+        "label_email": "Adresse email",
+        "modal_otp_title": "Validation de la nouvelle adresse email",
+        "modal_otp_desc": "Entrez le code à 6 chiffres envoyé à votre nouvelle adresse.",
+        "btn_confirm_otp": "Valider le code"
       },
       "gdpr": {
         "title": "Confidentialité & Données RGPD",
@@ -954,6 +1020,45 @@
         "toast_error": "Une erreur est survenue lors de la modification du mot de passe."
       },
       "logout": "Se déconnecter"
+    },
+    "cv": {
+      "toast": {
+        "status_updated": "Statut du CV mis à jour !",
+        "comment_added": "Commentaire ajouté au CV !",
+        "comment_deleted": "Commentaire supprimé !",
+        "error": "Erreur lors du traitement du CV."
+      },
+      "detail": {
+        "cv_title": "Détail du CV",
+        "status_label": "Statut actuel",
+        "updating": "Mise à jour...",
+        "change_status": "Changer le statut",
+        "dates_label": "Historique des dates",
+        "promotion": "Promotion",
+        "uploaded_at": "Déposé le",
+        "updated_at": "Dernière mise à jour le",
+        "view_pdf": "Consulter le document PDF",
+        "comments_label": "Commentaires du conseiller",
+        "no_comments": "Aucun commentaire pour le moment.",
+        "delete_comment": "Supprimer ce commentaire",
+        "add_comment": "Ajouter un commentaire",
+        "comment_placeholder": "Rédiger un conseil ou une demande de correction...",
+        "send_comment": "Envoyer le commentaire"
+      },
+      "filter_all_statuts": "Tous les statuts",
+      "table": {
+        "student": "Étudiant",
+        "promotion": "Promotion",
+        "status": "Statut",
+        "uploaded_at": "Déposé le",
+        "updated_at": "Dernière mise à jour",
+        "empty": "Aucun CV trouvé."
+      },
+      "title": "Validation des CVs",
+      "search_placeholder": "Rechercher un étudiant ou un CV...",
+      "actions": {
+        "review": "Examiner"
+      }
     }
   },
   "cta": {
@@ -1029,7 +1134,8 @@
       "terms_required": "Vous devez accepter les conditions d'utilisation.",
       "privacy_label": "J'accepte la",
       "privacy_link": "Politique de confidentialité",
-      "privacy_required": "Vous devez accepter la politique de confidentialité."
+      "privacy_required": "Vous devez accepter la politique de confidentialité.",
+      "email_exists": "Cette adresse email est déjà utilisée."
     },
     "reset_password": {
       "title": "Mot de passe oublié ?",
@@ -1071,6 +1177,12 @@
       "submit_button": "Valider le code",
       "submitting_button": "Validation...",
       "back_to_login": "Retour à la page de connexion"
+    },
+    "otp": {
+      "invalid": "Code de vérification invalide ou expiré.",
+      "resent": "Nouveau code envoyé par email.",
+      "resend_failed": "Échec de l'envoi du code. Veuillez réessayer.",
+      "resend_btn": "Renvoyer le code"
     }
   },
   "legal": {
@@ -1135,60 +1247,60 @@
     }
   },
   "studentCv": {
-      "title": "Mon CV Professionnel",
-      "subtitle": "Gérez votre CV et suivez sa validation par votre conseiller.",
-      "timeline": {
-        "step0": "Dépôt du CV",
-        "step0Desc": "Fichier téléversé",
-        "step1": "Relecture conseiller",
-        "step1Desc": "En attente de revue",
-        "step2": "Statut attribué",
-        "step2Desc": "Décision conseiller",
-        "step3": "XP gagnés",
-        "step3Desc": "Bonus débloqué"
-      },
-      "dropzone": {
-        "dragDrop": "Glissez-déposez votre CV ici, ou",
-        "browse": "parcourez vos fichiers",
-        "pdfOnly": "Format PDF uniquement · 10 Mo maximum",
-        "uploading": "Envoi en cours...",
-        "doNotClose": "Ne fermez pas cette page.",
-        "errorPdf": "Format non supporté. Veuillez déposer un fichier PDF uniquement.",
-        "errorSize": "Le fichier est trop volumineux ({{size}} Mo). La taille maximale autorisée est de 10 Mo."
-      },
-      "sheet": {
-        "uploadedAt": "Déposé le {{date}}",
-        "updatedAt": "Mis à jour le {{date}}",
-        "xpAwarded": "+{{xp}} XP gagnés",
-        "xpToAward": "+{{xp}} XP à la validation",
-        "viewBtn": "Voir mon CV",
-        "replaceBtn": "Remplacer mon CV",
-        "cancelReplaceBtn": "Annuler le remplacement",
-        "fallbackName": "Mon CV.pdf"
-      },
-      "comments": {
-        "title": "Retours du conseiller",
-        "empty": "Aucun commentaire pour le moment.",
-        "emptyDesc": "Votre conseiller vous informera de ses retours ici.",
-        "fallbackAdvisor": "Conseiller"
-      },
-      "replaceModal": {
-        "title": "Remplacer votre CV ?",
-        "body": "Vous vous apprêtez à téléverser le fichier",
-        "warning": "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.",
-        "cancel": "Annuler",
-        "confirm": "Remplacer le CV"
-      },
-      "toast": {
-        "sent": "CV envoyé au conseiller.",
-        "replaced": "CV remplacé — statut réinitialisé.",
-        "errorSend": "Une erreur est survenue lors de l'envoi.",
-        "errorReplace": "Une erreur est survenue lors du remplacement."
-      },
-      "error": {
-        "title": "Impossible de charger votre CV",
-        "desc": "Une erreur réseau est survenue. Veuillez réessayer.",
-        "retry": "Réessayer"
-      }
+    "title": "Mon CV Professionnel",
+    "subtitle": "Gérez votre CV et suivez sa validation par votre conseiller.",
+    "timeline": {
+      "step0": "Dépôt du CV",
+      "step0Desc": "Fichier téléversé",
+      "step1": "Relecture conseiller",
+      "step1Desc": "En attente de revue",
+      "step2": "Statut attribué",
+      "step2Desc": "Décision conseiller",
+      "step3": "XP gagnés",
+      "step3Desc": "Bonus débloqué"
+    },
+    "dropzone": {
+      "dragDrop": "Glissez-déposez votre CV ici, ou",
+      "browse": "parcourez vos fichiers",
+      "pdfOnly": "Format PDF uniquement · 10 Mo maximum",
+      "uploading": "Envoi en cours...",
+      "doNotClose": "Ne fermez pas cette page.",
+      "errorPdf": "Format non supporté. Veuillez déposer un fichier PDF uniquement.",
+      "errorSize": "Le fichier est trop volumineux ({{size}} Mo). La taille maximale autorisée est de 10 Mo."
+    },
+    "sheet": {
+      "uploadedAt": "Déposé le {{date}}",
+      "updatedAt": "Mis à jour le {{date}}",
+      "xpAwarded": "+{{xp}} XP gagnés",
+      "xpToAward": "+{{xp}} XP à la validation",
+      "viewBtn": "Voir mon CV",
+      "replaceBtn": "Remplacer mon CV",
+      "cancelReplaceBtn": "Annuler le remplacement",
+      "fallbackName": "Mon CV.pdf"
+    },
+    "comments": {
+      "title": "Retours du conseiller",
+      "empty": "Aucun commentaire pour le moment.",
+      "emptyDesc": "Votre conseiller vous informera de ses retours ici.",
+      "fallbackAdvisor": "Conseiller"
+    },
+    "replaceModal": {
+      "title": "Remplacer votre CV ?",
+      "body": "Vous vous apprêtez à téléverser le fichier",
+      "warning": "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.",
+      "cancel": "Annuler",
+      "confirm": "Remplacer le CV"
+    },
+    "toast": {
+      "sent": "CV envoyé au conseiller.",
+      "replaced": "CV remplacé — statut réinitialisé.",
+      "errorSend": "Une erreur est survenue lors de l'envoi.",
+      "errorReplace": "Une erreur est survenue lors du remplacement."
+    },
+    "error": {
+      "title": "Impossible de charger votre CV",
+      "desc": "Une erreur réseau est survenue. Veuillez réessayer.",
+      "retry": "Réessayer"
     }
+  }
 }

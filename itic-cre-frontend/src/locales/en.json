@@ -108,7 +108,13 @@
       "tasks": {
         "title": "To do today",
         "empty": "Nothing to report, keep it up!"
-      }
+      },
+      "emergency_banner": {
+        "title": "Follow-up required",
+        "description": "Pending applications require your attention.",
+        "button": "View applications"
+      },
+      "my_account": "My account"
     },
     "tasks": {
       "no_cv": "Upload your CV",
@@ -122,7 +128,9 @@
     "pages": {
       "parametres": {
         "title": "Profile",
-        "description": "Manage your profile information and account preferences."
+        "description": "Manage your profile information and account preferences.",
+        "theme_toggle_light": "Switch to light mode",
+        "theme_toggle_dark": "Switch to dark mode"
       }
     },
     "advisor": {
@@ -141,7 +149,8 @@
         "stale_sub": "No update for +10 days.",
         "cvs_label": "CVs to review",
         "cvs_sub_one": "{{count}} CV uploaded",
-        "cvs_sub_other": "{{count}} CVs uploaded"
+        "cvs_sub_other": "{{count}} CVs uploaded",
+        "cvs_sub": "Pending review"
       },
       "cvs_panel": {
         "title": "CVs by status",
@@ -165,7 +174,9 @@
         "stale_badge_one": "{{count}} late",
         "stale_badge_other": "{{count}} late",
         "no_cv": "No CV",
-        "ok": "✓ OK"
+        "ok": "✓ OK",
+        "subtitle": "Students list and follow-up status",
+        "stale_badge": "Follow-up required"
       },
       "audit": {
         "title": "Audit Logs & System Activity",
@@ -173,6 +184,21 @@
         "entries_other": "{{count}} entries",
         "showing_latest": "Latest {{count}} of {{total}}",
         "empty": "No logs recorded."
+      },
+      "toast_reminder_sent": "Reminder sent successfully!",
+      "toast_reminder_error": "Error sending reminder.",
+      "quick_publish_offer": "Publish job offer",
+      "quick_view_apps": "View applications",
+      "status_distribution_title": "Application status distribution",
+      "status_distribution_empty": "No data available",
+      "stale_card": {
+        "title": "Stale applications",
+        "message": "{{count}} applications need follow-up.",
+        "btn_view": "View"
+      },
+      "all_clean_card": {
+        "title": "Everything up to date!",
+        "message": "No applications need follow-up."
       }
     },
     "etudiants": {
@@ -206,7 +232,8 @@
         "empty": "No students match your criteria.",
         "last_activity": "Last active",
         "stale_one": "{{count}} late",
-        "stale_other": "{{count}} late"
+        "stale_other": "{{count}} late",
+        "stale": "Follow-up required"
       },
       "detail": {
         "total_applications": "Total applications",
@@ -215,7 +242,8 @@
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} student",
-        "info_other": "Page {{current}} of {{total}} — {{count}} students"
+        "info_other": "Page {{current}} of {{total}} — {{count}} students",
+        "info": "Showing {{from}} to {{to}} of {{total}} students"
       },
       "actions": {
         "view": "View profile",
@@ -225,14 +253,17 @@
         "view_wip": "Profile of {{name}} — under development",
         "export_success_one": "{{count}} student exported.",
         "export_success_other": "{{count}} students exported.",
-        "export_error": "Unable to export data."
+        "export_error": "Unable to export data.",
+        "export_success": "Export completed successfully!",
+        "view_cv": "View CV"
       },
       "confirm_deactivate_title": "Deactivate student",
       "confirm_deactivate": "Are you sure you want to deactivate \"{{name}}\"'s account? They will no longer be able to log in, but their history will be kept. You can reactivate them at any time.",
       "toast_deactivated": "Account deactivated successfully!",
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
-      "toast_reactivate_error": "Error reactivating account."
+      "toast_reactivate_error": "Error reactivating account.",
+      "subtitle": "Manage and track student progress."
     },
     "candidatures": {
       "title": "Applications",
@@ -274,7 +305,8 @@
         "notes": "Notes",
         "stale": "Late",
         "created_at": "Created on {{date}}",
-        "updated_at": "Updated on {{date}}"
+        "updated_at": "Updated on {{date}}",
+        "back": "Back to applications"
       },
       "student": {
         "title": "My applications",
@@ -295,7 +327,9 @@
           "stale_days_one": "{{count}} day with no update",
           "stale_days_other": "{{count}} days with no update",
           "next_step_button": "Next step",
-          "next_step_xp": "+{{xp}} XP"
+          "next_step_xp": "+{{xp}} XP",
+          "stale_days": "Pending for {{days}}d",
+          "days_ago": "{{days}} days ago"
         },
         "form": {
           "create_title": "Add an application",
@@ -318,7 +352,8 @@
           "deleted": "Application deleted.",
           "status_changed": "Status updated.",
           "status_changed_xp": "Status updated — +{{xp}} XP!",
-          "action_error": "An error occurred."
+          "action_error": "An error occurred.",
+          "status_rollback_xp": "Status revised (XP adjusted)"
         },
         "detail": {
           "back": "Back to applications",
@@ -346,8 +381,11 @@
           "go_back_button": "Go back to previous step",
           "go_forward_button": "Move to this step",
           "xp_preview": "+{{xp}} XP"
-        }
-      }
+        },
+        "subtitle": "Track your applications and job opportunities."
+      },
+      "student_count": "{{count}} students",
+      "pagination_info": "Page {{current}} of {{total}}"
     },
     "offres": {
       "title": "Job offers",
@@ -382,13 +420,15 @@
         "edit": "Edit",
         "activate": "Reactivate",
         "deactivate": "Deactivate",
-        "delete": "Delete"
+        "delete": "Delete",
+        "view_details": "View details"
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} offer",
         "info_other": "Page {{current}} of {{total}} — {{count}} offers",
         "prev": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "info": "Showing {{from}} to {{to}} of {{total}} offers"
       },
       "form": {
         "create_title": "Publish an offer",
@@ -420,7 +460,8 @@
         "apply_error": "Unable to send the application.",
         "withdrawn": "Application withdrawn.",
         "withdraw_error": "Unable to withdraw the application."
-      }
+      },
+      "subtitle": "View and manage job offers."
     },
     "notify_modal": {
       "message_label": "Custom message",
@@ -587,7 +628,16 @@
       "default_new_question": "New Question?",
       "default_option_1": "Option 1",
       "default_option_2": "Option 2",
-      "default_new_option": "New Option"
+      "default_new_option": "New Option",
+      "no_articles_short": "No articles",
+      "toast_title_too_long": "Title must not exceed 200 characters.",
+      "pagination": {
+        "info": "Showing {{from}} to {{to}} of {{total}} articles",
+        "prev": "Previous",
+        "next": "Next"
+      },
+      "toast_question_too_long": "Question is too long.",
+      "toast_question_option_too_long": "An answer option is too long."
     },
     "connaissances": {
       "tree": {
@@ -604,7 +654,8 @@
         "node_completed_label": "Completed",
         "node_empty": "Coming soon",
         "loading": "Loading the skill tree...",
-        "load_error": "Unable to load your progress."
+        "load_error": "Unable to load your progress.",
+        "domains_count": "{{count}} domains"
       },
       "category": {
         "breadcrumb_root": "Knowledge",
@@ -788,7 +839,8 @@
       "toast_delete_error": "Error deleting advisor.",
       "toast_deactivated": "This advisor has associated data: their account was deactivated instead of deleted.",
       "toast_reactivated": "Advisor reactivated successfully!",
-      "toast_reactivate_error": "Error reactivating advisor."
+      "toast_reactivate_error": "Error reactivating advisor.",
+      "subtitle": "Manage advisor accounts and permissions."
     },
     "audit_page": {
       "title": "Audit Log",
@@ -837,7 +889,8 @@
         "info": "Page {{current}} of {{total}} — {{count}} entries",
         "prev": "Previous",
         "next": "Next"
-      }
+      },
+      "subtitle": "View security and action audit logs."
     },
     "promotions": {
       "title": "Promotions",
@@ -851,7 +904,8 @@
         "actions": "Actions",
         "student_count_one": "{{count}} student",
         "student_count_other": "{{count}} students",
-        "empty": "No promotion yet."
+        "empty": "No promotion yet.",
+        "student_count": "{{count}} students"
       },
       "actions": {
         "edit": "Edit",
@@ -888,7 +942,8 @@
       "currently_in": "currently in {{name}}",
       "btn_add_student": "Add",
       "toast_student_assigned": "Student assigned to promotion successfully!",
-      "toast_student_assign_error": "Error assigning student."
+      "toast_student_assign_error": "Error assigning student.",
+      "subtitle": "Manage promotions and student classes."
     },
     "parametres": {
       "profile": {
@@ -903,7 +958,18 @@
         "toast_update_error": "Error updating profile.",
         "toast_picture_updated": "Profile picture updated successfully!",
         "toast_picture_error": "Error updating profile picture.",
-        "rank": "Rank #{{rank}} of {{total}}"
+        "rank": "Rank #{{rank}} of {{total}}",
+        "toast_otp_sent": "A verification code has been sent to your email.",
+        "toast_email_confirmed": "Your email address has been successfully updated.",
+        "toast_email_change_cancelled": "Email change cancelled.",
+        "pending_email_title": "Pending email change",
+        "pending_email_desc": "Please enter the code sent to {{email}} to confirm.",
+        "btn_enter_otp": "Enter code",
+        "btn_cancel": "Cancel",
+        "label_email": "Email address",
+        "modal_otp_title": "Verify new email address",
+        "modal_otp_desc": "Enter the 6-digit code sent to your new address.",
+        "btn_confirm_otp": "Verify code"
       },
       "gdpr": {
         "title": "Privacy & GDPR Data",
@@ -954,6 +1020,45 @@
         "toast_error": "An error occurred while changing the password."
       },
       "logout": "Log out"
+    },
+    "cv": {
+      "toast": {
+        "status_updated": "CV status updated!",
+        "comment_added": "Comment added to CV!",
+        "comment_deleted": "Comment deleted!",
+        "error": "Error processing CV."
+      },
+      "detail": {
+        "cv_title": "CV Details",
+        "status_label": "Current status",
+        "updating": "Updating...",
+        "change_status": "Change status",
+        "dates_label": "Date history",
+        "promotion": "Class",
+        "uploaded_at": "Uploaded on",
+        "updated_at": "Last updated on",
+        "view_pdf": "View PDF document",
+        "comments_label": "Advisor comments",
+        "no_comments": "No comments yet.",
+        "delete_comment": "Delete comment",
+        "add_comment": "Add a comment",
+        "comment_placeholder": "Write advice or correction request...",
+        "send_comment": "Send comment"
+      },
+      "filter_all_statuts": "All statuses",
+      "table": {
+        "student": "Student",
+        "promotion": "Class",
+        "status": "Status",
+        "uploaded_at": "Uploaded on",
+        "updated_at": "Last updated",
+        "empty": "No CV found."
+      },
+      "title": "CV Validation",
+      "search_placeholder": "Search student or CV...",
+      "actions": {
+        "review": "Review"
+      }
     }
   },
   "cta": {
@@ -1029,7 +1134,8 @@
       "terms_required": "You must accept the terms of service.",
       "privacy_label": "I accept the",
       "privacy_link": "Privacy Policy",
-      "privacy_required": "You must accept the privacy policy."
+      "privacy_required": "You must accept the privacy policy.",
+      "email_exists": "This email address is already in use."
     },
     "reset_password": {
       "title": "Forgot password?",
@@ -1071,6 +1177,12 @@
       "submit_button": "Validate code",
       "submitting_button": "Validating...",
       "back_to_login": "Back to login page"
+    },
+    "otp": {
+      "invalid": "Invalid or expired verification code.",
+      "resent": "New code sent to your email.",
+      "resend_failed": "Failed to resend code. Please try again.",
+      "resend_btn": "Resend code"
     }
   },
   "legal": {
@@ -1135,60 +1247,60 @@
     }
   },
   "studentCv": {
-      "title": "My Professional CV",
-      "subtitle": "Manage your CV and track its validation by your advisor.",
-      "timeline": {
-        "step0": "CV Upload",
-        "step0Desc": "File uploaded",
-        "step1": "Advisor Review",
-        "step1Desc": "Awaiting review",
-        "step2": "Status Assigned",
-        "step2Desc": "Advisor decision",
-        "step3": "XP Earned",
-        "step3Desc": "Bonus unlocked"
-      },
-      "dropzone": {
-        "dragDrop": "Drag & drop your CV here, or",
-        "browse": "browse your files",
-        "pdfOnly": "PDF format only · 10 MB maximum",
-        "uploading": "Uploading...",
-        "doNotClose": "Do not close this page.",
-        "errorPdf": "Unsupported format. Please upload a PDF file only.",
-        "errorSize": "The file is too large ({{size}} MB). The maximum allowed size is 10 MB."
-      },
-      "sheet": {
-        "uploadedAt": "Uploaded on {{date}}",
-        "updatedAt": "Updated on {{date}}",
-        "xpAwarded": "+{{xp}} XP earned",
-        "xpToAward": "+{{xp}} XP upon validation",
-        "viewBtn": "View my CV",
-        "replaceBtn": "Replace my CV",
-        "cancelReplaceBtn": "Cancel replacement",
-        "fallbackName": "My CV.pdf"
-      },
-      "comments": {
-        "title": "Advisor feedback",
-        "empty": "No comments yet.",
-        "emptyDesc": "Your advisor will post comments here.",
-        "fallbackAdvisor": "Advisor"
-      },
-      "replaceModal": {
-        "title": "Replace your CV?",
-        "body": "You are about to upload the file",
-        "warning": "This action will replace your current CV, reset your CV validation status, and make the eligible XP rewards available again for this cycle. Your previous comments will be kept for your information.",
-        "cancel": "Cancel",
-        "confirm": "Replace CV"
-      },
-      "toast": {
-        "sent": "CV sent to advisor.",
-        "replaced": "CV replaced — status reset.",
-        "errorSend": "An error occurred during submission.",
-        "errorReplace": "An error occurred during replacement."
-      },
-      "error": {
-        "title": "Unable to load your CV",
-        "desc": "A network error occurred. Please try again.",
-        "retry": "Retry"
-      }
+    "title": "My Professional CV",
+    "subtitle": "Manage your CV and track its validation by your advisor.",
+    "timeline": {
+      "step0": "CV Upload",
+      "step0Desc": "File uploaded",
+      "step1": "Advisor Review",
+      "step1Desc": "Awaiting review",
+      "step2": "Status Assigned",
+      "step2Desc": "Advisor decision",
+      "step3": "XP Earned",
+      "step3Desc": "Bonus unlocked"
+    },
+    "dropzone": {
+      "dragDrop": "Drag & drop your CV here, or",
+      "browse": "browse your files",
+      "pdfOnly": "PDF format only · 10 MB maximum",
+      "uploading": "Uploading...",
+      "doNotClose": "Do not close this page.",
+      "errorPdf": "Unsupported format. Please upload a PDF file only.",
+      "errorSize": "The file is too large ({{size}} MB). The maximum allowed size is 10 MB."
+    },
+    "sheet": {
+      "uploadedAt": "Uploaded on {{date}}",
+      "updatedAt": "Updated on {{date}}",
+      "xpAwarded": "+{{xp}} XP earned",
+      "xpToAward": "+{{xp}} XP upon validation",
+      "viewBtn": "View my CV",
+      "replaceBtn": "Replace my CV",
+      "cancelReplaceBtn": "Cancel replacement",
+      "fallbackName": "My CV.pdf"
+    },
+    "comments": {
+      "title": "Advisor feedback",
+      "empty": "No comments yet.",
+      "emptyDesc": "Your advisor will post comments here.",
+      "fallbackAdvisor": "Advisor"
+    },
+    "replaceModal": {
+      "title": "Replace your CV?",
+      "body": "You are about to upload the file",
+      "warning": "This action will replace your current CV, reset your CV validation status, and make the eligible XP rewards available again for this cycle. Your previous comments will be kept for your information.",
+      "cancel": "Cancel",
+      "confirm": "Replace CV"
+    },
+    "toast": {
+      "sent": "CV sent to advisor.",
+      "replaced": "CV replaced — status reset.",
+      "errorSend": "An error occurred during submission.",
+      "errorReplace": "An error occurred during replacement."
+    },
+    "error": {
+      "title": "Unable to load your CV",
+      "desc": "A network error occurred. Please try again.",
+      "retry": "Retry"
     }
+  }
 }
