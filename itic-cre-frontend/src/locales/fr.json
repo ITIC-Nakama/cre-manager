@@ -241,6 +241,7 @@
       "search_placeholder": "Rechercher (étudiant, entreprise, poste)…",
       "filter_all_statuses": "Tous les statuts",
       "filter_all_promotions": "Toutes les promotions",
+      "filter_all_contracts": "Tous les types de contrat",
       "promotion_search_placeholder": "Rechercher une promotion…",
       "promotion_no_results": "Aucune promotion trouvée",
       "filter_stale_only": "En retard uniquement",
