@@ -20,7 +20,7 @@
   "roles": {
     "student": "Student",
     "admin": "Admin",
-    "advisor": "Advisor"
+    "advisor": "Corporate Relations Officer"
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
@@ -70,7 +70,7 @@
       "cv_validation": "CV Validation",
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
-      "conseillers": "Advisors",
+      "conseillers": "Corporate Relations",
       "promotions": "Cohorts",
       "audit": "Audit Log",
       "configuration": "Configuration",
@@ -782,65 +782,94 @@
       "toast_grade_delete_error": "Error deleting grade."
     },
     "conseillers": {
-      "title": "Advisors",
-      "subtitle_one": "{{count}} advisor total",
-      "subtitle_other": "{{count}} advisors total",
-      "create_button": "Create an advisor",
-      "search_placeholder": "Search (name, email)…",
+      "title": "Corporate Relations & Staff Team",
+      "subtitle_one": "{{count}} staff member in total",
+      "subtitle_other": "{{count}} staff members in total",
+      "create_button": "Create Staff Member",
+      "search_placeholder": "Search (first name, last name, email)…",
+      "tabs": {
+        "advisors": "Advisors",
+        "admins": "Administrators"
+      },
+      "governance_banner": "Governance: The system limits to 2 active administrators simultaneously. Physical deletion of admin accounts is disabled to ensure system auditability.",
+      "empty_admins": "No administrators found.",
+      "badges": {
+        "admin": "Admin",
+        "advisor": "Corporate Relations"
+      },
       "table": {
         "name": "Name",
         "contact": "Contact",
-        "job_title": "Job title",
+        "job_title": "Position",
         "actions": "Actions",
-        "empty": "No advisor matches your criteria."
+        "empty": "No staff members match your search criteria."
       },
       "pagination": {
-        "info": "Page {{current}} of {{total}} — {{count}} advisors",
+        "info": "Page {{current}} of {{total}} — {{count}} staff members",
         "prev": "Previous",
         "next": "Next"
       },
       "actions": {
         "edit": "Edit",
+        "deactivate": "Deactivate",
         "delete": "Delete",
         "reactivate": "Reactivate",
-        "reset_password": "Reset password"
+        "reset_password": "Reset Password"
       },
       "status": {
         "inactive": "Inactive"
       },
-      "modal_create": "Create an advisor",
-      "modal_edit": "Edit advisor",
-      "modal_reset_password": "Reset password",
+      "create_admin_button": "Create Administrator",
+      "create_advisor_button": "Create Advisor",
+      "modal_create": "Create Staff Member",
+      "modal_create_admin": "Create Administrator",
+      "modal_create_advisor": "Create Advisor",
+      "modal_edit": "Edit Staff Member",
+      "modal_reset_password": "Reset Password",
       "reset_password_desc": "Generates a new temporary password for {{name}}. They will need to change it on their next login.",
       "btn_reset_password": "Reset",
       "toast_password_reset": "Password reset successfully!",
       "toast_password_reset_error": "Error resetting password.",
-      "label_first_name": "First name",
-      "label_last_name": "Last name",
+      "label_first_name": "First Name",
+      "label_last_name": "Last Name",
       "label_email": "Email",
-      "label_password": "Temporary password",
+      "label_password": "Temporary Password",
       "placeholder_password": "Min. 8 characters",
-      "password_hint": "Auto-generated password — copy it to share with the advisor. They will need to change it on first login.",
+      "password_hint": "Automatically generated password — copy it to share with the user. They will need to change it on first login.",
       "btn_copy": "Copy",
-      "toast_copy_error": "Couldn't copy automatically — select the text and copy it manually (Ctrl+C).",
+      "toast_copy_error": "Unable to copy automatically — select the text and copy manually (Ctrl+C).",
       "btn_regenerate": "Regenerate",
       "label_phone": "Phone",
-      "label_job_title": "Job title",
-      "placeholder_job_title": "E.g. Academic advisor",
+      "label_job_title": "Position",
+      "placeholder_job_title": "Ex: Corporate Relations Officer",
       "btn_cancel": "Cancel",
       "btn_save": "Save",
-      "toast_created": "Advisor created successfully!",
-      "toast_updated": "Advisor updated successfully!",
-      "toast_save_error": "Error saving advisor.",
+      "toast_created": "Staff member created successfully!",
+      "toast_admin_created": "Administrator created successfully!",
+      "toast_advisor_created": "Advisor created successfully!",
+      "toast_updated": "Staff member updated successfully!",
+      "toast_save_error": "Error saving staff member.",
       "toast_email_exists": "This email is already in use.",
-      "confirm_delete_title": "Delete advisor",
-      "confirm_delete": "Are you sure you want to delete the advisor \"{{name}}\"? If they have no associated data (CV comments, created content), they will be permanently deleted. Otherwise, their account will simply be deactivated (login blocked, history kept, reactivatable at any time).",
-      "toast_deleted": "Advisor deleted successfully!",
-      "toast_delete_error": "Error deleting advisor.",
-      "toast_deactivated": "This advisor has associated data: their account was deactivated instead of deleted.",
-      "toast_reactivated": "Advisor reactivated successfully!",
-      "toast_reactivate_error": "Error reactivating advisor.",
-      "subtitle": "Manage advisor accounts and permissions."
+      "confirm_deactivate_admin_title": "Deactivate this administrator",
+      "confirm_deactivate_admin_message": "Do you want to deactivate {{name}}'s account? Access will be immediately blocked.",
+      "confirm_deactivate_user_message": "Do you want to deactivate {{name}}'s account?",
+      "confirm_delete_title": "Delete staff member",
+      "confirm_delete": "Are you sure you want to delete staff member \"{{name}}\"? If they have no associated data, they will be permanently deleted. Otherwise, their account will be deactivated.",
+      "toast_deleted": "Staff member deleted successfully!",
+      "toast_delete_error": "Error deleting staff member.",
+      "toast_deactivated": "The staff member has associated data: their account was deactivated instead of deleted.",
+      "toast_deactivated_success": "Account successfully deactivated.",
+      "toast_reactivated": "Account successfully reactivated!",
+      "toast_reactivate_error": "Error reactivating account.",
+      "errors": {
+        "admin_cap_reached": "The limit of 2 active administrators has been reached.",
+        "cannot_self_deactivate": "You cannot deactivate your own account.",
+        "last_admin_protection": "Cannot deactivate the last active administrator.",
+        "admin_cannot_be_deleted": "An administrator account cannot be physically deleted.",
+        "admin_password_reset_forbidden": "Resetting another administrator's password is forbidden.",
+        "generic": "An error occurred."
+      },
+      "subtitle": "Manage staff accounts (Corporate Relations Officers & Administrators)."
     },
     "audit_page": {
       "title": "Audit Log",

@@ -125,7 +125,23 @@ public enum MessageKey {
     TASK_NO_APPLICATION("task-no-application", "Ajouter votre première candidature", "Add your first application"),
     TASK_STALE_PREFIX("task-stale-prefix", "Relancer ", "Follow up with "),
     TASK_NO_CV("task-no-cv", "Déposer votre CV", "Upload your CV"),
-    TASK_CV_TO_CORRECT("task-cv-to-correct", "Corriger votre CV", "Correct your CV");
+    TASK_CV_TO_CORRECT("task-cv-to-correct", "Corriger votre CV", "Correct your CV"),
+    // Admin governance messages
+    ADMIN_CAP_REACHED("admin-cap-reached",
+            "Le plafond de 2 administrateurs actifs est atteint. Désactivez un administrateur existant avant d'en créer un nouveau.",
+            "The maximum of 2 active administrators has been reached. Deactivate an existing administrator before creating a new one."),
+    CANNOT_SELF_DEACTIVATE("cannot-self-deactivate",
+            "Vous ne pouvez pas désactiver ou supprimer votre propre compte.",
+            "You cannot deactivate or delete your own account."),
+    LAST_ADMIN_PROTECTION("last-admin-protection",
+            "Impossible de désactiver le dernier administrateur actif du système.",
+            "Cannot deactivate the last active administrator of the system."),
+    ADMIN_CANNOT_BE_DELETED("admin-cannot-be-deleted",
+            "Un compte administrateur ne peut pas être supprimé physiquement pour garantir l'auditabilité du système.",
+            "An administrator account cannot be physically deleted to ensure system auditability."),
+    ADMIN_PASSWORD_RESET_FORBIDDEN("admin-password-reset-forbidden",
+            "La réinitialisation ou modification du mot de passe d'un administrateur par un tiers est interdite.",
+            "Resetting or modifying another administrator's password is forbidden.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

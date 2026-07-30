@@ -186,3 +186,22 @@ Les grades (seedés par défaut : Débutant, Intermédiaire, Avancé, Expert) so
 ## Promotions
 
 Les promotions sont créées par un administrateur et sélectionnées par l'étudiant à l'inscription (`promotionId` dans `UserRegisterDto`). Elles servent de filtre dans le Dashboard Advisor (stats par promotion).
+
+---
+
+## Gouvernance Multi-Admin & RBAC (Sécurité & RGPD)
+
+- **Plafond d'administrateurs actifs** : Configurable via `ADMIN_MAX_ACTIVE=2` (bloque la création ou réactivation d'un 3ème admin actif).
+- **Protections d'intégrité & Auditability** :
+  - Auto-désactivation interdite pour les comptes administrateurs (`CANNOT_SELF_DEACTIVATE`).
+  - Protection du dernier administrateur actif (`LAST_ADMIN_PROTECTION` si `activeAdmins <= 1`).
+  - Suppression physique des comptes administrateurs interdite (`ADMIN_CANNOT_BE_DELETED`).
+  - Réinitialisation ou modification du mot de passe d'un administrateur par un tiers interdite (`ADMIN_PASSWORD_RESET_FORBIDDEN`).
+- **Permissions de désactivation / réactivation** :
+  - **Administrateurs (`ADMIN`)** : peuvent désactiver et réactiver le staff (conseillers, admins) et les étudiants.
+  - **Conseillers (`ADVISOR`)** : peuvent désactiver et réactiver **uniquement** des comptes étudiants (`STUDENT`).
+- **Conformité RGPD automatisée** : `GdprPurgeScheduler` exécute chaque nuit à minuit :
+  - Purge des codes OTP de vérification de plus de 24h (`GDPR_OTP_RETENTION_HOURS`).
+  - Anonymisation irréversible des étudiants désactivés depuis plus de 3 ans (`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`).
+  - Purge des journaux d'audit de plus de 365 jours (`GDPR_AUDIT_LOG_RETENTION_DAYS`).
+

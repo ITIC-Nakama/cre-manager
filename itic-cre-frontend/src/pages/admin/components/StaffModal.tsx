@@ -6,16 +6,17 @@ import type { Advisor } from '../../../types/models/Advisor';
 import { generatePassword } from '../../../utils/passwordGenerator';
 import { copyToClipboard } from '../../../utils/clipboard';
 
-interface AdvisorModalProps {
+interface StaffModalProps {
   isOpen: boolean;
   mode: 'create' | 'edit';
   advisor?: Advisor;
+  targetRole?: 'ADVISOR' | 'ADMIN';
   saving: boolean;
   onClose: () => void;
   onSave: (data: { email: string; firstName: string; lastName: string; password: string; phoneNumber: string; jobTitle: string }) => void;
 }
 
-export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, onSave }: AdvisorModalProps) {
+export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISOR', saving, onClose, onSave }: StaffModalProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -68,13 +69,20 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
     onSave({ email, firstName, lastName, password, phoneNumber, jobTitle });
   };
 
+  const getTitle = () => {
+    if (mode === 'edit') return t('dashboard.conseillers.modal_edit');
+    return targetRole === 'ADMIN'
+      ? t('dashboard.conseillers.modal_create_admin')
+      : t('dashboard.conseillers.modal_create_advisor');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-lg w-full">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            {mode === 'create' ? t('dashboard.conseillers.modal_create') : t('dashboard.conseillers.modal_edit')}
+            {getTitle()}
           </h3>
           <button
             onClick={onClose}
@@ -93,11 +101,10 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
               <input
                 type="text"
                 required
-                maxLength={50}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                disabled={saving}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                placeholder="John"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -105,11 +112,10 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
               <input
                 type="text"
                 required
-                maxLength={50}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                disabled={saving}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                placeholder="Doe"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -119,43 +125,46 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
             <input
               type="email"
               required
+              disabled={mode === 'edit'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={saving || mode === 'edit'}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="john.doe@iticparis.com"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
 
           {mode === 'create' && (
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_password')}</label>
-              <div className="flex items-center gap-2">
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                  {t('dashboard.conseillers.label_password')} <span className="text-rose-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRegeneratePassword}
+                  className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline cursor-pointer"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  {t('dashboard.conseillers.generate_password')}
+                </button>
+              </div>
+              <div className="relative">
                 <input
                   type="text"
-                  readOnly
+                  required
                   value={password}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm font-mono tracking-wide dark:text-white disabled:opacity-60"
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full font-mono tracking-wider pr-10 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <button
                   type="button"
                   onClick={handleCopyPassword}
-                  disabled={saving}
-                  title={t('dashboard.conseillers.btn_copy')}
-                  className="flex-shrink-0 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                  title={t('dashboard.conseillers.copy_password')}
                 >
                   {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleRegeneratePassword}
-                  disabled={saving}
-                  title={t('dashboard.conseillers.btn_regenerate')}
-                  className="flex-shrink-0 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </button>
               </div>
-              <p className="text-xs text-slate-400 mt-1">{t('dashboard.conseillers.password_hint')}</p>
             </div>
           )}
 
@@ -166,42 +175,38 @@ export default function AdvisorModal({ isOpen, mode, advisor, saving, onClose, o
                 type="text"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+33612345678"
-                disabled={saving}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                placeholder="+33 6 12 34 56 78"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.conseillers.label_job_title')}</label>
               <input
                 type="text"
-                maxLength={120}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
-                placeholder={t('dashboard.conseillers.placeholder_job_title')}
-                disabled={saving}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                placeholder={targetRole === 'ADMIN' ? 'Directeur Pédagogique' : 'Responsable Relations Entreprises'}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex justify-end gap-3 mt-2 pt-6 border-t border-slate-100 dark:border-slate-800/60">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('dashboard.conseillers.btn_cancel')}
+              {t('dashboard.conseillers.button_cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t('dashboard.conseillers.btn_save')}
+              {mode === 'create' ? t('dashboard.conseillers.button_create') : t('dashboard.conseillers.button_save')}
             </button>
           </div>
         </form>

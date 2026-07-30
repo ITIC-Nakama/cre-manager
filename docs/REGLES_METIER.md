@@ -26,17 +26,20 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Créés avec un **mot de passe temporaire** et `mustChangePassword = true`.
 - Tant que `mustChangePassword = true`, **tous les endpoints sont bloqués (403 `password-change-required`) sauf** `POST /auth/change-password` et `POST /auth/logout`.
 - Pas d'OTP pour ces comptes (`emailVerified = true` directement).
-- Un email contenant le mot de passe temporaire est envoyé automatiquement (**asynchrone**, `@Async`) à la création du compte, et de nouveau si un admin lui réinitialise son mot de passe.
-- Réinitialiser le mot de passe d'un **conseiller/admin** via `PUT /auth/users/{id}` repasse `mustChangePassword = true` — **pas pour un étudiant** (ce flag est réservé au staff).
+- Un email contenant le mot de passe temporaire est envoyé automatiquement (**asynchrone**, `@Async`) à la création du compte.
+- **Réinitialisation / modification de mot de passe par un tiers interdite pour les comptes `ADMIN`** (`ADMIN_PASSWORD_RESET_FORBIDDEN`, HTTP 403) — un admin ne peut pas réinitialiser le mot de passe d'un autre admin via l'interface ou l'API.
 
-### Gestion des conseillers
-- CRUD conseiller (création, modification, suppression) réservé à **`ADMIN` uniquement** — un `ADVISOR` ne peut pas gérer d'autres conseillers.
-- `jobTitle` est **optionnel**.
-
-### Désactivation et suppression de compte
-- Chaque utilisateur a un flag `active` (booléen, `true` par défaut). `DELETE /auth/users/{id}` et `PATCH /auth/users/{id}/reactivate` sont réservés à `ADMIN`.
+### Gouvernance Multi-Admin & Désactivation RBAC
+- **Plafond d'administrateurs actifs** : Limité à 2 admins actifs simultanément (`ADMIN_MAX_ACTIVE=2`). Tout ajout ou réactivation d'un 3ème admin est bloqué avec `ADMIN_CAP_REACHED`.
+- **Règles de désactivation par rôle** :
+  - **`ADMIN`** : Peut désactiver des comptes étudiants, conseillers et administrateurs.
+  - **`ADVISOR`** : Peut désactiver **uniquement** des comptes étudiants (`STUDENT`). Toute tentative de désactiver un conseiller ou admin renvoie **403 Access Denied**.
+- **Protections d'intégrité** :
+  - **Auto-désactivation interdite** pour les comptes administrateurs (`CANNOT_SELF_DEACTIVATE`).
+  - **Dernier administrateur actif protégé** : Impossible de désactiver le dernier admin si `activeAdmins <= 1` (`LAST_ADMIN_PROTECTION`).
+  - **Suppression physique interdite** pour les administrateurs (`ADMIN_CANNOT_BE_DELETED`).
 - **Suppression d'un conseiller** : si des données lui sont rattachées (commentaires CV, offres d'emploi créées, articles créés, catégories de compétences créées), le compte est **désactivé** (`active = false`) au lieu d'être supprimé. La suppression définitive n'a lieu que si **aucune donnée associée** n'existe.
-- **Coupure de session** : pas de liste de révocation de token — le flag `active` est vérifié **à chaque requête authentifiée** (dans le chargement de l'utilisateur par le filtre JWT) ; un compte désactivé perd l'accès dès sa prochaine requête, sans attendre l'expiration du token.
+- **Coupure de session** : le flag `active` est vérifié **à chaque requête authentifiée** dans le filtre JWT ; un compte désactivé perd l'accès dès sa prochaine requête.
 
 ### Autorisation sur la mise à jour de profil
 - `PUT /auth/users/{id}` (modifier le profil d'un **autre** utilisateur) est réservé à `ADMIN` (faille IDOR corrigée).

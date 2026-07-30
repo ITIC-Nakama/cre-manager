@@ -20,7 +20,7 @@
   "roles": {
     "student": "Étudiant",
     "admin": "Administrateur",
-    "advisor": "Conseiller"
+    "advisor": "Chargé de Relations Entreprises"
   },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
@@ -70,7 +70,7 @@
       "cv_validation": "Validation CV",
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
-      "conseillers": "Conseillers",
+      "conseillers": "Relations Entreprises",
       "promotions": "Promotions",
       "audit": "Journal d'audit",
       "configuration": "Configuration",
@@ -782,25 +782,36 @@
       "toast_grade_delete_error": "Erreur lors de la suppression du grade."
     },
     "conseillers": {
-      "title": "Conseillers",
-      "subtitle_one": "{{count}} conseiller au total",
-      "subtitle_other": "{{count}} conseillers au total",
-      "create_button": "Créer un conseiller",
+      "title": "Équipe Relations Entreprises & Staff",
+      "subtitle_one": "{{count}} membre du personnel au total",
+      "subtitle_other": "{{count}} membres du personnel au total",
+      "create_button": "Créer un membre",
       "search_placeholder": "Rechercher (nom, prénom, email)…",
+      "tabs": {
+        "advisors": "Conseillers",
+        "admins": "Administrateurs"
+      },
+      "governance_banner": "Gouvernance : Le système limite à 2 administrateurs actifs simultanément. La suppression physique d'un compte admin est désactivée pour garantir l'auditabilité du système.",
+      "empty_admins": "Aucun administrateur trouvé.",
+      "badges": {
+        "admin": "Admin",
+        "advisor": "Relations Entreprises"
+      },
       "table": {
         "name": "Nom",
         "contact": "Contact",
         "job_title": "Fonction",
         "actions": "Actions",
-        "empty": "Aucun conseiller ne correspond à vos critères."
+        "empty": "Aucun membre ne correspond à vos critères."
       },
       "pagination": {
-        "info": "Page {{current}} sur {{total}} — {{count}} conseillers",
+        "info": "Page {{current}} sur {{total}} — {{count}} membres",
         "prev": "Précédent",
         "next": "Suivant"
       },
       "actions": {
         "edit": "Modifier",
+        "deactivate": "Désactiver",
         "delete": "Supprimer",
         "reactivate": "Réactiver",
         "reset_password": "Réinitialiser le mot de passe"
@@ -808,8 +819,12 @@
       "status": {
         "inactive": "Inactif"
       },
-      "modal_create": "Créer un conseiller",
-      "modal_edit": "Modifier le conseiller",
+      "create_admin_button": "Créer un administrateur",
+      "create_advisor_button": "Créer un conseiller",
+      "modal_create": "Créer un membre du personnel",
+      "modal_create_admin": "Créer un administrateur",
+      "modal_create_advisor": "Créer un conseiller",
+      "modal_edit": "Modifier le membre du personnel",
       "modal_reset_password": "Réinitialiser le mot de passe",
       "reset_password_desc": "Génère un nouveau mot de passe temporaire pour {{name}}. Il devra le changer à sa prochaine connexion.",
       "btn_reset_password": "Réinitialiser",
@@ -820,27 +835,41 @@
       "label_email": "Email",
       "label_password": "Mot de passe temporaire",
       "placeholder_password": "Min. 8 caractères",
-      "password_hint": "Mot de passe généré automatiquement — copiez-le pour le transmettre au conseiller. Il devra le changer à sa première connexion.",
+      "password_hint": "Mot de passe généré automatiquement — copiez-le pour le transmettre. Il devra le changer à sa première connexion.",
       "btn_copy": "Copier",
       "toast_copy_error": "Impossible de copier automatiquement — sélectionnez le texte et copiez-le manuellement (Ctrl+C).",
       "btn_regenerate": "Régénérer",
       "label_phone": "Téléphone",
       "label_job_title": "Fonction",
-      "placeholder_job_title": "Ex : Conseiller pédagogique",
+      "placeholder_job_title": "Ex : Chargé de Relations Entreprises",
       "btn_cancel": "Annuler",
       "btn_save": "Enregistrer",
-      "toast_created": "Conseiller créé avec succès !",
-      "toast_updated": "Conseiller mis à jour avec succès !",
-      "toast_save_error": "Erreur lors de l'enregistrement du conseiller.",
+      "toast_created": "Membre créé avec succès !",
+      "toast_admin_created": "Administrateur créé avec succès !",
+      "toast_advisor_created": "Conseiller créé avec succès !",
+      "toast_updated": "Membre mis à jour avec succès !",
+      "toast_save_error": "Erreur lors de l'enregistrement du membre.",
       "toast_email_exists": "Cet email est déjà utilisé.",
-      "confirm_delete_title": "Supprimer le conseiller",
-      "confirm_delete": "Êtes-vous sûr de vouloir supprimer le conseiller \"{{name}}\" ? S'il n'a aucune donnée associée (commentaires CV, contenus créés), il sera supprimé définitivement. Sinon, son compte sera simplement désactivé (connexion bloquée, historique conservé, réactivable à tout moment).",
-      "toast_deleted": "Conseiller supprimé avec succès !",
-      "toast_delete_error": "Erreur lors de la suppression du conseiller.",
-      "toast_deactivated": "Le conseiller a des données associées : son compte a été désactivé plutôt que supprimé.",
-      "toast_reactivated": "Conseiller réactivé avec succès !",
-      "toast_reactivate_error": "Erreur lors de la réactivation du conseiller.",
-      "subtitle": "Gérez les comptes conseillers et leurs permissions de suivi."
+      "confirm_deactivate_admin_title": "Désactiver cet administrateur",
+      "confirm_deactivate_admin_message": "Voulez-vous désactiver le compte de {{name}} ? L'accès sera immédiatement bloqué.",
+      "confirm_deactivate_user_message": "Voulez-vous désactiver le compte de {{name}} ?",
+      "confirm_delete_title": "Supprimer le membre",
+      "confirm_delete": "Êtes-vous sûr de vouloir supprimer le membre \"{{name}}\" ? S'il n'a aucune donnée associée (commentaires CV, contenus créés), il sera supprimé définitivement. Sinon, son compte sera simplement désactivé (connexion bloquée, historique conservé, réactivable à tout moment).",
+      "toast_deleted": "Membre supprimé avec succès !",
+      "toast_delete_error": "Erreur lors de la suppression du membre.",
+      "toast_deactivated": "Le membre a des données associées : son compte a été désactivé plutôt que supprimé.",
+      "toast_deactivated_success": "Compte désactivé avec succès.",
+      "toast_reactivated": "Compte réactivé avec succès !",
+      "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
+      "errors": {
+        "admin_cap_reached": "Le plafond de 2 administrateurs actifs est atteint.",
+        "cannot_self_deactivate": "Vous ne pouvez pas désactiver votre propre compte.",
+        "last_admin_protection": "Impossible de désactiver le dernier administrateur actif.",
+        "admin_cannot_be_deleted": "Un administrateur ne peut pas être supprimé physiquement.",
+        "admin_password_reset_forbidden": "La réinitialisation du mot de passe d'un administrateur par un tiers est interdite.",
+        "generic": "Une erreur est survenue."
+      },
+      "subtitle": "Gérez les comptes du personnel (Chargés de Relations Entreprises & Administrateurs)."
     },
     "audit_page": {
       "title": "Journal d'audit",

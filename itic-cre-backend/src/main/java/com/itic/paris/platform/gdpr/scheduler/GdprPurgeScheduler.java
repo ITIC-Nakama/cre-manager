@@ -2,11 +2,13 @@ package com.itic.paris.platform.gdpr.scheduler;
 
 import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.OtpRepository;
-import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.gdpr.service.GdprService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -21,49 +23,62 @@ public class GdprPurgeScheduler {
 
     private final OtpRepository otpRepository;
     private final AuditLogRepository auditLogRepository;
-    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
     private final GdprService gdprService;
 
+    @Value("${app.gdpr.otp-retention-hours:24}")
+    private long otpRetentionHours;
+
+    @Value("${app.gdpr.audit-log-retention-days:365}")
+    private long auditLogRetentionDays;
+
+    @Value("${app.gdpr.inactive-student-retention-days:1095}")
+    private long inactiveStudentRetentionDays;
+
     /**
-     * Tâche plannifiée exécutée tous les jours à 03:00 du matin.
-     * Efface les OTP expiré > 24h, les logs d'audit > 1 ans,
-     * et anonymise les comptes inactifs depuis > 3 ans.
+     * Tâche planifiée exécutée tous les jours à 03:00 du matin.
+     * Efface les OTP expirés, les logs d'audit anciens,
+     * et anonymise les comptes étudiants désactivés depuis plus de la durée légale configurée.
      */
     @Scheduled(cron = "0 0 3 * * ?")
     public void executeDailyGdprPurge() {
         log.info("[RGPD SCHEDULER] Démarrage du nettoyage automatisé des données...");
 
-        // 1. Purge des OTPs expirés depuis plus de 24h
+        // 1. Purge des OTPs expirés
         try {
-            Instant cutoffOtp = Instant.now().minus(24, ChronoUnit.HOURS);
+            Instant cutoffOtp = Instant.now().minus(otpRetentionHours, ChronoUnit.HOURS);
             long deletedOtps = otpRepository.deleteByExpiresAtBefore(cutoffOtp);
-            log.info("[RGPD SCHEDULER] OTPs supprimés (> 24h): {}", deletedOtps);
+            log.info("[RGPD SCHEDULER] OTPs supprimés (> {}h): {}", otpRetentionHours, deletedOtps);
         } catch (Exception e) {
             log.error("[RGPD SCHEDULER] Erreur lors de la purge des OTPs: ", e);
         }
 
-        // 2. Purge des AuditLogs datant de plus d'1 an (365 jours)
+        // 2. Purge des AuditLogs
         try {
-            Instant cutoffAudit = Instant.now().minus(365, ChronoUnit.DAYS);
+            Instant cutoffAudit = Instant.now().minus(auditLogRetentionDays, ChronoUnit.DAYS);
             long deletedLogs = auditLogRepository.deleteByCreatedAtBefore(cutoffAudit);
-            log.info("[RGPD SCHEDULER] Logs d'audit supprimés (> 1 an): {}", deletedLogs);
+            log.info("[RGPD SCHEDULER] Logs d'audit supprimés (> {} jours): {}", auditLogRetentionDays, deletedLogs);
         } catch (Exception e) {
             log.error("[RGPD SCHEDULER] Erreur lors de la purge des logs d'audit: ", e);
         }
 
-        // 3. Anonymisation des comptes étudiants inactifs depuis > 3 ans (1095 jours)
+        // 3. Anonymisation des étudiants désactivés depuis plus de la durée légale
+        //    Le décompte part de deactivatedAt (date de désactivation effective), pas de lastActivity.
         try {
-            Instant cutoffInactive = Instant.now().minus(1095, ChronoUnit.DAYS);
-            List<Student> inactiveStudents = studentRepository.findAllByActiveTrueAndLastActivityBefore(cutoffInactive);
+            Instant cutoffInactive = Instant.now().minus(inactiveStudentRetentionDays, ChronoUnit.DAYS);
+            List<User> studentsToAnonymize = userRepository.findDeactivatedStudentsForAnonymization(cutoffInactive);
 
-            for (Student student : inactiveStudents) {
+            for (User student : studentsToAnonymize) {
                 gdprService.anonymizeAndDeactivateUser(student);
             }
-            log.info("[RGPD SCHEDULER] Étudiants inactifs anonymisés (> 3 ans): {}", inactiveStudents.size());
+            log.info("[RGPD SCHEDULER] Étudiants anonymisés (désactivés depuis > {} jours): {}",
+                    inactiveStudentRetentionDays, studentsToAnonymize.size());
         } catch (Exception e) {
-            log.error("[RGPD SCHEDULER] Erreur lors de l'anonymisation des étudiants inactifs: ", e);
+            log.error("[RGPD SCHEDULER] Erreur lors de l'anonymisation des étudiants: ", e);
         }
 
         log.info("[RGPD SCHEDULER] Nettoyage automatisé terminé.");
     }
 }
+
+

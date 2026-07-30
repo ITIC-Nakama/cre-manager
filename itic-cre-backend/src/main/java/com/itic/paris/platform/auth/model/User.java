@@ -60,6 +60,10 @@ public abstract class User {
     @Column(nullable = false, columnDefinition = "boolean not null default true")
     private boolean active = true;
 
+    /** Date de désactivation — utilisée par le scheduler RGPD pour calculer la durée légale. */
+    @Column(name = "deactivated_at")
+    private Instant deactivatedAt;
+
     @Column(name = "privacy_accepted", nullable = false)
     private boolean privacyAccepted = false;
 

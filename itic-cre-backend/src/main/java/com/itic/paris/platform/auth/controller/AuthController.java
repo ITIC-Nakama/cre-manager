@@ -150,9 +150,16 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("profilePictureUrl", profilePictureUrl));
     }
 
+    @PatchMapping("/users/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADVISOR')")
+    @Operation(summary = "Désactiver un compte (soft delete) — admins (staff & étudiants) / conseillers (étudiants uniquement)")
+    public ResponseEntity<?> deactivateUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(userProfileService.deactivateUser(id));
+    }
+
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer un compte — desactive a la place s'il a des donnees associees")
+    @Operation(summary = "Supprimer un compte — désactive à la place si données liées, interdit pour les admins")
     public ResponseEntity<?> deleteOrDeactivateUser(@PathVariable UUID id) {
         var result = userProfileService.deleteOrDeactivateUser(id);
         Map<String, Object> response = new HashMap<>();
@@ -162,8 +169,8 @@ public class AuthController {
     }
 
     @PatchMapping("/users/{id}/reactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Réactiver un compte désactivé")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADVISOR')")
+    @Operation(summary = "Réactiver un compte désactivé — admins (staff & étudiants) / conseillers (étudiants uniquement)")
     public ResponseEntity<?> reactivateUser(@PathVariable UUID id) {
         return ResponseEntity.ok(userProfileService.reactivateUser(id));
     }

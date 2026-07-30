@@ -1,15 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Loader2, UserCog, Pencil, Trash2, UserCheck, Mail, Phone, KeyRound } from 'lucide-react';
+import { Plus, Search, Loader2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useAdvisors, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor, useReactivateAdvisor } from '../../hooks/useAdvisors';
+import {
+  useAdvisors, useAdmins, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor,
+  useDeactivateUser, useReactivateAdvisor,
+} from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import AdvisorModal from './components/AdvisorModal';
+import StaffModal from './components/StaffModal';
 import ResetPasswordModal from './components/ResetPasswordModal';
+import AdvisorTabs, { type Tab } from './components/AdvisorTabs';
+import AdvisorTable from './components/AdvisorTable';
 
 const PAGE_SIZE = 20;
 
@@ -17,28 +22,54 @@ export default function AdvisorPage() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [page, setPage] = useState(0);
+
+  const [activeTab, setActiveTab] = useState<Tab>('advisors');
+  const [advisorPage, setAdvisorPage] = useState(0);
+  const [adminPage, setAdminPage] = useState(0);
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data, isLoading, isFetching } = useAdvisors({ page, size: PAGE_SIZE, search: debouncedSearch || undefined });
-  const advisors = data?.content ?? [];
-  const totalElements = data?.totalElements ?? 0;
-  const totalPages = data?.totalPages ?? 1;
+  // 1. Requête distincte pour les Conseillers
+  const advisorQuery = useAdvisors({
+    page: advisorPage,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  });
+
+  // 2. Requête distincte pour les Administrateurs
+  const adminQuery = useAdmins({
+    page: adminPage,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  });
+
+  const isAdminsTab = activeTab === 'admins';
+  const activeQuery = isAdminsTab ? adminQuery : advisorQuery;
+  const page = isAdminsTab ? adminPage : advisorPage;
+  const setPage = isAdminsTab ? setAdminPage : setAdvisorPage;
+
+  const currentList = activeQuery.data?.content ?? [];
+  const totalElements = activeQuery.data?.totalElements ?? 0;
+  const totalPages = activeQuery.data?.totalPages ?? 1;
+  const isLoading = activeQuery.isLoading;
+  const isFetching = activeQuery.isFetching;
+
+  const advisorTotalCount = advisorQuery.data?.totalElements ?? 0;
+  const adminTotalCount = adminQuery.data?.totalElements ?? 0;
 
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
   const deleteMutation = useDeleteAdvisor();
+  const deactivateMutation = useDeactivateUser();
   const reactivateMutation = useReactivateAdvisor();
 
   const [modal, setModal] = useState<{ isOpen: boolean; mode: 'create' | 'edit'; advisor?: Advisor }>({
-    isOpen: false,
-    mode: 'create',
+    isOpen: false, mode: 'create',
   });
   const [saving, setSaving] = useState(false);
 
-  // Ouvre directement la creation si on arrive depuis le bouton du tableau de bord
   useEffect(() => {
     if ((location.state as { openCreate?: boolean } | null)?.openCreate) {
       setModal({ isOpen: true, mode: 'create' });
@@ -53,17 +84,33 @@ export default function AdvisorPage() {
   const [resettingPassword, setResettingPassword] = useState(false);
 
   const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
+    isOpen: boolean; title: string; message: string; confirmLabel?: string; danger?: boolean;
     onConfirm: () => Promise<void>;
   }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
-    setConfirmDialog({ isOpen: true, title, message, onConfirm });
+  const getRoleErrorMessage = (err: unknown): string => {
+    const e = err as { response?: { data?: { messageKey?: string } } };
+    const key = e?.response?.data?.messageKey;
+    const map: Record<string, string> = {
+      'admin-cap-reached': t('dashboard.conseillers.errors.admin_cap_reached'),
+      'cannot-self-deactivate': t('dashboard.conseillers.errors.cannot_self_deactivate'),
+      'last-admin-protection': t('dashboard.conseillers.errors.last_admin_protection'),
+      'admin-cannot-be-deleted': t('dashboard.conseillers.errors.admin_cannot_be_deleted'),
+      'admin-password-reset-forbidden': t('dashboard.conseillers.errors.admin_password_reset_forbidden'),
+    };
+    return key && map[key] ? map[key] : t('dashboard.conseillers.errors.generic');
   };
+
+  const openConfirm = (
+    title: string,
+    message: string,
+    onConfirm: () => Promise<void>,
+    opts?: { confirmLabel?: string; danger?: boolean }
+  ) => setConfirmDialog({ isOpen: true, title, message, onConfirm, ...opts });
+
   const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+
   const handleConfirm = async () => {
     setConfirmLoading(true);
     try {
@@ -76,30 +123,32 @@ export default function AdvisorPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(0);
+    setAdvisorPage(0);
+    setAdminPage(0);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
   };
 
-  const handleSave = async (data: { email: string; firstName: string; lastName: string; password: string; phoneNumber: string; jobTitle: string }) => {
+  const handleSave = async (data: {
+    email: string; firstName: string; lastName: string;
+    password: string; phoneNumber: string; jobTitle: string;
+  }) => {
     setSaving(true);
     try {
       if (modal.mode === 'create') {
         await createMutation.mutateAsync({
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
+          email: data.email, firstName: data.firstName, lastName: data.lastName,
           password: data.password,
+          role: isAdminsTab ? 'ADMIN' : 'ADVISOR',
           phoneNumber: data.phoneNumber || undefined,
           jobTitle: data.jobTitle || undefined,
         });
-        toast.success(t('dashboard.conseillers.toast_created'));
+        toast.success(isAdminsTab ? t('dashboard.conseillers.toast_admin_created') : t('dashboard.conseillers.toast_advisor_created'));
       } else if (modal.mode === 'edit' && modal.advisor) {
         await updateMutation.mutateAsync({
           id: modal.advisor.id,
           data: {
-            firstName: data.firstName,
-            lastName: data.lastName,
+            firstName: data.firstName, lastName: data.lastName,
             phoneNumber: data.phoneNumber || undefined,
             jobTitle: data.jobTitle || undefined,
           },
@@ -107,10 +156,12 @@ export default function AdvisorPage() {
         toast.success(t('dashboard.conseillers.toast_updated'));
       }
       setModal({ isOpen: false, mode: 'create' });
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.messageKey === 'email-already-in-use') {
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { messageKey?: string } } };
+      if (e?.response?.data?.messageKey === 'email-already-in-use') {
         toast.error(t('dashboard.conseillers.toast_email_exists'));
+      } else if (e?.response?.data?.messageKey === 'admin-cap-reached') {
+        toast.error(t('dashboard.conseillers.errors.admin_cap_reached'));
       } else {
         toast.error(t('dashboard.conseillers.toast_save_error'));
       }
@@ -126,14 +177,39 @@ export default function AdvisorPage() {
       await updateMutation.mutateAsync({ id: resetPasswordModal.advisor.id, data: { password } });
       toast.success(t('dashboard.conseillers.toast_password_reset'));
       setResetPasswordModal({ isOpen: false });
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error(t('dashboard.conseillers.toast_password_reset_error'));
     } finally {
       setResettingPassword(false);
     }
   };
 
+  /** DÉSACTIVER (soft) — pour conseillers ET admins */
+  const handleDeactivate = (user: Advisor) => {
+    const isAdmin = user.role?.name === 'ADMIN';
+    const title = isAdmin
+      ? t('dashboard.conseillers.confirm_deactivate_admin_title')
+      : t('dashboard.conseillers.confirm_delete_title');
+    const message = isAdmin
+      ? t('dashboard.conseillers.confirm_deactivate_admin_message', { name: `${user.firstName} ${user.lastName}` })
+      : t('dashboard.conseillers.confirm_deactivate_user_message', { name: `${user.firstName} ${user.lastName}` });
+
+    openConfirm(
+      title,
+      message,
+      async () => {
+        try {
+          await deactivateMutation.mutateAsync(user.id);
+          toast.success(t('dashboard.conseillers.toast_deactivated_success'));
+        } catch (err) {
+          toast.error(getRoleErrorMessage(err));
+        }
+      },
+      { confirmLabel: t('dashboard.conseillers.actions.deactivate'), danger: true }
+    );
+  };
+
+  /** SUPPRIMER (hard/fallback) — conseillers uniquement */
   const handleDelete = (advisor: Advisor) => {
     openConfirm(
       t('dashboard.conseillers.confirm_delete_title'),
@@ -145,34 +221,32 @@ export default function AdvisorPage() {
             ? t('dashboard.conseillers.toast_deleted')
             : t('dashboard.conseillers.toast_deactivated'));
         } catch (err) {
-          console.error(err);
-          toast.error(t('dashboard.conseillers.toast_delete_error'));
+          toast.error(getRoleErrorMessage(err));
         }
-      }
+      },
+      { confirmLabel: t('dashboard.conseillers.actions.delete'), danger: true }
     );
   };
 
-  const handleReactivate = async (advisor: Advisor) => {
+  const handleReactivate = async (user: Advisor) => {
     try {
-      await reactivateMutation.mutateAsync(advisor.id);
+      await reactivateMutation.mutateAsync(user.id);
       toast.success(t('dashboard.conseillers.toast_reactivated'));
     } catch (err) {
-      console.error(err);
-      toast.error(t('dashboard.conseillers.toast_reactivate_error'));
+      toast.error(getRoleErrorMessage(err));
     }
   };
 
   return (
-    <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
-
-      {/* Header */}
+    <div className="flex flex-col gap-6 animate-fadeIn text-slate-800 dark:text-slate-100">
+      {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {t('dashboard.conseillers.title')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            {t('dashboard.conseillers.subtitle', { count: totalElements })}
+            {t('dashboard.conseillers.subtitle_other', { count: totalElements })}
           </p>
         </div>
         <button
@@ -180,11 +254,29 @@ export default function AdvisorPage() {
           className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          {t('dashboard.conseillers.create_button')}
+          {isAdminsTab
+            ? t('dashboard.conseillers.create_admin_button')
+            : t('dashboard.conseillers.create_advisor_button')}
         </button>
       </div>
 
-      {/* Search */}
+      {/* ── Tabs Admin / Conseiller ── */}
+      <AdvisorTabs
+        activeTab={activeTab}
+        advisorTotalCount={advisorTotalCount}
+        adminTotalCount={adminTotalCount}
+        onSwitchTab={setActiveTab}
+      />
+
+      {/* ── Info banner for admins tab ── */}
+      {isAdminsTab && (
+        <div className="flex items-start gap-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 px-4 py-3 text-sm text-purple-800 dark:text-purple-300">
+          <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>{t('dashboard.conseillers.governance_banner')}</span>
+        </div>
+      )}
+
+      {/* ── Search ── */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48 max-w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -199,140 +291,28 @@ export default function AdvisorPage() {
         {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <th className="px-6 py-4">{t('dashboard.conseillers.table.name')}</th>
-                <th className="px-6 py-4">{t('dashboard.conseillers.table.contact')}</th>
-                <th className="px-6 py-4">{t('dashboard.conseillers.table.job_title')}</th>
-                <th className="px-6 py-4 text-right">{t('dashboard.conseillers.table.actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="text-center py-16">
-                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin mx-auto" />
-                  </td>
-                </tr>
-              ) : advisors.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="text-center py-16 text-slate-400">
-                    <UserCog className="h-8 w-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    {t('dashboard.conseillers.table.empty')}
-                  </td>
-                </tr>
-              ) : (
-                advisors.map((advisor) => (
-                  <tr key={advisor.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${!advisor.active ? 'opacity-60' : ''}`}>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center text-sm font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
-                          {advisor.firstName[0]}{advisor.lastName[0]}
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-slate-900 dark:text-white">{advisor.firstName} {advisor.lastName}</span>
-                          {advisor.role?.name === 'ADMIN' ? (
-                            <span className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-purple-200 dark:border-purple-800">
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-blue-200 dark:border-blue-800">
-                              Conseiller
-                            </span>
-                          )}
-                          {!advisor.active && (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5">
-                              {t('dashboard.conseillers.status.inactive')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{advisor.email}</span>
-                        {advisor.phoneNumber && (
-                          <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{advisor.phoneNumber}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {advisor.jobTitle || (advisor.role?.name === 'ADMIN' ? 'Administrateur' : <span className="text-slate-300 dark:text-slate-600">—</span>)}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-1">
-                      <button
-                        onClick={() => setModal({ isOpen: true, mode: 'edit', advisor })}
-                        className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                        title={t('dashboard.conseillers.actions.edit')}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setResetPasswordModal({ isOpen: true, advisor })}
-                        className="inline-flex p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all cursor-pointer"
-                        title={t('dashboard.conseillers.actions.reset_password')}
-                      >
-                        <KeyRound className="h-4 w-4" />
-                      </button>
-                      {advisor.active ? (
-                        <button
-                          onClick={() => handleDelete(advisor)}
-                          className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
-                          title={t('dashboard.conseillers.actions.delete')}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleReactivate(advisor)}
-                          className="inline-flex p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
-                          title={t('dashboard.conseillers.actions.reactivate')}
-                        >
-                          <UserCheck className="h-4 w-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* ── Table ── */}
+      <AdvisorTable
+        currentList={currentList}
+        isLoading={isLoading}
+        isAdminsTab={isAdminsTab}
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
+        onEdit={(advisor) => setModal({ isOpen: true, mode: 'edit', advisor })}
+        onResetPassword={(advisor) => setResetPasswordModal({ isOpen: true, advisor })}
+        onDeactivate={handleDeactivate}
+        onDelete={handleDelete}
+        onReactivate={handleReactivate}
+      />
 
-        {/* Pagination */}
-        {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-            <span className="text-slate-500 dark:text-slate-400">
-              {t('dashboard.conseillers.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
-              >
-                {t('dashboard.conseillers.pagination.prev')}
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
-              >
-                {t('dashboard.conseillers.pagination.next')}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <AdvisorModal
+      {/* ── Modals ── */}
+      <StaffModal
         isOpen={modal.isOpen}
         mode={modal.mode}
         advisor={modal.advisor}
+        targetRole={isAdminsTab ? 'ADMIN' : 'ADVISOR'}
         saving={saving}
         onClose={() => setModal({ isOpen: false, mode: 'create' })}
         onSave={handleSave}
@@ -350,7 +330,7 @@ export default function AdvisorPage() {
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        confirmLabel={t('dashboard.conseillers.actions.delete')}
+        confirmLabel={confirmDialog.confirmLabel ?? t('dashboard.conseillers.actions.delete')}
         loading={confirmLoading}
         onConfirm={handleConfirm}
         onClose={closeConfirm}

@@ -8,6 +8,7 @@ import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,6 +60,10 @@ public class UserProfileService {
 
     @Value("${app.upload.max-image-size-mb:5}")
     private long maxImageSizeMb;
+
+    /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
+    @Value("${app.admin.max-active:2}")
+    private long adminMaxActive;
 
     @Transactional
     public User updateUser(UUID id, UserUpdateDto updateDto) {
@@ -90,6 +96,12 @@ public class UserProfileService {
         }
         String plainPassword = null;
         if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
+            if (UserMapper.roleOf(user) == RoleEnum.ADMIN) {
+                UUID currentUserId = SecurityContextHelper.currentUserId();
+                if (!user.getId().equals(currentUserId)) {
+                    throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_PASSWORD_RESET_FORBIDDEN);
+                }
+            }
             plainPassword = updateDto.getPassword();
             user.setPassword(passwordEncoder.encode(plainPassword));
             if (!(user instanceof Student)) {
@@ -162,14 +174,64 @@ public class UserProfileService {
     }
 
     /**
-     * Supprime definitivement le compte s'il n'a aucune donnee associee (commentaires CV,
-     * offres/articles/categories crees), sinon le desactive (connexion bloquee, historique conserve) —
-     * une suppression definitive echouerait en base via les contraintes de cle etrangere.
+     * Désactivation logique pure — peu de restrictions.
+     * Règles : interdit sur soi-même et interdit de désactiver le dernier admin actif.
+     */
+    @Transactional
+    public User deactivateUser(UUID targetId) {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        if (targetId.equals(currentUserId)) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.CANNOT_SELF_DEACTIVATE);
+        }
+
+        User actor = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, MessageKey.NOT_AUTHENTICATED));
+
+        User targetUser = userRepository.findById(targetId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        RoleEnum actorRole = UserMapper.roleOf(actor);
+        RoleEnum targetRole = UserMapper.roleOf(targetUser);
+
+        if (actorRole == RoleEnum.ADVISOR && targetRole != RoleEnum.STUDENT) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ACCESS_DENIED);
+        }
+
+        if (targetRole == RoleEnum.ADMIN) {
+            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
+            if (activeAdmins <= 1) {
+                // Toujours garder au moins 1 admin actif, quelle que soit la valeur du plafond
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.LAST_ADMIN_PROTECTION);
+            }
+        }
+
+        targetUser.setActive(false);
+        targetUser.setDeactivatedAt(Instant.now());
+        User saved = userRepository.save(targetUser);
+
+        auditLogService.log(AuditAction.USER_DEACTIVATED, actor, targetUser.getId(),
+                "Compte désactivé : " + targetUser.getFirstName() + " " + targetUser.getLastName() + " (" + targetRole + ")");
+        return saved;
+    }
+
+    /**
+     * Suppression physique avec fallback en désactivation si données liées.
+     * Règles : interdit sur soi-même, interdit pour les admins.
+     * Si données liées → désactivation logique.
      */
     @Transactional
     public DeleteOrDeactivateResult deleteOrDeactivateUser(UUID id) {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        if (id.equals(currentUserId)) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.CANNOT_SELF_DEACTIVATE);
+        }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        if (UserMapper.roleOf(user) == RoleEnum.ADMIN) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CANNOT_BE_DELETED);
+        }
 
         boolean hasLinkedContent = cvCommentaireRepository.existsByAdvisorId(id)
                 || jobOfferRepository.existsByCreatedById(id)
@@ -184,6 +246,7 @@ public class UserProfileService {
 
         if (hasLinkedContent || user instanceof Student) {
             user.setActive(false);
+            user.setDeactivatedAt(Instant.now());
             User saved = userRepository.save(user);
             auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(), "Compte désactivé : " + label);
             return new DeleteOrDeactivateResult(false, saved);
@@ -196,24 +259,45 @@ public class UserProfileService {
             return new DeleteOrDeactivateResult(true, null);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             user.setActive(false);
+            user.setDeactivatedAt(Instant.now());
             User saved = userRepository.save(user);
             auditLogService.log(AuditAction.USER_DEACTIVATED, actor, user.getId(), "Compte désactivé : " + label);
             return new DeleteOrDeactivateResult(false, saved);
         }
     }
 
+    /**
+     * Réactivation d'un compte — bloquée si la cible est ADMIN et que le plafond de 2 est atteint.
+     */
     @Transactional
     public User reactivateUser(UUID id) {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        User actor = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, MessageKey.NOT_AUTHENTICATED));
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
+        RoleEnum actorRole = UserMapper.roleOf(actor);
+        RoleEnum targetRole = UserMapper.roleOf(user);
+
+        if (actorRole == RoleEnum.ADVISOR && targetRole != RoleEnum.STUDENT) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ACCESS_DENIED);
+        }
+
+        if (targetRole == RoleEnum.ADMIN) {
+            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
+            if (activeAdmins >= adminMaxActive) {
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
+            }
+        }
+
         user.setActive(true);
+        user.setDeactivatedAt(null);
         User saved = userRepository.save(user);
 
-        User actor = currentActor().orElse(null);
         auditLogService.log(AuditAction.USER_REACTIVATED, actor, user.getId(),
-                "Compte réactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + UserMapper.roleOf(user) + ")");
-
+                "Compte réactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + targetRole + ")");
         return saved;
     }
 

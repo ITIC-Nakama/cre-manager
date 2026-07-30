@@ -24,18 +24,19 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | Module | Suite de test (`src/test/java/...`) | Nombre de tests | Aspect vérifié |
 |---|---|---|---|
 | **Auth & Sécurité** | `AuthenticationIntegrationTest.java` | 11 | Inscription étudiant, OTP email, login JWT, comptes staff avec mot de passe temporaire, changement de mot de passe obligatoire (`mustChangePassword`), modification de profil, scoping d'accès. |
+| **Gouvernance Admin & RBAC** | `UserGovernanceIntegrationTest.java` | 9 | Plafond de 2 admins actifs, auto-désactivation interdite, protection du dernier admin actif, interdiction de suppression physique admin, interdiction de réinitialiser le mot de passe d'un admin par un tiers, restriction des désactivations par rôle (Advisor désactive uniquement Student). |
 | **Specifications & Filtres Etudiants** | `StudentSpecificationIntegrationTest.java` | 2 | Filtrage dynamique JPA Specification (nom, prénom, email, promotions, statut actif/inactif et seuil d'inactivité). |
 | **CRM Candidatures** | `ApplicationServiceIntegrationTest.java` & `ApplicationSpecificationIntegrationTest.java` | 6 | Création de candidatures CRM, transition de statuts, attribution de points XP au premier passage, calcul des candidatures stagnantes (`stale`), filtrage dynamique par entreprise, statut, conseiller. |
 | **CV & Validation** | `CVIntegrationTest.java` & `CVSpecificationIntegrationTest.java` | 4 | Dépôt unique de fichier PDF, remplacement du CV, changement de statut par le conseiller, calcul du cycle de validation, prévention du double gain d'XP et filtrage multicritères. |
 | **Dashboard Étudiant & Staff** | `StudentDashboardIntegrationTest.java` & `DashboardServiceIntegrationTest.java` | 4 | Calcul de la progression du tableau de bord étudiant, rang du classement, résumé des statistiques staff/conseiller et génération dynamique de la liste des tâches à faire. |
-| **Confidentialité & RGPD** | `GdprIntegrationTest.java` | 2 | Droit à la portabilité (export complet au format JSON) et droit à l'oubli (anonymisation irréversible et désactivation de compte). |
+| **Confidentialité & RGPD** | `GdprIntegrationTest.java` | 2 | Droit à la portabilité (export complet au format JSON) et droit à l'oubli (anonymisation irréversible et désactivation de compte via `GdprPurgeScheduler`). |
 | **Skill Tree / Tutos** | `SkillTreeIntegrationTest.java` | 4 | Navigation dans l'arbre de compétences, calcul des articles lus, soumission de quiz avec calcul de score exact et export/import de l'arbre. |
 | **Jobboard / Offres** | `JobOfferIntegrationTest.java` & `JobOfferSpecificationIntegrationTest.java` | 5 | Création et édition des offres d'emploi par les conseillers, filtrage/recherche d'offres actives via Specifications et postulation en 1-clic avec génération automatique de candidature CRM. |
 | **Gamification** | `GamificationIntegrationTest.java` | 1 | Attribution et révocation de points XP, mise à jour du classement et passage dynamique de grades (Débutant → Intermédiaire → Avancé → Expert). |
 | **Journal d'Audit** | `AuditLogIntegrationTest.java` | 2 | Traçabilité des actions sensibles (`STAFF_USER_CREATED`, `CV_VALIDATED`, etc.), capture de l'adresse IP/User-Agent et filtrage multicritères. |
 | **Templates d'Emails** | `EmailTemplateServiceTest.java` | 1 | Rendu des modèles HTML d'emails (OTP de vérification, réinitialisation de mot de passe, notification de commentaire CV). |
 
-**Total : 39 tests automatisés — 100% SUCCESS.**
+**Total : 51 tests d'intégration automatisés — 100% SUCCESS.**
 
 ---
 

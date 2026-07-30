@@ -16,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,8 +46,8 @@ public class GdprIntegrationTest {
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
 
-    @org.springframework.boot.test.mock.mockito.MockBean
-    private org.springframework.mail.javamail.JavaMailSender mailSender;
+    @MockitoBean
+    private JavaMailSender mailSender;
 
     private Student testStudent;
     private String jwtToken;
@@ -100,5 +102,19 @@ public class GdprIntegrationTest {
         assertThat(updatedUser.getFirstName()).isEqualTo("Anonyme");
         assertThat(updatedUser.getLastName()).isEqualTo("Utilisateur RGPD");
         assertThat(updatedUser.getEmail()).startsWith("deleted_");
+    }
+
+    @Test
+    public void testStudentAccessToAdminDeactivateEndpoint_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/auth/users/" + testStudent.getId() + "/deactivate")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testStudentAccessToAdminDeleteEndpoint_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(delete("/auth/users/" + testStudent.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isForbidden());
     }
 }

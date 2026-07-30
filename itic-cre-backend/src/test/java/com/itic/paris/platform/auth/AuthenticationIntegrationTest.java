@@ -21,6 +21,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -58,8 +60,8 @@ public class AuthenticationIntegrationTest {
     @Autowired
     private com.itic.paris.platform.auth.repository.OtpRepository otpRepository;
 
-    @org.springframework.boot.test.mock.mockito.MockBean
-    private org.springframework.mail.javamail.JavaMailSender mailSender;
+    @MockitoBean
+    private JavaMailSender mailSender;
 
     private Role studentRole;
     private Role advisorRole;

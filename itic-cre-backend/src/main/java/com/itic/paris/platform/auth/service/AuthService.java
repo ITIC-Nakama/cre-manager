@@ -19,6 +19,7 @@ import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,6 +46,10 @@ public class AuthService {
     private final ICloudStorage cloudStorage;
     private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
     private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
+
+    /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
+    @Value("${app.admin.max-active:2}")
+    private long adminMaxActive;
 
     public Object login(UserLoginDto loginDto) {
         User rawUser = userLookupService.findUserByEmail(loginDto.getEmail())
@@ -109,6 +114,14 @@ public class AuthService {
         }
         if (userLookupService.existsByEmail(dto.getEmail())) {
             throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
+        }
+
+        // Plafond : maximum d'administrateurs actifs simultanément (configurable via ADMIN_MAX_ACTIVE)
+        if (dto.getRole() == RoleEnum.ADMIN) {
+            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
+            if (activeAdmins >= adminMaxActive) {
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
+            }
         }
 
         Role role = roleRepository.findByName(dto.getRole());

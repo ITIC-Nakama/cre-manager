@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdvisors,
+  fetchAdmins,
   createAdvisor,
   updateAdvisor,
   deleteAdvisor,
+  deactivateUser,
   reactivateAdvisor,
 } from '../api-s/requests/AdvisorRequest';
 import type { AdvisorListParams, CreateAdvisorData, UpdateAdvisorData } from '../api-s/requests/AdvisorRequest';
@@ -12,7 +14,13 @@ export function useAdvisors(params: AdvisorListParams = {}) {
   return useQuery({
     queryKey: ['advisors', params],
     queryFn: () => fetchAdvisors(params),
-    placeholderData: (prev) => prev,
+  });
+}
+
+export function useAdmins(params: AdvisorListParams = {}) {
+  return useQuery({
+    queryKey: ['admins', params],
+    queryFn: () => fetchAdmins(params),
   });
 }
 
@@ -22,6 +30,7 @@ export function useCreateAdvisor() {
     mutationFn: (data: CreateAdvisorData) => createAdvisor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
     },
   });
 }
@@ -32,6 +41,7 @@ export function useUpdateAdvisor() {
     mutationFn: ({ id, data }: { id: string; data: UpdateAdvisorData }) => updateAdvisor(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
     },
   });
 }
@@ -42,6 +52,18 @@ export function useDeleteAdvisor() {
     mutationFn: (id: string) => deleteAdvisor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
+    },
+  });
+}
+
+export function useDeactivateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deactivateUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
     },
   });
 }
@@ -52,6 +74,8 @@ export function useReactivateAdvisor() {
     mutationFn: (id: string) => reactivateAdvisor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
     },
   });
 }
+
