@@ -1,16 +1,9 @@
 import { apiClient } from '../AxiosApiClient';
-import type { Candidature, CandidaturePayload } from '../../types/models/Application';
+import type { Candidature, CandidaturePayload, CandidaturePage } from '../../types/models/Application';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
-}
-
-export interface CandidaturePage {
-    content: Candidature[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
 }
 
 // L'étudiant récupère toutes ses candidatures en une seule requête non paginée côté client.

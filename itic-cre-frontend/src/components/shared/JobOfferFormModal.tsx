@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import CustomSelect from '../basics/CustomSelect';
 import { useContractTypes } from '../../hooks/useApplications';
 import type { JobOffer } from '../../types/models/JobOffer';
-import type { JobOfferPayload } from '../../api-s/requests/JobOfferRequest';
+import type { JobOfferPayload } from '../../types/models/JobOffer';
 
 interface Props {
     offer?: JobOffer | null;

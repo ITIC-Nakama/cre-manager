@@ -7,7 +7,7 @@ import {
     removeStudentFromPromotion,
     assignStudentToPromotion,
 } from '../api-s/requests/PromotionRequest';
-import type { PromotionData } from '../api-s/requests/PromotionRequest';
+import type { PromotionData } from '../types/models/Promotion';
 
 export function usePromotions() {
     return useQuery({

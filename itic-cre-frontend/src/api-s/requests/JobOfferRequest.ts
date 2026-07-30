@@ -1,39 +1,16 @@
 import { apiClient } from '../AxiosApiClient';
-import type { JobOffer, JobApplicationJobboard } from '../../types/models/JobOffer';
+import type {
+    JobOffer,
+    JobApplicationJobboard,
+    JobOfferPage,
+    JobApplicationPage,
+    JobOfferListParams,
+    JobOfferPayload,
+} from '../../types/models/JobOffer';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
-}
-
-export interface JobOfferPage {
-    content: JobOffer[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-}
-
-export interface JobApplicationPage {
-    content: JobApplicationJobboard[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-}
-
-export interface JobOfferListParams {
-    page?: number;
-    size?: number;
-    search?: string;
-    contractTypeId?: string;
-}
-
-export interface JobOfferPayload {
-    title: string;
-    company: string;
-    description: string;
-    location?: string;
-    contractTypeId: string;
-    externalLink?: string;
 }
 
 // Advisor/admin — toutes les offres (actives + inactives)

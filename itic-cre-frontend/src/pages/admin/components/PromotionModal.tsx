@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2 } from 'lucide-react';
-import type { Promotion } from '../../../api-s/requests/PromotionRequest';
+import type { Promotion } from '../../../types/models/Promotion';
 
 interface PromotionModalProps {
   isOpen: boolean;

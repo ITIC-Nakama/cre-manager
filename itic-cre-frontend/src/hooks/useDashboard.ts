@@ -7,7 +7,7 @@ import {
     deactivateStudent,
     reactivateStudent,
 } from '../api-s/requests/DashboardRequest';
-import type { StudentListParams } from '../api-s/requests/DashboardRequest';
+import type { StudentListParams } from '../types/models/Dashboard';
 
 export function useDashboardOverview() {
     return useQuery({

@@ -13,7 +13,7 @@ import {
     uploadMyCV,
     fetchCVByStudent,
 } from '../api-s/requests/CVRequest';
-import type { CVListParams } from '../api-s/requests/CVRequest';
+import type { CVListParams } from '../types/models/CV';
 import type { CVStatut } from '../types/models/CV';
 
 export function useAllCVs(params: CVListParams = {}) {

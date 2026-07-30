@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useStudentList } from '../../../hooks/useDashboard';
 import { useRemoveStudentFromPromotion, useAssignStudentToPromotion } from '../../../hooks/usePromotions';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
-import type { Promotion } from '../../../api-s/requests/PromotionRequest';
+import type { Promotion } from '../../../types/models/Promotion';
 import type { StudentRow } from '../../../types/models/Dashboard';
 
 interface PromotionStudentsModalProps {

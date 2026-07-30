@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchApplicationList, fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus } from '../api-s/requests/ApplicationRequest';
-import type { ApplicationListParams } from '../api-s/requests/ApplicationRequest';
+import type { ApplicationListParams } from '../types/models/Application';
 
 export function useApplicationList(params: ApplicationListParams = {}) {
     return useQuery({

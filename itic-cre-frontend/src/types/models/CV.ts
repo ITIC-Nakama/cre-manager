@@ -22,7 +22,26 @@ export interface CVRow {
     updatedAt: string | null;
     url: string;
     studentId: string;
-    student?: CVStudentInfo; // enriched on frontend from dashboard data
+    student?: CVStudentInfo;
+}
+
+export interface CVPage {
+    content: CVRow[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
+}
+
+export interface CVListParams {
+    page?: number;
+    size?: number;
+    statutId?: string;
+    search?: string;
+}
+
+export interface CVStatCount {
+    statutId: string;
+    count: number;
 }
 
 export interface CVResponse {

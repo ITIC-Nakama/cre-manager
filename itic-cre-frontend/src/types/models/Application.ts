@@ -15,7 +15,7 @@ export interface ContractType {
     label: string;
 }
 
-/** Candidature du CRM de l'étudiant connecté (espace /student/candidatures) — sans champ `student`, contrairement à ApplicationRow utilisé côté conseiller. */
+/** Candidature du CRM de l'étudiant connecté (espace /student/candidatures) */
 export interface Candidature {
     id: string;
     entreprise: string;
@@ -31,6 +31,13 @@ export interface Candidature {
     xpAwarded: number;
     dateCreation: string;
     dateModification: string;
+}
+
+export interface CandidaturePage {
+    content: Candidature[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
 }
 
 export interface CandidaturePayload {
@@ -52,8 +59,6 @@ export interface ApplicationStudent {
     accountActive: boolean;
 }
 
-
-
 export interface ApplicationRow {
     id: string;
     student: ApplicationStudent;
@@ -67,4 +72,40 @@ export interface ApplicationRow {
     stale: boolean;
     dateCreation: string;
     dateModification: string;
+}
+
+export interface ApplicationPage {
+    content: ApplicationRow[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
+}
+
+export interface ApplicationListParams {
+    page?: number;
+    size?: number;
+    search?: string;
+    statusId?: string;
+    promotionId?: string;
+    typeContratId?: string;
+    stale?: boolean;
+    activeStudentsOnly?: boolean;
+}
+
+export interface StudentGroupDTO {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture: string | null;
+    promotion: { id: string; nom: string } | null;
+    applications: ApplicationRow[];
+    staleCount: number;
+}
+
+export interface ApplicationGroupedPage {
+    content: StudentGroupDTO[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
 }

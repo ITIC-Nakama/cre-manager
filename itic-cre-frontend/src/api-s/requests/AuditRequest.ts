@@ -1,35 +1,7 @@
 import { apiClient } from '../AxiosApiClient';
+import type { AuditLog, AuditPage, AuditLogParams } from '../../types/models/Audit';
 
-export interface AuditLog {
-    id: string;
-    actorId: string | null;
-    actorEmail: string | null;
-    actorFirstName: string | null;
-    actorLastName: string | null;
-    actorRole: string | null;
-    action: string;
-    targetType: string | null;
-    targetId: string | null;
-    description: string | null;
-    ipAddress: string | null;
-    createdAt: string;
-}
-
-export interface AuditPage {
-    content: AuditLog[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-}
-
-export interface AuditLogParams {
-    page?: number;
-    size?: number;
-    search?: string;
-    action?: string;
-    from?: string;
-    to?: string;
-}
+export type { AuditLog, AuditPage, AuditLogParams };
 
 export function fetchAuditLogs(params: AuditLogParams = {}): Promise<AuditPage> {
     const { page = 0, size = 20, search, action, from, to } = params;

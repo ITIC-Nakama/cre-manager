@@ -21,23 +21,27 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     long countByPromotionId(UUID promotionId);
 
+    long countByPromotionIdAndActiveTrue(UUID promotionId);
+
+    long countByActiveTrue();
+
     List<Student> findAllByLastActivityBefore(Instant threshold);
 
     List<Student> findAllByActiveTrueAndLastActivityBefore(Instant threshold);
 
-    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s")
+    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.active = true")
     double averageXp();
 
-    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.promotion.id = :promotionId")
+    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true")
     double averageXpByPromotion(UUID promotionId);
 
     long countByLastActivityAfter(Instant since);
 
-    List<Student> findTop5ByOrderByXpTotalDesc();
+    List<Student> findTop5ByActiveTrueOrderByXpTotalDesc();
 
-    long countByPromotionIdAndXpTotalGreaterThan(UUID promotionId, int xpTotal);
+    long countByPromotionIdAndActiveTrueAndXpTotalGreaterThan(UUID promotionId, int xpTotal);
 
-    long countByXpTotalGreaterThan(int xpTotal);
+    long countByActiveTrueAndXpTotalGreaterThan(int xpTotal);
 
     long countByXpTotalBetween(int minXp, int maxXp);
 
@@ -47,7 +51,7 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     long countByPromotionIdAndXpTotalGreaterThanEqual(UUID promotionId, int minXp);
 
-    List<Student> findTop3ByPromotionIdOrderByXpTotalDesc(UUID promotionId);
+    List<Student> findTop3ByPromotionIdAndActiveTrueOrderByXpTotalDesc(UUID promotionId);
 
-    List<Student> findTop3ByOrderByXpTotalDesc();
+    List<Student> findTop3ByActiveTrueOrderByXpTotalDesc();
 }

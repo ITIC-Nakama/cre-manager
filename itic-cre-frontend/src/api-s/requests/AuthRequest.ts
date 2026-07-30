@@ -1,4 +1,4 @@
-import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO, ChangePasswordDTO } from "../../types/models/Auth";
+import type { LoginDTO, RegisterDTO, OtpSendDTO, OtpValidateDTO, ResetPasswordDTO, ChangePasswordDTO, UpdateProfileData } from "../../types/models/Auth";
 import { apiClient, resetSessionState } from '../AxiosApiClient';
 
 // Connexion — les tokens sont posés en cookies HttpOnly par le serveur
@@ -104,14 +104,6 @@ export function ChangePasswordRequest(data: ChangePasswordDTO) {
             console.error('Échec du changement de mot de passe :', error);
             throw error;
         });
-}
-
-export interface UpdateProfileData {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    jobTitle?: string;
-    lang?: string;
 }
 
 // Mettre à jour le profil de l'utilisateur connecté (nom, prénom, fonction)

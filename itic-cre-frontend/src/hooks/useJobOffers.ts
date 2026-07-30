@@ -11,7 +11,7 @@ import {
     fetchMyJobApplications,
     withdrawJobApplication,
 } from '../api-s/requests/JobOfferRequest';
-import type { JobOfferListParams, JobOfferPayload } from '../api-s/requests/JobOfferRequest';
+import type { JobOfferListParams, JobOfferPayload } from '../types/models/JobOffer';
 
 export function useAllJobOffers(params: JobOfferListParams = {}) {
     return useQuery({

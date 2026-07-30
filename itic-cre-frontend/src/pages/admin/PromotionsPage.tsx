@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 import { usePromotions, useCreatePromotion, useUpdatePromotion, useDeletePromotion } from '../../hooks/usePromotions';
 import { useAllStudents } from '../../hooks/useDashboard';
-import type { Promotion } from '../../api-s/requests/PromotionRequest';
+import type { Promotion } from '../../types/models/Promotion';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import PromotionModal from './components/PromotionModal';

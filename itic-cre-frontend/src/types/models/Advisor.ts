@@ -15,3 +15,40 @@ export interface Advisor {
   };
 }
 
+export interface AdvisorPage {
+  content: Advisor[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}
+
+export interface AdvisorListParams {
+  page?: number;
+  size?: number;
+  search?: string;
+  role?: 'ADVISOR' | 'ADMIN';
+}
+
+export interface CreateAdvisorData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  role?: 'ADVISOR' | 'ADMIN';
+  phoneNumber?: string;
+  jobTitle?: string;
+  lang?: string;
+}
+
+export interface UpdateAdvisorData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  jobTitle?: string;
+  password?: string;
+}
+
+export interface DeleteOrDeactivateResult {
+  deleted: boolean;
+  user: Advisor | null;
+}

@@ -1,26 +1,9 @@
 import { apiClient } from '../AxiosApiClient';
-import type { DashboardOverview, StudentRow } from '../../types/models/Dashboard';
+import type { DashboardOverview, StudentRow, StudentPage, StudentListParams } from '../../types/models/Dashboard';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
-}
-
-export interface StudentPage {
-    content: StudentRow[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-}
-
-export interface StudentListParams {
-    page?: number;
-    size?: number;
-    search?: string;
-    isActive?: boolean;
-    hasCv?: boolean;
-    hasStale?: boolean;
-    promotionId?: string;
 }
 
 export function fetchDashboardOverview(): Promise<DashboardOverview> {

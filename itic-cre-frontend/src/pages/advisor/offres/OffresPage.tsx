@@ -19,7 +19,7 @@ import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import type { JobOffer } from '../../../types/models/JobOffer';
-import type { JobOfferPayload } from '../../../api-s/requests/JobOfferRequest';
+import type { JobOfferPayload } from '../../../types/models/JobOffer';
 
 const PAGE_SIZE = 20;
 

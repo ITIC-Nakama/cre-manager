@@ -95,7 +95,7 @@ public class DashboardService {
         List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
         List<Map<String, Object>> gradeDistribution = buildGradeDistribution(allGrades);
 
-        List<Map<String, Object>> topStudents = studentRepository.findTop5ByOrderByXpTotalDesc()
+        List<Map<String, Object>> topStudents = studentRepository.findTop5ByActiveTrueOrderByXpTotalDesc()
                 .stream().map(s -> buildStudentSummary(s, allGrades)).toList();
 
         Map<String, Object> overview = new LinkedHashMap<>();

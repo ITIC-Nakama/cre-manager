@@ -8,7 +8,7 @@ import {
   deactivateUser,
   reactivateAdvisor,
 } from '../api-s/requests/AdvisorRequest';
-import type { AdvisorListParams, CreateAdvisorData, UpdateAdvisorData } from '../api-s/requests/AdvisorRequest';
+import type { AdvisorListParams, CreateAdvisorData, UpdateAdvisorData } from '../types/models/Advisor';
 
 export function useAdvisors(params: AdvisorListParams = {}) {
   return useQuery({

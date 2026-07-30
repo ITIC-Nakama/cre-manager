@@ -1,18 +1,17 @@
-export interface LoginDTO{
-    email : string;
+export interface LoginDTO {
+    email: string;
     password: string;
 }
 
 export const Role = {
-  STUDENT: 1,
-  ADVISOR: 2,
-  ADMIN: 3,
+    STUDENT: 1,
+    ADVISOR: 2,
+    ADMIN: 3,
 } as const;
 
 export type Role = typeof Role[keyof typeof Role];
 
-
-export interface RegisterDTO{
+export interface RegisterDTO {
     email: string;
     firstName: string;
     lastName: string;
@@ -47,3 +46,10 @@ export interface ChangePasswordDTO {
     newPassword: string;
 }
 
+export interface UpdateProfileData {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    jobTitle?: string;
+    lang?: string;
+}

@@ -1,0 +1,30 @@
+export interface AuditLog {
+    id: string;
+    actorId: string | null;
+    actorEmail: string | null;
+    actorFirstName: string | null;
+    actorLastName: string | null;
+    actorRole: string | null;
+    action: string;
+    targetType: string | null;
+    targetId: string | null;
+    description: string | null;
+    ipAddress: string | null;
+    createdAt: string;
+}
+
+export interface AuditPage {
+    content: AuditLog[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
+}
+
+export interface AuditLogParams {
+    page?: number;
+    size?: number;
+    search?: string;
+    action?: string;
+    from?: string;
+    to?: string;
+}

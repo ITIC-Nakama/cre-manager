@@ -1,23 +1,9 @@
 import { apiClient } from '../AxiosApiClient';
-import type { CVRow, CVStatut, CVComment, CVResponse } from '../../types/models/CV';
+import type { CVRow, CVStatut, CVComment, CVResponse, CVPage, CVListParams, CVStatCount } from '../../types/models/CV';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
-}
-
-export interface CVPage {
-    content: CVRow[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-}
-
-export interface CVListParams {
-    page?: number;
-    size?: number;
-    statutId?: string;
-    search?: string;
 }
 
 /** GET /cv — lister tous les CV avec pagination (conseiller) */
@@ -56,11 +42,6 @@ export function fetchCVComments(cvId: string): Promise<CVComment[]> {
 /** DELETE /cv/comments/{commentId} — supprimer un commentaire */
 export function deleteCVComment(commentId: string): Promise<void> {
     return apiClient.delete(`/cv/comments/${commentId}`).then(() => undefined);
-}
-
-export interface CVStatCount {
-    statutId: string;
-    count: number;
 }
 
 /** GET /cv/stats — obtenir le nombre de CV par statut */

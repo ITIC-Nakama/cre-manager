@@ -78,17 +78,17 @@ public class StudentDashboardService {
         UUID promotionId = scopedToPromotion ? student.getPromotion().getId() : null;
 
         long higherXpCount = scopedToPromotion
-                ? studentRepository.countByPromotionIdAndXpTotalGreaterThan(promotionId, student.getXpTotal())
-                : studentRepository.countByXpTotalGreaterThan(student.getXpTotal());
+                ? studentRepository.countByPromotionIdAndActiveTrueAndXpTotalGreaterThan(promotionId, student.getXpTotal())
+                : studentRepository.countByActiveTrueAndXpTotalGreaterThan(student.getXpTotal());
         int rank = (int) higherXpCount + 1;
 
         long totalStudents = scopedToPromotion
-                ? studentRepository.countByPromotionId(promotionId)
-                : studentRepository.count();
+                ? studentRepository.countByPromotionIdAndActiveTrue(promotionId)
+                : studentRepository.countByActiveTrue();
 
         List<Student> top3Pool = scopedToPromotion
-                ? studentRepository.findTop3ByPromotionIdOrderByXpTotalDesc(promotionId)
-                : studentRepository.findTop3ByOrderByXpTotalDesc();
+                ? studentRepository.findTop3ByPromotionIdAndActiveTrueOrderByXpTotalDesc(promotionId)
+                : studentRepository.findTop3ByActiveTrueOrderByXpTotalDesc();
 
         List<RankingEntryDTO> top3 = top3Pool.stream()
                 .map(s -> new RankingEntryDTO(s.getFirstName(), s.getLastName(), s.getXpTotal(), s.getId().equals(student.getId())))
