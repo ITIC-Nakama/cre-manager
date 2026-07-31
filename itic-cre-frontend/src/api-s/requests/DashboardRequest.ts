@@ -22,8 +22,22 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }
 
-export function fetchAllStudents(): Promise<StudentRow[]> {
-    return fetchStudentList({ size: 10000, page: 0 }).then((p) => p.content);
+export async function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {
+    const firstPage = await fetchStudentList({ ...params, page: 0, size: 500 });
+    const allStudents = [...firstPage.content];
+
+    if (firstPage.totalPages > 1) {
+        const remainingPagePromises = [];
+        for (let p = 1; p < firstPage.totalPages; p++) {
+            remainingPagePromises.push(fetchStudentList({ ...params, page: p, size: 500 }));
+        }
+        const remainingPages = await Promise.all(remainingPagePromises);
+        for (const pageData of remainingPages) {
+            allStudents.push(...pageData.content);
+        }
+    }
+
+    return allStudents;
 }
 
 export function notifyStudent(studentId: string, message?: string): Promise<void> {

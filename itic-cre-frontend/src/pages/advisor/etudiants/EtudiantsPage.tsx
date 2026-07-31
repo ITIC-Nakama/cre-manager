@@ -171,7 +171,7 @@ export default function EtudiantsPage() {
     const handleExportCsv = async () => {
         setExporting(true);
         try {
-            const all = await fetchAllStudents();
+            const all = await fetchAllStudents(params);
             exportStudentsCsv(all);
             toast.success(t('dashboard.etudiants.actions.export_success', { count: all.length }));
         } catch {

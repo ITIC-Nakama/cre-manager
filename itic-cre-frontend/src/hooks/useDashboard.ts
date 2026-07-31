@@ -27,7 +27,7 @@ export function useStudentList(params: StudentListParams = {}) {
 export function useAllStudents(enabled = false) {
     return useQuery({
         queryKey: ['dashboard', 'students', 'all'],
-        queryFn: fetchAllStudents,
+        queryFn: () => fetchAllStudents(),
         enabled,
     });
 }
