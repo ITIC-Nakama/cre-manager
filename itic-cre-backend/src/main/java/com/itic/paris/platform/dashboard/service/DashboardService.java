@@ -193,9 +193,17 @@ public class DashboardService {
         Specification<Student> spec = StudentSpecification.withStudentListFilters(
                 promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
         );
-        Page<Student> studentPage = studentRepository.findAll(spec, pageable);
+        List<Student> students;
+        long totalElements;
+        if (pageable != null && pageable.isUnpaged()) {
+            students = studentRepository.findAll(spec);
+            totalElements = students.size();
+        } else {
+            Page<Student> studentPage = studentRepository.findAll(spec, pageable != null ? pageable : Pageable.unpaged());
+            students = studentPage.getContent();
+            totalElements = studentPage.getTotalElements();
+        }
 
-        List<Student> students = studentPage.getContent();
         List<UUID> studentIds = students.stream().map(Student::getId).toList();
         List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
 
@@ -240,7 +248,10 @@ public class DashboardService {
             return row;
         }).toList();
 
-        return new PageImpl<>(content, pageable, studentPage.getTotalElements());
+        if (pageable != null && pageable.isUnpaged()) {
+            return new PageImpl<>(content);
+        }
+        return new PageImpl<>(content, pageable, totalElements);
     }
 
     // ─── Application list (toutes promotions) ──────────────────────────────────
