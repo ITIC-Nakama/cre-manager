@@ -143,7 +143,6 @@ export default function EtudiantsPage() {
             header: t('dashboard.etudiants.table.grade_xp').split(' / ')[0],
             cell: ({ row }) => (
                 <div className="flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
                         {row.original.grade?.nom ?? '—'}
                     </span>
