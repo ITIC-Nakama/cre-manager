@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -56,6 +58,21 @@ public class DashboardController {
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
+    }
+
+    @GetMapping("/students/all")
+    @Operation(summary = "Liste complète non-paginée de tous les étudiants (pour export ou vue d'ensemble)")
+    public ResponseEntity<?> allStudents(
+            @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) Boolean hasCv,
+            @RequestParam(required = false) Boolean hasStale,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
+        Page<Map<String, Object>> result = dashboardService.getStudentList(
+                promotionId, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
+        );
+        return ResponseEntity.ok(result.getContent());
     }
 
     @GetMapping("/applications")

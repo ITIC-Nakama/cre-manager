@@ -148,4 +148,25 @@ public class DashboardServiceIntegrationTest {
         assertThat(active + inactive + anonymized).isEqualTo(totalStudents);
         assertThat(inactive).isGreaterThanOrEqualTo(0);
     }
+
+    @Test
+    public void testUnpagedStudentListExcludesAnonymizedByDefault() {
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        Student anonymizedStudent = new Student();
+        anonymizedStudent.setEmail("deleted_test_unpaged@rgpd.deleted");
+        anonymizedStudent.setFirstName("Anonyme");
+        anonymizedStudent.setLastName("Test");
+        anonymizedStudent.setPassword("Password123!");
+        anonymizedStudent.setEmailVerified(true);
+        anonymizedStudent.setActive(false);
+        anonymizedStudent.setRole(studentRole);
+        studentRepository.save(anonymizedStudent);
+
+        Page<Map<String, Object>> result = dashboardService.getStudentList(
+                null, null, null, null, null, false, org.springframework.data.domain.Pageable.unpaged()
+        );
+
+        assertThat(result.getContent()).isNotEmpty();
+        assertThat(result.getContent()).noneMatch(row -> row.get("email").toString().endsWith("@rgpd.deleted"));
+    }
 }

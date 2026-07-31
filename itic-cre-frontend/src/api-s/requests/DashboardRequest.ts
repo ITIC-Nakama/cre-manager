@@ -22,22 +22,16 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }
 
-export async function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {
-    const firstPage = await fetchStudentList({ ...params, page: 0, size: 500 });
-    const allStudents = [...firstPage.content];
+export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {
+    const query: Record<string, unknown> = {};
+    if (params.search)      query.search     = params.search;
+    if (params.isActive     !== undefined) query.isActive   = params.isActive;
+    if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
+    if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
+    if (params.promotionId)               query.promotionId = params.promotionId;
+    if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
-    if (firstPage.totalPages > 1) {
-        const remainingPagePromises = [];
-        for (let p = 1; p < firstPage.totalPages; p++) {
-            remainingPagePromises.push(fetchStudentList({ ...params, page: p, size: 500 }));
-        }
-        const remainingPages = await Promise.all(remainingPagePromises);
-        for (const pageData of remainingPages) {
-            allStudents.push(...pageData.content);
-        }
-    }
-
-    return allStudents;
+    return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);
 }
 
 export function notifyStudent(studentId: string, message?: string): Promise<void> {
