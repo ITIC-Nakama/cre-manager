@@ -58,7 +58,7 @@ export default function StudentDashboard() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
           <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
-          {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue')}
+          {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue',firstName)}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
           {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}

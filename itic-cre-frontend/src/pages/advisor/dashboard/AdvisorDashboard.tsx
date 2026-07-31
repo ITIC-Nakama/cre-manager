@@ -40,7 +40,14 @@ export default function AdvisorDashboard() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <LayoutDashboard className="h-7 w-7 text-[#E2762F] shrink-0" />
-            {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue')}
+            {// Gradient sur le prénom
+              renderTitleWithGradient(
+                t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', {
+                  name: firstName,
+                }),
+                'itic-gradient-blue',
+                firstName
+              )}
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {t('dashboard.advisor.subtitle')}

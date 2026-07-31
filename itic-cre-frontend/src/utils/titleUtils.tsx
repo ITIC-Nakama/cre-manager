@@ -1,23 +1,39 @@
 import type { ReactNode } from 'react';
 
-/**
- * Utility to render a translated title while applying a gradient class to the last word.
- * Maintains full i18n support while enforcing consistent gradient styling.
- */
 export function renderTitleWithGradient(
   title: string,
-  gradientClass: string = 'itic-gradient-blue'
+  gradientClass = 'itic-gradient-blue',
+  highlight?: string
 ): ReactNode {
   if (!title) return null;
+
+  // Si un texte à mettre en avant est fourni
+  if (highlight) {
+    const index = title.indexOf(highlight);
+
+    if (index !== -1) {
+      return (
+        <>
+          {title.slice(0, index)}
+          <span className={gradientClass}>{highlight}</span>
+          {title.slice(index + highlight.length)}
+        </>
+      );
+    }
+  }
+
+  // dernier mot
   const parts = title.trim().split(' ');
   if (parts.length <= 1) {
     return <span className={gradientClass}>{title}</span>;
   }
+
   const lastWord = parts.pop();
-  const prefix = parts.join(' ');
+
   return (
     <span>
-      {prefix} <span className={gradientClass}>{lastWord}</span>
+      {parts.join(' ')}{' '}
+      <span className={gradientClass}>{lastWord}</span>
     </span>
   );
 }
