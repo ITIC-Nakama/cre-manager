@@ -46,15 +46,16 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/includeAnonymized")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, pageable));
+        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
     }
 
     @GetMapping("/applications")

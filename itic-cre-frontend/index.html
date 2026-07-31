@@ -24,6 +24,8 @@
     <!-- Lien Manifeste PWA Mobile -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <script type="module">
+      /*
+      // Code de gestion/bascule du mode clair/sombre (conservé en commentaire)
       import { ThemeStorageKey } from './src/types/storage-keys';
       (function() {
         const STORAGE_KEY = ThemeStorageKey;
@@ -33,6 +35,12 @@
         } else {
           document.documentElement.classList.remove('dark');
         }
+      })();
+      */
+
+      (function() {
+        // Mode sombre forcé par défaut (charte ITIC CRE)
+        document.documentElement.classList.add('dark');
       })();
     </script>
   </head>

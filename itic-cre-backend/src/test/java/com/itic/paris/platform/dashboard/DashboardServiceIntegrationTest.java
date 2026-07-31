@@ -112,4 +112,40 @@ public class DashboardServiceIntegrationTest {
         // Then : doit inclure les candidatures des étudiants actifs ET désactivés (au moins 2)
         assertThat(allPage.getContent().size()).isGreaterThanOrEqualTo(2);
     }
+
+    @Test
+    public void testGetOverviewIncludesAnonymizedInTotalAndCalculatesCoherently() {
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+
+        // Crée un étudiant anonymisé RGPD
+        Student anonymizedStudent = new Student();
+        anonymizedStudent.setEmail("deleted_12345@rgpd.deleted");
+        anonymizedStudent.setFirstName("Anonyme");
+        anonymizedStudent.setLastName("Utilisateur RGPD");
+        anonymizedStudent.setPassword("Password123!");
+        anonymizedStudent.setEmailVerified(true);
+        anonymizedStudent.setActive(false);
+        anonymizedStudent.setRole(studentRole);
+        anonymizedStudent.setLastActivity(Instant.now());
+        studentRepository.save(anonymizedStudent);
+
+        // Mettre à jour la dernière activité de activeStudent
+        activeStudent.setLastActivity(Instant.now());
+        studentRepository.save(activeStudent);
+
+        Map<String, Object> overview = dashboardService.getOverview();
+
+        long totalStudents = ((Number) overview.get("totalStudents")).longValue();
+        long nonAnonymized = ((Number) overview.get("nonAnonymizedStudents")).longValue();
+        long anonymized = ((Number) overview.get("anonymizedStudents")).longValue();
+        long active = ((Number) overview.get("activeStudents")).longValue();
+        long inactive = ((Number) overview.get("inactiveStudents")).longValue();
+
+        // Le total des étudiants inscrits doit égaler non-anonymisés + anonymisés
+        assertThat(totalStudents).isEqualTo(nonAnonymized + anonymized);
+
+        // L'addition active + inactive + anonymized doit égaler le total des étudiants inscrits
+        assertThat(active + inactive + anonymized).isEqualTo(totalStudents);
+        assertThat(inactive).isGreaterThanOrEqualTo(0);
+    }
 }

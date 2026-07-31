@@ -200,8 +200,9 @@ Les promotions sont créées par un administrateur et sélectionnées par l'étu
 - **Permissions de désactivation / réactivation** :
   - **Administrateurs (`ADMIN`)** : peuvent désactiver et réactiver le staff (conseillers, admins) et les étudiants.
   - **Conseillers (`ADVISOR`)** : peuvent désactiver et réactiver **uniquement** des comptes étudiants (`STUDENT`).
-- **Conformité RGPD automatisée** : `GdprPurgeScheduler` exécute chaque nuit à minuit :
-  - Purge des codes OTP de vérification de plus de 24h (`GDPR_OTP_RETENTION_HOURS`).
-  - Anonymisation irréversible des étudiants désactivés depuis plus de 3 ans (`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`).
-  - Purge des journaux d'audit de plus de 365 jours (`GDPR_AUDIT_LOG_RETENTION_DAYS`).
+- **Conformité RGPD automatisée & Séparation Opérationnelle** : `GdprPurgeScheduler` et `GdprService` assurent la gestion RGPD :
+  - Anonymisation irréversible des étudiants (effacement nominatif, anonymisation email `@rgpd.deleted`, suppression du CV physique, détachement de la promotion `student.setPromotion(null)`).
+  - **Exclusion des vues opérationnelles** : Les comptes anonymisés sont automatiquement exclus des requêtes de listing d'étudiants, des recherches et des compteurs de promotion.
+  - **Réactivation et rappels strictement bloqués** : La réactivation (`PATCH /auth/users/{id}/reactivate`) et l'envoi de rappels (`POST /dashboard/students/{id}/notify`) sur des comptes anonymisés renvoient HTTP 403 `ANONYMIZED_USER_CANNOT_BE_REACTIVATED`.
+  - Purge nocturne à minuit : destruction des OTP de plus de 24h et des journaux d'audit de plus de 365 jours.
 

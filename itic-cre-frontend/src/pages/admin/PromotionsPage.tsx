@@ -112,9 +112,9 @@ export default function PromotionsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {t('dashboard.promotions.title')}
+            Gestion des <span className="itic-gradient-blue">Promotions</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {t('dashboard.promotions.subtitle', { count: totalElements })}
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function PromotionsPage() {
                       <td className="px-6 py-4 text-right space-x-1">
                         <button
                           onClick={() => setStudentsModal({ isOpen: true, promotion })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-xs font-semibold"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-xs font-semibold"
                           title={t('dashboard.promotions.actions.manage_students')}
                         >
                           <Users className="h-3.5 w-3.5" />

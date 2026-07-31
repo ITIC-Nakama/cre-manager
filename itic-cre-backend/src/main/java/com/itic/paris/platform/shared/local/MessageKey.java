@@ -141,7 +141,10 @@ public enum MessageKey {
             "An administrator account cannot be physically deleted to ensure system auditability."),
     ADMIN_PASSWORD_RESET_FORBIDDEN("admin-password-reset-forbidden",
             "La réinitialisation ou modification du mot de passe d'un administrateur par un tiers est interdite.",
-            "Resetting or modifying another administrator's password is forbidden.");
+            "Resetting or modifying another administrator's password is forbidden."),
+    ANONYMIZED_USER_CANNOT_BE_REACTIVATED("anonymized-user-cannot-be-reactivated",
+            "Un compte anonymisé RGPD ne peut pas être réactivé.",
+            "An anonymized GDPR account cannot be reactivated.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

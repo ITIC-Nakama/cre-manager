@@ -79,17 +79,17 @@ export default function VerifyEmailPage() {
                     <img src={logoDark} alt="ITIC Paris" className="h-12 w-auto dark:hidden" />
                     <img src={logoWhite} alt="ITIC Paris" className="h-12 w-auto hidden dark:block" />
                     <div className="space-y-2">
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                        <h1 className="text-3xl font-extrabold itic-gradient-blue">
                             {t('auth.verify_email.title')}
                         </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+                        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] leading-relaxed max-w-sm mx-auto">
                             {t('auth.verify_email.subtitle')}
                         </p>
                     </div>
                 </div>
 
                 {/* Card */}
-                <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50 p-10">
+                <div className="w-full bg-white dark:bg-[#15171f] rounded-2xl shadow-xl border border-slate-100 dark:border-[#333a51] p-10">
                     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (

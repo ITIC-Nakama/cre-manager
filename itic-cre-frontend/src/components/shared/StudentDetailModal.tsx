@@ -1,6 +1,7 @@
 import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../types/models/Dashboard';
+import { isAnonymizedStudent } from '../../utils/studentUtils';
 
 interface Props {
     student: StudentRow;
@@ -128,42 +129,56 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                     </div>
 
                     {/* Actions Footer */}
-                    {(onNotify || (isAdmin && onToggleActive)) && (
-                        <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                            {onNotify && (
-                                <button
-                                    type="button"
-                                    onClick={() => { onClose(); onNotify(student); }}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
-                                >
-                                    <Mail className="h-3.5 w-3.5" />
-                                    <span>{t('dashboard.etudiants.actions.notify')}</span>
-                                </button>
-                            )}
+                    {(() => {
+                        const isAnonymized = isAnonymizedStudent(student);
+                        if (isAnonymized) {
+                            return (
+                                <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                                        <span>Compte anonymisé RGPD (non réactivable)</span>
+                                    </span>
+                                </div>
+                            );
+                        }
+                        if (!onNotify && (!isAdmin || !onToggleActive)) return null;
+                        return (
+                            <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                {onNotify && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onNotify(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                                    >
+                                        <Mail className="h-3.5 w-3.5" />
+                                        <span>{t('dashboard.etudiants.actions.notify')}</span>
+                                    </button>
+                                )}
 
-                            {isAdmin && onToggleActive && (
-                                student.accountActive ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => { onClose(); onToggleActive(student); }}
-                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
-                                    >
-                                        <UserX className="h-3.5 w-3.5" />
-                                        <span>{t('dashboard.etudiants.actions.deactivate')}</span>
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => { onClose(); onToggleActive(student); }}
-                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
-                                    >
-                                        <UserCheck className="h-3.5 w-3.5" />
-                                        <span>{t('dashboard.etudiants.actions.reactivate')}</span>
-                                    </button>
-                                )
-                            )}
-                        </div>
-                    )}
+                                {isAdmin && onToggleActive && (
+                                    student.accountActive ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => { onClose(); onToggleActive(student); }}
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
+                                        >
+                                            <UserX className="h-3.5 w-3.5" />
+                                            <span>{t('dashboard.etudiants.actions.deactivate')}</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => { onClose(); onToggleActive(student); }}
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                                        >
+                                            <UserCheck className="h-3.5 w-3.5" />
+                                            <span>{t('dashboard.etudiants.actions.reactivate')}</span>
+                                        </button>
+                                    )
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
         </div>

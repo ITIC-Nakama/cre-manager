@@ -41,9 +41,9 @@ export default function CandidaturesListPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        {t('dashboard.candidatures.student.title')}
+                        Mes <span className="itic-gradient-blue">Candidatures</span>
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                         {t('dashboard.candidatures.student.subtitle', { count: sorted.length })}
                     </p>
                 </div>

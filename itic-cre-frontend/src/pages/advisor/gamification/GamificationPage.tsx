@@ -132,10 +132,10 @@ export default function GamificationPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-          <Trophy className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
-          {t('dashboard.gamification.title')}
+          <Trophy className="h-7 w-7 text-[#4D84FF]" />
+          Centre de <span className="itic-gradient-blue">Gamification</span>
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
           {t('dashboard.gamification.subtitle')}
         </p>
       </div>

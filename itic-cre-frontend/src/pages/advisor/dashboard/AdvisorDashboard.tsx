@@ -38,9 +38,9 @@ export default function AdvisorDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {t('dashboard.advisor.greeting', { name: firstName })} 👋
+            Bonjour, <span className="itic-gradient-warm">{firstName}</span> 👋
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
             {t('dashboard.advisor.subtitle')}
           </p>
         </div>

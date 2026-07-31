@@ -41,6 +41,22 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Suppression d'un conseiller** : si des données lui sont rattachées (commentaires CV, offres d'emploi créées, articles créés, catégories de compétences créées), le compte est **désactivé** (`active = false`) au lieu d'être supprimé. La suppression définitive n'a lieu que si **aucune donnée associée** n'existe.
 - **Coupure de session** : le flag `active` est vérifié **à chaque requête authentifiée** dans le filtre JWT ; un compte désactivé perd l'accès dès sa prochaine requête.
 
+### Anonymisation RGPD & Distinction Portefeuille vs Activité
+- **Effacement nominatif** : L'anonymisation RGPD (`GdprService`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
+- **Règle de filtrage selon le type de statistique** :
+  - **1. Statistiques "Portefeuille" & Comptage de Personnes** (`email NOT LIKE '%@rgpd.deleted'`) :
+    - S'applique aux listings d'étudiants, à la recherche par promotion, au total d'étudiants à coacher et au portefeuille actif d'un conseiller.
+    - Un étudiant anonymisé/parti ne fait plus partie du portefeuille actif d'accompagnement et doit être **exclu**.
+  - **2. Statistiques "Activité" & Événements** (Pas de filtre d'anonymisation) :
+    - S'applique aux métriques globales d'activité : volume de candidatures suivies, historiques de transitions de statut (`ApplicationStatusHistory`), taux de placement/conversion.
+    - L'anonymisation efface l'identité nominative mais conserve les données d'activité. Les candidatures des comptes anonymisés **restent comptabilisées** dans les indicateurs d'activité du conseiller afin de préserver l'exactitude des métriques sans fausser les volumes historiques.
+- **Rendu dans l'interface** : La ligne *"Anonyme Utilisateur RGPD"* ne s'affiche jamais dans le tableau des personnes, mais ses candidatures passées continuent d'alimenter les widgets d'activité agrégée du conseiller (sans lien cliquable vers l'identité).
+- **Filtre optionnel d'Audit DPO (Réservé `ADMIN`)** :
+  - Un filtre case à cocher *"Afficher les comptes supprimés (RGPD)"* (`includeAnonymized=true`) est mis à disposition uniquement pour le rôle `ADMIN` à des fins de contrôle/traçabilité DPO.
+  - Lorsqu'il est coché, les comptes anonymisés apparaissent dans la table avec une ligne ombrée et un badge ambre `Supprimé (RGPD)`. Aucun bouton d'action opérationnel (ni relance, ni désactivation, ni réactivation) n'est proposé sur ces lignes.
+- **Réactivation et notifications interdites** :
+  - La réactivation via `PATCH /auth/users/{id}/reactivate` et l'envoi de rappels via `POST /dashboard/students/{id}/notify` sont **strictement bloqués** en backend (HTTP 403 `ANONYMIZED_USER_CANNOT_BE_REACTIVATED`).
+
 ### Autorisation sur la mise à jour de profil
 - `PUT /auth/users/{id}` (modifier le profil d'un **autre** utilisateur) est réservé à `ADMIN` (faille IDOR corrigée).
 - `PUT /auth/users/me` (modifier son **propre** profil) n'a pas de restriction de rôle — accessible à tout utilisateur connecté, scoping fait via l'utilisateur courant.

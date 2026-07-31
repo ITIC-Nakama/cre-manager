@@ -70,40 +70,40 @@ export default function RegisterPage() {
 
             {/* ── Left panel ─────────────────────────────────────────── */}
             <div className="hidden lg:flex w-[44%] flex-col relative overflow-hidden
-                bg-gradient-to-br from-[#3f74ff] via-[#2e63f0] to-[#1a3fbf]">
+                bg-gradient-to-br from-[#0d0f16] via-[#15171f] to-[#020203] border-r border-[#333a51]">
 
                 {/* Animated background blobs */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/35 blur-xl ring-1 ring-white/40 animate-blob-1 pointer-events-none" />
-                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-white/30 blur-xl ring-1 ring-white/35 animate-blob-2 pointer-events-none" />
-                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-white/35 blur-xl ring-1 ring-white/40 animate-blob-3 pointer-events-none" />
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#d95e3e]/20 blur-3xl animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-[#fbbb07]/15 blur-3xl animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-[#FFB5E2]/20 blur-3xl animate-blob-3 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col justify-between h-full p-12">
 
                     {/* Logo */}
                     <div>
-                        <div className="bg-white rounded px-5 py-4 inline-flex items-center shadow-sm">
-                            <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto" />
+                        <div className="bg-[#15171f] border border-[#333a51] rounded px-5 py-4 inline-flex items-center shadow-sm">
+                            <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto" />
                         </div>
-                        <p className="text-white/60 text-sm mt-3">{t('auth.register.portal_subtitle')}</p>
+                        <p className="text-[#9aa0a6] text-sm mt-3">{t('auth.register.portal_subtitle')}</p>
                     </div>
 
                     {/* Headline */}
                     <div>
-                        <h1 className="text-4xl font-bold text-white leading-tight mb-5">
+                        <h1 className="text-4xl font-extrabold leading-tight mb-5 itic-gradient-warm">
                             {t('auth.register.hero_title')}
                         </h1>
-                        <p className="text-white/75 text-base leading-relaxed max-w-xs">
+                        <p className="text-[#9aa0a6] text-base leading-relaxed max-w-xs">
                             {t('auth.register.hero_description')}
                         </p>
                     </div>
 
                     {/* Help box */}
-                    <div className="rounded-2xl bg-white/15 border border-white/20 p-5">
+                    <div className="rounded-2xl bg-[#15171f]/80 border border-[#333a51] p-5">
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.register.help_title')}</p>
-                        <p className="text-white/70 text-sm">
+                        <p className="text-[#9aa0a6] text-sm">
                             {t('auth.register.help_contact')}{' '}
                             <a href="mailto:pedagogie@iticparis.com"
-                                className="text-white underline underline-offset-2 hover:text-white/80 transition-colors">
+                                className="text-[#D7C4FF] underline underline-offset-2 hover:opacity-80 transition-opacity">
                                 pedagogie@iticparis.com
                             </a>
                         </p>
@@ -112,16 +112,16 @@ export default function RegisterPage() {
             </div>
 
             {/* ── Right panel ────────────────────────────────────────── */}
-            <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative">
+            <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative bg-[#020203]">
 
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#3f74ff]/12 blur-2xl animate-blob-1" />
-                    <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-400/10 blur-2xl animate-blob-2" />
+                    <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#4D84FF]/10 blur-3xl animate-blob-1" />
+                    <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-[#D7C4FF]/10 blur-3xl animate-blob-2" />
                 </div>
 
                 <div className="w-full max-w-xl relative z-10
-                    bg-white dark:bg-slate-800
-                    rounded-2xl shadow-xl border border-slate-100 dark:border-slate-600/50
+                    bg-white dark:bg-[#15171f]
+                    rounded-2xl shadow-xl border border-slate-100 dark:border-[#333a51]
                     p-8 lg:p-12">
 
                     {/* Mobile logo */}
@@ -132,10 +132,10 @@ export default function RegisterPage() {
 
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                        <h2 className="text-3xl font-extrabold itic-gradient-blue mb-2">
                             {t('auth.register.register_title')}
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        <p className="text-slate-500 dark:text-[#9aa0a6] text-sm">
                             {t('auth.register.register_subtitle')}
                         </p>
                     </div>
@@ -306,11 +306,11 @@ export default function RegisterPage() {
                                 />
                                 <span className="text-xs text-slate-600 dark:text-slate-400 leading-normal">
                                     {t('auth.register.privacy_label')}{' '}
-                                    <Link to="/privacy" target="_blank" className="text-[#3f74ff] font-medium hover:underline">
+                                    <Link to="/privacy" target="_blank" className="text-[#FFB5E2] font-medium hover:underline">
                                         {t('auth.register.privacy_link')}
                                     </Link>{' '}
                                     {t('auth.register.terms_label') && `${t('auth.register.terms_label').toLowerCase()} `}
-                                    <Link to="/terms" target="_blank" className="text-[#3f74ff] font-medium hover:underline">
+                                    <Link to="/terms" target="_blank" className="text-[#FFB5E2] font-medium hover:underline">
                                         {t('auth.register.terms_link')}
                                     </Link>.
                                 </span>
@@ -325,21 +325,20 @@ export default function RegisterPage() {
                             type="submit"
                             disabled={isPending}
                             className="w-full flex items-center justify-center gap-2
-                                bg-[#3f74ff] hover:bg-[#2a5de5] active:bg-[#1e4fd8]
-                                text-white font-semibold py-3 rounded-xl
-                                focus:outline-none focus:ring-2 focus:ring-[#3f74ff]/40 focus:ring-offset-2
-                                transition-all duration-200 hover:shadow-lg hover:shadow-[#3f74ff]/25
+                                btn-itic-primary py-3 rounded-xl
+                                focus:outline-none focus:ring-2 focus:ring-[#d95e3e]/40
+                                transition-all duration-200
                                 disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
                         >
-                            <span>{isPending ? t('auth.register.creating') : t('auth.register.submit_button')}</span>
-                            {!isPending && <ArrowRight className="h-4 w-4" />}
+                            <span className="text-[#020203] font-bold">{isPending ? t('auth.register.creating') : t('auth.register.submit_button')}</span>
+                            {!isPending && <ArrowRight className="h-4 w-4 text-[#020203]" />}
                         </Button>
 
                         {/* Links */}
                         <div className="flex flex-col items-center gap-2 pt-2 text-center">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
                                 {t('auth.register.have_account')}{' '}
-                                <Link to="/login" className="text-[#3f74ff] hover:underline font-medium">
+                                <Link to="/login" className="text-[#fbbb07] hover:underline font-medium">
                                     {t('auth.register.login_link')}
                                 </Link>
                             </p>

@@ -278,6 +278,10 @@ public class UserProfileService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
+        if (user.isAnonymized()) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ANONYMIZED_USER_CANNOT_BE_REACTIVATED);
+        }
+
         RoleEnum actorRole = UserMapper.roleOf(actor);
         RoleEnum targetRole = UserMapper.roleOf(user);
 

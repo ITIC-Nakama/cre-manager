@@ -26,6 +26,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.itic.paris.platform.auth.model.Promotion;
+import com.itic.paris.platform.auth.repository.PromotionRepository;
+import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.model.ApplicationStatus;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -42,6 +49,15 @@ public class GdprIntegrationTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApplicationStatusRepository applicationStatusRepository;
 
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
@@ -116,5 +132,40 @@ public class GdprIntegrationTest {
         mockMvc.perform(delete("/auth/users/" + testStudent.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testAnonymizeUser_PreservesPromotionForActivityStatsButExcludesFromPortfolioCount() throws Exception {
+        Promotion promo = new Promotion();
+        promo.setName("Bachelor Dev 2026");
+        promo.setYear("2026");
+        promo = promotionRepository.save(promo);
+
+        testStudent.setPromotion(promo);
+        studentRepository.save(testStudent);
+
+        ApplicationStatus status = applicationStatusRepository.findAll().get(0);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Capgemini");
+        app.setPoste("Développeur Java");
+        app.setStatus(status);
+        applicationRepository.save(app);
+
+        // Anonymise le compte
+        mockMvc.perform(delete("/gdpr/delete-account")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        Student anonymizedStudent = studentRepository.findById(testStudent.getId()).orElseThrow();
+        // La promotion reste conservée pour que les stats d'activité de la promotion ne soient pas perdues
+        assertThat(anonymizedStudent.getPromotion()).isNotNull();
+        assertThat(anonymizedStudent.getPromotion().getId()).isEqualTo(promo.getId());
+
+        // Les candidatures de la promotion incluent toujours la candidature de l'anonymisé
+        assertThat(applicationRepository.countByStudentPromotionId(promo.getId())).isEqualTo(1);
+
+        // Le comptage de portefeuille étudiant de la promotion l'exclut bien
+        assertThat(studentRepository.countByPromotionId(promo.getId())).isEqualTo(0);
     }
 }

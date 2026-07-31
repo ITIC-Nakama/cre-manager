@@ -17,6 +17,7 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
     if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
     if (params.promotionId)               query.promotionId = params.promotionId;
+    if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }

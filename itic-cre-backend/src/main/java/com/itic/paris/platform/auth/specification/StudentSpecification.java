@@ -26,6 +26,9 @@ public class StudentSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            // Exclude RGPD anonymized accounts
+            predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
+
             // Active student filter
             if (Boolean.TRUE.equals(activeStudentsOnly)) {
                 predicates.add(cb.isTrue(root.get("active")));
@@ -92,8 +95,26 @@ public class StudentSpecification {
             Boolean hasStale,
             Instant staleThreshold
     ) {
+        return withStudentListFilters(promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
+    }
+
+    public static Specification<Student> withStudentListFilters(
+            UUID promotionId,
+            String search,
+            Boolean isActive,
+            Instant inactiveThreshold,
+            Boolean hasCv,
+            Boolean hasStale,
+            Instant staleThreshold,
+            Boolean includeAnonymized
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Exclude RGPD anonymized accounts unless explicitly requested by an admin
+            if (!Boolean.TRUE.equals(includeAnonymized)) {
+                predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
+            }
 
             // Promotion filter
             if (promotionId != null) {

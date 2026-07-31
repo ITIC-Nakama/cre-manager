@@ -39,7 +39,7 @@ export default function SupervisorLayout() {
 
   return (
     <RequireAuth allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
-      <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main className="flex-1 overflow-y-auto h-full pt-16 lg:pt-0">
           <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-8 sm:px-6 sm:py-6 lg:px-8 lg:py-8">

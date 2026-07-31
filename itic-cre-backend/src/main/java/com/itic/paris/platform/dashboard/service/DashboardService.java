@@ -56,17 +56,19 @@ public class DashboardService {
     // ─── Overview ────────────────────────────────────────────────────────────
 
     public Map<String, Object> getOverview() {
-        long totalStudents = studentRepository.count();
+        long nonAnonymizedStudents = studentRepository.countNonAnonymizedStudents();
+        long anonymizedStudents = studentRepository.countAnonymizedStudents();
+        long totalStudents = nonAnonymizedStudents + anonymizedStudents;
         long totalApplications = applicationRepository.count();
         long totalCvs = cvRepository.count();
         double averageXp = studentRepository.averageXp();
 
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
-        long activeStudents = studentRepository.countByLastActivityAfter(inactiveThreshold);
-        long inactiveStudents = totalStudents - activeStudents;
+        long activeStudents = studentRepository.countByLastActivityAfterAndNonAnonymized(inactiveThreshold);
+        long inactiveStudents = Math.max(0, nonAnonymizedStudents - activeStudents);
 
         long studentsWithCvCount = cvRepository.countStudentsWithCv();
-        long studentsWithoutCv = totalStudents - studentsWithCvCount;
+        long studentsWithoutCv = Math.max(0, nonAnonymizedStudents - studentsWithCvCount);
 
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         long staleApplicationsCount = applicationRepository.countStaleApplications(staleThreshold);
@@ -100,6 +102,8 @@ public class DashboardService {
 
         Map<String, Object> overview = new LinkedHashMap<>();
         overview.put("totalStudents", totalStudents);
+        overview.put("nonAnonymizedStudents", nonAnonymizedStudents);
+        overview.put("anonymizedStudents", anonymizedStudents);
         overview.put("totalApplications", totalApplications);
         overview.put("totalCvs", totalCvs);
         overview.put("averageXp", Math.round(averageXp));
@@ -182,12 +186,12 @@ public class DashboardService {
 
     public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
                                                      Boolean isActive, Boolean hasCv, Boolean hasStale,
-                                                     Pageable pageable) {
+                                                     Boolean includeAnonymized, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
         Specification<Student> spec = StudentSpecification.withStudentListFilters(
-                promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold
+                promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
         );
         Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
@@ -232,6 +236,7 @@ public class DashboardService {
             row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
             row.put("staleApplicationCount", staleCount);
             row.put("hasCv", cvPresent);
+            row.put("isAnonymized", student.isAnonymized());
             return row;
         }).toList();
 
@@ -256,6 +261,7 @@ public class DashboardService {
             studentRow.put("firstName", student.getFirstName());
             studentRow.put("lastName", student.getLastName());
             studentRow.put("email", student.getEmail());
+            studentRow.put("isAnonymized", student.isAnonymized());
             studentRow.put("profilePicture", student.getProfilePicture() != null
                     ? cloudStorage.getFile(student.getProfilePicture())
                     : null);
@@ -341,6 +347,7 @@ public class DashboardService {
             group.put("firstName", student.getFirstName());
             group.put("lastName", student.getLastName());
             group.put("email", student.getEmail());
+            group.put("isAnonymized", student.isAnonymized());
             group.put("profilePicture", student.getProfilePicture() != null
                     ? cloudStorage.getFile(student.getProfilePicture())
                     : null);
@@ -426,6 +433,7 @@ public class DashboardService {
         detail.put("firstName", student.getFirstName());
         detail.put("lastName", student.getLastName());
         detail.put("email", student.getEmail());
+        detail.put("isAnonymized", student.isAnonymized());
         detail.put("phoneNumber", student.getPhoneNumber());
         detail.put("emailVerified", student.isEmailVerified());
         detail.put("promotion", student.getPromotion() != null
@@ -451,6 +459,10 @@ public class DashboardService {
     public void notifyStudent(UUID studentId, String customMessage) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+
+        if (student.isAnonymized()) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ANONYMIZED_USER_CANNOT_BE_REACTIVATED);
+        }
 
         UUID advisorId = SecurityContextHelper.currentUserId();
         User advisor = advisorId != null

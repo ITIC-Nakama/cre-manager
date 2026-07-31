@@ -9,7 +9,7 @@ import {
 import {
     Search, SlidersHorizontal, Eye, Loader2,
     AlertCircle, Star, FileText, ChevronUp, ChevronDown,
-    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap,
+    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap, ShieldAlert,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,7 @@ import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
 import { useCVByStudent, useCVStatuts } from '../../../hooks/useCV';
+import { isAnonymizedStudent } from '../../../utils/studentUtils';
 
 type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
 
@@ -57,6 +58,7 @@ export default function EtudiantsPage() {
     const notifyMutation = useNotifyStudent();
     const deactivateMutation = useDeactivateStudent();
     const reactivateMutation = useReactivateStudent();
+    const [includeAnonymized, setIncludeAnonymized] = useState(false);
     const { data: promotions } = usePromotions();
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
@@ -87,15 +89,26 @@ export default function EtudiantsPage() {
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
             id: 'name',
             header: t('dashboard.etudiants.table.student'),
-            cell: ({ row }) => (
-                <div className="max-w-[200px]">
-                    <TruncatedText
-                        text={`${row.original.firstName} ${row.original.lastName}`}
-                        className="font-semibold text-slate-900 dark:text-white"
-                    />
-                    <TruncatedText text={row.original.email} className="text-xs text-slate-400" />
-                </div>
-            ),
+            cell: ({ row }) => {
+                const isAnon = isAnonymizedStudent(row.original);
+                return (
+                    <div className="max-w-[220px]">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <TruncatedText
+                                text={`${row.original.firstName} ${row.original.lastName}`}
+                                className={isAnon ? "font-semibold text-slate-500 dark:text-slate-400" : "font-semibold text-slate-900 dark:text-white"}
+                            />
+                            {isAnon && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <ShieldAlert className="h-3 w-3" />
+                                    Supprimé (RGPD)
+                                </span>
+                            )}
+                        </div>
+                        <TruncatedText text={row.original.email} className="text-xs text-slate-400 font-mono" />
+                    </div>
+                );
+            },
             enableSorting: false,
         }),
         col.accessor((row) => row.promotion?.nom ?? '', {
@@ -214,6 +227,7 @@ export default function EtudiantsPage() {
         hasCv: filterStatus === 'no-cv' ? false : undefined,
         hasStale: filterStatus === 'stale' ? true : undefined,
         promotionId: promotionFilter || undefined,
+        includeAnonymized: isAdmin ? includeAnonymized : false,
     };
 
     const { data, isLoading, isFetching } = useStudentList(params);
@@ -305,9 +319,9 @@ export default function EtudiantsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        {t('dashboard.etudiants.title')}
+                        Gestion des <span className="itic-gradient-blue">Étudiants</span>
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                         {t('dashboard.etudiants.subtitle', { count: totalElements })}
                     </p>
                 </div>
@@ -353,6 +367,21 @@ export default function EtudiantsPage() {
                     searchPlaceholder={t('dashboard.etudiants.promotion_search_placeholder')}
                     noResultsLabel={t('dashboard.etudiants.promotion_no_results')}
                 />
+                {isAdmin && (
+                    <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={includeAnonymized}
+                            onChange={(e) => {
+                                setIncludeAnonymized(e.target.checked);
+                                setPage(0);
+                            }}
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                        <span>{t('dashboard.etudiants.filter_show_anonymized')}</span>
+                    </label>
+                )}
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -398,40 +427,46 @@ export default function EtudiantsPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                table.getRowModel().rows.map((row) => (
-                                    <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                        {row.getVisibleCells().map((cell) => (
-                                            <td key={cell.id} className="px-4 py-3.5">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </td>
-                                        ))}
-                                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                                            <div className="inline-flex items-center justify-end gap-1">
-                                                {row.original.hasCv && (
+                                table.getRowModel().rows.map((row) => {
+                                    const isAnon = isAnonymizedStudent(row.original);
+                                    return (
+                                        <tr
+                                            key={row.id}
+                                            className={isAnon ? "bg-amber-50/30 dark:bg-amber-950/10 opacity-75 transition-colors" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <td key={cell.id} className="px-4 py-3.5">
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </td>
+                                            ))}
+                                            <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                                                <div className="inline-flex items-center justify-end gap-1">
+                                                    {!isAnon && row.original.hasCv && (
+                                                        <button
+                                                            onClick={() => setViewingCvStudentId(row.original.id)}
+                                                            disabled={studentCvLoading && viewingCvStudentId === row.original.id}
+                                                            className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer disabled:opacity-50"
+                                                            title={t('dashboard.etudiants.actions.view_cv', 'Voir CV')}
+                                                        >
+                                                            {studentCvLoading && viewingCvStudentId === row.original.id ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <FileText className="h-4 w-4" />
+                                                            )}
+                                                        </button>
+                                                    )}
                                                     <button
-                                                        onClick={() => setViewingCvStudentId(row.original.id)}
-                                                        disabled={studentCvLoading && viewingCvStudentId === row.original.id}
-                                                        className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer disabled:opacity-50"
-                                                        title={t('dashboard.etudiants.actions.view_cv', 'Voir CV')}
+                                                        onClick={() => setViewingStudent(row.original)}
+                                                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                                                        title={t('dashboard.etudiants.actions.view')}
                                                     >
-                                                        {studentCvLoading && viewingCvStudentId === row.original.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                        ) : (
-                                                            <FileText className="h-4 w-4" />
-                                                        )}
+                                                        <Eye className="h-4 w-4" />
                                                     </button>
-                                                )}
-                                                <button
-                                                    onClick={() => setViewingStudent(row.original)}
-                                                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
-                                                    title={t('dashboard.etudiants.actions.view')}
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

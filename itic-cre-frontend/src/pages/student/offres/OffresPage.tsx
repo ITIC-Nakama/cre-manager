@@ -91,9 +91,9 @@ export default function OffresPage() {
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {t('dashboard.offres.student_title')}
+                    Offres d'<span className="itic-gradient-blue">Emploi</span>
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                     {t('dashboard.offres.subtitle', { count: totalElements })}
                 </p>
             </div>

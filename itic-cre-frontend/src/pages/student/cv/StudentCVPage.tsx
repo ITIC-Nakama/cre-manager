@@ -107,9 +107,9 @@ export default function StudentCVPage() {
       {/* Titre */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          {t('studentCv.title', 'Mon CV Professionnel')}
+          Mon <span className="itic-gradient-blue">CV Professionnel</span>
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
           {t('studentCv.subtitle', 'Gérez votre CV et suivez sa validation par votre conseiller.')}
         </p>
       </div>

@@ -13,6 +13,8 @@ export interface AppByStatus {
 
 export interface DashboardOverview {
   totalStudents: number;
+  nonAnonymizedStudents?: number;
+  anonymizedStudents?: number;
   totalApplications: number;
   totalCvs: number;
   averageXp: number;
@@ -40,6 +42,7 @@ export interface StudentRow {
   applicationCount: number;
   staleApplicationCount: number;
   hasCv: boolean;
+  isAnonymized?: boolean;
 }
 
 export interface StudentPage {
@@ -57,6 +60,7 @@ export interface StudentListParams {
   hasCv?: boolean;
   hasStale?: boolean;
   promotionId?: string;
+  includeAnonymized?: boolean;
 }
 
 export type StudentFilter = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';

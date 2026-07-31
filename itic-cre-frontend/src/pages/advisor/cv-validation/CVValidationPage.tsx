@@ -150,9 +150,9 @@ export default function CVValidationPage() {
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {t('dashboard.cv.title', 'Validation des CV')}
+                    Validation des <span className="itic-gradient-blue">CVs</span>
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                     {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
                 </p>
             </div>

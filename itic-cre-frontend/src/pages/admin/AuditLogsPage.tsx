@@ -73,10 +73,10 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-indigo-500" />
-          {t('dashboard.audit_page.title')}
+          <ShieldCheck className="h-6 w-6 text-[#4D84FF]" />
+          Journaux d'<span className="itic-gradient-blue">Audit</span>
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
           {t('dashboard.audit_page.subtitle', { count: totalElements })}
         </p>
       </div>

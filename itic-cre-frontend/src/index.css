@@ -40,6 +40,28 @@
   --ts-duration-normal:  200ms;
   --ts-duration-slow:    250ms;
   --ts-duration-slower:  300ms;
+
+  /* ── ITIC Gradient — valeurs ITIC Paris avec fin progressive vers #FFB5E2 ── */
+  --itic-orange:     #E2782E;
+  --itic-grad-start:   #E2782E;
+  --itic-grad-mid1:    #fbbb07;
+  --itic-grad-mid2:    #ffda49;
+  --itic-grad-end:     #FFB5E2;
+
+  /* Couleurs accent secondaires */
+  --itic-mint:    #00F5A0;
+  --itic-cyan:    #00D9F6;
+  --itic-blue:    #1E51FF;
+  --itic-magenta: #A100F6;
+
+  /* ── ITIC Dark Mode surface tokens ── */
+  --itic-dark-bg:       #020203;
+  --itic-dark-surface:  #0d0f16;
+  --itic-dark-raised:   #15171f;
+  --itic-dark-hover:    #1e2130;
+  --itic-dark-border:   #333a51;
+  --itic-dark-text:     #ffffff;
+  --itic-dark-muted:    #9aa0a6;
 }
 
 html {
@@ -60,8 +82,8 @@ html, body {
 }
 
 html.dark body {
-  background-color: #1A1A2E;
-  color: #FFFFFF;
+  background-color: var(--itic-dark-bg);
+  color: var(--itic-dark-text);
 }
 
 @theme {
@@ -107,6 +129,236 @@ html.dark body {
   --color-background-900: #1A1A2E;
 }
 
+/* ─── ITIC Gradient Classes (Dégradés Officiels) ──────────────────────── */
+
+/* 
+  1. Dégradé Warm / Sunset :
+     Start: #E2782E | Mid: #FCBC0B | End: #FEB9D1
+*/
+.itic-gradient-warm,
+.itic-gradient-text-warm,
+.itic-gradient-text {
+  background: linear-gradient(90deg, #E2782E 0%, #FCBC0B 50%, #FEB9D1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.itic-bg-gradient-warm,
+.itic-gradient-bg {
+  background: linear-gradient(90deg, #E2782E 0%, #FCBC0B 50%, #FEB9D1 100%);
+}
+
+.itic-gradient-orange {
+  background: linear-gradient(90deg, #E2782E 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.bg-itic-orange {
+  background-color: #E2782E !important;
+}
+
+.text-itic-orange {
+  color: #E2782E !important;
+}
+
+.border-itic-orange {
+  border-color: #E2782E !important;
+}
+
+/* 
+  2. Dégradé Blue / Lavender :
+     Start: #4D84FF | End: #D7C4FF
+*/
+.itic-gradient-blue,
+.itic-gradient-text-blue,
+.itic-gradient-blue-pink {
+  background: linear-gradient(90deg, #4D84FF 0%, #D7C4FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.itic-bg-gradient-blue {
+  background: linear-gradient(90deg, #4D84FF 0%, #D7C4FF 100%);
+}
+
+/* ─── Boutons CTA ITIC ────────────────────────────────────────────────── */
+
+/* Bouton Primary ITIC (Dégradé Electric Blue → Violet → Lavender avec bords modérément arrondis) */
+.btn-itic-primary,
+.btn-itic-blue {
+  background: linear-gradient(90deg, #3B72FF 0%, #7C5CFF 50%, #D0C2FF 100%);
+  color: #ffffff !important;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-itic-primary:hover,
+.btn-itic-blue:hover {
+  opacity: 0.96;
+  box-shadow: 0 6px 24px rgba(59, 114, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Bouton Warm (Sunset Gradient) */
+.btn-itic-warm,
+.btn-itic-orange {
+  background: linear-gradient(90deg, #E2782E 0%, #FCBC0B 100%);
+  color: #ffffff;
+  font-weight: 700;
+  transition: all 0.2s ease-in-out;
+}
+.btn-itic-warm:hover,
+.btn-itic-orange:hover {
+  opacity: 0.94;
+  box-shadow: 0 4px 20px rgba(226, 120, 46, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Gradient accent mint→cyan (accents secondaires internes) */
+.itic-gradient-accent {
+  background: linear-gradient(90deg, var(--itic-mint) 0%, var(--itic-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fond dégradé mint→cyan */
+.itic-gradient-bg-accent {
+  background: linear-gradient(90deg, var(--itic-mint) 0%, var(--itic-cyan) 100%);
+}
+
+/* ── Sidebar : item actif en dark mode avec gradient ITIC ─────────── */
+.dark .sidebar-item-active {
+  background: rgba(77, 132, 255, 0.1);
+  background-image: linear-gradient(90deg, #4D84FF 0%, #D7C4FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Pour les labels texte avec gradient en dark, wrapper explicite */
+.dark .itic-nav-label {
+  background: linear-gradient(90deg, #4D84FF 0%, #D7C4FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Styles Globaux Dark Mode ITIC (Formulaires, Cartes, Modales, Tableaux, Composants) ─── */
+
+/* 1. Cartes & Surfaces de conteneurs */
+.dark .bg-white,
+.dark .bg-slate-800,
+.dark .bg-slate-900,
+.dark .bg-slate-950 {
+  background-color: #15171f !important;
+  border-color: #333a51 !important;
+  color: #ffffff;
+}
+
+/* 2. Harmonisation des bordures */
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-600,
+.dark .border-slate-700,
+.dark .border-slate-800,
+.dark .border-slate-900 {
+  border-color: #333a51 !important;
+}
+
+/* 3. Inputs, Selects et Textareas */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="search"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark input[type="date"],
+.dark select,
+.dark textarea {
+  background-color: #0d0f16 !important;
+  color: #ffffff !important;
+  border-color: #333a51 !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #4D84FF !important;
+  box-shadow: 0 0 0 2px rgba(77, 132, 255, 0.25) !important;
+  outline: none !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9aa0a6 !important;
+}
+
+.dark label {
+  color: #e2e8f0 !important;
+}
+
+/* 4. Tableaux */
+.dark table thead tr,
+.dark table thead th {
+  background-color: #0d0f16 !important;
+  border-bottom-color: #333a51 !important;
+  color: #9aa0a6 !important;
+}
+
+.dark table tbody tr {
+  background-color: #15171f !important;
+  border-bottom-color: #333a51 !important;
+  color: #ffffff !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: #1e2130 !important;
+}
+
+/* 5. Modales, Dialogues & Popovers */
+.dark [role="dialog"],
+.dark .modal-content {
+  background-color: #15171f !important;
+  border: 1px solid #333a51 !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 6. Titres h1 en Dark Mode (texte blanc par défaut, les mots clés utilisent itic-gradient-blue ou itic-gradient-warm) */
+.dark h1 {
+  color: #ffffff;
+}
+
+/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Style dégradé bleu-violet-lavande) */
+.dark button.bg-primary,
+.dark button.bg-indigo-600,
+.dark button.bg-blue-600,
+.dark button.bg-\[\#3f74ff\] {
+  background: linear-gradient(90deg, #3B72FF 0%, #7C5CFF 50%, #D0C2FF 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  border: none !important;
+}
+
+.dark button.bg-primary:hover,
+.dark button.bg-indigo-600:hover,
+.dark button.bg-blue-600:hover,
+.dark button.bg-\[\#3f74ff\]:hover {
+  opacity: 0.96 !important;
+  box-shadow: 0 6px 24px rgba(59, 114, 255, 0.4) !important;
+}
+
 /* ─── Background Blob Animations ────────────────────────────────────── */
 @keyframes blobFloat1 {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
@@ -150,8 +402,9 @@ html.dark body {
   background-size: 400% 400%;
   animation: gradientShift 8s ease infinite;
 }
+/* Dark mode: fond animé aux couleurs ITIC profondes */
 .dark .animate-gradient-bg {
-  background: linear-gradient(-45deg, #0f172a, #1e293b, #131c2e, #1b2442, #0f172a);
+  background: linear-gradient(-45deg, #020203, #0d0f16, #070c14, #0f1020, #020203);
   background-size: 400% 400%;
   animation: gradientShift 8s ease infinite;
 }
@@ -216,7 +469,3 @@ html.dark body {
 .animate-check-pop {
   animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-
-
-
-
