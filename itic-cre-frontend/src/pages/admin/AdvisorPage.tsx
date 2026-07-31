@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Loader2, Shield } from 'lucide-react';
+import { renderTitleWithGradient } from '../../utils/titleUtils';
+import { Plus, Search, Loader2, Shield, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -242,8 +243,9 @@ export default function AdvisorPage() {
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Gestion des <span className="itic-gradient-blue">{isAdminsTab ? 'Administrateurs' : 'Conseillers'}</span>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+            {renderTitleWithGradient(t(isAdminsTab ? 'dashboard.admins.title' : 'dashboard.advisors.title', isAdminsTab ? 'Gestion des Administrateurs' : 'Gestion des Conseillers'), 'itic-gradient-blue')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {t('dashboard.conseillers.subtitle_other', { count: totalElements })}

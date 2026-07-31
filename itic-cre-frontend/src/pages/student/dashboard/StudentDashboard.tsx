@@ -2,6 +2,7 @@ import { useUserStore } from '../../../store/UserStore';
 import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
   Briefcase,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Medal,
   Loader2,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
 
 function formatDate(iso: string) {
@@ -54,8 +56,9 @@ export default function StudentDashboard() {
     <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Welcome header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Bonjour, <span className="itic-gradient-warm">{firstName}</span> 👋
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
           {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}

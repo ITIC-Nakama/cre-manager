@@ -1,7 +1,8 @@
-import { Plus, FileText, Briefcase, AlertCircle } from 'lucide-react';
+import { Plus, FileText, Briefcase, AlertCircle, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
@@ -33,21 +34,22 @@ export default function AdvisorDashboard() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fadeIn max-w-7xl mx-auto">
+    <div className="flex flex-col gap-6 animate-fadeIn">
       {/* Header & Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Bonjour, <span className="itic-gradient-warm">{firstName}</span> 👋
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <LayoutDashboard className="h-7 w-7 text-[#E2762F] shrink-0" />
+            {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue')}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {t('dashboard.advisor.subtitle')}
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
-            onClick={() => navigate('/supervisor/offres')}
+            onClick={() => navigate('/supervisor/offres', { state: { openCreateModal: true } })}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="h-4 w-4" />

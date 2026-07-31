@@ -9,10 +9,11 @@ import {
 import {
     Search, SlidersHorizontal, Eye, Loader2,
     AlertCircle, Star, FileText, ChevronUp, ChevronDown,
-    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap, ShieldAlert,
+    ChevronsUpDown, FileSpreadsheet, ChevronLeft, ChevronRight, GraduationCap, ShieldAlert, Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions } from '../../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../../utils/csvExport';
@@ -318,8 +319,9 @@ export default function EtudiantsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        Gestion des <span className="itic-gradient-blue">Étudiants</span>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <Users className="h-7 w-7 text-[#E2762F] shrink-0" />
+                        {renderTitleWithGradient(t('dashboard.etudiants.title', 'Gestion des Étudiants'), 'itic-gradient-blue')}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                         {t('dashboard.etudiants.subtitle', { count: totalElements })}

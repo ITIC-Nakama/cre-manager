@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../utils/titleUtils';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, X, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { LogOut, X, ShieldAlert, Eye, EyeOff, Settings } from 'lucide-react';
 import { useUserStore } from '../../store/UserStore';
 import { toast } from 'sonner';
 import ProfileCard from '../../components/dashboard/parametres/ProfileCard';
@@ -74,14 +75,15 @@ export default function ParametresPage() {
   };
 
   return (
-    <div id="parametres-page" className="space-y-6 max-w-4xl mx-auto  animate-fadeIn text-slate-800 dark:text-slate-100">
+    <div id="parametres-page" className="flex flex-col gap-6 animate-fadeIn">
 
       {/* Page header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-          Paramètres du <span className="itic-gradient-blue">Compte</span>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <Settings className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.pages.parametres.title', 'Paramètres du Compte'), 'itic-gradient-blue')}
         </h1>
-        <p className="text-slate-500 dark:text-[#9aa0a6] font-medium">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
           {t('dashboard.pages.parametres.description')}
         </p>
       </div>

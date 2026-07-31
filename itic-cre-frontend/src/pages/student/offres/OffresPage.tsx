@@ -1,9 +1,10 @@
 import { useState, useRef, useMemo } from 'react';
 import {
-    Search, Loader2, Briefcase, MapPin, FileSignature,
+    Search, Loader2, Briefcase, MapPin, FileSignature, Building2,
     CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, UserMinus,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
 import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer, useWithdrawJobApplication } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
@@ -90,8 +91,9 @@ export default function OffresPage() {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    Offres d'<span className="itic-gradient-blue">Emploi</span>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Building2 className="h-7 w-7 text-[#E2762F] shrink-0" />
+                    {renderTitleWithGradient(t('dashboard.student_offres.title', "Offres d'Emploi"), 'itic-gradient-blue')}
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                     {t('dashboard.offres.subtitle', { count: totalElements })}

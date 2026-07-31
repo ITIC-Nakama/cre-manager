@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../utils/titleUtils';
 import { Plus, Loader2, GraduationCap, Pencil, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -111,8 +112,9 @@ export default function PromotionsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Gestion des <span className="itic-gradient-blue">Promotions</span>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <GraduationCap className="h-7 w-7 text-[#E2762F] shrink-0" />
+            {renderTitleWithGradient(t('dashboard.promotions.title', 'Gestion des Promotions'), 'itic-gradient-blue')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {t('dashboard.promotions.subtitle', { count: totalElements })}

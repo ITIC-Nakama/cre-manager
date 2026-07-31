@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Trophy, Layers, BookOpen } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, Maximize, Trophy, Layers, BookOpen, BrainCircuit } from 'lucide-react';
 import { useSkillTreeProgress } from '../../../hooks/useSkills';
 import SkillNode from './components/SkillNode';
 
@@ -66,8 +67,9 @@ export default function SkillTreePage() {
     <div className="flex flex-col gap-6  animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Arbre des <span className="itic-gradient-blue">Connaissances</span>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <BrainCircuit className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.connaissances.tree.title', 'Arbre des Connaissances'), 'itic-gradient-blue')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
           {t('dashboard.connaissances.tree.subtitle')}

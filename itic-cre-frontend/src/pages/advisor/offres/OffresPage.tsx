@@ -1,4 +1,6 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     useReactTable,
     getCoreRowModel,
@@ -6,7 +8,7 @@ import {
     createColumnHelper,
 } from '@tanstack/react-table';
 import {
-    Search, Loader2, Briefcase, Plus, Pencil, Trash2,
+    Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
     Power, PowerOff, Users, ExternalLink, Eye,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +35,7 @@ function formatDate(iso: string) {
 
 export default function OffresPage() {
     const { t } = useTranslation();
+    const location = useLocation();
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -40,6 +43,15 @@ export default function OffresPage() {
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (location.state?.openCreateModal || new URLSearchParams(location.search).get('create') === 'true') {
+            setEditingOffer(null);
+            setIsReadOnly(false);
+            setFormOpen(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     const params = { page, size: PAGE_SIZE, search: debouncedSearch || undefined };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
@@ -192,8 +204,9 @@ export default function OffresPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        {t('dashboard.offres.title')}
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <Building2 className="h-7 w-7 text-[#E2762F] shrink-0" />
+                        {renderTitleWithGradient(t('dashboard.offres.title', "Gestion des Offres d'Emploi"), 'itic-gradient-blue')}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                         {t('dashboard.offres.subtitle', { count: totalElements })}

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../utils/titleUtils';
 import { Search, Loader2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 
 import { useAuditLogs } from '../../hooks/useAudit';
@@ -72,9 +73,9 @@ export default function AuditLogsPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-[#4D84FF]" />
-          Journaux d'<span className="itic-gradient-blue">Audit</span>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.audit.title', "Journaux d'Audit"), 'itic-gradient-blue')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
           {t('dashboard.audit_page.subtitle', { count: totalElements })}

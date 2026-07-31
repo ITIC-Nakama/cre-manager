@@ -89,14 +89,14 @@ html.dark body {
 @theme {
   --font-sans: 'Roboto', sans-serif;
 
-  /* Primary: TechSchool Blue */
-  --color-primary:     #3f74ff;
+  /* Primary: TechSchool Dominant Blue (#3F74FF) */
+  --color-primary:     #3F74FF;
   --color-primary-50:  #eef3ff;
   --color-primary-100: #d4e1ff;
   --color-primary-200: #adc4ff;
   --color-primary-300: #78a2ff;
   --color-primary-400: #4d7eff;
-  --color-primary-500: #3f74ff;
+  --color-primary-500: #3F74FF;
   --color-primary-600: #2a5de5;
   --color-primary-700: #1d47c2;
   --color-primary-800: #15349a;
@@ -190,35 +190,39 @@ html.dark body {
 
 /* ─── Boutons CTA ITIC ────────────────────────────────────────────────── */
 
-/* Bouton Primary ITIC (Dégradé Electric Blue → Violet → Lavender avec bords modérément arrondis) */
+/* Bouton Primary ITIC (Dominant Blue #3B72FF avec coins 11px) */
 .btn-itic-primary,
 .btn-itic-blue {
-  background: linear-gradient(90deg, #3B72FF 0%, #7C5CFF 50%, #D0C2FF 100%);
+  background: #3B72FF;
+  background: linear-gradient(90deg, #3B72FF 0%, #5B8DEF 100%);
   color: #ffffff !important;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 11px;
   border: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-itic-primary:hover,
 .btn-itic-blue:hover {
   opacity: 0.96;
-  box-shadow: 0 6px 24px rgba(59, 114, 255, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 114, 255, 0.4);
   transform: translateY(-1px);
 }
 
-/* Bouton Warm (Sunset Gradient) */
+/* Bouton Warm / Orange ITIC */
 .btn-itic-warm,
 .btn-itic-orange {
-  background: linear-gradient(90deg, #E2782E 0%, #FCBC0B 100%);
-  color: #ffffff;
+  background: #E2762F;
+  background: linear-gradient(90deg, #E2762F 0%, #F58B44 100%);
+  color: #ffffff !important;
   font-weight: 700;
-  transition: all 0.2s ease-in-out;
+  border-radius: 11px;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-itic-warm:hover,
 .btn-itic-orange:hover {
-  opacity: 0.94;
-  box-shadow: 0 4px 20px rgba(226, 120, 46, 0.4);
+  opacity: 0.96;
+  box-shadow: 0 6px 20px rgba(226, 118, 47, 0.35);
   transform: translateY(-1px);
 }
 
@@ -339,15 +343,16 @@ html.dark body {
   color: #ffffff;
 }
 
-/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Style dégradé bleu-violet-lavande) */
+/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B72FF) */
 .dark button.bg-primary,
 .dark button.bg-indigo-600,
 .dark button.bg-blue-600,
 .dark button.bg-\[\#3f74ff\] {
-  background: linear-gradient(90deg, #3B72FF 0%, #7C5CFF 50%, #D0C2FF 100%) !important;
+  background: #3B72FF !important;
+  background: linear-gradient(90deg, #3B72FF 0%, #5B8DEF 100%) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: 11px !important;
   border: none !important;
 }
 
@@ -356,7 +361,7 @@ html.dark body {
 .dark button.bg-blue-600:hover,
 .dark button.bg-\[\#3f74ff\]:hover {
   opacity: 0.96 !important;
-  box-shadow: 0 6px 24px rgba(59, 114, 255, 0.4) !important;
+  box-shadow: 0 6px 20px rgba(59, 114, 255, 0.4) !important;
 }
 
 /* ─── Background Blob Animations ────────────────────────────────────── */
@@ -386,27 +391,29 @@ html.dark body {
 }
 
 .animate-blob-1 {
-  animation: blobFloat1 8s  ease-in-out infinite;
+  animation: blobFloat1 8s ease-in-out infinite;
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .animate-blob-2 {
   animation: blobFloat2 11s ease-in-out infinite;
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .animate-blob-3 {
-  animation: blobFloat3 6s  ease-in-out infinite;
+  animation: blobFloat3 6s ease-in-out infinite;
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .animate-gradient-bg {
-  background: linear-gradient(-45deg, #f8f9ff, #eef2ff, #e8edff, #f0f5ff, #f8f9ff);
-  background-size: 400% 400%;
-  animation: gradientShift 8s ease infinite;
+  background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 50%, #f0f5ff 100%);
 }
-/* Dark mode: fond animé aux couleurs ITIC profondes */
+/* Dark mode: fond élégant aux couleurs ITIC profondes */
 .dark .animate-gradient-bg {
-  background: linear-gradient(-45deg, #020203, #0d0f16, #070c14, #0f1020, #020203);
-  background-size: 400% 400%;
-  animation: gradientShift 8s ease infinite;
+  background: linear-gradient(135deg, #020203 0%, #0d0f16 50%, #070c14 100%);
 }
 
 /* ─── Entrance Animations ───────────────────────────────────────────── */

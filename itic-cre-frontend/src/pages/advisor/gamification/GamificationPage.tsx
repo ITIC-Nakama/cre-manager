@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { Trophy, Plus, Award, ListChecks, FileCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+import { useUserStore } from '../../../store/UserStore';
+import { Role } from '../../../types/models/Auth';
 
 import {
   useGamificationConfigs,
@@ -24,6 +28,8 @@ import GradeModal from './components/GradeModal';
 
 export default function GamificationPage() {
   const { t } = useTranslation();
+  const user = useUserStore((state) => state.user);
+  const isAdmin = user?.role === Role.ADMIN;
 
   const { data: configs, isLoading: loadingConfigs } = useGamificationConfigs();
   const updateConfigMutation = useUpdateGamificationConfig();
@@ -52,54 +58,60 @@ export default function GamificationPage() {
   });
 
   const handleSaveConfig = async (id: string, data: { valeurXP: number; active: boolean }) => {
+    if (!isAdmin) return;
     setSavingId(id);
     try {
       await updateConfigMutation.mutateAsync({ id, data });
-      toast.success(t('dashboard.gamification.toast_config_success'));
+      toast.success(t('dashboard.gamification.toast_rule_updated'));
     } catch {
-      toast.error(t('dashboard.gamification.toast_config_error'));
+      toast.error(t('dashboard.gamification.toast_rule_update_error'));
     } finally {
       setSavingId(null);
     }
   };
 
   const handleSaveAppStatus = async (id: string, data: { gainXP: number }) => {
+    if (!isAdmin) return;
     setSavingId(`app-${id}`);
     try {
-      await updateAppStatusMutation.mutateAsync({ id, data });
-      toast.success(t('dashboard.gamification.toast_app_status_success'));
+      await updateAppStatusMutation.mutateAsync({ id, data: { gainXP: data.gainXP } });
+      toast.success(t('dashboard.gamification.toast_status_xp_updated'));
     } catch {
-      toast.error(t('dashboard.gamification.toast_app_status_error'));
+      toast.error(t('dashboard.gamification.toast_status_xp_update_error'));
     } finally {
       setSavingId(null);
     }
   };
 
   const handleSaveCvStatut = async (id: string, data: { gainXP: number }) => {
+    if (!isAdmin) return;
     setSavingId(`cv-${id}`);
     try {
-      await updateCvStatutMutation.mutateAsync({ id, data });
-      toast.success(t('dashboard.gamification.toast_cv_status_success'));
+      await updateCvStatutMutation.mutateAsync({ id, data: { gainXP: data.gainXP } });
+      toast.success(t('dashboard.gamification.toast_cv_xp_updated'));
     } catch {
-      toast.error(t('dashboard.gamification.toast_cv_status_error'));
+      toast.error(t('dashboard.gamification.toast_cv_xp_update_error'));
     } finally {
       setSavingId(null);
     }
   };
 
   const handleOpenCreateModal = () => {
+    if (!isAdmin) return;
     setModalMode('create');
     setSelectedGrade(undefined);
     setModalOpen(true);
   };
 
   const handleOpenEditModal = (grade: Grade) => {
+    if (!isAdmin) return;
     setModalMode('edit');
     setSelectedGrade(grade);
     setModalOpen(true);
   };
 
   const handleSaveGrade = async (data: { nom: string; xpMinimum: number; ordre: number; icone: string }) => {
+    if (!isAdmin) return;
     try {
       if (modalMode === 'create') {
         await createGradeMutation.mutateAsync(data);
@@ -115,6 +127,7 @@ export default function GamificationPage() {
   };
 
   const handleDeleteGradeConfirm = async () => {
+    if (!isAdmin) return;
     try {
       await deleteGradeMutation.mutateAsync(deleteConfirm.id);
       toast.success(t('dashboard.gamification.toast_grade_deleted'));
@@ -128,14 +141,14 @@ export default function GamificationPage() {
   const nextOrder = sortedGrades.length > 0 ? Math.max(...sortedGrades.map((g) => g.ordre)) + 1 : 1;
 
   return (
-    <div className="flex flex-col gap-10 pb-16 animate-fadeIn max-w-6xl mx-auto">
+    <div className="flex flex-col gap-6 animate-fadeIn">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-          <Trophy className="h-7 w-7 text-[#4D84FF]" />
-          Centre de <span className="itic-gradient-blue">Gamification</span>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <Trophy className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.gamification.title', 'Centre de Gamification'), 'itic-gradient-blue')}
         </h1>
-        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
           {t('dashboard.gamification.subtitle')}
         </p>
       </div>
@@ -162,7 +175,7 @@ export default function GamificationPage() {
                     <th className="py-3.5 px-6">{t('dashboard.gamification.th_action')}</th>
                     <th className="py-3.5 px-6">{t('dashboard.gamification.th_xp')}</th>
                     <th className="py-3.5 px-6">{t('dashboard.gamification.th_active')}</th>
-                    <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>
+                    {isAdmin && <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -172,6 +185,7 @@ export default function GamificationPage() {
                       config={config}
                       saving={savingId === config.id}
                       onSave={handleSaveConfig}
+                      readOnly={!isAdmin}
                     />
                   ))}
                 </tbody>
@@ -204,7 +218,7 @@ export default function GamificationPage() {
                     <tr>
                       <th className="py-3.5 px-6">{t('dashboard.gamification.th_status')}</th>
                       <th className="py-3.5 px-6">{t('dashboard.gamification.th_gain_xp')}</th>
-                      <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>
+                      {isAdmin && <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -214,6 +228,7 @@ export default function GamificationPage() {
                         status={st}
                         saving={savingId === `app-${st.id}`}
                         onSave={handleSaveAppStatus}
+                        readOnly={!isAdmin}
                       />
                     ))}
                   </tbody>
@@ -244,7 +259,7 @@ export default function GamificationPage() {
                     <tr>
                       <th className="py-3.5 px-6">{t('dashboard.gamification.th_status')}</th>
                       <th className="py-3.5 px-6">{t('dashboard.gamification.th_gain_xp')}</th>
-                      <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>
+                      {isAdmin && <th className="py-3.5 px-6 text-right">{t('dashboard.gamification.th_actions')}</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -254,6 +269,7 @@ export default function GamificationPage() {
                         status={st}
                         saving={savingId === `cv-${st.id}`}
                         onSave={handleSaveCvStatut}
+                        readOnly={!isAdmin}
                       />
                     ))}
                   </tbody>
@@ -273,13 +289,15 @@ export default function GamificationPage() {
               {t('dashboard.gamification.sec3_title')}
             </h2>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow-sm cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            {t('dashboard.gamification.btn_create_grade')}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              {t('dashboard.gamification.btn_create_grade')}
+            </button>
+          )}
         </div>
 
         {loadingGrades ? (
@@ -298,6 +316,7 @@ export default function GamificationPage() {
                 grade={g}
                 onEdit={handleOpenEditModal}
                 onDelete={(id, name) => setDeleteConfirm({ open: true, id, name })}
+                readOnly={!isAdmin}
               />
             ))}
           </div>

@@ -6,11 +6,12 @@ import {
     createColumnHelper,
 } from '@tanstack/react-table';
 import {
-    Search, SlidersHorizontal, Loader2, FileText,
+    Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle,
     ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAllCVs, useCVStatuts, useCVStats } from '../../../hooks/useCV';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import CustomSelect from '../../../components/basics/CustomSelect';
@@ -149,8 +150,9 @@ export default function CVValidationPage() {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    Validation des <span className="itic-gradient-blue">CVs</span>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <FileCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+                    {renderTitleWithGradient(t('dashboard.cv_validation.title', 'Validation des CVs'), 'itic-gradient-blue')}
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
                     {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}

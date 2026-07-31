@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
-    Search, SlidersHorizontal, Loader2, AlertCircle,
+    Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
     GraduationCap, FileSignature, Users, Star,
     ChevronLeft, ChevronRight,
 } from 'lucide-react';
@@ -90,8 +91,9 @@ export default function CandidaturesPage() {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {t('dashboard.candidatures.title')}
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
+                    {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
                     <Users className="h-4 w-4" />

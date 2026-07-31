@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Download, Upload } from 'lucide-react';
+import { renderTitleWithGradient } from '../../../../utils/titleUtils';
+import { Loader2, Download, Upload, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { useExportSkillTree, useImportSkillTree } from '../../../../hooks/useSkills';
 
@@ -61,9 +62,10 @@ export default function FormationHeader() {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-          {t('dashboard.formation.title')}
-          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <BookOpen className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('dashboard.formation.title', 'Gestion du Contenu & Quiz'), 'itic-gradient-blue')}
+          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 ml-1">
             {t('dashboard.formation.badge')}
           </span>
         </h1>

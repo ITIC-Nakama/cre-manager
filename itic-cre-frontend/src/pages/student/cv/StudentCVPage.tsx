@@ -5,9 +5,10 @@ import CVSheet from './components/CVSheet';
 import CVDropzone from './components/CVDropzone';
 import CVComments from './components/CVComments';
 import CVReplaceModal from './components/CVReplaceModal';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { renderTitleWithGradient } from '../../../utils/titleUtils';
 
 export default function StudentCVPage() {
   const { t } = useTranslation();
@@ -106,8 +107,9 @@ export default function StudentCVPage() {
     <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Titre */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Mon <span className="itic-gradient-blue">CV Professionnel</span>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <FileText className="h-7 w-7 text-[#E2762F] shrink-0" />
+          {renderTitleWithGradient(t('studentCv.title', 'Mon CV Professionnel'), 'itic-gradient-blue')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
           {t('studentCv.subtitle', 'Gérez votre CV et suivez sa validation par votre conseiller.')}

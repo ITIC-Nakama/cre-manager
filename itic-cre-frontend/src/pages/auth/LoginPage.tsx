@@ -57,10 +57,10 @@ export default function LoginPage() {
             <div className="hidden lg:flex w-[44%] flex-col relative overflow-hidden
                 bg-gradient-to-br from-[#0d0f16] via-[#15171f] to-[#020203] border-r border-[#333a51]">
 
-                {/* Animated background blobs */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#d95e3e]/20 blur-3xl animate-blob-1 pointer-events-none" />
-                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-[#fbbb07]/15 blur-3xl animate-blob-2 pointer-events-none" />
-                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-[#FFB5E2]/20 blur-3xl animate-blob-3 pointer-events-none" />
+                {/* Animated background blobs (Optimized radial glow, zero CPU blur overhead) */}
+                <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[radial-gradient(circle,rgba(217,94,62,0.25)_0%,transparent_70%)] animate-blob-1 pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(251,187,7,0.2)_0%,transparent_70%)] animate-blob-2 pointer-events-none" />
+                <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-[radial-gradient(circle,rgba(255,181,226,0.22)_0%,transparent_70%)] animate-blob-3 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col justify-between h-full p-12">
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
 
                     {/* Headline */}
                     <div>
-                        <h1 className="text-4xl font-extrabold leading-tight mb-5 itic-gradient-warm">
+                        <h1 className="text-4xl font-extrabold leading-tight mb-5 itic-gradient-blue">
                             {t('auth.login.hero_title')}
                         </h1>
                         <p className="text-[#9aa0a6] text-base leading-relaxed max-w-xs">
@@ -97,12 +97,7 @@ export default function LoginPage() {
             </div>
 
             {/* ── Right panel ────────────────────────────────────────── */}
-            <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative bg-[#020203]">
-
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-[#4D84FF]/10 blur-3xl animate-blob-1" />
-                    <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-[#D7C4FF]/10 blur-3xl animate-blob-2" />
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative bg-[#020203]">
 
                 <div className="w-full max-w-xl relative z-10
                     bg-white dark:bg-[#15171f]
@@ -116,7 +111,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-extrabold itic-gradient-blue mb-2">
+                        <h2 className="text-3xl font-extrabold itic-gradient-warm mb-2">
                             {t('auth.login.connexion_title')}
                         </h2>
                         <p className="text-slate-500 dark:text-[#9aa0a6] text-sm">
@@ -205,25 +200,25 @@ export default function LoginPage() {
                                 transition-all duration-200
                                 disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
                         >
-                            <span className="text-[#020203] font-bold">{isPending ? t('auth.login.connecting') : t('auth.login.submit_button')}</span>
-                            {!isPending && <ArrowRight className="h-4 w-4 text-[#020203]" />}
+                            <span className="text-white font-bold">{isPending ? t('auth.login.connecting') : t('auth.login.submit_button')}</span>
+                            {!isPending && <ArrowRight className="h-4 w-4 text-white" />}
                         </Button>
 
                         {/* Links */}
                         <div className="flex flex-col items-center gap-2 pt-2 text-center">
                             <Link to="/reset-password"
-                                className="text-sm text-[#FFB5E2] hover:underline font-medium transition-colors">
+                                className="text-sm font-semibold itic-gradient-warm hover:underline transition-colors">
                                 {t('auth.login.forgot_password')}
                             </Link>
                             <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
                                 {t('auth.login.no_account')}{' '}
-                                <Link to="/signup" className="text-[#fbbb07] hover:underline font-medium">
+                                <Link to="/signup" className="font-semibold itic-gradient-blue hover:underline">
                                     {t('auth.login.register_free')}
                                 </Link>
                             </p>
                             <Link
                                 to={`/verify-email?email=${encodeURIComponent(watch('email') || '')}`}
-                                className="text-sm text-slate-400 dark:text-[#9aa0a6] hover:text-[#FFB5E2] hover:underline transition-colors">
+                                className="text-sm font-semibold itic-gradient-warm hover:underline transition-colors">
                                 {t('auth.login.activate_account')}
                             </Link>
                         </div>
