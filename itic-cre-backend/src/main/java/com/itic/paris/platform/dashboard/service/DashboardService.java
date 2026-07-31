@@ -195,11 +195,11 @@ public class DashboardService {
         );
         List<Student> students;
         long totalElements;
-        if (pageable != null && pageable.isUnpaged()) {
+        if (pageable == null || pageable.isUnpaged()) {
             students = studentRepository.findAll(spec);
             totalElements = students.size();
         } else {
-            Page<Student> studentPage = studentRepository.findAll(spec, pageable != null ? pageable : Pageable.unpaged());
+            Page<Student> studentPage = studentRepository.findAll(spec, pageable);
             students = studentPage.getContent();
             totalElements = studentPage.getTotalElements();
         }
