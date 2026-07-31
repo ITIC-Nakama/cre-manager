@@ -33,7 +33,7 @@ export function notifyStudent(studentId: string, message?: string): Promise<void
 }
 
 export function deactivateStudent(studentId: string): Promise<void> {
-    return apiClient.delete(`/auth/users/${studentId}`).then(() => undefined);
+    return apiClient.patch(`/auth/users/${studentId}/deactivate`).then(() => undefined);
 }
 
 export function reactivateStudent(studentId: string): Promise<void> {

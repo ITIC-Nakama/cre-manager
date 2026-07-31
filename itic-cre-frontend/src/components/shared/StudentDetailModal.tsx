@@ -8,7 +8,6 @@ interface Props {
     onClose: () => void;
     onNotify?: (student: StudentRow) => void;
     onToggleActive?: (student: StudentRow) => void;
-    isAdmin?: boolean;
 }
 
 function formatDateTime(iso: string | null) {
@@ -19,7 +18,7 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, isAdmin }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive }: Props) {
     const { t } = useTranslation();
 
     return (
@@ -141,7 +140,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 </div>
                             );
                         }
-                        if (!onNotify && (!isAdmin || !onToggleActive)) return null;
+                        if (!onNotify && !onToggleActive) return null;
                         return (
                             <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                                 {onNotify && (
@@ -155,7 +154,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     </button>
                                 )}
 
-                                {isAdmin && onToggleActive && (
+                                {onToggleActive && (
                                     student.accountActive ? (
                                         <button
                                             type="button"
