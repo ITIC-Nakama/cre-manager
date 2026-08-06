@@ -79,4 +79,35 @@ public class ApplicationSpecification {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
+    public static Specification<Application> forStudentWithFilters(
+            UUID studentId,
+            UUID statusId,
+            UUID typeContratId,
+            String search
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("student").get("id"), studentId));
+
+            if (statusId != null) {
+                predicates.add(cb.equal(root.get("status").get("id"), statusId));
+            }
+
+            if (typeContratId != null) {
+                predicates.add(cb.equal(root.get("typeContrat").get("id"), typeContratId));
+            }
+
+            if (search != null && !search.trim().isEmpty()) {
+                String searchLike = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("entreprise")), searchLike),
+                        cb.like(cb.lower(root.get("poste")), searchLike)
+                ));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

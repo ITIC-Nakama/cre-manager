@@ -12,11 +12,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
@@ -99,6 +102,25 @@ public class DashboardController {
             @RequestParam(required = false) Boolean activeStudentsOnly,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+    }
+
+    @GetMapping("/applications/export")
+    @Operation(summary = "Exporter les candidatures au format CSV avec les filtres actuels")
+    public ResponseEntity<byte[]> exportApplicationsCsv(
+            @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) UUID statusId,
+            @RequestParam(required = false) UUID typeContratId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean stale,
+            @RequestParam(required = false) Boolean activeStudentsOnly) {
+
+        byte[] csvBytes = dashboardService.exportApplicationsCsv(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly);
+        String filename = "candidatures-export-" + LocalDate.now() + ".csv";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(csvBytes);
     }
 
     @GetMapping("/students/{studentId}")

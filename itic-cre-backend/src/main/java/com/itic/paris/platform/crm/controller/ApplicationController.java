@@ -32,10 +32,13 @@ public class ApplicationController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister mes candidatures (paginé)")
+    @Operation(summary = "Lister mes candidatures (paginé avec filtres search/statusId/typeContratId)")
     public ResponseEntity<Page<ApplicationDTO>> getMyApplications(
-            @PageableDefault(size = 20, sort = "dateModification") Pageable pageable) {
-        return ResponseEntity.ok(applicationService.getMyApplications(pageable));
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID statusId,
+            @RequestParam(required = false) UUID typeContratId,
+            @PageableDefault(size = 12, sort = "dateModification") Pageable pageable) {
+        return ResponseEntity.ok(applicationService.getMyApplications(search, statusId, typeContratId, pageable));
     }
 
     @GetMapping("/{id}")
