@@ -67,7 +67,8 @@ export default function LoginPage() {
                     {/* Logo */}
                     <div>
                         <div className="inline-flex items-center">
-                            <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto" />
+                            <img src={logoDark} alt="ITIC Paris" className="h-16 w-auto dark:hidden" />
+                            <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto hidden dark:block" />
                         </div>
                         <p className="text-[#9aa0a6] text-sm mt-3">{t('auth.login.portal_subtitle')}</p>
                     </div>
