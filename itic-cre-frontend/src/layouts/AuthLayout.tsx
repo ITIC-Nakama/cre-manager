@@ -31,7 +31,7 @@ function AuthControls() {
   const lang = (i18n.language || 'fr').split('-')[0].toUpperCase();
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white dark:bg-[#15171f] rounded-xl p-1.5 shadow-sm border border-slate-200/60 dark:border-[#333a51]">
+    <div className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white dark:bg-[#15171f] rounded-xl p-1.5 shadow-sm">
       <button
         onClick={toggleLang}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-[#9aa0a6] hover:bg-slate-100 dark:hover:bg-[#1e2130] transition-colors cursor-pointer"

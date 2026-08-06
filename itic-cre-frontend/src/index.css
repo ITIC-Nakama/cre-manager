@@ -190,40 +190,27 @@ html.dark body {
 
 /* ─── Boutons CTA ITIC ────────────────────────────────────────────────── */
 
-/* Bouton Primary ITIC (Dominant Blue #3B72FF avec coins 11px) */
+/* Bouton Primary ITIC (Orange #E2762F sans ombre de survol) */
 .btn-itic-primary,
-.btn-itic-blue {
-  background: #3B72FF;
-  background: linear-gradient(90deg, #3B72FF 0%, #5B8DEF 100%);
-  color: #ffffff !important;
-  font-weight: 700;
-  border-radius: 11px;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-itic-primary:hover,
-.btn-itic-blue:hover {
-  opacity: 0.96;
-  box-shadow: 0 6px 20px rgba(59, 114, 255, 0.4);
-  transform: translateY(-1px);
-}
-
-/* Bouton Warm / Orange ITIC */
+.btn-itic-blue,
 .btn-itic-warm,
 .btn-itic-orange {
-  background: #E2762F;
-  background: linear-gradient(90deg, #E2762F 0%, #F58B44 100%);
+  background: #E2762F !important;
   color: #ffffff !important;
   font-weight: 700;
   border-radius: 11px;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
+.btn-itic-primary:hover,
+.btn-itic-blue:hover,
 .btn-itic-warm:hover,
 .btn-itic-orange:hover {
-  opacity: 0.96;
-  box-shadow: 0 6px 20px rgba(226, 118, 47, 0.35);
-  transform: translateY(-1px);
+  background: #D2651E !important;
+  opacity: 0.95;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* Gradient accent mint→cyan (accents secondaires internes) */
@@ -360,8 +347,8 @@ html.dark body {
 .dark button.bg-indigo-600:hover,
 .dark button.bg-blue-600:hover,
 .dark button.bg-\[\#3f74ff\]:hover {
-  opacity: 0.96 !important;
-  box-shadow: 0 6px 20px rgba(59, 114, 255, 0.4) !important;
+  opacity: 0.95 !important;
+  box-shadow: none !important;
 }
 
 /* ─── Background Blob Animations ────────────────────────────────────── */

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { SidebarCollapsedStorageKey } from '../../types/storage-keys';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
+import logomarkWhiteWithBg from '../../assets/itic-paris-logomark-white-with-bg.svg';
 import UserAvatar from '../shared/UserAvatar';
 import { toUserProfileDTO } from '../../types/models/User';
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,13 +89,13 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={`border-b border-slate-100 dark:border-[#333a51] flex items-center shrink-0 h-16 ${collapsed ? 'justify-center px-3' : 'px-5'}`}>
+      <div className={`border-b border-slate-100 dark:border-[#333a51] flex items-center shrink-0 h-16 ${collapsed ? 'justify-center px-2' : 'px-5'}`}>
         {collapsed ? (
-          <img src="/favicon.svg" alt="ITIC Paris" className="h-7 w-auto shrink-0" />
+          <img src={logomarkWhiteWithBg} alt="ITIC Paris" className="h-9 w-auto shrink-0" />
         ) : (
           <>
-            <img src={logoDark} alt="ITIC Paris" className="h-7 w-auto dark:hidden" />
-            <img src={logoWhite} alt="ITIC Paris" className="h-7 w-auto hidden dark:block" />
+            <img src={logoDark} alt="ITIC Paris" className="h-10 w-auto dark:hidden" />
+            <img src={logoWhite} alt="ITIC Paris" className="h-10 w-auto hidden dark:block" />
           </>
         )}
       </div>

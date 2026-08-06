@@ -66,8 +66,8 @@ export default function LoginPage() {
 
                     {/* Logo */}
                     <div>
-                        <div className="bg-[#15171f] border border-[#333a51] rounded px-5 py-4 inline-flex items-center shadow-sm">
-                            <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto" />
+                        <div className="inline-flex items-center">
+                            <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto" />
                         </div>
                         <p className="text-[#9aa0a6] text-sm mt-3">{t('auth.login.portal_subtitle')}</p>
                     </div>
@@ -83,12 +83,12 @@ export default function LoginPage() {
                     </div>
 
                     {/* Help box */}
-                    <div className="rounded-2xl bg-[#15171f]/80 border border-[#333a51] p-5">
+                    <div className="rounded-2xl bg-[#15171f]/80 p-5">
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.login.help_title')}</p>
                         <p className="text-[#9aa0a6] text-sm">
                             {t('auth.login.help_contact')}{' '}
                             <a href="mailto:pedagogie@iticparis.com"
-                                className="text-[#D7C4FF] underline underline-offset-2 hover:opacity-80 transition-opacity">
+                                className="font-semibold itic-gradient-blue underline underline-offset-2 hover:opacity-80 transition-opacity">
                                 pedagogie@iticparis.com
                             </a>
                         </p>
@@ -101,13 +101,13 @@ export default function LoginPage() {
 
                 <div className="w-full max-w-xl relative z-10
                     bg-white dark:bg-[#15171f]
-                    rounded-2xl shadow-xl border border-slate-100 dark:border-[#333a51]
+                    rounded-2xl shadow-xl
                     p-8 lg:p-12">
 
                     {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-10">
-                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
-                        <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-16 w-auto dark:hidden" />
+                        <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto hidden dark:block" />
                     </div>
 
                     <div className="mb-8">
