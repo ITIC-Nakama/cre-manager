@@ -32,17 +32,16 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
     @Query("SELECT COUNT(s) FROM Student s WHERE s.email LIKE '%@rgpd.deleted'")
     long countAnonymizedStudents();
 
-    @Query("SELECT COUNT(s) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByActiveTrue();
 
     List<Student> findAllByLastActivityBefore(Instant threshold);
 
     List<Student> findAllByActiveTrueAndLastActivityBefore(Instant threshold);
 
-    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
+    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.active = true")
     double averageXp();
 
-    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
+    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true")
     double averageXpByPromotion(UUID promotionId);
 
     @Query("SELECT COUNT(s) FROM Student s WHERE s.lastActivity > :since AND s.email NOT LIKE '%@rgpd.deleted'")
@@ -50,13 +49,10 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     long countByLastActivityAfter(Instant since);
 
-    @Query("SELECT s FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 5")
     List<Student> findTop5ByActiveTrueOrderByXpTotalDesc();
 
-    @Query("SELECT COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true AND s.xpTotal > :xpTotal AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByPromotionIdAndActiveTrueAndXpTotalGreaterThan(UUID promotionId, int xpTotal);
 
-    @Query("SELECT COUNT(s) FROM Student s WHERE s.active = true AND s.xpTotal > :xpTotal AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByActiveTrueAndXpTotalGreaterThan(int xpTotal);
 
     long countByXpTotalBetween(int minXp, int maxXp);
@@ -67,9 +63,7 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     long countByPromotionIdAndXpTotalGreaterThanEqual(UUID promotionId, int minXp);
 
-    @Query("SELECT s FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 3")
     List<Student> findTop3ByPromotionIdAndActiveTrueOrderByXpTotalDesc(UUID promotionId);
 
-    @Query("SELECT s FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 3")
     List<Student> findTop3ByActiveTrueOrderByXpTotalDesc();
 }

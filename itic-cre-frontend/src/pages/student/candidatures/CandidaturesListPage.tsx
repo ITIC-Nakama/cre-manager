@@ -1,78 +1,34 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { Briefcase, Loader2, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Briefcase, Loader2, Plus } from 'lucide-react';
 import { useMyCandidatures, useCreateCandidature } from '../../../hooks/useCandidatures';
-import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
+import { useApplicationStatuses } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
-import CustomSelect from '../../../components/basics/CustomSelect';
 import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
 import { isCompleted } from './utils';
 
 type Tab = 'in_progress' | 'completed';
-const PAGE_SIZE = 12;
 
 export default function CandidaturesListPage() {
     const { t } = useTranslation();
     const [tab, setTab] = useState<Tab>('in_progress');
     const [formOpen, setFormOpen] = useState(false);
 
-    const [page, setPage] = useState(0);
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [contractTypeFilter, setContractTypeFilter] = useState('');
-    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     const { data: statuses } = useApplicationStatuses();
-    const { data: contractTypes } = useContractTypes();
-
-    const { data, isLoading, isFetching } = useMyCandidatures({
-        page,
-        size: PAGE_SIZE,
-        search: debouncedSearch || undefined,
-        statusId: statusFilter || undefined,
-        typeContratId: contractTypeFilter || undefined,
-    });
-
+    const { data, isLoading } = useMyCandidatures();
     const createMutation = useCreateCandidature();
 
-    const candidatures = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
+    const sorted = useMemo(
+        () => [...(data?.content ?? [])].sort((a, b) => new Date(b.dateModification).getTime() - new Date(a.dateModification).getTime()),
+        [data]
+    );
 
-    const inProgress = useMemo(() => candidatures.filter((c) => !isCompleted(c)), [candidatures]);
-    const completed = useMemo(() => candidatures.filter((c) => isCompleted(c)), [candidatures]);
+    const inProgress = useMemo(() => sorted.filter((c) => !isCompleted(c)), [sorted]);
+    const completed = useMemo(() => sorted.filter((c) => isCompleted(c)), [sorted]);
     const visible = tab === 'in_progress' ? inProgress : completed;
-
-    const statusOptions = useMemo(() => [
-        { value: '', label: t('dashboard.candidatures.filter_all_statuses', 'Tous les statuts') },
-        ...(statuses ?? []).map((s) => ({ value: s.id, label: s.nom })),
-    ], [statuses, t]);
-
-    const contractTypeOptions = useMemo(() => [
-        { value: '', label: t('dashboard.candidatures.filter_all_contracts', 'Tous les contrats') },
-        ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
-    ], [contractTypes, t]);
-
-    const handleSearch = (value: string) => {
-        setSearch(value);
-        setPage(0);
-        if (searchTimer.current) clearTimeout(searchTimer.current);
-        searchTimer.current = setTimeout(() => setDebouncedSearch(value), 350);
-    };
-
-    const handleStatusChange = (val: string) => {
-        setStatusFilter(val);
-        setPage(0);
-    };
-
-    const handleContractTypeChange = (val: string) => {
-        setContractTypeFilter(val);
-        setPage(0);
-    };
 
     const handleCreate = async (payload: CandidaturePayload) => {
         await createMutation.mutateAsync(payload);
@@ -83,16 +39,14 @@ export default function CandidaturesListPage() {
     return (
         <div className="flex flex-col gap-6 pb-4 animate-fadeIn">
 
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                         <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
                         {renderTitleWithGradient(t('dashboard.candidatures.student.title', 'Mes Candidatures'), 'itic-gradient-blue')}
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5 flex items-center gap-2">
-                        {t('dashboard.candidatures.student.subtitle', { count: totalElements, defaultValue: '{{count}} candidature(s)' })}
-                        {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+                        {t('dashboard.candidatures.student.subtitle', { count: sorted.length })}
                     </p>
                 </div>
                 <button
@@ -104,57 +58,25 @@ export default function CandidaturesListPage() {
                 </button>
             </div>
 
-            {/* Filters Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-3 flex-1">
-                    <div className="relative flex-1 min-w-48 max-w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            placeholder={t('dashboard.candidatures.search_placeholder', 'Rechercher entreprise, poste...')}
-                            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    <CustomSelect
-                        value={statusFilter}
-                        options={statusOptions}
-                        onChange={handleStatusChange}
-                        className="w-44 text-sm"
-                    />
-
-                    <CustomSelect
-                        value={contractTypeFilter}
-                        options={contractTypeOptions}
-                        onChange={handleContractTypeChange}
-                        className="w-44 text-sm"
-                    />
-                </div>
-
-                {/* Tabs */}
-                <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shrink-0">
-                    {(['in_progress', 'completed'] as Tab[]).map((tabKey) => (
-                        <button
-                            key={tabKey}
-                            onClick={() => setTab(tabKey)}
-                            className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-                                tab === tabKey
-                                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                            }`}
-                        >
-                            {t(`dashboard.candidatures.student.tabs.${tabKey}`)}
-                            <span className="ml-1.5 text-xs opacity-70">
-                                ({tabKey === 'in_progress' ? inProgress.length : completed.length})
-                            </span>
-                        </button>
-                    ))}
-                </div>
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-fit">
+                {(['in_progress', 'completed'] as Tab[]).map((tabKey) => (
+                    <button
+                        key={tabKey}
+                        onClick={() => setTab(tabKey)}
+                        className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+                            tab === tabKey
+                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                        {t(`dashboard.candidatures.student.tabs.${tabKey}`)}
+                        <span className="ml-1.5 text-xs opacity-70">
+                            ({tabKey === 'in_progress' ? inProgress.length : completed.length})
+                        </span>
+                    </button>
+                ))}
             </div>
 
-            {/* List */}
             {isLoading ? (
                 <div className="flex justify-center py-16">
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
@@ -169,33 +91,6 @@ export default function CandidaturesListPage() {
                     {visible.map((candidature) => (
                         <CandidatureCard key={candidature.id} candidature={candidature} statuses={statuses ?? []} />
                     ))}
-                </div>
-            )}
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4 mt-2">
-                    <button
-                        onClick={() => setPage((p) => Math.max(0, p - 1))}
-                        disabled={page === 0}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span>Précédent</span>
-                    </button>
-
-                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        Page {page + 1} / {totalPages}
-                    </span>
-
-                    <button
-                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                        disabled={page >= totalPages - 1}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <span>Suivant</span>
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
                 </div>
             )}
 

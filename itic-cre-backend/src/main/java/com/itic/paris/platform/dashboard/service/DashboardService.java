@@ -30,10 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -310,65 +307,6 @@ public class DashboardService {
         }).toList();
 
         return new PageImpl<>(content, pageable, page.getTotalElements());
-    }
-
-    public byte[] exportApplicationsCsv(UUID promotionId, UUID statusId, UUID typeContratId,
-                                         String search, Boolean stale, Boolean activeStudentsOnly) {
-        Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
-
-        Specification<Application> spec = ApplicationSpecification.withFilters(
-                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
-        );
-
-        List<Application> applications = applicationRepository.findAll(spec);
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
-
-        StringBuilder csv = new StringBuilder();
-        // UTF-8 BOM for Excel compatibility
-        csv.append("\uFEFF");
-        csv.append("Nom Etudiant;Prenom Etudiant;Email Etudiant;Promotion;Entreprise;Intitule du poste;Type de contrat;Statut;Date de modification;Stagnante\n");
-
-        for (Application app : applications) {
-            Student student = app.getStudent();
-            boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
-                    && app.getDateModification().isBefore(staleThreshold);
-
-            String studentLastName = student.getLastName() != null ? escapeCsv(student.getLastName()) : "";
-            String studentFirstName = student.getFirstName() != null ? escapeCsv(student.getFirstName()) : "";
-            String studentEmail = student.getEmail() != null ? escapeCsv(student.getEmail()) : "";
-            String promotionName = student.getPromotion() != null ? escapeCsv(student.getPromotion().getName()) : "";
-            String entreprise = app.getEntreprise() != null ? escapeCsv(app.getEntreprise()) : "";
-            String poste = app.getPoste() != null ? escapeCsv(app.getPoste()) : "";
-            String typeContrat = app.getTypeContrat() != null ? escapeCsv(app.getTypeContrat().getLabel()) : "";
-            String statusNom = app.getStatus() != null ? escapeCsv(app.getStatus().getNom()) : "";
-            String dateModif = app.getDateModification() != null ? dtf.format(app.getDateModification()) : "";
-            String staleStr = isStale ? "Oui" : "Non";
-
-            csv.append(String.join(";",
-                    studentLastName,
-                    studentFirstName,
-                    studentEmail,
-                    promotionName,
-                    entreprise,
-                    poste,
-                    typeContrat,
-                    statusNom,
-                    dateModif,
-                    staleStr
-            )).append("\n");
-        }
-
-        return csv.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    private String escapeCsv(String text) {
-        if (text == null) return "";
-        String escaped = text.replace("\"", "\"\"");
-        if (escaped.contains(";") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
     }
 
     public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, UUID statusId, UUID typeContratId,

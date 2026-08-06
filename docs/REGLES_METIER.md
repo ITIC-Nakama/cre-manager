@@ -141,7 +141,7 @@ Ces libellés sont traduits dynamiquement par le backend selon la langue spécif
 ### Classement (tableau de bord étudiant)
 - Calculé à la volée, jamais stocké. Tri par **XP total descendant**, rang **1-indexé**.
 - **Scope** : si l'étudiant a une promotion, le classement est limité aux étudiants de **cette promotion** ; sinon il est **global** (tous les étudiants de la plateforme).
-- Les étudiants désactivés (`active = false`) et les étudiants anonymisés RGPD (`email LIKE '%@rgpd.deleted'`) sont **exclus** du classement.
+- Les étudiants désactivés (`active = false`) sont **inclus** dans le classement — aucun filtre sur ce flag.
 
 ---
 

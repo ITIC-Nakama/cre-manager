@@ -40,14 +40,6 @@ export interface CandidaturePage {
     number: number;
 }
 
-export interface FetchMyCandidaturesParams {
-    page?: number;
-    size?: number;
-    search?: string;
-    statusId?: string;
-    typeContratId?: string;
-}
-
 export interface CandidaturePayload {
     entreprise: string;
     poste: string;

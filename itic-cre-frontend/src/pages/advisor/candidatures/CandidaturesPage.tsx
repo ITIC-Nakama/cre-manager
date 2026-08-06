@@ -3,13 +3,11 @@ import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
     GraduationCap, FileSignature, Users, Star,
-    ChevronLeft, ChevronRight, Download,
+    ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { useApplicationGroupedList, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import { usePromotions } from '../../../hooks/usePromotions';
-import { exportApplicationsCsv } from '../../../api-s/requests/DashboardRequest';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
@@ -27,39 +25,11 @@ export default function CandidaturesPage() {
     const [staleOnly, setStaleOnly] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<StudentGroup | null>(null);
     const [page, setPage] = useState(0);
-    const [isExporting, setIsExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { data: statuses } = useApplicationStatuses();
     const { data: promotions } = usePromotions();
     const { data: contractTypes } = useContractTypes();
-
-    const handleExport = async () => {
-        try {
-            setIsExporting(true);
-            const blob = await exportApplicationsCsv({
-                search: debouncedSearch || undefined,
-                statusId: statusFilter || undefined,
-                promotionId: promotionFilter || undefined,
-                typeContratId: contractTypeFilter || undefined,
-                stale: staleOnly ? true : undefined,
-                activeStudentsOnly: true,
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `candidatures-export-${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            toast.success(t('dashboard.candidatures.toast_export_success', 'Export CSV téléchargé avec succès'));
-        } catch {
-            toast.error(t('dashboard.candidatures.toast_export_error', 'Erreur lors du téléchargement du CSV'));
-        } finally {
-            setIsExporting(false);
-        }
-    };
 
     const statusOptions = useMemo(() => [
         { value: '', label: t('dashboard.candidatures.filter_all_statuses') },
@@ -120,26 +90,16 @@ export default function CandidaturesPage() {
         <div className="flex flex-col gap-6 animate-fadeIn">
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-                        <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
-                        {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
-                    </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        {t('dashboard.candidatures.student_count', { count: totalStudents, defaultValue: '{{count}} étudiant' })}
-                        {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
-                    </p>
-                </div>
-                <button
-                    onClick={handleExport}
-                    disabled={isExporting}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
-                >
-                    {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {t('dashboard.candidatures.export_csv', 'Exporter CSV')}
-                </button>
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
+                    {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {t('dashboard.candidatures.student_count', { count: totalStudents, defaultValue: '{{count}} étudiant' })}
+                    {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+                </p>
             </div>
 
             {/* Filters */}

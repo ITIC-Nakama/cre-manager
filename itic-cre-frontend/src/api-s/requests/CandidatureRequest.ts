@@ -1,23 +1,14 @@
 import { apiClient } from '../AxiosApiClient';
-import type { Candidature, CandidaturePayload, CandidaturePage, FetchMyCandidaturesParams } from '../../types/models/Application';
-
-export type { FetchMyCandidaturesParams };
+import type { Candidature, CandidaturePayload, CandidaturePage } from '../../types/models/Application';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
 }
 
-export function fetchMyCandidatures(params: FetchMyCandidaturesParams = {}): Promise<CandidaturePage> {
-    const query: Record<string, unknown> = {
-        page: params.page ?? 0,
-        size: params.size ?? 12,
-    };
-    if (params.search) query.search = params.search;
-    if (params.statusId) query.statusId = params.statusId;
-    if (params.typeContratId) query.typeContratId = params.typeContratId;
-
-    return apiClient.get('/applications', { params: query }).then((response) => unwrap<CandidaturePage>(response));
+// L'étudiant récupère toutes ses candidatures en une seule requête non paginée côté client.
+export function fetchMyCandidatures(): Promise<CandidaturePage> {
+    return apiClient.get('/applications', { params: { size: 1000 } }).then((response) => unwrap<CandidaturePage>(response));
 }
 
 export function fetchCandidatureById(id: string): Promise<Candidature> {
