@@ -40,6 +40,7 @@ export interface CandidaturePage {
     number: number;
 }
 
+
 export interface FetchMyCandidaturesParams {
     page?: number;
     size?: number;
