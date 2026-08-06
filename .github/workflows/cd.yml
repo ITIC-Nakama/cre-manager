@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+  merge_group:
 
 concurrency:
   group: cd-${{ github.ref }}
