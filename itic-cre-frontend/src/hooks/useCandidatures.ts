@@ -7,14 +7,14 @@ import {
     changeCandidatureStatus,
     deleteCandidature,
 } from '../api-s/requests/CandidatureRequest';
-import type { CandidaturePayload } from '../types/models/Application';
+import type { CandidaturePayload, FetchMyCandidaturesParams } from '../types/models/Application';
 
 const MY_CANDIDATURES_KEY = ['my-candidatures'] as const;
 
-export function useMyCandidatures() {
+export function useMyCandidatures(params?: FetchMyCandidaturesParams) {
     return useQuery({
-        queryKey: MY_CANDIDATURES_KEY,
-        queryFn: fetchMyCandidatures,
+        queryKey: [...MY_CANDIDATURES_KEY, params],
+        queryFn: () => fetchMyCandidatures(params),
     });
 }
 

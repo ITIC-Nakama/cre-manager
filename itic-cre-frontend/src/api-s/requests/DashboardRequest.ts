@@ -34,6 +34,21 @@ export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'
     return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);
 }
 
+export function exportApplicationsCsv(params: Record<string, unknown> = {}): Promise<Blob> {
+    const query: Record<string, unknown> = {};
+    if (params.search)             query.search             = params.search;
+    if (params.statusId)           query.statusId           = params.statusId;
+    if (params.promotionId)        query.promotionId        = params.promotionId;
+    if (params.typeContratId)      query.typeContratId      = params.typeContratId;
+    if (params.stale !== undefined) query.stale             = params.stale;
+    if (params.activeStudentsOnly !== undefined) query.activeStudentsOnly = params.activeStudentsOnly;
+
+    return apiClient.get('/dashboard/applications/export', {
+        params: query,
+        responseType: 'blob',
+    }).then((res) => res.data as Blob);
+}
+
 export function notifyStudent(studentId: string, message?: string): Promise<void> {
     return apiClient
         .post(`/dashboard/students/${studentId}/notify`, message ? { message } : {})

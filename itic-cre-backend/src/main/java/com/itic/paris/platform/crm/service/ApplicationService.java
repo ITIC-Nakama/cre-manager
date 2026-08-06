@@ -11,6 +11,7 @@ import com.itic.paris.platform.crm.model.dtos.*;
 import com.itic.paris.platform.crm.repository.ApplicationHistoryRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.crm.specification.ApplicationSpecification;
 import com.itic.paris.platform.gamification.model.enums.ActionXP;
 import com.itic.paris.platform.gamification.service.GamificationService;
 import com.itic.paris.platform.jobboard.model.ContractType;
@@ -21,6 +22,8 @@ import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,10 +75,18 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ApplicationDTO> getMyApplications(Pageable pageable) {
+    public Page<ApplicationDTO> getMyApplications(@NonNull Pageable pageable) {
+        return getMyApplications(null, null, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ApplicationDTO> getMyApplications(String search, UUID statusId, UUID typeContratId, @NonNull Pageable pageable) {
         Student student = getCurrentStudent();
         int staleAlertDays = appConfigurationService.getStaleAlertDays();
-        return applicationRepository.findByStudentId(student.getId(), pageable)
+        Specification<Application> spec = ApplicationSpecification.forStudentWithFilters(
+                student.getId(), statusId, typeContratId, search
+        );
+        return applicationRepository.findAll(spec, pageable)
                 .map(a -> mapToDTO(a, staleAlertDays));
     }
 
