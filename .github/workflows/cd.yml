@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-compile:
     runs-on: ubuntu-latest
@@ -30,6 +34,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'itic-cre-frontend/package-lock.json'
 
       - name: Build Frontend with Vite/React
         env:
@@ -40,8 +46,7 @@ jobs:
           # Injection des variables spécifiques au Frontend au moment du Build
           echo "$FRONTEND_ENV" > .env
           
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps --no-audit --no-fund
+          npm ci --legacy-peer-deps || npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
 
       # Sauvegarde des artefacts pour le job de déploiement
