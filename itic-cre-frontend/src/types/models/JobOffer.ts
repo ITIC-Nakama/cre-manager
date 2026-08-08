@@ -18,6 +18,9 @@ export interface JobOffer {
     createdAt: string;
     updatedAt: string;
     applicationCount: number;
+    source: string;
+    companyLogoUrl: string | null;
+    expiresAt: string | null;
 }
 
 export interface JobOfferPage {
@@ -47,6 +50,7 @@ export interface JobOfferListParams {
     size?: number;
     search?: string;
     contractTypeId?: string;
+    source?: string;
 }
 
 export interface JobOfferPayload {
@@ -56,4 +60,26 @@ export interface JobOfferPayload {
     location?: string;
     contractTypeId: string;
     externalLink?: string;
+}
+
+export interface ExternalSyncRun {
+    startedAt: string;
+    finishedAt: string | null;
+    status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+    insertedCount: number;
+    skippedCount: number;
+    expiredCount: number;
+}
+
+export interface ExternalSourceStat {
+    source: string;
+    label: string;
+    enabled: boolean;
+    activeOffers: number;
+}
+
+export interface ExternalJobboardStats {
+    syncInProgress: boolean;
+    lastSync: ExternalSyncRun | null;
+    sources: ExternalSourceStat[];
 }

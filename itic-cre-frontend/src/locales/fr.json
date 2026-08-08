@@ -133,6 +133,30 @@
         "theme_toggle_dark": "Passer en mode sombre"
       }
     },
+    "admin": {
+      "jobboard_external": {
+        "title": "Jobboard externe",
+        "sync_now": "Synchroniser maintenant",
+        "syncing": "Synchronisation…",
+        "last_sync": "Dernière synchro : {{date}}",
+        "never_synced": "Jamais synchronisé.",
+        "inserted": "{{count}} insérées",
+        "skipped": "{{count}} ignorées",
+        "expired": "{{count}} expirées",
+        "active_offers_one": "{{count}} offre active",
+        "active_offers_other": "{{count}} offres actives",
+        "source_enabled": "Source activée",
+        "source_disabled": "Source désactivée",
+        "status": {
+          "SUCCESS": "Succès",
+          "PARTIAL": "Partielle",
+          "FAILED": "Échec"
+        },
+        "toast_sync_started": "Synchronisation lancée.",
+        "toast_sync_error": "Impossible de lancer la synchronisation.",
+        "toast_toggle_error": "Impossible de modifier la source."
+      }
+    },
     "advisor": {
       "greeting": "Bonjour, {{name}} 👋",
       "role_admin": "Admin",
@@ -402,6 +426,22 @@
       "create_button": "Publier une offre",
       "search_placeholder": "Rechercher (intitulé, entreprise)…",
       "filter_all_contracts": "Tous les types de contrat",
+      "tabs": {
+        "itic": "Offres ITIC",
+        "external": "Marché externe"
+      },
+      "external": {
+        "subtitle_one": "{{count}} offre externe disponible",
+        "subtitle_other": "{{count}} offres externes disponibles",
+        "filter_all_sources": "Toutes les sources",
+        "view_offer": "Voir l'offre",
+        "empty": "Aucune offre externe ne correspond à vos critères.",
+        "sources": {
+          "FRANCE_TRAVAIL": "France Travail",
+          "BONNE_ALTERNANCE": "La Bonne Alternance",
+          "ADZUNA": "Adzuna"
+        }
+      },
       "apply_button": "Marquer comme posté",
       "already_applied": "Déjà postulé",
       "withdraw_hint": "Retirer ma candidature — la carte correspondante sera aussi supprimée de mon suivi de candidatures.",

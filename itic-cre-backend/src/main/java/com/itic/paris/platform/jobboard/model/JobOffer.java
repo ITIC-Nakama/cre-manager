@@ -51,6 +51,29 @@ public class JobOffer {
     @Column(name = "external_link", length = 2048)
     private String externalLink;
 
+    /**
+     * Identifiant de la source de l'offre : MANUAL (créée par un conseiller)
+     * ou source externe (FRANCE_TRAVAIL, BONNE_ALTERNANCE, ADZUNA, ...).
+     * String volontairement (pas d'enum) pour ajouter des sources sans migration.
+     */
+    @NotNull
+    @Size(max = 50)
+    @Column(nullable = false, length = 50)
+    private String source = "MANUAL";
+
+    /** ID de l'offre dans le système source (ex: "ft:123456"). Unique hors NULL. */
+    @Size(max = 255)
+    @Column(name = "source_id")
+    private String sourceId;
+
+    @Size(max = 2048)
+    @Column(name = "company_logo_url", length = 2048)
+    private String companyLogoUrl;
+
+    /** Date d'expiration fournie par la source externe. */
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
     @Column(name = "is_active", nullable = false)
     private Boolean active = true;
 

@@ -10,6 +10,9 @@ import {
     applyToJobOffer,
     fetchMyJobApplications,
     withdrawJobApplication,
+    fetchExternalJobboardStats,
+    triggerExternalJobboardSync,
+    toggleExternalJobboardSource,
 } from '../api-s/requests/JobOfferRequest';
 import type { JobOfferListParams, JobOfferPayload } from '../types/models/JobOffer';
 
@@ -96,5 +99,33 @@ export function useWithdrawJobApplication() {
             queryClient.invalidateQueries({ queryKey: ['job-applications'] });
             queryClient.invalidateQueries({ queryKey: ['my-candidatures'] });
         },
+    });
+}
+
+// Admin — jobboard externe
+export function useExternalJobboardStats() {
+    return useQuery({
+        queryKey: ['jobboard-external-stats'],
+        queryFn: fetchExternalJobboardStats,
+        refetchInterval: (query) => (query.state.data?.syncInProgress ? 5000 : 30000),
+    });
+}
+
+export function useTriggerExternalJobboardSync() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => triggerExternalJobboardSync(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['job-offers'] });
+        },
+    });
+}
+
+export function useToggleExternalJobboardSource() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (source: string) => toggleExternalJobboardSource(source),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
     });
 }

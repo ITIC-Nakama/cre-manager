@@ -57,7 +57,11 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, Pageable pageable) {
-        return jobOfferRepository.findAll(JobOfferSpecification.activeWithFilters(search, contractTypeId), pageable)
+        return getActiveOffers(search, contractTypeId, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, String source, Pageable pageable) {
+        return jobOfferRepository.findAll(JobOfferSpecification.activeWithFilters(search, contractTypeId, source), pageable)
                 .map(this::mapToDTO);
     }
 
@@ -106,7 +110,11 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, Pageable pageable) {
-        Page<JobOffer> page = jobOfferRepository.findAll(JobOfferSpecification.withSearch(search), pageable);
+        return getAllOffers(search, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getAllOffers(String search, String source, Pageable pageable) {
+        Page<JobOffer> page = jobOfferRepository.findAll(JobOfferSpecification.withSearchAndSource(search, source), pageable);
         return page.map(this::mapToDTO);
     }
 
@@ -125,6 +133,9 @@ public class JobOfferService {
                 jobOffer.getLocation(),
                 mapContractTypeToDTO(jobOffer.getContractType()),
                 jobOffer.getExternalLink(),
+                jobOffer.getSource(),
+                jobOffer.getCompanyLogoUrl(),
+                jobOffer.getExpiresAt(),
                 jobOffer.getActive(),
                 jobOffer.getCreatedAt(),
                 jobOffer.getUpdatedAt(),

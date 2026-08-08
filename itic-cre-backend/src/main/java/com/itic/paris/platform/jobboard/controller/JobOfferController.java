@@ -47,12 +47,14 @@ public class JobOfferController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId")
+    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/source "
+            + "(source=MANUAL par défaut, EXTERNAL pour toutes les offres externes, ou une source précise)")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
+            @RequestParam(required = false) String source,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, source, pageable));
     }
 
     @GetMapping("/all")
@@ -60,8 +62,9 @@ public class JobOfferController {
     @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String source,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, source, pageable));
     }
 
     @GetMapping("/search/company")

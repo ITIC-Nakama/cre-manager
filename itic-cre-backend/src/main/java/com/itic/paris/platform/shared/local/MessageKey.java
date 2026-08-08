@@ -83,6 +83,7 @@ public enum MessageKey {
     CONTRACT_TYPE_UPDATED("contract-type-updated", "Type de contrat mis à jour avec succès", "Contract type updated successfully"),
     CONTRACT_TYPE_DEACTIVATED("contract-type-deactivated", "Type de contrat désactivé", "Job offer deactivated"),
     CONTRACT_TYPE_DELETED("contract-type-deleted", "Type de contrat supprimé", "Contract type deleted"),
+    EXTERNAL_SOURCE_NOT_FOUND("external-source-not-found", "Source externe inconnue", "Unknown external source"),
     APPLICATION_SUBMITTED("application-submitted", "Candidature soumise avec succès", "Application submitted successfully"),
     APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully"),
     // CRM messages

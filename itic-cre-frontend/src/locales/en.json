@@ -133,6 +133,30 @@
         "theme_toggle_dark": "Switch to dark mode"
       }
     },
+    "admin": {
+      "jobboard_external": {
+        "title": "External jobboard",
+        "sync_now": "Sync now",
+        "syncing": "Syncing…",
+        "last_sync": "Last sync: {{date}}",
+        "never_synced": "Never synced.",
+        "inserted": "{{count}} inserted",
+        "skipped": "{{count}} skipped",
+        "expired": "{{count}} expired",
+        "active_offers_one": "{{count}} active offer",
+        "active_offers_other": "{{count}} active offers",
+        "source_enabled": "Source enabled",
+        "source_disabled": "Source disabled",
+        "status": {
+          "SUCCESS": "Success",
+          "PARTIAL": "Partial",
+          "FAILED": "Failed"
+        },
+        "toast_sync_started": "Sync started.",
+        "toast_sync_error": "Unable to start the sync.",
+        "toast_toggle_error": "Unable to update the source."
+      }
+    },
     "advisor": {
       "greeting": "Hello, {{name}} 👋",
       "role_admin": "Admin",
@@ -402,6 +426,22 @@
       "create_button": "Publish an offer",
       "search_placeholder": "Search (title, company)…",
       "filter_all_contracts": "All contract types",
+      "tabs": {
+        "itic": "ITIC offers",
+        "external": "External market"
+      },
+      "external": {
+        "subtitle_one": "{{count}} external offer available",
+        "subtitle_other": "{{count}} external offers available",
+        "filter_all_sources": "All sources",
+        "view_offer": "View offer",
+        "empty": "No external offers match your criteria.",
+        "sources": {
+          "FRANCE_TRAVAIL": "France Travail",
+          "BONNE_ALTERNANCE": "La Bonne Alternance",
+          "ADZUNA": "Adzuna"
+        }
+      },
       "apply_button": "Mark as applied",
       "already_applied": "Already applied",
       "withdraw_hint": "Withdraw my application — the matching card will also be deleted from my application tracker.",
