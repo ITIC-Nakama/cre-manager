@@ -12,7 +12,6 @@ import {
   Bell,
   Trophy,
   Medal,
-  Loader2,
   AlertTriangle,
   Sparkles,
 } from 'lucide-react';
@@ -44,8 +43,30 @@ export default function StudentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+      <div className="flex flex-col gap-8 animate-fadeIn">
+        {/* Welcome header — toujours visible */}
+        <div className="flex flex-col gap-1">
+          <div className="h-8 w-64 rounded-xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          <div className="h-4 w-96 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse mt-1" />
+        </div>
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+              <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-2 flex-1">
+                <div className="h-6 w-12 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                <div className="h-3 w-28 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Body skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-40 animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }

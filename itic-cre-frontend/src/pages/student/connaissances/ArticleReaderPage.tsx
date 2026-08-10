@@ -94,7 +94,7 @@ export default function ArticleReaderPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-24">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
       </div>
     );
@@ -102,7 +102,7 @@ export default function ArticleReaderPage() {
 
   if (isError || !article) {
     return (
-      <div className="flex justify-center py-24 text-sm text-slate-400">
+      <div className="flex items-center justify-center py-24 text-sm text-slate-400">
         {t('dashboard.connaissances.article.load_error')}
       </div>
     );

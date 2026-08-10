@@ -156,7 +156,7 @@ export default function CandidaturesListPage() {
 
             {/* List */}
             {isLoading ? (
-                <div className="flex justify-center py-16">
+                <div className="flex items-center justify-center py-16">
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
                 </div>
             ) : visible.length === 0 ? (

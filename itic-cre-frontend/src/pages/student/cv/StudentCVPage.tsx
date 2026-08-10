@@ -5,7 +5,7 @@ import CVSheet from './components/CVSheet';
 import CVDropzone from './components/CVDropzone';
 import CVComments from './components/CVComments';
 import CVReplaceModal from './components/CVReplaceModal';
-import { Loader2, AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import { AlertCircle, RefreshCw, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
@@ -71,8 +71,22 @@ export default function StudentCVPage() {
   // État de chargement
   if (cvLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+      <div className="flex flex-col gap-8 animate-fadeIn">
+        {/* Titre skeleton */}
+        <div className="flex flex-col gap-1">
+          <div className="h-8 w-56 rounded-xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          <div className="h-4 w-80 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse mt-1" />
+        </div>
+        {/* CycleStrip skeleton */}
+        <div className="h-14 w-full rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        {/* Grille skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <div className="h-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse" />
+            <div className="h-40 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse" />
+          </div>
+          <div className="h-48 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse" />
+        </div>
       </div>
     );
   }

@@ -55,11 +55,11 @@ export default function CategoryArticlesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
+        <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
         </div>
       ) : isError ? (
-        <div className="flex justify-center py-16 text-sm text-slate-400">
+        <div className="flex items-center justify-center py-16 text-sm text-slate-400">
           {t('dashboard.connaissances.category.load_error')}
         </div>
       ) : articles && articles.length === 0 ? (

@@ -104,7 +104,7 @@ export default function PromotionStudentsModal({ isOpen, promotion, onClose }: P
           {debouncedSearch && (
             <div className="mt-2 flex flex-col gap-1 max-h-40 overflow-y-auto">
               {searching ? (
-                <div className="flex justify-center py-3">
+                <div className="flex items-center justify-center py-3">
                   <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 </div>
               ) : searchResults.length === 0 ? (
@@ -141,7 +141,7 @@ export default function PromotionStudentsModal({ isOpen, promotion, onClose }: P
 
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="flex justify-center py-12">
+            <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
             </div>
           ) : students.length === 0 ? (
