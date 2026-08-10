@@ -48,9 +48,18 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
-          </div>
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+            {[...Array(5)].map((_, i) => (
+              <li key={i} className="flex items-center gap-4 px-6 py-4 animate-pulse">
+                <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <div className="h-3.5 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-24 rounded bg-slate-100 dark:bg-slate-800" />
+                </div>
+                <div className="h-5 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+              </li>
+            ))}
+          </ul>
         ) : displayed.length === 0 ? (
           <div className="text-center py-10 text-sm text-slate-400">
             {t('dashboard.advisor.students_widget.empty')}

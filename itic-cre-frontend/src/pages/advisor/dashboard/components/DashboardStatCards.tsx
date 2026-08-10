@@ -75,6 +75,22 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm animate-pulse">
+            <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="h-7 w-10 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-3 w-28 rounded bg-slate-100 dark:bg-slate-800" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {cards.map((card) => {
@@ -85,11 +101,7 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow relative overflow-visible"
           >
             <div className={`h-11 w-11 rounded-xl ${card.bg} flex items-center justify-center flex-shrink-0`}>
-              {loading ? (
-                <Loader2 className={`h-5 w-5 ${card.color} animate-spin`} />
-              ) : (
-                <Icon className={`h-5 w-5 ${card.color}`} />
-              )}
+              <Icon className={`h-5 w-5 ${card.color}`} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{card.value}</p>

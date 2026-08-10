@@ -30,8 +30,15 @@ export default function AuditLogPanel() {
             </div>
 
             {isLoading ? (
-                <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+                <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 animate-pulse">
+                            <div className="h-4 w-20 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
+                            <div className="h-4 flex-1 rounded bg-slate-100 dark:bg-slate-800" />
+                            <div className="h-4 w-24 rounded bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+                            <div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+                        </div>
+                    ))}
                 </div>
             ) : logs.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-6">
