@@ -89,18 +89,31 @@ html.dark body {
 @theme {
   --font-sans: 'Roboto', sans-serif;
 
-  /* Primary: TechSchool Dominant Blue (#3F74FF) */
-  --color-primary:     #3F74FF;
+  /* Primary: TechSchool Dominant Blue (#3B71FF) */
+  --color-primary:     #3B71FF;
   --color-primary-50:  #eef3ff;
   --color-primary-100: #d4e1ff;
   --color-primary-200: #adc4ff;
   --color-primary-300: #78a2ff;
   --color-primary-400: #4d7eff;
-  --color-primary-500: #3F74FF;
-  --color-primary-600: #2a5de5;
-  --color-primary-700: #1d47c2;
+  --color-primary-500: #3B71FF;
+  --color-primary-600: #3B71FF;
+  --color-primary-700: #2a5de5;
   --color-primary-800: #15349a;
   --color-primary-900: #0e2270;
+
+  /* Indigo scale mapped directly to theme blue (#3B71FF) */
+  --color-indigo-50:   #eef3ff;
+  --color-indigo-100:  #d4e1ff;
+  --color-indigo-200:  #adc4ff;
+  --color-indigo-300:  #78a2ff;
+  --color-indigo-400:  #5b8def;
+  --color-indigo-500:  #3B71FF;
+  --color-indigo-600:  #3B71FF;
+  --color-indigo-700:  #2a5de5;
+  --color-indigo-800:  #15349a;
+  --color-indigo-900:  #0e2270;
+  --color-indigo-950:  #0a1435;
 
   /* Secondary (dark surface scale) */
   --color-secondary:     #15171f;
@@ -285,9 +298,20 @@ html.dark body {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus {
-  border-color: #4D84FF !important;
-  box-shadow: 0 0 0 2px rgba(77, 132, 255, 0.25) !important;
+  border-color: #3B71FF !important;
+  box-shadow: 0 0 0 2px rgba(59, 113, 255, 0.25) !important;
   outline: none !important;
+}
+
+/* Override all indigo rings and focus outlines globally to #3B71FF theme blue */
+[class*="ring-indigo"],
+[class*="focus:ring-indigo"],
+[class*="dark:ring-indigo"] {
+  --tw-ring-color: #3B71FF !important;
+}
+
+*:focus-visible {
+  outline-color: #3B71FF !important;
 }
 
 .dark input::placeholder,
@@ -330,13 +354,14 @@ html.dark body {
   color: #ffffff;
 }
 
-/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B72FF) */
+/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B71FF) */
 .dark button.bg-primary,
 .dark button.bg-indigo-600,
 .dark button.bg-blue-600,
+.dark button.bg-\[\#3B71FF\],
 .dark button.bg-\[\#3f74ff\] {
-  background: #3B72FF !important;
-  background: linear-gradient(90deg, #3B72FF 0%, #5B8DEF 100%) !important;
+  background: #3B71FF !important;
+  background: linear-gradient(90deg, #3B71FF 0%, #5B8DEF 100%) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   border-radius: 11px !important;
@@ -346,6 +371,7 @@ html.dark body {
 .dark button.bg-primary:hover,
 .dark button.bg-indigo-600:hover,
 .dark button.bg-blue-600:hover,
+.dark button.bg-\[\#3B71FF\]:hover,
 .dark button.bg-\[\#3f74ff\]:hover {
   opacity: 0.95 !important;
   box-shadow: none !important;

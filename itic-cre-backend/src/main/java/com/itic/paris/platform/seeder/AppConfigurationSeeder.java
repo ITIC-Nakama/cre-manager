@@ -10,6 +10,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.transaction.annotation.Transactional;
+
 @Slf4j
 @Component
 @Order(3)
@@ -18,24 +22,57 @@ public class AppConfigurationSeeder implements ApplicationRunner {
 
     private final AppConfigurationRepository appConfigurationRepository;
 
+    @PersistenceContext
+    private final EntityManager entityManager;
+
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
-        if (!appConfigurationRepository.existsByKey(AppConfigurationKey.STALE_ALERT_DAYS)) {
-            AppConfiguration config = new AppConfiguration();
-            config.setKey(AppConfigurationKey.STALE_ALERT_DAYS);
-            config.setValue("10");
-            config.setDescription("Nombre de jours sans changement de statut avant qu'une candidature soit marquée comme inactive");
-            appConfigurationRepository.save(config);
-            log.info("Seeded AppConfiguration: STALE_ALERT_DAYS=10");
+        try {
+            entityManager.createNativeQuery("ALTER TABLE app_configuration DROP CONSTRAINT IF EXISTS app_configuration_key_check").executeUpdate();
+        } catch (Exception e) {
+            log.debug("Check constraint drop query skipped: {}", e.getMessage());
         }
 
-        if (!appConfigurationRepository.existsByKey(AppConfigurationKey.PROMOTION_REMINDER_MONTHS)) {
+        seedIfMissing(
+                AppConfigurationKey.STALE_ALERT_DAYS,
+                "10",
+                "Nombre de jours sans changement de statut avant qu'une candidature soit marquée comme inactive"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.PROMOTION_REMINDER_MONTHS,
+                "9",
+                "Nombre de mois d'ancienneté du compte avant de rappeler à l'étudiant de mettre à jour sa promotion"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.GDPR_OTP_RETENTION_HOURS,
+                "24",
+                "Durée de conservation des codes OTP de vérification d'email en heures (RGPD)"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.GDPR_AUDIT_LOG_RETENTION_DAYS,
+                "365",
+                "Durée de conservation légale des journaux d'audit de sécurité et traçabilité en jours (RGPD)"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.GDPR_INACTIVE_STUDENT_RETENTION_DAYS,
+                "1095",
+                "Durée avant suppression automatique des comptes étudiants inactifs en jours (3 ans - RGPD)"
+        );
+    }
+
+    private void seedIfMissing(AppConfigurationKey key, String defaultValue, String description) {
+        if (appConfigurationRepository.findByKey(key).isEmpty()) {
             AppConfiguration config = new AppConfiguration();
-            config.setKey(AppConfigurationKey.PROMOTION_REMINDER_MONTHS);
-            config.setValue("9");
-            config.setDescription("Nombre de mois d'ancienneté du compte avant de rappeler à l'étudiant de mettre à jour sa promotion");
+            config.setKey(key);
+            config.setValue(defaultValue);
+            config.setDescription(description);
             appConfigurationRepository.save(config);
-            log.info("Seeded AppConfiguration: PROMOTION_REMINDER_MONTHS=9");
+            log.info("Seeded AppConfiguration: {}={}", key, defaultValue);
         }
     }
 }

@@ -41,6 +41,14 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Suppression d'un conseiller** : si des données lui sont rattachées (commentaires CV, offres d'emploi créées, articles créés, catégories de compétences créées), le compte est **désactivé** (`active = false`) au lieu d'être supprimé. La suppression définitive n'a lieu que si **aucune donnée associée** n'existe.
 - **Coupure de session** : le flag `active` est vérifié **à chaque requête authentifiée** dans le filtre JWT ; un compte désactivé perd l'accès dès sa prochaine requête.
 
+### Retention & Purge Automatisée RGPD (Configuration Applicative Dynamique BDD)
+- **Conservation des données RGPD** : Les durées de rétention ne sont plus figées dans les fichiers d'environnement (`.env` / `application.properties`), mais sont gérées dynamiquement en base de données (`app_configuration`) et modifiables par les administrateurs depuis l'interface client ("Paramètres" → "Configuration Applicative") :
+  - **`GDPR_OTP_RETENTION_HOURS`** (par défaut : **24 heures**) : Délai de purge des codes OTP de vérification d'email expirés.
+  - **`GDPR_AUDIT_LOG_RETENTION_DAYS`** (par défaut : **365 jours**) : Durée de conservation légale des journaux d'audit et de traçabilité.
+  - **`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`** (par défaut : **1095 jours**, soit 3 ans) : Délai d'inactivité avant anonymisation/suppression automatique du compte étudiant.
+- **Tâche planifiée (`GdprPurgeScheduler`)** : Exécutée quotidiennement à 03:00 du matin, elle interroge directement `AppConfigurationService` pour appliquer dynamiquement les règles de purge et d'anonymisation configurées en BDD.
+- **Navigation & Interface Admin** : Dans le menu principal (sidebar), l'entrée est nommée **"Paramètres"** (avec icône de configuration) pour le rôle `ADMIN` au lieu de "Profil", donnant accès au sous-menu bilingue "Paramètres du Compte" et "Configuration Applicative".
+
 ### Anonymisation RGPD & Distinction Portefeuille vs Activité
 - **Effacement nominatif** : L'anonymisation RGPD (`GdprService`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
 - **Règle de filtrage selon le type de statistique** :
@@ -216,6 +224,19 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
   - Migrations automatisées au démarrage de Spring Boot via Flyway (`V1__pg_trgm_indexes.sql`).
   - Creation automatique de l'extension `pg_trgm` et d'index GIN trigrammes sur les colonnes de recherche floue textuelle (`ILIKE '%search%'`) : `(first_name || ' ' || last_name)`, `email`, `entreprise` et `poste`.
   - Temps de réponse des filtres et barres de recherche < 5 millisecondes sur la BDD de production.
+
+---
+
+## 11. Configuration Applicative Globale & Rétentions RGPD
+
+- **Contrôle d'accès strict (RBAC)** : Les endpoints d'administration de la configuration applicative (`/api/admin/app-config`) sont protégés par `@PreAuthorize("hasRole('ADMIN')")`. Seul le rôle `ADMIN` peut consulter et enregistrer les modifications de seuils.
+- **Seuils applicatifs configurables en BDD (`app_configuration`)** :
+  1. **`STALE_ALERT_DAYS`** (par défaut : `10` jours) : Nombre de jours d'inactivité sur une candidature avant l'envoi d'une alerte de relance.
+  2. **`PROMOTION_REMINDER_MONTHS`** (par défaut : `9` mois) : Délai en mois avant le rappel de mise à jour de la promotion de l'étudiant.
+  3. **`GDPR_OTP_RETENTION_HOURS`** (par défaut : `24` heures) : Durée de rétention des codes de vérification OTP d'inscription.
+  4. **`GDPR_AUDIT_LOG_RETENTION_DAYS`** (par défaut : `365` jours) : Conservation légale des journaux d'audit et de sécurité.
+  5. **`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`** (par défaut : `1095` jours) : Seuil de rétention des comptes inactifs avant purge/anonymisation.
+- **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`) sans redémarrer le serveur.
 
 ---
 

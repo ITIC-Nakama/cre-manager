@@ -27,6 +27,24 @@ public class AppConfigurationService {
                 .orElse(9);
     }
 
+    public int getGdprOtpRetentionHours() {
+        return appConfigurationRepository.findByKey(AppConfigurationKey.GDPR_OTP_RETENTION_HOURS)
+                .map(c -> Integer.parseInt(c.getValue()))
+                .orElse(24);
+    }
+
+    public int getGdprAuditLogRetentionDays() {
+        return appConfigurationRepository.findByKey(AppConfigurationKey.GDPR_AUDIT_LOG_RETENTION_DAYS)
+                .map(c -> Integer.parseInt(c.getValue()))
+                .orElse(365);
+    }
+
+    public int getGdprInactiveStudentRetentionDays() {
+        return appConfigurationRepository.findByKey(AppConfigurationKey.GDPR_INACTIVE_STUDENT_RETENTION_DAYS)
+                .map(c -> Integer.parseInt(c.getValue()))
+                .orElse(1095);
+    }
+
     public List<AppConfigurationDTO> getAll() {
         return appConfigurationRepository.findAll().stream()
                 .map(this::mapToDTO)
@@ -49,24 +67,21 @@ public class AppConfigurationService {
     }
 
     private void validateValue(AppConfigurationKey key, String value) {
-        if (key == AppConfigurationKey.STALE_ALERT_DAYS) {
-            try {
-                int days = Integer.parseInt(value);
-                if (days < 1 || days > 365) {
-                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
-                }
-            } catch (NumberFormatException e) {
+        try {
+            int val = Integer.parseInt(value);
+            if (key == AppConfigurationKey.STALE_ALERT_DAYS && (val < 1 || val > 365)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            } else if (key == AppConfigurationKey.PROMOTION_REMINDER_MONTHS && (val < 1 || val > 120)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            } else if (key == AppConfigurationKey.GDPR_OTP_RETENTION_HOURS && (val < 1 || val > 8760)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            } else if (key == AppConfigurationKey.GDPR_AUDIT_LOG_RETENTION_DAYS && (val < 1 || val > 3650)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            } else if (key == AppConfigurationKey.GDPR_INACTIVE_STUDENT_RETENTION_DAYS && (val < 1 || val > 3650)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             }
-        } else if (key == AppConfigurationKey.PROMOTION_REMINDER_MONTHS) {
-            try {
-                int months = Integer.parseInt(value);
-                if (months < 1 || months > 120) {
-                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
-                }
-            } catch (NumberFormatException e) {
-                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
-            }
+        } catch (NumberFormatException e) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
         }
     }
 

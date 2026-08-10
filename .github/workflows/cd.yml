@@ -25,7 +25,12 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build Backend with Maven
+      - name: Run Backend Tests with Maven
+        run: |
+          cd itic-cre-backend
+          mvn -B test
+
+      - name: Build & Package Backend with Maven
         run: |
           cd itic-cre-backend
           mvn -B package

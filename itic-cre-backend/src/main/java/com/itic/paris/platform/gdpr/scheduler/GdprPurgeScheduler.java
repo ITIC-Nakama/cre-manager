@@ -6,6 +6,7 @@ import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.OtpRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.gdpr.service.GdprService;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,15 +26,7 @@ public class GdprPurgeScheduler {
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
     private final GdprService gdprService;
-
-    @Value("${app.gdpr.otp-retention-hours:24}")
-    private long otpRetentionHours;
-
-    @Value("${app.gdpr.audit-log-retention-days:365}")
-    private long auditLogRetentionDays;
-
-    @Value("${app.gdpr.inactive-student-retention-days:1095}")
-    private long inactiveStudentRetentionDays;
+    private final AppConfigurationService appConfigurationService;
 
     /**
      * Tâche planifiée exécutée tous les jours à 03:00 du matin.
@@ -43,6 +36,10 @@ public class GdprPurgeScheduler {
     @Scheduled(cron = "0 0 3 * * ?")
     public void executeDailyGdprPurge() {
         log.info("[RGPD SCHEDULER] Démarrage du nettoyage automatisé des données...");
+
+        int otpRetentionHours = appConfigurationService.getGdprOtpRetentionHours();
+        int auditLogRetentionDays = appConfigurationService.getGdprAuditLogRetentionDays();
+        int inactiveStudentRetentionDays = appConfigurationService.getGdprInactiveStudentRetentionDays();
 
         // 1. Purge des OTPs expirés
         try {

@@ -92,7 +92,7 @@
       "promotions": "Cohorts",
       "audit": "Audit Log",
       "configuration": "Configuration",
-      "parametres": "Profile",
+      "parametres": "Settings",
       "logout": "Logout"
     },
     "home": {
@@ -1047,6 +1047,26 @@
         "modal_deleting": "Deleting...",
         "toast_delete_success": "Your account has been anonymized and deactivated.",
         "toast_delete_error": "Error while deleting your account."
+      },
+      "submenus": {
+        "profile": "Profile Settings",
+        "profile_admin": "Settings",
+        "system": "Application Configuration"
+      },
+      "app_config": {
+        "title": "System Application Configuration",
+        "description": "Adjust global backend application thresholds (follow-up alerts, promotion rules).",
+        "btn_save": "Save",
+        "toast_success": "Configuration updated successfully!",
+        "toast_error": "Failed to update configuration.",
+        "empty": "No configurations to display.",
+        "keys": {
+          "STALE_ALERT_DAYS": "Inactivity threshold (days) before follow-up alert (applications)",
+          "PROMOTION_REMINDER_MONTHS": "Timeframe in months before promotion update reminder",
+          "GDPR_OTP_RETENTION_HOURS": "Email verification OTP code retention period (hours)",
+          "GDPR_AUDIT_LOG_RETENTION_DAYS": "Legal audit and security log retention period (days)",
+          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Retention period before automatic anonymization of inactive accounts (days)"
+        }
       },
       "preferences": {
         "title": "Preferences",

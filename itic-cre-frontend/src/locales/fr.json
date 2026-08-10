@@ -92,7 +92,7 @@
       "promotions": "Promotions",
       "audit": "Journal d'audit",
       "configuration": "Configuration",
-      "parametres": "Profil",
+      "parametres": "Paramètres",
       "logout": "Déconnexion"
     },
     "home": {
@@ -1047,6 +1047,26 @@
         "modal_deleting": "Suppression...",
         "toast_delete_success": "Votre compte a été anonymisé et désactivé.",
         "toast_delete_error": "Erreur lors de la suppression de votre compte."
+      },
+      "submenus": {
+        "profile": "Paramètres du Profil",
+        "profile_admin": "Paramètres",
+        "system": "Configuration Applicative"
+      },
+      "app_config": {
+        "title": "Configuration Applicative Système",
+        "description": "Ajustez les seuils applicatifs globaux du backend (alertes de relance, règles de promotion).",
+        "btn_save": "Enregistrer",
+        "toast_success": "Configuration mise à jour avec succès !",
+        "toast_error": "Échec de la mise à jour de la configuration.",
+        "empty": "Aucune configuration à afficher.",
+        "keys": {
+          "STALE_ALERT_DAYS": "Nombre de jours d'inactivité avant alerte de relance (candidatures)",
+          "PROMOTION_REMINDER_MONTHS": "Délai en mois avant rappel de mise à jour de promotion",
+          "GDPR_OTP_RETENTION_HOURS": "Durée de conservation des codes OTP de vérification d'email (heures)",
+          "GDPR_AUDIT_LOG_RETENTION_DAYS": "Durée de conservation légale des journaux d'audit et traçabilité (jours)",
+          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Durée avant anonymisation/suppression automatique des comptes inactifs (jours)"
+        }
       },
       "preferences": {
         "title": "Préférences",
