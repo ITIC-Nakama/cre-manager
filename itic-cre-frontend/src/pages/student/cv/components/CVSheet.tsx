@@ -98,7 +98,7 @@ export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploadin
           href={cv.url}
           target="_blank"
           rel="noreferrer"
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-sm font-semibold transition-colors cursor-pointer"
         >
           {t('studentCv.sheet.viewBtn', 'Voir mon CV')}
           <ExternalLink className="h-4 w-4" />
