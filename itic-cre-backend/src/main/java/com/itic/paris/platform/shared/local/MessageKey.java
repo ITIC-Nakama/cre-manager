@@ -126,6 +126,7 @@ public enum MessageKey {
     TASK_STALE_PREFIX("task-stale-prefix", "Relancer ", "Follow up with "),
     TASK_NO_CV("task-no-cv", "Déposer votre CV", "Upload your CV"),
     TASK_CV_TO_CORRECT("task-cv-to-correct", "Corriger votre CV", "Correct your CV"),
+    TASK_UPDATE_PROMOTION("task-update-promotion", "Pensez à mettre à jour votre promotion", "Remember to update your promotion"),
     // Admin governance messages
     ADMIN_CAP_REACHED("admin-cap-reached",
             "Le plafond de 2 administrateurs actifs est atteint. Désactivez un administrateur existant avant d'en créer un nouveau.",

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TaskDTO {
 
-    @Schema(description = "NO_CV | CV_TO_CORRECT | STALE_APPLICATION | NO_APPLICATION")
+    @Schema(description = "NO_CV | CV_TO_CORRECT | STALE_APPLICATION | NO_APPLICATION | UPDATE_PROMOTION")
     private String type;
 
     @Schema(description = "Texte affiché dans l'interface (ex: 'Relancer BNP Paribas')")

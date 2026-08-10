@@ -1,5 +1,6 @@
 package com.itic.paris.platform.shared.config;
 
 public enum AppConfigurationKey {
-    STALE_ALERT_DAYS
+    STALE_ALERT_DAYS,
+    PROMOTION_REMINDER_MONTHS
 }

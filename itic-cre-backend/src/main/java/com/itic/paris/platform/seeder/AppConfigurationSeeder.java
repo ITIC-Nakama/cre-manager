@@ -20,14 +20,22 @@ public class AppConfigurationSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (appConfigurationRepository.existsByKey(AppConfigurationKey.STALE_ALERT_DAYS)) return;
+        if (!appConfigurationRepository.existsByKey(AppConfigurationKey.STALE_ALERT_DAYS)) {
+            AppConfiguration config = new AppConfiguration();
+            config.setKey(AppConfigurationKey.STALE_ALERT_DAYS);
+            config.setValue("10");
+            config.setDescription("Nombre de jours sans changement de statut avant qu'une candidature soit marquée comme inactive");
+            appConfigurationRepository.save(config);
+            log.info("Seeded AppConfiguration: STALE_ALERT_DAYS=10");
+        }
 
-        AppConfiguration config = new AppConfiguration();
-        config.setKey(AppConfigurationKey.STALE_ALERT_DAYS);
-        config.setValue("10");
-        config.setDescription("Nombre de jours sans changement de statut avant qu'une candidature soit marquée comme inactive");
-        appConfigurationRepository.save(config);
-
-        log.info("Seeded AppConfiguration: STALE_ALERT_DAYS=10");
+        if (!appConfigurationRepository.existsByKey(AppConfigurationKey.PROMOTION_REMINDER_MONTHS)) {
+            AppConfiguration config = new AppConfiguration();
+            config.setKey(AppConfigurationKey.PROMOTION_REMINDER_MONTHS);
+            config.setValue("9");
+            config.setDescription("Nombre de mois d'ancienneté du compte avant de rappeler à l'étudiant de mettre à jour sa promotion");
+            appConfigurationRepository.save(config);
+            log.info("Seeded AppConfiguration: PROMOTION_REMINDER_MONTHS=9");
+        }
     }
 }

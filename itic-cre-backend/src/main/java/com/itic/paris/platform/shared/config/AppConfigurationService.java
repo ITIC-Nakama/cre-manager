@@ -21,6 +21,12 @@ public class AppConfigurationService {
                 .orElse(10);
     }
 
+    public int getPromotionReminderMonths() {
+        return appConfigurationRepository.findByKey(AppConfigurationKey.PROMOTION_REMINDER_MONTHS)
+                .map(c -> Integer.parseInt(c.getValue()))
+                .orElse(9);
+    }
+
     public List<AppConfigurationDTO> getAll() {
         return appConfigurationRepository.findAll().stream()
                 .map(this::mapToDTO)
@@ -47,6 +53,15 @@ public class AppConfigurationService {
             try {
                 int days = Integer.parseInt(value);
                 if (days < 1 || days > 365) {
+                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+                }
+            } catch (NumberFormatException e) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            }
+        } else if (key == AppConfigurationKey.PROMOTION_REMINDER_MONTHS) {
+            try {
+                int months = Integer.parseInt(value);
+                if (months < 1 || months > 120) {
                     throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
                 }
             } catch (NumberFormatException e) {

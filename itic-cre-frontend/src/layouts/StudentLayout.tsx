@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Role } from '../types/models/Auth';
-import RequireAuth from './RequireAuth';
+import RequireAuthMiddleware from '../middleware/RequireAuthMiddleware';
 import Sidebar from '../components/head/Sidebar';
 import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,7 @@ export default function StudentLayout() {
   ];
 
   return (
-    <RequireAuth allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
+    <RequireAuthMiddleware allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main className="flex-1 overflow-y-auto h-full lg:pl-0 pt-10 sm:pt-10 lg:pt-0">
@@ -27,7 +27,7 @@ export default function StudentLayout() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequireAuthMiddleware>
   );
 }
 

@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useUserStore } from '../store/UserStore';
 import { Role } from '../types/models/Auth';
-import RequireAuth from './RequireAuth';
+import RequireAuthMiddleware from '../middleware/RequireAuthMiddleware';
 import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
@@ -38,7 +38,7 @@ export default function SupervisorLayout() {
   ];
 
   return (
-    <RequireAuth allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
+    <RequireAuthMiddleware allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main className="flex-1 overflow-y-auto h-full pt-16 lg:pt-0">
@@ -47,7 +47,7 @@ export default function SupervisorLayout() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequireAuthMiddleware>
   );
 }
 

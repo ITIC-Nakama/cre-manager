@@ -109,7 +109,7 @@ export interface ApplicationStats {
 }
 
 export interface Task {
-  type: 'NO_CV' | 'CV_TO_CORRECT' | 'STALE_APPLICATION' | 'NO_APPLICATION';
+  type: 'NO_CV' | 'CV_TO_CORRECT' | 'STALE_APPLICATION' | 'NO_APPLICATION' | 'UPDATE_PROMOTION';
   label: string;
   refId: string | null;
 }

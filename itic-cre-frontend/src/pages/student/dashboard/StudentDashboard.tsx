@@ -208,17 +208,33 @@ export default function StudentDashboard() {
               <FileText className="h-4 w-4 text-primary" />
               {t('dashboard.home.applications.title', 'Candidatures récentes')}
             </h2>
+            {data && data.candidatures.recentes.length > 0 && (
+              <Link
+                to="/student/candidatures"
+                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                {t('dashboard.home.applications.view_all', 'Voir tout')}
+              </Link>
+            )}
           </div>
           {data && data.candidatures.recentes.length > 0 ? (
             <div className="flex flex-col gap-1">
               {data.candidatures.recentes.map((app) => (
-                <div key={app.id} className="flex items-center justify-between gap-3 px-2 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <Link
+                  key={app.id}
+                  to={`/student/candidatures/${app.id}`}
+                  className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{app.poste}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{app.poste}</p>
                     <p className="text-xs text-slate-400 truncate">{app.entreprise}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {app.stale && <span className="text-xs text-amber-500">⚠</span>}
+                    {app.stale && (
+                      <span className="text-xs text-amber-500 font-semibold" title={t('dashboard.candidatures.student.detail.stale', 'En alerte')}>
+                        ⚠
+                      </span>
+                    )}
                     <span className="text-xs text-slate-400 hidden sm:inline">{formatDate(app.dateModification)}</span>
                     <span
                       className="text-xs font-semibold px-2 py-0.5 rounded-full"
@@ -227,7 +243,7 @@ export default function StudentDashboard() {
                       {app.statusNom}
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
@@ -253,12 +269,34 @@ export default function StudentDashboard() {
           </h2>
           {data && data.afaireAujourdhui.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {data.afaireAujourdhui.map((task, idx) => (
-                <div key={idx} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-700 dark:text-slate-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
-                  {task.label}
-                </div>
-              ))}
+              {data.afaireAujourdhui.map((task, idx) => {
+                let linkTarget: string | null = null;
+                if (task.type === 'STALE_APPLICATION' && task.refId) {
+                  linkTarget = `/student/candidatures/${task.refId}`;
+                } else if (task.type === 'NO_APPLICATION') {
+                  linkTarget = '/student/candidatures';
+                } else if (task.type === 'NO_CV' || task.type === 'CV_TO_CORRECT') {
+                  linkTarget = '/student/cv';
+                } else if (task.type === 'UPDATE_PROMOTION') {
+                  linkTarget = '/student/parametres';
+                }
+
+                return linkTarget ? (
+                  <Link
+                    key={idx}
+                    to={linkTarget}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 transition-colors cursor-pointer group"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 flex-shrink-0 group-hover:scale-125 transition-transform" />
+                    <span className="flex-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{task.label}</span>
+                  </Link>
+                ) : (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-700 dark:text-slate-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                    <span>{task.label}</span>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
