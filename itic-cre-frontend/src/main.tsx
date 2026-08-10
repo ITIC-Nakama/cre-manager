@@ -33,3 +33,12 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+
+// Dissolution fluide de l'écran d'accueil après chargement de React
+requestAnimationFrame(() => {
+  const splash = document.getElementById('pwa-splash');
+  if (splash) {
+    splash.classList.add('splash-fade-out');
+    setTimeout(() => splash.remove(), 400);
+  }
+});
