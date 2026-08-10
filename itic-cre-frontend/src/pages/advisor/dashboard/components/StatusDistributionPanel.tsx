@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { type LucideIcon } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 
 interface StatusItem {
   key: string;

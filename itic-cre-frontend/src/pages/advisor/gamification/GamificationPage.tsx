@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
-import { Trophy, Plus, Award, ListChecks, FileCheck, Loader2 } from 'lucide-react';
+import { Trophy, Plus, Award, ListChecks, FileCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useUserStore } from '../../../store/UserStore';

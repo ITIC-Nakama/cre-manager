@@ -1,4 +1,4 @@
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuditLogs } from '../../../../hooks/useAudit';
 import { auditActionColor } from '../../../../utils/auditActionColors';

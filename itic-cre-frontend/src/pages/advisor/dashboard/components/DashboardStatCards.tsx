@@ -1,4 +1,4 @@
-import { Users, Briefcase, AlertCircle, FileText, Loader2, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Users, Briefcase, AlertCircle, FileText, HelpCircle, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { DashboardOverview } from '../../../../types/models/Dashboard';
 

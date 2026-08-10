@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mail, AlertCircle, Star, Loader2, FileText, ArrowRight } from 'lucide-react';
+import { Mail, AlertCircle, Star, FileText, ArrowRight } from 'lucide-react';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import NotifyStudentModal from '../../../../components/shared/NotifyStudentModal';
 
