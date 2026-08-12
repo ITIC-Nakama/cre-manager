@@ -6,6 +6,7 @@ import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
@@ -138,6 +139,15 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(CustomResponseEntity.of(MessageKey.FILE_TOO_LARGE, lang, HttpStatus.PAYLOAD_TOO_LARGE.value(), null));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<CustomResponseEntity> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex,
+                                                                               HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(CustomResponseEntity.of(MessageKey.CONCURRENT_UPDATE_CONFLICT, lang,
+                        HttpStatus.CONFLICT.value(), null));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

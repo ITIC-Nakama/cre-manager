@@ -116,6 +116,7 @@ public enum MessageKey {
     IMAGE_INVALID_FILE_TYPE("image-invalid-file-type", "Seuls les fichiers JPG, PNG ou WEBP sont acceptés", "Only JPG, PNG or WEBP files are accepted"),
     FILE_TOO_LARGE("file-too-large", "Le fichier dépasse la taille maximale autorisée par le serveur", "File exceeds the maximum size allowed by the server"),
     FILE_EMPTY("file-empty", "Le fichier ne peut pas être vide", "The file cannot be empty"),
+    CONCURRENT_UPDATE_CONFLICT("concurrent-update-conflict", "Cette ressource vient d'être modifiée par une autre requête, veuillez réessayer", "This resource was just modified by another request, please try again"),
     CV_COMMENT_ADDED("cv-comment-added", "Commentaire ajouté", "Comment added"),
     CV_STATUS_UPDATED("cv-status-updated", "Statut du CV mis à jour", "CV status updated"),
     CV_STATUT_NOT_FOUND("cv-statut-not-found", "Statut CV introuvable", "CV status not found"),

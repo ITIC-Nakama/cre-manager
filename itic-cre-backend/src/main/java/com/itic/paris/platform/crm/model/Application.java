@@ -72,4 +72,12 @@ public class Application {
     @UpdateTimestamp
     @Column(name = "date_modification", nullable = false)
     private Instant dateModification;
+
+    /**
+     * Verrou optimiste — empêche que deux changements de statut concurrents sur la même
+     * candidature ne créditent l'XP deux fois (voir ApplicationService.changeStatus).
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }
