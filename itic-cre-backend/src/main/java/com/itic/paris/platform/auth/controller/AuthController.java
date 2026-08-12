@@ -1,5 +1,6 @@
 package com.itic.paris.platform.auth.controller;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.exception.entity.CustomResponseEntity;
 import com.itic.paris.platform.auth.model.dtos.*;
 import com.itic.paris.platform.auth.service.AuthService;
@@ -136,12 +137,7 @@ public class AuthController {
     @Operation(summary = "Mettre à jour la photo de profil de l'utilisateur connecté")
     public ResponseEntity<?> updateProfilePicture(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Le fichier ne peut pas être vide");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return ResponseEntity.badRequest().body("Le fichier doit être une image (JPEG, PNG, etc.)");
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.FILE_EMPTY);
         }
 
         UUID currentUserId = SecurityContextHelper.currentUserId();

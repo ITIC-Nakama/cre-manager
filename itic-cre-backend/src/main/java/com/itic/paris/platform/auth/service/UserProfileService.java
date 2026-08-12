@@ -31,12 +31,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserProfileService {
+
+    /**
+     * Extensions dérivées exclusivement du Content-Type déclaré (jamais du nom de fichier
+     * fourni par le client — voir TICKET_AUDIT_SECURITE.md #3, path traversal sur l'upload).
+     */
+    private static final Map<String, String> ALLOWED_IMAGE_EXTENSIONS = Map.of(
+            "image/jpeg", ".jpg",
+            "image/png", ".png",
+            "image/webp", ".webp"
+    );
 
     private final UserRepository userRepository;
     private final UserLookupService userLookupService;
@@ -318,10 +329,9 @@ public class UserProfileService {
             cloudStorage.deleteFile(user.getProfilePicture());
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = ".jpg";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String fileExtension = ALLOWED_IMAGE_EXTENSIONS.get(file.getContentType());
+        if (fileExtension == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_INVALID_FILE_TYPE);
         }
 
         // Le dossier configuré est utilisé comme dossier public de base dans notre stockage mixte
