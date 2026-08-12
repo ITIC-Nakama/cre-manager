@@ -136,6 +136,20 @@ public class CVIntegrationTest {
     }
 
     @Test
+    public void testUploadCV_ShouldReturnFriendlyFileNameBasedOnStudentIdentity() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "some-random-scan.pdf",
+                "application/pdf",
+                "Mock PDF content".getBytes()
+        );
+
+        Map<String, Object> response = cvService.uploadCV(testStudent.getId(), file);
+
+        assertThat(response.get("nomFichier")).isEqualTo("CV_Student_Cv.pdf");
+    }
+
+    @Test
     public void testUpdateStatus_ShouldAwardXPOnce() throws Exception {
         // Given
         CV cv = new CV();
