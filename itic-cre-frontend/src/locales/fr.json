@@ -12,7 +12,7 @@
     "cookie_banner": {
       "title": "Gestion des Cookies Essentiels",
       "close": "Fermer",
-      "text": "ITIC-CRE utilise uniquement des cookies de session strictement nécessaires (authentification sécurisée JWT et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.",
+      "text": "ITIC-CRE utilise uniquement des cookies de session strictement nécessaires (authentification et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.",
       "learn_more": "En savoir plus",
       "accept": "J'ai compris"
     }
