@@ -7,7 +7,8 @@ export async function openFileSecurely(url: string, fallbackName: string = 'docu
 
   try {
     const response = await apiClient.get(url, { responseType: 'blob' });
-    const contentType = response.headers['content-type'] || 'application/pdf';
+    const rawContentType = response.headers['content-type'];
+    const contentType = typeof rawContentType === 'string' ? rawContentType : 'application/pdf';
     const blob = new Blob([response.data], { type: contentType });
     const blobUrl = URL.createObjectURL(blob);
 
