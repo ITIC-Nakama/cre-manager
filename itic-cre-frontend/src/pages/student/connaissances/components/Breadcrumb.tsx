@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, ArrowLeft, GitFork } from 'lucide-react';
 
 export interface BreadcrumbItem {
@@ -13,6 +14,7 @@ function truncateLabel(text: string, maxLen = 65): string {
 }
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -24,17 +26,17 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-sm cursor-pointer shrink-0 min-h-[36px]"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        <span>Retour</span>
+        <span>{t('common.back', 'Retour')}</span>
       </button>
 
       {/* Direct link to main Skill Tree */}
       <Link
         to="/student/connaissances"
-        title="Retourner à l'arbre de connaissances"
+        title={t('student.skilltree.back_to_tree_tooltip', "Retourner à l'arbre de connaissances")}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 text-xs font-semibold text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100/70 dark:hover:bg-indigo-950/70 transition-colors shadow-sm cursor-pointer shrink-0 min-h-[36px]"
       >
         <GitFork className="h-3.5 w-3.5" />
-        <span>Arbre</span>
+        <span>{t('student.skilltree.tree_link', 'Arbre')}</span>
       </Link>
 
       <span className="w-px h-4 bg-slate-200 dark:bg-slate-800 hidden sm:inline-block" />

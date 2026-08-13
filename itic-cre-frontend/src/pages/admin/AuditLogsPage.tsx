@@ -75,7 +75,7 @@ export default function AuditLogsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
           <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
-          {renderTitleWithGradient(t('dashboard.audit.title', "Journaux d'Audit"), 'itic-gradient-blue')}
+          {renderTitleWithGradient(t('dashboard.audit_page.title', "Journaux d'Audit"), 'itic-gradient-blue')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
           {t('dashboard.audit_page.subtitle', { count: totalElements })}

@@ -15,12 +15,21 @@
       "text": "ITIC-CRE only uses strictly necessary session cookies (authentication and language preference). No advertising or third-party tracking cookies are used.",
       "learn_more": "Learn more",
       "accept": "Got it"
-    }
+    },
+    "back": "Back",
+    "prev": "Previous",
+    "next": "Next"
   },
   "roles": {
     "student": "Student",
     "admin": "Admin",
     "advisor": "Corporate Relations Officer"
+  },
+  "student": {
+    "skilltree": {
+      "back_to_tree_tooltip": "Return to knowledge tree",
+      "tree_link": "Tree"
+    }
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
@@ -121,7 +130,8 @@
       "applications": {
         "title": "Recent Applications",
         "empty": "No applications yet",
-        "empty_desc": "Start by adding your first application to track its progress here."
+        "empty_desc": "Start by adding your first application to track its progress here.",
+        "view_all": "View all"
       },
       "tasks": {
         "title": "To do today",
@@ -288,7 +298,11 @@
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
       "toast_reactivate_error": "Error reactivating account.",
-      "subtitle": "Manage and track student progress."
+      "subtitle": "Manage and track student progress.",
+      "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
+    },
+    "students": {
+      "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
     },
     "candidatures": {
       "title": "Applications",
@@ -302,6 +316,9 @@
       "filter_all_contracts": "All contract types",
       "filter_stale_only": "Overdue only",
       "loading": "Loading applications…",
+      "toast_export_success": "CSV export downloaded successfully",
+      "toast_export_error": "Error downloading CSV export",
+      "export_csv": "Export CSV",
       "empty_title": "No active students with applications",
       "empty_desc": "Adjust your filters to broaden the search.",
       "student_count_one": "{{count}} student",
@@ -344,6 +361,9 @@
           "in_progress": "In progress",
           "completed": "Completed"
         },
+        "pagination_prev": "Previous",
+        "pagination_next": "Next",
+        "pagination_info": "Page {{current}} of {{total}}",
         "card": {
           "via_jobboard": "Via the job board",
           "today": "Today",
@@ -411,6 +431,15 @@
       },
       "student_count": "{{count}} students",
       "pagination_info": "Page {{current}} of {{total}}"
+    },
+    "cv_validation": {
+      "title": "CV Validation"
+    },
+    "student_offres": {
+      "title": "Job Offers"
+    },
+    "audit": {
+      "title": "Audit Logs"
     },
     "offres": {
       "title": "Job offers",
@@ -760,6 +789,8 @@
       "toast_config_error": "Error updating configuration.",
       "toast_config_updated": "Configuration updated successfully!",
       "toast_config_save_error": "Error updating configuration.",
+      "toast_rule_updated": "Configuration updated successfully!",
+      "toast_rule_update_error": "Error updating configuration.",
       "action": {
         "CANDIDATURE_CREATED": "New application created",
         "QUIZ_COMPLETED": "Quiz validated"
@@ -774,11 +805,15 @@
       "toast_app_status_error": "Error updating status.",
       "toast_status_updated": "Status updated successfully!",
       "toast_status_save_error": "Error updating status.",
+      "toast_status_xp_updated": "Status updated successfully!",
+      "toast_status_xp_update_error": "Error updating status.",
       "sec2_cv_title": "XP Earnings per CV Status",
       "cv_status_section_title": "XP Points per CV Status",
       "cv_status_section_desc": "Award XP points when a CV reaches a given status (e.g. CV validated by an advisor).",
       "toast_cv_status_success": "CV status updated successfully!",
       "toast_cv_status_error": "Error updating status.",
+      "toast_cv_xp_updated": "CV status updated successfully!",
+      "toast_cv_xp_update_error": "Error updating CV status.",
       "sec3_title": "Progression Grades",
       "grades_section_title": "Progression Grades",
       "grades_section_desc": "Grades are automatically awarded to students based on their total XP points.",
@@ -869,6 +904,12 @@
       "placeholder_job_title": "Ex: Corporate Relations Officer",
       "btn_cancel": "Cancel",
       "btn_save": "Save",
+      "btn_create": "Create",
+      "generate_password": "Regenerate",
+      "copy_password": "Copy",
+      "button_cancel": "Cancel",
+      "button_create": "Create",
+      "button_save": "Save",
       "toast_created": "Staff member created successfully!",
       "toast_admin_created": "Administrator created successfully!",
       "toast_advisor_created": "Advisor created successfully!",

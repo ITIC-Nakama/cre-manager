@@ -15,12 +15,21 @@
       "text": "ITIC-CRE utilise uniquement des cookies de session strictement nécessaires (authentification et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.",
       "learn_more": "En savoir plus",
       "accept": "J'ai compris"
-    }
+    },
+    "back": "Retour",
+    "prev": "Précédent",
+    "next": "Suivant"
   },
   "roles": {
     "student": "Étudiant",
     "admin": "Administrateur",
     "advisor": "Chargé de Relations Entreprises"
+  },
+  "student": {
+    "skilltree": {
+      "back_to_tree_tooltip": "Retourner à l'arbre de connaissances",
+      "tree_link": "Arbre"
+    }
   },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
@@ -121,7 +130,8 @@
       "applications": {
         "title": "Candidatures récentes",
         "empty": "Aucune candidature pour le moment",
-        "empty_desc": "Commencez par ajouter votre première candidature pour suivre son évolution ici."
+        "empty_desc": "Commencez par ajouter votre première candidature pour suivre son évolution ici.",
+        "view_all": "Voir tout"
       },
       "tasks": {
         "title": "À faire aujourd'hui",
@@ -288,7 +298,11 @@
       "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
       "toast_reactivated": "Compte réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
-      "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants."
+      "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants.",
+      "anonymized_account": "Compte anonymisé RGPD (non réactivable)"
+    },
+    "students": {
+      "anonymized_account": "Compte anonymisé RGPD (non réactivable)"
     },
     "candidatures": {
       "title": "Candidatures",
@@ -302,6 +316,9 @@
       "promotion_no_results": "Aucune promotion trouvée",
       "filter_stale_only": "En retard uniquement",
       "loading": "Chargement des candidatures…",
+      "toast_export_success": "Export CSV téléchargé avec succès",
+      "toast_export_error": "Erreur lors du téléchargement du CSV",
+      "export_csv": "Exporter CSV",
       "empty_title": "Aucun étudiant actif avec des candidatures",
       "empty_desc": "Modifiez vos filtres pour élargir la recherche.",
       "student_count_one": "{{count}} étudiant",
@@ -344,6 +361,9 @@
           "in_progress": "En cours",
           "completed": "Terminées"
         },
+        "pagination_prev": "Précédent",
+        "pagination_next": "Suivant",
+        "pagination_info": "Page {{current}} sur {{total}}",
         "card": {
           "via_jobboard": "Via le jobboard",
           "today": "Aujourd'hui",
@@ -411,6 +431,15 @@
       },
       "student_count": "{{count}} étudiants",
       "pagination_info": "Page {{current}} sur {{total}}"
+    },
+    "cv_validation": {
+      "title": "Validation des CVs"
+    },
+    "student_offres": {
+      "title": "Offres d'Emploi"
+    },
+    "audit": {
+      "title": "Journaux d'Audit"
     },
     "offres": {
       "title": "Offres d'emploi",
@@ -760,6 +789,8 @@
       "toast_config_error": "Erreur lors de la mise à jour de la configuration.",
       "toast_config_updated": "Configuration mise à jour avec succès !",
       "toast_config_save_error": "Erreur lors de la mise à jour de la configuration.",
+      "toast_rule_updated": "Configuration mise à jour avec succès !",
+      "toast_rule_update_error": "Erreur lors de la mise à jour de la configuration.",
       "action": {
         "CANDIDATURE_CREATED": "Nouvelle candidature créée",
         "QUIZ_COMPLETED": "Quiz validé"
@@ -774,11 +805,15 @@
       "toast_app_status_error": "Erreur lors de la mise à jour du statut.",
       "toast_status_updated": "Statut mis à jour avec succès !",
       "toast_status_save_error": "Erreur lors de la mise à jour du statut.",
+      "toast_status_xp_updated": "Statut mis à jour avec succès !",
+      "toast_status_xp_update_error": "Erreur lors de la mise à jour du statut.",
       "sec2_cv_title": "Gains XP par statut de CV",
       "cv_status_section_title": "Points XP par statut de CV",
       "cv_status_section_desc": "Attribuez des points XP lorsqu'un CV atteint un statut donné (ex : validation du CV par un conseiller).",
       "toast_cv_status_success": "Statut de CV mis à jour avec succès !",
       "toast_cv_status_error": "Erreur lors de la mise à jour du statut.",
+      "toast_cv_xp_updated": "Statut de CV mis à jour avec succès !",
+      "toast_cv_xp_update_error": "Erreur lors de la mise à jour du statut.",
       "sec3_title": "Rangs & Grades de progression",
       "grades_section_title": "Grades de progression",
       "grades_section_desc": "Les grades sont attribués automatiquement aux étudiants selon leur total de points XP.",
@@ -869,6 +904,12 @@
       "placeholder_job_title": "Ex : Chargé de Relations Entreprises",
       "btn_cancel": "Annuler",
       "btn_save": "Enregistrer",
+      "btn_create": "Créer",
+      "generate_password": "Régénérer",
+      "copy_password": "Copier",
+      "button_cancel": "Annuler",
+      "button_create": "Créer",
+      "button_save": "Enregistrer",
       "toast_created": "Membre créé avec succès !",
       "toast_admin_created": "Administrateur créé avec succès !",
       "toast_advisor_created": "Conseiller créé avec succès !",

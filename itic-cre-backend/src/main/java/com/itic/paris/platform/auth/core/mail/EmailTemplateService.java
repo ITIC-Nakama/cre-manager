@@ -23,6 +23,9 @@ public class EmailTemplateService {
     @Value("${app.brand.name:ITIC CRE}")
     private String brandName;
 
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     public String renderOtpVerificationEmail(String lang, String firstName, String code, long expirationMinutes) {
         return renderOtpVerificationEmail(lang, firstName, code, expirationMinutes, false);
     }
@@ -72,6 +75,7 @@ public class EmailTemplateService {
         context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "Votre conseiller");
         context.setVariable("message", message);
         context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
         return templateEngine.process("email/student-reminder", context);
     }
 

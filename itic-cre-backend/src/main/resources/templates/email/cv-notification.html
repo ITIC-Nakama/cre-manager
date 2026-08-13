@@ -11,20 +11,19 @@
         <tr>
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0"
-                       style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.7);">
+                       style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
 
-                    <!-- Header — Gradient ITIC Warm -->
+                    <!-- Header -->
                     <tr>
-                        <td style="background:linear-gradient(135deg,#E2782E 0%,#FCBC0B 55%,#FEB9D1 100%);padding:32px 40px;">
+                        <td style="background-color:#0d0f16;border-top:4px solid #E2782E;padding:28px 40px;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width:4px;background-color:rgba(255,255,255,0.7);border-radius:2px;">&nbsp;</td>
-                                    <td style="padding-left:12px;">
-                                        <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);" th:text="${brandName}">ITIC CRE</span>
+                                    <td style="padding-bottom:18px;">
+                                        <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9aa0a6;" th:text="${brandName}">ITIC CRE</span>
                                     </td>
                                 </tr>
                             </table>
-                            <h1 style="margin:12px 0 0 0;font-size:24px;font-weight:700;color:#FFFFFF;text-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                            <h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">
                                 Notification CV
                             </h1>
                         </td>
@@ -34,7 +33,7 @@
                     <tr>
                         <td style="background-color:#15171f;padding:36px 40px;border-left:1px solid #333a51;border-right:1px solid #333a51;">
                             <p style="margin:0 0 20px 0;font-size:16px;color:#ffffff;line-height:1.6;">
-                                Bonjour <strong style="color:#FCBC0B;" th:text="${firstName}">Étudiant</strong>,
+                                Bonjour <strong style="color:#E2782E;" th:text="${firstName}">Étudiant</strong>,
                             </p>
 
                             <!-- CV Status change -->
@@ -51,11 +50,11 @@
                                 </table>
                                 <th:block th:if="${statutNom == 'À corriger'}">
                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                                           style="background-color:#1e2130;border-radius:10px;border:1px solid #333a51;border-left:4px solid #FCBC0B;margin-bottom:20px;">
+                                           style="background-color:#1e2130;border-radius:10px;border:1px solid #333a51;border-left:4px solid #E2782E;margin-bottom:20px;">
                                         <tr>
                                             <td style="padding:14px 20px;">
                                                 <p style="margin:0;font-size:14px;color:#9aa0a6;line-height:1.6;">
-                                                    💬 Votre conseiller a peut-être laissé des commentaires sur votre CV. Connectez-vous à la plateforme pour les consulter.
+                                                    Votre conseiller a peut-être laissé des commentaires sur votre CV. Connectez-vous à la plateforme pour les consulter.
                                                 </p>
                                             </td>
                                         </tr>
@@ -69,7 +68,7 @@
                                     Votre conseiller a ajouté un commentaire sur votre CV :
                                 </p>
                                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                                       style="background-color:#0d0f16;border-radius:10px;border:1px solid #333a51;border-left:4px solid #3B71FF;margin:0 0 24px 0;">
+                                       style="background-color:#0d0f16;border-radius:10px;border:1px solid #333a51;border-left:4px solid #4D84FF;margin:0 0 24px 0;">
                                     <tr>
                                         <td style="padding:20px 24px;">
                                             <p th:text="${comment}"
@@ -83,15 +82,6 @@
 
                             <p style="margin:8px 0 0 0;font-size:14px;color:#9aa0a6;line-height:1.6;">
                                 Connectez-vous à votre espace étudiant pour retrouver tous les détails.
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- Bannière -->
-                    <tr>
-                        <td style="background:linear-gradient(90deg,#3B71FF 0%,#5B8DEF 100%);padding:18px 40px;border-left:1px solid #333a51;border-right:1px solid #333a51;">
-                            <p style="margin:0;font-size:14px;color:#ffffff;text-align:center;font-weight:500;">
-                                Suivez vos candidatures. Progressez en confiance.
                             </p>
                         </td>
                     </tr>

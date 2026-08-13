@@ -17,10 +17,18 @@ class EmailTemplateServiceTest {
         String html = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
 
         assertTrue(html.contains("#E2782E"));
-        assertTrue(html.contains("#FCBC0B"));
         assertTrue(html.contains("482910"));
         assertTrue(html.contains("Bonjour"));
         assertTrue(html.contains("ITIC CRE"));
+    }
+
+    @Test
+    void otpCodeIsRenderedAsPlainTextNotGradientText() {
+        // Le degrade en text-fill-color:transparent rend le code invisible dans certains
+        // clients mail (Outlook, Yahoo...) qui ignorent background-clip:text.
+        String html = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
+
+        assertTrue(!html.contains("-webkit-text-fill-color:transparent"));
     }
 
     @Test

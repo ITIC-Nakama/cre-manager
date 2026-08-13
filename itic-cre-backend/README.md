@@ -38,6 +38,18 @@ Swagger UI disponible sur : `http://localhost:8080/api/v1/swagger-ui.html`
 
 ---
 
+## Variables d'environnement clés
+
+Liste non exhaustive (voir `.env.example` pour la liste complète) :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origines autorisées par le CORS backend |
+| `FRONTEND_URL` | `http://localhost:5173` | URL de base du frontend, utilisée pour construire les liens cliquables dans les emails (ex: bouton "Accéder à mon espace" du rappel conseiller) |
+| `APP_BRAND_NAME` | `ITIC CRE` | Nom affiché dans l'en-tête/pied des emails |
+
+---
+
 ## Structure des modules
 
 ```
@@ -121,6 +133,8 @@ CVService.updateStatus()          CVService.addComment()
 | `cv/service/CVService.java` | Publie l'événement **dans** la transaction (strings extraits de la session JPA ouverte) |
 | `shared/notification/NotificationEmailService.java` | Écoute l'événement **après commit**, envoie l'email en mode `@Async` |
 | `resources/templates/email/cv-notification.html` | Template Thymeleaf HTML partagé (type STATUS ou COMMENT) |
+
+Le rappel libre envoyé par un conseiller (`POST /dashboard/students/{id}/notify`) suit le même principe et utilise `resources/templates/email/student-reminder.html`. Son bouton "Accéder à mon espace" pointe vers `${FRONTEND_URL}/student/dashboard` — voir [Variables d'environnement](#variables-denvironnement-clés).
 
 ---
 

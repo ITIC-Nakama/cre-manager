@@ -181,11 +181,11 @@ export default function CandidaturesListPage() {
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        <span>Précédent</span>
+                        <span>{t('dashboard.candidatures.student.pagination_prev', 'Précédent')}</span>
                     </button>
 
                     <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        Page {page + 1} / {totalPages}
+                        {t('dashboard.candidatures.student.pagination_info', { current: page + 1, total: totalPages, defaultValue: 'Page {{current}} / {{total}}' })}
                     </span>
 
                     <button
@@ -193,7 +193,7 @@ export default function CandidaturesListPage() {
                         disabled={page >= totalPages - 1}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                        <span>Suivant</span>
+                        <span>{t('dashboard.candidatures.student.pagination_next', 'Suivant')}</span>
                         <ChevronRight className="h-4 w-4" />
                     </button>
                 </div>

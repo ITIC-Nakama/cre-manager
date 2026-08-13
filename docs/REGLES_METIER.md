@@ -240,6 +240,23 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 
 ---
 
+## 12. Emails transactionnels
+
+- Rendus via Thymeleaf (`itic-cre-backend/src/main/resources/templates/email/`), envoyés en asynchrone (`@Async`), jamais bloquants pour la requête HTTP d'origine.
+
+| Template | Déclencheur |
+|---|---|
+| `otp-verification.html` | Inscription étudiant / renvoi de code OTP |
+| `account-credentials.html` | Création d'un compte `ADVISOR`/`ADMIN` par un admin (mot de passe temporaire) |
+| `cv-notification.html` (variante statut) | Un conseiller change le statut d'un CV |
+| `cv-notification.html` (variante commentaire) | Un conseiller ajoute un commentaire sur un CV |
+| `student-reminder.html` | Un conseiller envoie un rappel libre via `POST /dashboard/students/{id}/notify` |
+
+- **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée pour construire le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
+- **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.
+
+---
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

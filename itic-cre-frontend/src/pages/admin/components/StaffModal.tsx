@@ -145,7 +145,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
                   className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline cursor-pointer"
                 >
                   <RefreshCw className="h-3 w-3" />
-                  {t('dashboard.conseillers.generate_password')}
+                  {t('dashboard.conseillers.btn_regenerate')}
                 </button>
               </div>
               <div className="relative">
@@ -160,7 +160,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
                   type="button"
                   onClick={handleCopyPassword}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer"
-                  title={t('dashboard.conseillers.copy_password')}
+                  title={t('dashboard.conseillers.btn_copy')}
                 >
                   {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 </button>
@@ -198,7 +198,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
               disabled={saving}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('dashboard.conseillers.button_cancel')}
+              {t('dashboard.conseillers.btn_cancel')}
             </button>
             <button
               type="submit"
@@ -206,7 +206,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
               className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === 'create' ? t('dashboard.conseillers.button_create') : t('dashboard.conseillers.button_save')}
+              {mode === 'create' ? t('dashboard.conseillers.btn_create') : t('dashboard.conseillers.btn_save')}
             </button>
           </div>
         </form>
