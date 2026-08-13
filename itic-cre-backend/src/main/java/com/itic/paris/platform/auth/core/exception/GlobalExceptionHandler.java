@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,6 +157,14 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(CustomResponseEntity.of(MessageKey.ACCESS_DENIED, lang, HttpStatus.FORBIDDEN.value(), null));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<CustomResponseEntity> handleNoResourceFound(NoResourceFoundException ex,
+                                                                        HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(CustomResponseEntity.of(MessageKey.ROUTE_NOT_FOUND, lang, HttpStatus.NOT_FOUND.value(), null));
     }
 
     @ExceptionHandler(Exception.class)

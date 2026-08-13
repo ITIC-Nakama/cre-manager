@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public enum MessageKey {
 
     VALIDATION_FAILED("validation-failed", "Validation échouée", "Validation failed"),
+    ROUTE_NOT_FOUND("route-not-found", "Ressource introuvable", "Resource not found"),
     USER_NOT_FOUND("user-not-found", "Utilisateur introuvable", "User not found"),
     EMAIL_ALREADY_IN_USE("email-already-in-use", "Email déjà utilisé", "Email already in use"),
     EMAIL_OR_PASSWORD_INCORRECT("email-or-password-incorrect", "Email ou mot de passe incorrect", "Email or password incorrect"),

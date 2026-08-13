@@ -47,6 +47,7 @@ Liste non exhaustive (voir `.env.example` pour la liste complète) :
 | `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origines autorisées par le CORS backend |
 | `FRONTEND_URL` | `http://localhost:5173` | URL de base du frontend : sert à construire les liens cliquables dans les emails (ex: bouton "Accéder à mon espace" du rappel conseiller) |
 | `APP_BRAND_NAME` | `ITIC CRE` | Nom affiché dans l'en-tête/pied des emails |
+| `SWAGGER_ENABLED` | `true` | Active/désactive Swagger UI et `/v3/api-docs`. **À mettre à `false` en production** — ces routes sont publiques (`permitAll`) et exposent toute la surface de l'API sans authentification. |
 
 ---
 
