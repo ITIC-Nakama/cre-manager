@@ -61,6 +61,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Sans ça, une navigation directe vers /api/v1/... (ex: swagger-ui) est
+        // interceptée par le fallback SPA et affiche l'app React au lieu du back.
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           // 1. Polices Google Fonts (CacheFirst - 1 an)
           {
