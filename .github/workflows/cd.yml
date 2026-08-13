@@ -146,7 +146,7 @@ jobs:
           # --- 3. Health-check post-déploiement ---
           SUCCESS=false
           for i in $(seq 1 15); do
-            if curl -sfL -o /dev/null "http://localhost:8080/api/v1/swagger-ui.html"; then
+            if curl -sfL -o /dev/null "http://localhost:8080/api/v1/health"; then
               SUCCESS=true
               break
             fi
