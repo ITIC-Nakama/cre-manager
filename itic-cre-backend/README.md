@@ -45,7 +45,7 @@ Liste non exhaustive (voir `.env.example` pour la liste complète) :
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origines autorisées par le CORS backend |
-| `FRONTEND_URL` | `http://localhost:5173` | URL de base du frontend, utilisée pour construire les liens cliquables dans les emails (ex: bouton "Accéder à mon espace" du rappel conseiller) |
+| `FRONTEND_URL` | `http://localhost:5173` | URL de base du frontend : sert à construire les liens cliquables dans les emails (ex: bouton "Accéder à mon espace" du rappel conseiller) |
 | `APP_BRAND_NAME` | `ITIC CRE` | Nom affiché dans l'en-tête/pied des emails |
 
 ---

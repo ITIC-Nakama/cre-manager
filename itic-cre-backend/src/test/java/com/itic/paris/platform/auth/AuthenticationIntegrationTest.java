@@ -2,6 +2,7 @@ package com.itic.paris.platform.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
+import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
@@ -65,11 +66,13 @@ public class AuthenticationIntegrationTest {
 
     private Role studentRole;
     private Role advisorRole;
+    private Role adminRole;
 
     @BeforeEach
     public void setUp() {
         studentRole = roleRepository.findByName(RoleEnum.STUDENT);
         advisorRole = roleRepository.findByName(RoleEnum.ADVISOR);
+        adminRole = roleRepository.findByName(RoleEnum.ADMIN);
     }
 
     @Test
@@ -347,5 +350,85 @@ public class AuthenticationIntegrationTest {
         var updatedStudent = userRepository.findById(student.getId()).orElseThrow();
         assertThat(updatedStudent.getEmail()).isEqualTo("cancel.email@itic.fr");
         assertThat(updatedStudent.getPendingEmail()).isNull();
+    }
+
+    @Test
+    public void testAdmin_CanResetOwnPasswordViaOtp() throws Exception {
+        Admin admin = new Admin();
+        admin.setEmail("self-reset.admin@itic.fr");
+        admin.setFirstName("Ada");
+        admin.setLastName("Min");
+        admin.setPassword(passwordEncoder.encode("OldPassword123!"));
+        admin.setEmailVerified(true);
+        admin.setRole(adminRole);
+        admin = userRepository.save(admin);
+
+        // 1. Request OTP
+        mockMvc.perform(post("/auth/otp/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("email", admin.getEmail()))))
+                .andExpect(status().isOk());
+
+        var activeOtps = otpRepository.findByUserAndUsedAtIsNull(admin);
+        assertThat(activeOtps).hasSize(1);
+        String code = activeOtps.get(0).getCode();
+
+        // 2. Confirm reset with the OTP code
+        java.util.Map<String, Object> resetMap = java.util.Map.of(
+                "email", admin.getEmail(),
+                "code", code,
+                "newPassword", "NewPassword456!"
+        );
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetMap)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.PASSWORD_RESET_SUCCESS.getKey()));
+
+        var updatedAdmin = userRepository.findById(admin.getId()).orElseThrow();
+        assertThat(passwordEncoder.matches("NewPassword456!", updatedAdmin.getPassword())).isTrue();
+    }
+
+    @Test
+    public void testAdvisor_CannotRequestPasswordResetOtp() throws Exception {
+        Advisor advisor = new Advisor();
+        advisor.setEmail("no-self-reset.advisor@itic.fr");
+        advisor.setFirstName("Adele");
+        advisor.setLastName("Visor");
+        advisor.setPassword(passwordEncoder.encode("Password123!"));
+        advisor.setEmailVerified(true);
+        advisor.setRole(advisorRole);
+        userRepository.save(advisor);
+
+        mockMvc.perform(post("/auth/otp/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(java.util.Map.of("email", advisor.getEmail()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.OTP_NOT_REQUIRED_FOR_ACCOUNT.getKey()));
+    }
+
+    @Test
+    public void testAdvisor_CannotConfirmPasswordReset() throws Exception {
+        Advisor advisor = new Advisor();
+        advisor.setEmail("no-confirm-reset.advisor@itic.fr");
+        advisor.setFirstName("Avery");
+        advisor.setLastName("Visor");
+        advisor.setPassword(passwordEncoder.encode("Password123!"));
+        advisor.setEmailVerified(true);
+        advisor.setRole(advisorRole);
+        userRepository.save(advisor);
+
+        java.util.Map<String, Object> resetMap = java.util.Map.of(
+                "email", advisor.getEmail(),
+                "code", "123456",
+                "newPassword", "NewPassword456!"
+        );
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.PASSWORD_RESET_STUDENTS_ONLY.getKey()));
     }
 }

@@ -38,4 +38,19 @@ class EmailTemplateServiceTest {
         assertTrue(html.contains("Hello"));
         assertTrue(html.contains("Verify your email"));
     }
+
+    @Test
+    void forcesDarkColorSchemeOnEveryTemplate() {
+        String otp = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
+        String credentials = emailTemplateService.renderAccountCredentialsEmail("fr", "Jean", "jean@itic.fr", "Temp1234!", true);
+        String cvStatus = emailTemplateService.renderCVStatusChangeEmail("Jean", "Validé", "#10B981");
+        String cvComment = emailTemplateService.renderCVCommentEmail("Jean", "Bon travail");
+        String reminder = emailTemplateService.renderStudentReminderEmail("Jean", "M. Martin", "Relance tes candidatures");
+
+        for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder}) {
+            assertTrue(html.contains("name=\"color-scheme\" content=\"dark\""));
+            assertTrue(html.contains("name=\"supported-color-schemes\" content=\"dark\""));
+            assertTrue(html.contains("bgcolor=\"#020203\""));
+        }
+    }
 }

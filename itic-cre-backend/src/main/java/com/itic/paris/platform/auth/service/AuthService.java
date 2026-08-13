@@ -224,7 +224,7 @@ public class AuthService {
         User rawUser = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
-        if (!(user instanceof Student)) {
+        if (!(user instanceof Student) && !(user instanceof Admin)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.PASSWORD_RESET_STUDENTS_ONLY);
         }
         otpService.validateEmailOtp(email, code);
@@ -239,7 +239,7 @@ public class AuthService {
         User rawUser = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
-        if (!(user instanceof Student)) {
+        if (!(user instanceof Student) && !(user instanceof Admin)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.OTP_NOT_REQUIRED_FOR_ACCOUNT);
         }
         otpService.sendEmailVerificationOtp(user, lang);

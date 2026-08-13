@@ -196,7 +196,7 @@ public class AuthController {
     }
 
     @PostMapping("/otp/send")
-    @Operation(summary = "Envoyer OTP", description = "Étudiants uniquement")
+    @Operation(summary = "Envoyer OTP", description = "Étudiants et administrateurs uniquement")
     public ResponseEntity<?> sendOtp(@RequestBody @Valid OtpSendRequest request, BindingResult bindingResult,
                                      HttpServletRequest httpRequest) {
         if (bindingResult.hasErrors()) {
@@ -220,7 +220,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    @Operation(summary = "Réinitialiser le mot de passe", description = "Étudiants uniquement (OTP)")
+    @Operation(summary = "Réinitialiser le mot de passe", description = "Étudiants et administrateurs uniquement (OTP)")
     public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequestDto request,
                                            BindingResult bindingResult, HttpServletRequest httpRequest) {
         if (bindingResult.hasErrors()) {
