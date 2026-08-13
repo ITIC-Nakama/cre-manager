@@ -1,7 +1,9 @@
 package com.itic.paris.platform.jobboard.specification;
 
 import com.itic.paris.platform.jobboard.model.JobOffer;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -13,38 +15,41 @@ public class JobOfferSpecification {
     public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            // Active offers only
             predicates.add(cb.isTrue(root.get("active")));
-
-            // Filter by contract type
-            if (contractTypeId != null) {
-                predicates.add(cb.equal(root.get("contractType").get("id"), contractTypeId));
-            }
-
-            // Filter by search (company, title)
-            if (search != null && !search.trim().isEmpty()) {
-                String searchLike = "%" + search.trim().toLowerCase() + "%";
-                predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("company")), searchLike),
-                        cb.like(cb.lower(root.get("title")), searchLike)
-                ));
-            }
-
+            addContractTypePredicate(predicates, root, cb, contractTypeId);
+            addSearchPredicate(predicates, root, cb, search);
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     public static Specification<JobOffer> withSearch(String search) {
+        return withSearchAndContractType(search, null);
+    }
+
+    public static Specification<JobOffer> withSearchAndContractType(String search, UUID contractTypeId) {
         return (root, query, cb) -> {
-            if (search == null || search.trim().isEmpty()) {
-                return cb.conjunction();
-            }
+            List<Predicate> predicates = new ArrayList<>();
+            addContractTypePredicate(predicates, root, cb, contractTypeId);
+            addSearchPredicate(predicates, root, cb, search);
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private static void addContractTypePredicate(List<Predicate> predicates, Root<JobOffer> root,
+                                                   CriteriaBuilder cb, UUID contractTypeId) {
+        if (contractTypeId != null) {
+            predicates.add(cb.equal(root.get("contractType").get("id"), contractTypeId));
+        }
+    }
+
+    private static void addSearchPredicate(List<Predicate> predicates, Root<JobOffer> root,
+                                            CriteriaBuilder cb, String search) {
+        if (search != null && !search.trim().isEmpty()) {
             String searchLike = "%" + search.trim().toLowerCase() + "%";
-            return cb.or(
+            predicates.add(cb.or(
                     cb.like(cb.lower(root.get("company")), searchLike),
                     cb.like(cb.lower(root.get("title")), searchLike)
-            );
-        };
+            ));
+        }
     }
 }

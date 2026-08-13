@@ -26,6 +26,7 @@ class JobOfferSpecificationIntegrationTest {
     private ContractTypeRepository contractTypeRepository;
 
     private ContractType cdi;
+    private ContractType cdd;
 
     @BeforeEach
     void setUp() {
@@ -36,6 +37,10 @@ class JobOfferSpecificationIntegrationTest {
             ct.setLabel("CDI");
             return contractTypeRepository.save(ct);
         });
+
+        cdd = new ContractType();
+        cdd.setLabel("CDD-Test");
+        cdd = contractTypeRepository.save(cdd);
 
         JobOffer offer1 = new JobOffer();
         offer1.setTitle("Développeur Java Spring");
@@ -52,6 +57,14 @@ class JobOfferSpecificationIntegrationTest {
         offer2.setActive(false);
         offer2.setContractType(cdi);
         jobOfferRepository.save(offer2);
+
+        JobOffer offer3 = new JobOffer();
+        offer3.setTitle("Assistant Marketing Digital");
+        offer3.setCompany("Capgemini");
+        offer3.setDescription("Poste en CDD");
+        offer3.setActive(true);
+        offer3.setContractType(cdd);
+        jobOfferRepository.save(offer3);
     }
 
     @Test
@@ -76,5 +89,43 @@ class JobOfferSpecificationIntegrationTest {
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getCompany()).isEqualTo("Société Générale");
+    }
+
+    @Test
+    @DisplayName("Should filter all offers (active and inactive) by contract type only")
+    void testWithSearchAndContractTypeFilterByContractTypeOnly() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndContractType(null, cdi.getId()),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent())
+                .extracting(JobOffer::getCompany)
+                .containsExactlyInAnyOrder("BNP Paribas", "Société Générale");
+    }
+
+    @Test
+    @DisplayName("Should combine search and contract type filters")
+    void testWithSearchAndContractTypeCombined() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndContractType("Java", cdi.getId()),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCompany()).isEqualTo("BNP Paribas");
+    }
+
+    @Test
+    @DisplayName("Should exclude offers of a different contract type")
+    void testWithSearchAndContractTypeExcludesOtherContractType() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndContractType(null, cdd.getId()),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCompany()).isEqualTo("Capgemini");
     }
 }

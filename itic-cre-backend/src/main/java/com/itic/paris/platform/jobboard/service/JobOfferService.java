@@ -105,8 +105,9 @@ public class JobOfferService {
         jobOfferRepository.save(jobOffer);
     }
 
-    public Page<JobOfferDTO> getAllOffers(String search, Pageable pageable) {
-        Page<JobOffer> page = jobOfferRepository.findAll(JobOfferSpecification.withSearch(search), pageable);
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, Pageable pageable) {
+        Page<JobOffer> page = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndContractType(search, contractTypeId), pageable);
         return page.map(this::mapToDTO);
     }
 

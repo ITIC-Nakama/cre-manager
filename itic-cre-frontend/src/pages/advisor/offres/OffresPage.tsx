@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -17,6 +17,8 @@ import {
     useAllJobOffers, useCreateJobOffer, useUpdateJobOffer,
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer,
 } from '../../../hooks/useJobOffers';
+import { useContractTypes } from '../../../hooks/useApplications';
+import CustomSelect from '../../../components/basics/CustomSelect';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
@@ -39,6 +41,7 @@ export default function OffresPage() {
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [contractTypeFilter, setContractTypeFilter] = useState('');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
@@ -53,11 +56,22 @@ export default function OffresPage() {
         }
     }, [location]);
 
-    const params = { page, size: PAGE_SIZE, search: debouncedSearch || undefined };
+    const params = {
+        page,
+        size: PAGE_SIZE,
+        search: debouncedSearch || undefined,
+        contractTypeId: contractTypeFilter || undefined,
+    };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
     const offers = data?.content ?? [];
     const totalElements = data?.totalElements ?? 0;
     const totalPages = data?.totalPages ?? 1;
+
+    const { data: contractTypes } = useContractTypes();
+    const contractTypeOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_contracts') },
+        ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
+    ], [contractTypes, t]);
 
     const createMutation = useCreateJobOffer();
     const updateMutation = useUpdateJobOffer();
@@ -94,6 +108,11 @@ export default function OffresPage() {
         setPage(0);
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
+    };
+
+    const handleContractTypeChange = (value: string) => {
+        setContractTypeFilter(value);
+        setPage(0);
     };
 
     const handleSave = async (payload: JobOfferPayload) => {
@@ -233,6 +252,13 @@ export default function OffresPage() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
+                <CustomSelect
+                    value={contractTypeFilter}
+                    options={contractTypeOptions}
+                    onChange={handleContractTypeChange}
+                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}

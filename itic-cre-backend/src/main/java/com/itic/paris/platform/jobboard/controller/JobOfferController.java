@@ -60,8 +60,9 @@ public class JobOfferController {
     @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID contractTypeId,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, pageable));
     }
 
     @GetMapping("/search/company")
