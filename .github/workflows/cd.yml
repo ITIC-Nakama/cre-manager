@@ -87,12 +87,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Récupération du fichier JAR
+      # Téléchargé dans un dossier séparé du répertoire de travail de systemd,
+      # pour que la sauvegarde et la copie ci-dessous portent sur deux fichiers distincts.
       - name: Download Backend Artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
-          path: itic-cre-backend
+          path: itic-cre-backend-incoming
 
       # Récupération des fichiers React (dist)
       - name: Download Frontend Artifact
@@ -130,17 +131,14 @@ jobs:
           chmod 600 itic-cre-backend/.env
           sudo chown -R github-runner:github-runner itic-cre-backend
 
-          # rsync plutot que rm -rf + cp : ne touche que les fichiers modifies et supprime
-          # les anciens fichiers obsoletes (ex: bundles JS hashes des builds precedents),
-          # fenetre de coupure de service quasi nulle. Necessite le droit sudo NOPASSWD
-          # dedie /etc/sudoers.d/github-runner-rsync.
+          # rsync : ne touche que les fichiers modifies et supprime les fichiers obsoletes,
+          # fenetre de coupure de service quasi nulle.
           sudo rsync -a --delete itic-cre-frontend/dist/ /var/www/html/
           sudo chown -R www-data:www-data /var/www/html/
 
-          if [ -n "$CURRENT_JAR" ]; then
-            NEW_JAR=$(ls itic-cre-backend/*.jar | head -1)
-            sudo cp "$NEW_JAR" "$CURRENT_JAR"
-          fi
+          NEW_JAR=$(ls itic-cre-backend-incoming/*.jar | head -1)
+          DEST_JAR="${CURRENT_JAR:-itic-cre-backend/$(basename "$NEW_JAR")}"
+          sudo cp "$NEW_JAR" "$DEST_JAR"
 
           sudo systemctl restart itic-backend.service
           sudo systemctl restart nginx
