@@ -81,6 +81,14 @@ html, body {
   color: #333333;
 }
 
+/* iOS Safari zoome automatiquement au focus sur un champ dont la font-size est < 16px,
+   et ne dézoome pas seul au blur. On force 16px sur mobile pour empêcher ce zoom. */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 html.dark body {
   background-color: var(--itic-dark-bg);
   color: var(--itic-dark-text);
