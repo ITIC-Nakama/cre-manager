@@ -32,9 +32,14 @@ public class JobOfferSpecification {
     }
 
     public static Specification<JobOffer> withSearchAndContractType(String search, UUID contractTypeId) {
+        return withSearchAndFilters(search, contractTypeId, null);
+    }
+
+    public static Specification<JobOffer> withSearchAndFilters(String search, UUID contractTypeId, UUID sectorId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             addContractTypePredicate(predicates, root, cb, contractTypeId);
+            addSectorPredicate(predicates, root, cb, sectorId);
             addSearchPredicate(predicates, root, cb, search);
             return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
         };

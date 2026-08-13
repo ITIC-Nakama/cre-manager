@@ -9,13 +9,13 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye, FileSignature,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
     useAllJobOffers, useCreateJobOffer, useUpdateJobOffer,
-    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer,
+    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useSectors,
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
 import CustomSelect from '../../../components/basics/CustomSelect';
@@ -42,6 +42,7 @@ export default function OffresPage() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
+    const [sectorFilter, setSectorFilter] = useState('');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
@@ -61,6 +62,7 @@ export default function OffresPage() {
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
+        sectorId: sectorFilter || undefined,
     };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
     const offers = data?.content ?? [];
@@ -72,6 +74,12 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_contracts') },
         ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
     ], [contractTypes, t]);
+
+    const { data: sectors } = useSectors();
+    const sectorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_sectors', 'Tous les secteurs') },
+        ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
+    ], [sectors, t]);
 
     const createMutation = useCreateJobOffer();
     const updateMutation = useUpdateJobOffer();
@@ -112,6 +120,11 @@ export default function OffresPage() {
 
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
+        setPage(0);
+    };
+
+    const handleSectorChange = (value: string) => {
+        setSectorFilter(value);
         setPage(0);
     };
 
@@ -269,6 +282,13 @@ export default function OffresPage() {
                     options={contractTypeOptions}
                     onChange={handleContractTypeChange}
                     icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={sectorFilter}
+                    options={sectorOptions}
+                    onChange={handleSectorChange}
+                    icon={<Layers className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
                 {isFetching && !isLoading && (

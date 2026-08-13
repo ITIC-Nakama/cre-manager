@@ -127,8 +127,12 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, Pageable pageable) {
         Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndContractType(search, contractTypeId), pageable);
+                JobOfferSpecification.withSearchAndFilters(search, contractTypeId, sectorId), pageable);
         return page.map(this::mapToDTO);
     }
 
