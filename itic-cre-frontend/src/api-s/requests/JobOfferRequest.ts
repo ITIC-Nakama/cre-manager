@@ -6,11 +6,16 @@ import type {
     JobApplicationPage,
     JobOfferListParams,
     JobOfferPayload,
+    SectorDetail,
 } from '../../types/models/JobOffer';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
+}
+
+export function fetchSectors(): Promise<SectorDetail[]> {
+    return apiClient.get('/jobboard/sectors/active/list').then((response) => unwrap<SectorDetail[]>(response));
 }
 
 // Advisor/admin — toutes les offres (actives + inactives)

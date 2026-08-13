@@ -183,6 +183,18 @@ export default function OffresPage() {
                 <TruncatedText text={getValue()} className="max-w-[120px] text-slate-600 dark:text-slate-400 text-sm" />
             ),
         }),
+        col.accessor((row) => row.sector?.label ?? '', {
+            id: 'sector',
+            header: t('dashboard.offres.table.sector', 'Secteur'),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[140px] text-slate-600 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
+        }),
         col.accessor('applicationCount', {
             header: t('dashboard.offres.table.applications'),
             cell: ({ getValue }) => (

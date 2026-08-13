@@ -6,6 +6,14 @@ export interface ContractTypeDetail {
     createdAt: string;
 }
 
+export interface SectorDetail {
+    id: string;
+    label: string;
+    description: string | null;
+    active: boolean;
+    createdAt: string;
+}
+
 export interface JobOffer {
     id: string;
     title: string;
@@ -13,6 +21,7 @@ export interface JobOffer {
     description: string;
     location: string | null;
     contractType: ContractTypeDetail;
+    sector: SectorDetail | null;
     externalLink: string | null;
     active: boolean;
     createdAt: string;
@@ -47,6 +56,7 @@ export interface JobOfferListParams {
     size?: number;
     search?: string;
     contractTypeId?: string;
+    sectorId?: string;
 }
 
 export interface JobOfferPayload {
@@ -55,5 +65,6 @@ export interface JobOfferPayload {
     description: string;
     location?: string;
     contractTypeId: string;
+    sectorId?: string;
     externalLink?: string;
 }

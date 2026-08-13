@@ -55,20 +55,12 @@ public class GlobalExceptionHandler {
                         buildConstraintViolationErrors(ex)));
     }
 
+    // Filet de securite generique : les cas attendus (ex: label deja pris) sont verifies
+    // en amont dans le service, qui leve un AppException avec un message metier precis.
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<CustomResponseEntity> handleDataIntegrityViolation(DataIntegrityViolationException ex,
                                                                             HttpServletRequest request) {
         String lang = LanguageUtil.resolveLang(request);
-        String property = extractUniqueConstraintField(ex);
-        if ("label".equals(property)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(CustomResponseEntity.of(MessageKey.VALIDATION_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
-                            List.of(Map.of(
-                                    "property", "label",
-                                    "message", MessageKey.CONTRACT_TYPE_LABEL_ALREADY_EXISTS.translate(lang)
-                            ))));
-        }
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
                         Map.of("error", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())));
@@ -109,20 +101,6 @@ public class GlobalExceptionHandler {
                         "message", violation.getMessage()
                 ))
                 .toList();
-    }
-
-    private String extractUniqueConstraintField(DataIntegrityViolationException ex) {
-        Throwable root = ex.getRootCause();
-        String message = root != null ? root.getMessage() : ex.getMessage();
-        if (message == null) {
-            return null;
-        }
-
-        String lower = message.toLowerCase();
-        if (lower.contains("key (label)")) {
-            return "label";
-        }
-        return null;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

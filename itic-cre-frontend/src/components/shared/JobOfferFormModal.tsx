@@ -3,6 +3,7 @@ import { X, Loader2, Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../basics/CustomSelect';
 import { useContractTypes } from '../../hooks/useApplications';
+import { useSectors } from '../../hooks/useJobOffers';
 import type { JobOffer } from '../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../types/models/JobOffer';
 
@@ -24,17 +25,23 @@ const LIMITS = {
 export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly = false }: Props) {
     const { t } = useTranslation();
     const { data: contractTypes } = useContractTypes();
+    const { data: sectors } = useSectors();
     const [title, setTitle] = useState(offer?.title ?? '');
     const [company, setCompany] = useState(offer?.company ?? '');
     const [description, setDescription] = useState(offer?.description ?? '');
     const [location, setLocation] = useState(offer?.location ?? '');
     const [contractTypeId, setContractTypeId] = useState(offer?.contractType.id ?? '');
+    const [sectorId, setSectorId] = useState(offer?.sector?.id ?? '');
     const [externalLink, setExternalLink] = useState(offer?.externalLink ?? '');
     const [saving, setSaving] = useState(false);
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const contractTypeOptions = (contractTypes ?? []).map((c) => ({ value: c.id, label: c.label }));
+    const sectorOptions = [
+        { value: '', label: t('dashboard.offres.form.sector_none', 'Aucun secteur') },
+        ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
+    ];
 
     const validate = (): Record<string, string> => {
         const errors: Record<string, string> = {};
@@ -70,6 +77,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                 description: description.trim(),
                 location: location.trim() || undefined,
                 contractTypeId,
+                sectorId: sectorId || undefined,
                 externalLink: externalLink.trim() || undefined,
             });
             onClose();
@@ -209,6 +217,19 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                             />
                             {fieldErrors.contractTypeId && <p className="text-xs text-rose-500">{fieldErrors.contractTypeId}</p>}
                         </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                            {t('dashboard.offres.form.sector_label', 'Secteur')}
+                        </label>
+                        <CustomSelect
+                            value={sectorId}
+                            options={sectorOptions}
+                            onChange={setSectorId}
+                            disabled={isReadOnly}
+                            className="w-full animate-none"
+                        />
                     </div>
 
                     <div className="space-y-1.5">

@@ -13,10 +13,15 @@ import java.util.UUID;
 public class JobOfferSpecification {
 
     public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId) {
+        return activeWithFilters(search, contractTypeId, null);
+    }
+
+    public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId, UUID sectorId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("active")));
             addContractTypePredicate(predicates, root, cb, contractTypeId);
+            addSectorPredicate(predicates, root, cb, sectorId);
             addSearchPredicate(predicates, root, cb, search);
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -39,6 +44,13 @@ public class JobOfferSpecification {
                                                    CriteriaBuilder cb, UUID contractTypeId) {
         if (contractTypeId != null) {
             predicates.add(cb.equal(root.get("contractType").get("id"), contractTypeId));
+        }
+    }
+
+    private static void addSectorPredicate(List<Predicate> predicates, Root<JobOffer> root,
+                                            CriteriaBuilder cb, UUID sectorId) {
+        if (sectorId != null) {
+            predicates.add(cb.equal(root.get("sector").get("id"), sectorId));
         }
     }
 

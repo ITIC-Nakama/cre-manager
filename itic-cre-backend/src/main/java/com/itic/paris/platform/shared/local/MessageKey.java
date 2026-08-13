@@ -69,6 +69,7 @@ public enum MessageKey {
     ERROR("error", "Erreur", "Error"),
     // Jobboard messages
     CONTRACT_TYPE_NOT_FOUND("contract-type-not-found", "Type de contrat introuvable", "Contract type not found"),
+    SECTOR_NOT_FOUND("sector-not-found", "Secteur introuvable", "Sector not found"),
     JOB_OFFER_NOT_FOUND("job-offer-not-found", "Offre d'emploi introuvable", "Job offer not found"),
     JOB_APPLICATION_NOT_FOUND("job-application-not-found", "Candidature introuvable", "Job application not found"),
     ALREADY_APPLIED("already-applied", "Vous avez déjà postuler à cette offre", "You have already applied to this job offer"),
@@ -81,6 +82,7 @@ public enum MessageKey {
     JOB_OFFER_DELETED("job-offer-deleted", "Offre d'emploi supprimée", "Job offer deleted"),
     CONTRACT_TYPE_CREATED("contract-type-created", "Type de contrat créé avec succès", "Contract type created successfully"),
     CONTRACT_TYPE_LABEL_ALREADY_EXISTS("contract-type-label-already-exists", "Un type de contrat avec ce label existe déjà", "A contract type with this label already exists"),
+    SECTOR_LABEL_ALREADY_EXISTS("sector-label-already-exists", "Un secteur avec ce label existe déjà", "A sector with this label already exists"),
     CONTRACT_TYPE_UPDATED("contract-type-updated", "Type de contrat mis à jour avec succès", "Contract type updated successfully"),
     CONTRACT_TYPE_DEACTIVATED("contract-type-deactivated", "Type de contrat désactivé", "Job offer deactivated"),
     CONTRACT_TYPE_DELETED("contract-type-deleted", "Type de contrat supprimé", "Contract type deleted"),

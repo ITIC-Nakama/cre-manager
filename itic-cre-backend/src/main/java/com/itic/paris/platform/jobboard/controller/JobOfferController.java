@@ -47,12 +47,13 @@ public class JobOfferController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId")
+    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/sectorId")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
+            @RequestParam(required = false) UUID sectorId,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, pageable));
     }
 
     @GetMapping("/all")

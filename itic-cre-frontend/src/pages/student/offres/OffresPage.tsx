@@ -1,12 +1,12 @@
 import { useState, useRef, useMemo } from 'react';
 import {
-    Search, Loader2, Briefcase, MapPin, FileSignature, Building2,
+    Search, Loader2, Briefcase, MapPin, FileSignature, Building2, Layers,
     CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, UserMinus,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer, useWithdrawJobApplication } from '../../../hooks/useJobOffers';
+import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer, useWithdrawJobApplication, useSectors } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
@@ -19,9 +19,11 @@ export default function OffresPage() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
+    const [sectorFilter, setSectorFilter] = useState('');
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { data: contractTypes } = useContractTypes();
+    const { data: sectors } = useSectors();
     const { data: myApplications } = useMyJobApplications();
     const applyMutation = useApplyToJobOffer();
     const withdrawMutation = useWithdrawJobApplication();
@@ -38,6 +40,7 @@ export default function OffresPage() {
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
+        sectorId: sectorFilter || undefined,
     };
 
     const { data, isLoading, isFetching } = useActiveJobOffers(params);
@@ -50,6 +53,11 @@ export default function OffresPage() {
         ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
     ], [contractTypes, t]);
 
+    const sectorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_sectors', 'Tous les secteurs') },
+        ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
+    ], [sectors, t]);
+
     const handleSearch = (value: string) => {
         setSearch(value);
         setPage(0);
@@ -59,6 +67,11 @@ export default function OffresPage() {
 
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
+        setPage(0);
+    };
+
+    const handleSectorChange = (value: string) => {
+        setSectorFilter(value);
         setPage(0);
     };
 
@@ -119,6 +132,13 @@ export default function OffresPage() {
                     icon={<FileSignature className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
+                <CustomSelect
+                    value={sectorFilter}
+                    options={sectorOptions}
+                    onChange={handleSectorChange}
+                    icon={<Layers className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -153,6 +173,11 @@ export default function OffresPage() {
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
                                         <FileSignature className="h-3 w-3" />{offer.contractType.label}
                                     </span>
+                                    {offer.sector && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400">
+                                            <Layers className="h-3 w-3" />{offer.sector.label}
+                                        </span>
+                                    )}
                                     {offer.location && (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                                             <MapPin className="h-3 w-3" />{offer.location}

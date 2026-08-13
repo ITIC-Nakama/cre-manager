@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
-@Table(name = "contract_types")
-public class ContractType extends LabeledReferenceEntity {
+@Table(name = "sectors")
+public class Sector extends LabeledReferenceEntity {
 }

@@ -26,6 +26,8 @@ public class JobOfferDTO {
 
     private ContractTypeDTO contractType;
 
+    private SectorDTO sector;
+
     private String externalLink;
 
     private Boolean active;

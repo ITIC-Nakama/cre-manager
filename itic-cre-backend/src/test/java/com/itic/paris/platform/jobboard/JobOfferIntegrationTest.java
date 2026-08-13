@@ -8,10 +8,13 @@ import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.jobboard.model.ContractType;
+import com.itic.paris.platform.jobboard.model.Sector;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.jobboard.repository.SectorRepository;
 import com.itic.paris.platform.jobboard.service.JobApplicationService;
 import com.itic.paris.platform.jobboard.service.JobOfferService;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -43,6 +48,9 @@ public class JobOfferIntegrationTest {
     private ContractTypeRepository contractTypeRepository;
 
     @Autowired
+    private SectorRepository sectorRepository;
+
+    @Autowired
     private AdvisorRepository advisorRepository;
 
     @Autowired
@@ -54,6 +62,7 @@ public class JobOfferIntegrationTest {
     private Advisor advisor;
     private Student student;
     private ContractType cdiContract;
+    private Sector devSector;
 
     @BeforeEach
     public void setUp() {
@@ -82,6 +91,10 @@ public class JobOfferIntegrationTest {
             ct.setLabel("CDI_JOBBOARD");
             return contractTypeRepository.save(ct);
         });
+
+        Sector sector = new Sector();
+        sector.setLabel("Développement_JOBBOARD");
+        devSector = sectorRepository.save(sector);
 
         authenticate(advisor);
     }
@@ -155,5 +168,74 @@ public class JobOfferIntegrationTest {
         var applicationDTO = jobApplicationService.apply(offer.getId());
         assertThat(applicationDTO.getId()).isNotNull();
         assertThat(applicationDTO.getJobOfferTitle()).isEqualTo("Chef de Projet");
+    }
+
+    @Test
+    public void testCreateJobOfferWithSector() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur Backend Java");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Poste de développeur backend");
+        request.setContractTypeId(cdiContract.getId());
+        request.setSectorId(devSector.getId());
+
+        JobOfferDTO created = jobOfferService.create(request);
+
+        assertThat(created.getSector()).isNotNull();
+        assertThat(created.getSector().getId()).isEqualTo(devSector.getId());
+        assertThat(created.getSector().getLabel()).isEqualTo(devSector.getLabel());
+    }
+
+    @Test
+    public void testCreateJobOfferWithoutSectorLeavesSectorNull() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur Backend PHP");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Poste de développeur backend, sans secteur precise");
+        request.setContractTypeId(cdiContract.getId());
+        // sectorId volontairement non renseigne
+
+        JobOfferDTO created = jobOfferService.create(request);
+
+        assertThat(created.getSector()).isNull();
+    }
+
+    @Test
+    public void testUpdateJobOfferCanAddAndRemoveSector() {
+        CreateJobOfferRequest createRequest = new CreateJobOfferRequest();
+        createRequest.setTitle("Développeur Fullstack");
+        createRequest.setCompany("ITIC Tech");
+        createRequest.setDescription("Poste fullstack, sans secteur au depart");
+        createRequest.setContractTypeId(cdiContract.getId());
+        JobOfferDTO created = jobOfferService.create(createRequest);
+        assertThat(created.getSector()).isNull();
+
+        CreateJobOfferRequest updateRequest = new CreateJobOfferRequest();
+        updateRequest.setTitle(created.getTitle());
+        updateRequest.setCompany(created.getCompany());
+        updateRequest.setDescription(created.getDescription());
+        updateRequest.setContractTypeId(cdiContract.getId());
+        updateRequest.setSectorId(devSector.getId());
+
+        JobOfferDTO updatedWithSector = jobOfferService.update(created.getId(), updateRequest);
+        assertThat(updatedWithSector.getSector()).isNotNull();
+        assertThat(updatedWithSector.getSector().getId()).isEqualTo(devSector.getId());
+
+        updateRequest.setSectorId(null);
+        JobOfferDTO updatedWithoutSector = jobOfferService.update(created.getId(), updateRequest);
+        assertThat(updatedWithoutSector.getSector()).isNull();
+    }
+
+    @Test
+    public void testCreateJobOfferWithUnknownSectorIdThrows() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur Backend Go");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Poste avec un identifiant de secteur invalide");
+        request.setContractTypeId(cdiContract.getId());
+        request.setSectorId(UUID.randomUUID());
+
+        assertThatThrownBy(() -> jobOfferService.create(request))
+                .isInstanceOf(AppException.class);
     }
 }

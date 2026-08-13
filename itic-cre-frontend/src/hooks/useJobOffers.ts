@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
+    fetchSectors,
     createJobOffer,
     updateJobOffer,
     deactivateJobOffer,
@@ -26,6 +27,14 @@ export function useActiveJobOffers(params: JobOfferListParams = {}) {
         queryKey: ['job-offers', 'active', params],
         queryFn: () => fetchActiveJobOffers(params),
         placeholderData: (prev) => prev,
+    });
+}
+
+export function useSectors() {
+    return useQuery({
+        queryKey: ['sectors'],
+        queryFn: fetchSectors,
+        staleTime: 5 * 60 * 1000,
     });
 }
 
