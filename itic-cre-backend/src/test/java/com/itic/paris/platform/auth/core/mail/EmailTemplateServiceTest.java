@@ -16,8 +16,8 @@ class EmailTemplateServiceTest {
     void rendersOtpVerificationEmailWithBrandColors() {
         String html = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
 
-        assertTrue(html.contains("#1A1A2E"));
-        assertTrue(html.contains("#E63946"));
+        assertTrue(html.contains("#E2782E"));
+        assertTrue(html.contains("#FCBC0B"));
         assertTrue(html.contains("482910"));
         assertTrue(html.contains("Bonjour"));
         assertTrue(html.contains("ITIC CRE"));
