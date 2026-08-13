@@ -7,6 +7,7 @@ import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
 import UserAvatar from './UserAvatar';
+import { openFileSecurely } from '../../utils/fileUtils';
 
 interface Props {
     cv: CVRow;
@@ -188,15 +189,13 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{formatDateTime(cv.updatedAt)}</p>
                                 </div>
                             )}
-                            <a
-                                href={cv.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors"
+                            <button
+                                onClick={() => openFileSecurely(cv.url, 'CV.pdf')}
+                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                             >
                                 <FileText className="h-3.5 w-3.5" />
                                 {t('dashboard.cv.detail.view_pdf', 'Voir le CV (PDF)')}
-                            </a>
+                            </button>
                         </div>
                     </div>
 

@@ -1,6 +1,7 @@
 import { FileText, ExternalLink, RefreshCw, Zap } from 'lucide-react';
 import type { CVResponse } from '../../../../types/models/CV';
 import { useTranslation } from 'react-i18next';
+import { openFileSecurely } from '../../../../utils/fileUtils';
 
 interface Props {
   cv: CVResponse;
@@ -94,15 +95,13 @@ export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploadin
 
       {/* Boutons d'action */}
       <div className="flex flex-col sm:flex-row gap-2.5 mt-2 relative z-10">
-        <a
-          href={cv.url}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          onClick={() => openFileSecurely(cv.url, fileName)}
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-900 hover:bg-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-600 text-white text-sm font-semibold transition-colors cursor-pointer"
         >
           {t('studentCv.sheet.viewBtn', 'Voir mon CV')}
           <ExternalLink className="h-4 w-4" />
-        </a>
+        </button>
 
         <button
           onClick={onReplaceToggle}
