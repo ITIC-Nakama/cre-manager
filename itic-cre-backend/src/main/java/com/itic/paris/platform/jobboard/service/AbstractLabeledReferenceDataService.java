@@ -5,6 +5,7 @@ import com.itic.paris.platform.jobboard.model.LabeledReferenceEntity;
 import com.itic.paris.platform.jobboard.model.dtos.LabeledReferenceDataView;
 import com.itic.paris.platform.jobboard.repository.LabeledReferenceDataRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public abstract class AbstractLabeledReferenceDataService<E extends LabeledRefer
         entity.setDescription(dto.getDescription());
         entity.setActive(true);
 
-        return toDto.apply(repository.save(entity));
+        return saveAndMap(entity);
     }
 
     public D getById(UUID id) {
@@ -75,11 +76,23 @@ public abstract class AbstractLabeledReferenceDataService<E extends LabeledRefer
             entity.setActive(dto.getActive());
         }
 
-        return toDto.apply(repository.save(entity));
+        return saveAndMap(entity);
     }
 
     public void delete(UUID id) {
         repository.deleteById(id);
+    }
+
+    // assertLabelAvailable() ne protege pas contre deux creations concurrentes passant
+    // toutes les deux le check avant que l'une des deux ne commite (TOCTOU) ; ce filet
+    // convertit la violation de contrainte unique resultante en la meme erreur metier
+    // plutot que de laisser fuiter le message SQL brut.
+    private D saveAndMap(E entity) {
+        try {
+            return toDto.apply(repository.save(entity));
+        } catch (DataIntegrityViolationException ex) {
+            throw new AppException(HttpStatus.BAD_REQUEST, labelAlreadyExistsKey);
+        }
     }
 
     public void deactivate(UUID id) {
