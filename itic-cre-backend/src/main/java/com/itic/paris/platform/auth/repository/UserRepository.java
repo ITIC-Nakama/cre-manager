@@ -2,9 +2,11 @@ package com.itic.paris.platform.auth.repository;
 
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,8 +21,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    /** Nombre d'administrateurs actifs — utilisé pour le plafond de 2 et la protection du dernier admin. */
-    long countByRoleNameAndActiveTrue(RoleEnum role);
+    /**
+     * Verrouille les lignes des admins actifs (SELECT ... FOR UPDATE) le temps de la transaction,
+     * pour que deux (des)activations concurrentes ne puissent pas lire le meme compte avant
+     * que l'une des deux n'ait commite (TOCTOU sur la protection du dernier admin / le plafond).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.active = true")
+    List<User> findActiveByRoleForUpdate(@Param("role") RoleEnum role);
 
     /** Étudiants désactivés depuis plus de X jours — utilisé par le scheduler RGPD pour l'anonymisation. */
     @Query("SELECT u FROM User u WHERE TYPE(u) = com.itic.paris.platform.auth.model.Student " +

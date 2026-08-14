@@ -76,6 +76,27 @@ public class UserProfileService {
     @Value("${app.admin.max-active:2}")
     private long adminMaxActive;
 
+    /**
+     * Verifie le plafond d'admins actifs et persiste le nouveau compte staff dans la meme
+     * transaction, verrou compris (voir findActiveByRoleForUpdate) : le check et le save
+     * doivent rester atomiques, sinon deux creations d'admin concurrentes peuvent toutes
+     * deux passer le plafond avant que l'une des deux ne commite.
+     */
+    @Transactional
+    public User saveNewStaffUser(User user, RoleEnum role) {
+        if (role == RoleEnum.ADMIN) {
+            if (countActiveAdminsLocked() >= adminMaxActive) {
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
+            }
+        }
+        return userRepository.save(user);
+    }
+
+    /** Compte les admins actifs sous verrou (voir findActiveByRoleForUpdate) — a appeler dans une transaction deja ouverte. */
+    private long countActiveAdminsLocked() {
+        return userRepository.findActiveByRoleForUpdate(RoleEnum.ADMIN).size();
+    }
+
     @Transactional
     public User updateUser(UUID id, UserUpdateDto updateDto) {
         User rawUser = userRepository.findById(id)
@@ -209,8 +230,7 @@ public class UserProfileService {
         }
 
         if (targetRole == RoleEnum.ADMIN) {
-            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
-            if (activeAdmins <= 1) {
+            if (countActiveAdminsLocked() <= 1) {
                 // Toujours garder au moins 1 admin actif, quelle que soit la valeur du plafond
                 throw new AppException(HttpStatus.FORBIDDEN, MessageKey.LAST_ADMIN_PROTECTION);
             }
@@ -301,8 +321,7 @@ public class UserProfileService {
         }
 
         if (targetRole == RoleEnum.ADMIN) {
-            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
-            if (activeAdmins >= adminMaxActive) {
+            if (countActiveAdminsLocked() >= adminMaxActive) {
                 throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
             }
         }
