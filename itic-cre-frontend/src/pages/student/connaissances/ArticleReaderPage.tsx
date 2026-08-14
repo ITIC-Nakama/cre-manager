@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import DOMPurify from 'dompurify';
 import {
   ArrowLeft,
   ArrowRight,
@@ -87,6 +88,7 @@ export default function ArticleReaderPage() {
   const nextArticle = currentIndex >= 0 && currentIndex < sortedArticles.length - 1 ? sortedArticles[currentIndex + 1] : null;
 
   const readingMinutes = useMemo(() => (article ? estimateReadingMinutes(article.contenu) : 0), [article]);
+  const sanitizedContenu = useMemo(() => (article ? DOMPurify.sanitize(article.contenu) : ''), [article]);
   const authorName = article ? [article.createdByFirstName, article.createdByLastName].filter(Boolean).join(' ').trim() : '';
   const updatedDate = article?.dateModification
     ? new Date(article.dateModification).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -182,7 +184,7 @@ export default function ArticleReaderPage() {
         <div
           className="ql-editor-replacement"
           contentEditable={false}
-          dangerouslySetInnerHTML={{ __html: article.contenu }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContenu }}
         />
       </div>
 
