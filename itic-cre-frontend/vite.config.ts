@@ -29,8 +29,8 @@ export default defineConfig({
         'maskable-icon-512x512.png'
       ],
       manifest: {
-        name: 'ITIC CRE — Suivi Alternance & Stages',
-        short_name: 'ITIC CRE',
+        name: 'ITIC Paris CRE — Suivi Alternance & Stages',
+        short_name: 'ITIC Paris CRE',
         description: 'Plateforme mobile de suivi des candidatures et accompagnement ITIC Paris.',
         theme_color: '#0f172a',
         background_color: '#0f172a',

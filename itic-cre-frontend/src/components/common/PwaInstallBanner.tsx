@@ -121,7 +121,7 @@ export default function PwaInstallBanner() {
             </div>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-white truncate">
-                {t('pwa.banner_title', 'Installer ITIC CRE')}
+                {t('pwa.banner_title', 'Installer ITIC Paris CRE')}
               </h4>
               <p className="text-xs text-slate-300 truncate">
                 {t('pwa.banner_subtitle', 'Accès rapide & mode hors-ligne')}
@@ -289,7 +289,7 @@ export default function PwaInstallBanner() {
                   {t('pwa.desktop_step2', 'Ou ouvrez le menu de votre navigateur')}{' '}
                   <MoreVertical className="w-4 h-4 inline-block text-indigo-500 mx-0.5" />{' '}
                   {t('pwa.desktop_step2_suffix', '(3 petits points) et cliquez sur')}{' '}
-                  <strong className="text-slate-900 dark:text-white">{t('pwa.desktop_step2_install', 'Installer ITIC CRE...')}</strong>.
+                  <strong className="text-slate-900 dark:text-white">{t('pwa.desktop_step2_install', 'Installer ITIC Paris CRE...')}</strong>.
                 </p>
               </div>
             </div>

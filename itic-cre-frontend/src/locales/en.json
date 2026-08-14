@@ -12,7 +12,7 @@
     "cookie_banner": {
       "title": "Essential Cookies Management",
       "close": "Close",
-      "text": "ITIC-CRE only uses strictly necessary session cookies (authentication and language preference). No advertising or third-party tracking cookies are used.",
+      "text": "ITIC Paris CRE only uses strictly necessary session cookies (authentication and language preference). No advertising or third-party tracking cookies are used.",
       "learn_more": "Learn more",
       "accept": "Got it"
     },
@@ -33,7 +33,7 @@
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
-    "banner_title": "Install ITIC CRE",
+    "banner_title": "Install ITIC Paris CRE",
     "banner_subtitle": "Quick access & offline mode",
     "banner_button": "Install",
     "ios_title": "Install on iPhone / iPad",
@@ -54,7 +54,7 @@
     "desktop_step1_suffix": "on the right side of your browser address bar.",
     "desktop_step2": "Or open your browser menu",
     "desktop_step2_suffix": "(3 dots) and click",
-    "desktop_step2_install": "Install ITIC CRE...",
+    "desktop_step2_install": "Install ITIC Paris CRE...",
     "got_it": "Got it"
   },
   "nav": {
@@ -65,7 +65,7 @@
     "start": "Get Started"
   },
   "hero": {
-    "title": "Welcome to ITIC CRE",
+    "title": "Welcome to ITIC Paris CRE",
     "description": "The platform to track your internship and work-study applications. Progress in your career search with confidence."
   },
   "features": {
@@ -1228,12 +1228,12 @@
       "title": "Login to your space",
       "subtitle": "Access your account securely.",
       "portal_subtitle": "Internship & work-study portal",
-      "hero_title": "Access your ITIC CRE space",
+      "hero_title": "Access your ITIC Paris CRE space",
       "hero_description": "A single entry point to track internships, applications, follow-ups and exchanges with ITIC Paris advisors.",
       "help_title": "Need help?",
       "help_contact": "Contact us:",
       "connexion_title": "Sign in",
-      "connexion_subtitle": "Log in to your ITIC Paris space.",
+      "connexion_subtitle": "Log in to your ITIC Paris CRE space.",
       "activate_account": "Activate my account (OTP Code)",
       "email_not_verified": "Your email address has not been verified.",
       "click_to_activate": "Click here to activate your account.",
@@ -1254,7 +1254,7 @@
       "title": "Create your account",
       "subtitle": "Sign up to access the platform.",
       "portal_subtitle": "Internship & work-study portal",
-      "hero_title": "Join your ITIC CRE space",
+      "hero_title": "Join your ITIC Paris CRE space",
       "hero_description": "Create your account and access all the tools to track your applications, internships and exchanges with your advisors.",
       "help_title": "Need help?",
       "help_contact": "Contact us:",
@@ -1350,7 +1350,7 @@
       "title": "Terms of Service",
       "last_updated": "Last updated: {{date}}",
       "sec1_title": "1. Purpose of the Service",
-      "sec1_desc": "The ITIC-CRE platform is a professional tool made available to students and academic advisors at ITIC Paris school. Its purpose is CV management, work-study and internship application tracking (CRM), access to partner job offers, and academic support.",
+      "sec1_desc": "The ITIC Paris CRE platform is a professional tool made available to students and academic advisors at ITIC Paris school. Its purpose is CV management, work-study and internship application tracking (CRM), access to partner job offers, and academic support.",
       "sec2_title": "2. Access and Account Creation",
       "sec2_desc": "Access to the platform is strictly reserved for students enrolled at ITIC Paris and authorized academic staff. Each user agrees to provide accurate information and maintain the confidentiality of their login credentials.",
       "sec3_title": "3. User Commitments",
@@ -1364,7 +1364,7 @@
       "last_updated": "Last updated: {{date}}",
       "gdpr_compliance": "Compliant with General Data Protection Regulation (GDPR - EU 2016/679)",
       "sec1_title": "1. Protection of your data",
-      "sec1_desc": "At ITIC Paris, protecting and respecting your privacy is a fundamental priority. This privacy policy aims to inform you in full transparency about the procedures for collecting, processing, storing, and securing your personal data on the ITIC-CRE platform.",
+      "sec1_desc": "At ITIC Paris, protecting and respecting your privacy is a fundamental priority. This privacy policy aims to inform you in full transparency about the procedures for collecting, processing, storing, and securing your personal data on the ITIC Paris CRE platform.",
       "sec2_title": "2. Registered personal information",
       "sec2_desc": "In order to ensure educational tracking and support towards employment, we collect the following data:",
       "sec2_item1_label": "Profile data:",

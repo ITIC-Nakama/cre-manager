@@ -52,13 +52,13 @@
 
                         <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#9aa0a6;"
                            th:if="${isEmailChange}">
-                            <span th:if="${lang == 'en'}">You have requested to update your email address on ITIC CRE. Use the verification code below to confirm your new email address.</span>
-                            <span th:if="${lang != 'en'}">Vous avez demandé à modifier votre adresse e-mail sur ITIC CRE. Utilisez le code ci-dessous pour confirmer cette nouvelle adresse.</span>
+                            <span th:if="${lang == 'en'}">You have requested to update your email address on <span th:text="${brandName}">ITIC Paris CRE</span>. Use the verification code below to confirm your new email address.</span>
+                            <span th:if="${lang != 'en'}">Vous avez demandé à modifier votre adresse e-mail sur <span th:text="${brandName}">ITIC Paris CRE</span>. Utilisez le code ci-dessous pour confirmer cette nouvelle adresse.</span>
                         </p>
                         <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#9aa0a6;"
                            th:if="${!isEmailChange}">
-                            <span th:if="${lang == 'en'}">Use the verification code below to activate your ITIC CRE account.</span>
-                            <span th:if="${lang != 'en'}">Utilisez le code ci-dessous pour activer votre compte ITIC CRE.</span>
+                            <span th:if="${lang == 'en'}">Use the verification code below to activate your <span th:text="${brandName}">ITIC Paris CRE</span> account.</span>
+                            <span th:if="${lang != 'en'}">Utilisez le code ci-dessous pour activer votre compte <span th:text="${brandName}">ITIC Paris CRE</span>.</span>
                         </p>
 
                         <!-- Code OTP — texte plein, pas de degrade (illisible dans certains clients mail) -->
@@ -112,7 +112,7 @@
                 <tr>
                     <td style="background-color:#0d0f16;border-radius:0 0 16px 16px;padding:28px 36px;border:1px solid #333a51;border-top:none;" bgcolor="#0d0f16">
                         <p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#ffffff;text-align:center;">
-                            ITIC Paris — <span th:text="${brandName}">ITIC CRE</span>
+                            <span th:text="${brandName}">ITIC Paris CRE</span>
                         </p>
                         <p style="margin:0;font-size:11px;line-height:1.5;color:#9aa0a6;text-align:center;" th:if="${lang == 'en'}">© ITIC Paris — All rights reserved</p>
                         <p style="margin:0;font-size:11px;line-height:1.5;color:#9aa0a6;text-align:center;" th:if="${lang != 'en'}">© ITIC Paris — Tous droits réservés</p>
