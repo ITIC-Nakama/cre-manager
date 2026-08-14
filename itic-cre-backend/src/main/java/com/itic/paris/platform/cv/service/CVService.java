@@ -36,8 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.Normalizer;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,11 +84,10 @@ public class CVService {
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_STATUT_NOT_FOUND));
 
         CV cv = cvRepository.findByStudentId(studentId).orElse(new CV());
+        String previousPath = cv.getFilePath();
 
-        if (cv.getFilePath() != null) {
-            cloudStorage.deleteFile(cv.getFilePath());
-        }
-
+        // Le nouvel upload doit reussir avant qu'on touche a l'ancien fichier :
+        // sinon un echec d'upload laisse l'etudiant sans CV du tout (ancien supprime, nouveau jamais arrive).
         String path = "cvs/" + studentId + "-" + System.currentTimeMillis() + ".pdf";
         boolean success = cloudStorage.uploadFile(file, path);
         if (!success) {
@@ -103,6 +104,11 @@ public class CVService {
         awardStatusXPIfNeeded(cv, statutEnAttente);
 
         CV saved = cvRepository.save(cv);
+
+        if (previousPath != null) {
+            cloudStorage.deleteFile(previousPath);
+        }
+
         auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
 
         return buildCVResponse(saved);
@@ -327,10 +333,15 @@ public class CVService {
                 }).toList();
     }
 
+    /** Signature binaire d'un PDF ("%PDF-") — le Content-Type et le nom de fichier sont fournis par le client et falsifiables. */
+    private static final byte[] PDF_MAGIC_BYTES = {0x25, 0x50, 0x44, 0x46, 0x2D};
+
     private boolean isPdf(MultipartFile file) {
-        String contentType = file.getContentType();
-        String filename = file.getOriginalFilename();
-        return "application/pdf".equals(contentType)
-                || (filename != null && filename.toLowerCase().endsWith(".pdf"));
+        try (InputStream in = file.getInputStream()) {
+            byte[] header = in.readNBytes(PDF_MAGIC_BYTES.length);
+            return Arrays.equals(header, PDF_MAGIC_BYTES);
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
