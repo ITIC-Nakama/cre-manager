@@ -61,9 +61,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Sans ça, une navigation directe vers /api/v1/... (ex: swagger-ui) est
-        // interceptée par le fallback SPA et affiche l'app React au lieu du back.
-        navigateFallbackDenylist: [/^\/api\//],
+        // Exclure de l'interception SPA Service Worker pour éviter les redirections React :
+        // - L'API backend (/api/)
+        // - Les dashboards de monitoring (/status, /netdata)
+        // - La documentation OpenAPI / Swagger (/swagger-ui, /v3/api-docs)
+        // - Les endpoints Actuator (/actuator)
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/status/,
+          /^\/netdata/,
+          /^\/swagger-ui/,
+          /^\/v3\/api-docs/,
+          /^\/actuator/
+        ],
         runtimeCaching: [
           // 1. Polices Google Fonts (CacheFirst - 1 an)
           {

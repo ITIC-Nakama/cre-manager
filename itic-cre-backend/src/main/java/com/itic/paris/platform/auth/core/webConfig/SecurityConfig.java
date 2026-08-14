@@ -87,6 +87,9 @@ public class SecurityConfig {
         if (path.startsWith("/files/public/")) {
             return true;
         }
+        if (path.startsWith("/actuator/health") || path.startsWith("/actuator/info")) {
+            return true;
+        }
         if ("/error".equals(path)) {
             return true;
         }
@@ -122,7 +125,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/files/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()
