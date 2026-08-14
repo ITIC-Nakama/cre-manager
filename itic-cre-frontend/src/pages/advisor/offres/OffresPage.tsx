@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     useReactTable,
@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -38,6 +38,7 @@ function formatDate(iso: string) {
 export default function OffresPage() {
     const { t } = useTranslation();
     const location = useLocation();
+    const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -256,13 +257,22 @@ export default function OffresPage() {
                         {t('dashboard.offres.subtitle', { count: totalElements })}
                     </p>
                 </div>
-                <button
-                    onClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('dashboard.offres.create_button')}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/supervisor/offres/categories')}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                        <Tags className="h-4 w-4" />
+                        {t('dashboard.offres.categories_button', 'Secteurs & contrats')}
+                    </button>
+                    <button
+                        onClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {t('dashboard.offres.create_button')}
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}

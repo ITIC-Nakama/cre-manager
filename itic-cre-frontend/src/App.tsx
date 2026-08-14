@@ -27,6 +27,7 @@ import AdvisorDashboard from './pages/advisor/dashboard/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/etudiants/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/candidatures/CandidaturesPage'
 import SupervisorOffresPage from './pages/advisor/offres/OffresPage'
+import OffresCategoriesPage from './pages/advisor/offres/CategoriesPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import ContenuPage from './pages/advisor/formation/ContenuPage'
@@ -108,6 +109,7 @@ function App() {
           <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
           <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
+          <Route path="/supervisor/offres/categories" element={<OffresCategoriesPage />} />
           <Route path="/supervisor/cv"            element={<CVValidationPage />} />
           <Route path="/supervisor/contenu"       element={<ContenuPage />} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />

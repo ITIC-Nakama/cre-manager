@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, Loader2, Briefcase } from 'lucide-react';
+import { X, Loader2, Briefcase, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import CustomSelect from '../basics/CustomSelect';
 import { useContractTypes } from '../../hooks/useApplications';
-import { useSectors } from '../../hooks/useJobOffers';
+import { useSectors, useCreateSector } from '../../hooks/useJobOffers';
 import type { JobOffer } from '../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../types/models/JobOffer';
 
@@ -26,6 +27,9 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
     const { t } = useTranslation();
     const { data: contractTypes } = useContractTypes();
     const { data: sectors } = useSectors();
+    const createSectorMutation = useCreateSector();
+    const [addingSector, setAddingSector] = useState(false);
+    const [newSectorLabel, setNewSectorLabel] = useState('');
     const [title, setTitle] = useState(offer?.title ?? '');
     const [company, setCompany] = useState(offer?.company ?? '');
     const [description, setDescription] = useState(offer?.description ?? '');
@@ -42,6 +46,19 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         { value: '', label: t('dashboard.offres.form.sector_none', 'Aucun secteur') },
         ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
     ];
+
+    const handleCreateSector = async () => {
+        const label = newSectorLabel.trim();
+        if (!label) return;
+        try {
+            const created = await createSectorMutation.mutateAsync(label);
+            setSectorId(created.id);
+            setNewSectorLabel('');
+            setAddingSector(false);
+        } catch {
+            toast.error(t('dashboard.offres.form.new_sector_error'));
+        }
+    };
 
     const validate = (): Record<string, string> => {
         const errors: Record<string, string> = {};
@@ -220,16 +237,62 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            {t('dashboard.offres.form.sector_label', 'Secteur')}
-                        </label>
-                        <CustomSelect
-                            value={sectorId}
-                            options={sectorOptions}
-                            onChange={setSectorId}
-                            disabled={isReadOnly}
-                            className="w-full animate-none"
-                        />
+                        <div className="flex items-center justify-between">
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                {t('dashboard.offres.form.sector_label', 'Secteur')}
+                            </label>
+                            {!isReadOnly && !addingSector && (
+                                <button
+                                    type="button"
+                                    onClick={() => setAddingSector(true)}
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                                >
+                                    <Plus className="h-3 w-3" />
+                                    {t('dashboard.offres.form.new_sector_button', 'Nouveau secteur')}
+                                </button>
+                            )}
+                        </div>
+                        {addingSector ? (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={newSectorLabel}
+                                    onChange={(e) => setNewSectorLabel(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') { e.preventDefault(); handleCreateSector(); }
+                                        if (e.key === 'Escape') { setAddingSector(false); setNewSectorLabel(''); }
+                                    }}
+                                    maxLength={100}
+                                    placeholder={t('dashboard.offres.form.new_sector_placeholder', 'Nom du secteur')}
+                                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleCreateSector}
+                                    disabled={createSectorMutation.isPending || !newSectorLabel.trim()}
+                                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+                                >
+                                    {createSectorMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                    {t('dashboard.offres.form.new_sector_add', 'Ajouter')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setAddingSector(false); setNewSectorLabel(''); }}
+                                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <CustomSelect
+                                value={sectorId}
+                                options={sectorOptions}
+                                onChange={setSectorId}
+                                disabled={isReadOnly}
+                                className="w-full animate-none"
+                            />
+                        )}
                     </div>
 
                     <div className="space-y-1.5">

@@ -3,6 +3,7 @@ import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
     fetchSectors,
+    createSector,
     createJobOffer,
     updateJobOffer,
     deactivateJobOffer,
@@ -35,6 +36,14 @@ export function useSectors() {
         queryKey: ['sectors'],
         queryFn: fetchSectors,
         staleTime: 5 * 60 * 1000,
+    });
+}
+
+export function useCreateSector() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (label: string) => createSector(label),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sectors'] }),
     });
 }
 

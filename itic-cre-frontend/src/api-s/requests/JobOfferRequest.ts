@@ -18,6 +18,10 @@ export function fetchSectors(): Promise<SectorDetail[]> {
     return apiClient.get('/jobboard/sectors/active/list').then((response) => unwrap<SectorDetail[]>(response));
 }
 
+export function createSector(label: string): Promise<SectorDetail> {
+    return apiClient.post('/jobboard/sectors', { label }).then((response) => unwrap<SectorDetail>(response));
+}
+
 // Advisor/admin — toutes les offres (actives + inactives)
 export function fetchAllJobOffers(params: JobOfferListParams = {}): Promise<JobOfferPage> {
     return apiClient.get('/jobboard/offers/all', { params }).then((response) => unwrap<JobOfferPage>(response));
