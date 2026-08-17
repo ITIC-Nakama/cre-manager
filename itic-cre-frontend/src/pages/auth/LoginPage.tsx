@@ -88,9 +88,9 @@ export default function LoginPage() {
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.login.help_title')}</p>
                         <p className="text-[#9aa0a6] text-sm">
                             {t('auth.login.help_contact')}{' '}
-                            <a href="mailto:pedagogie@iticparis.com"
+                            <a href={`mailto:${t('auth.login.help_email')}`}
                                 className="font-semibold itic-gradient-blue underline underline-offset-2 hover:opacity-80 transition-opacity">
-                                pedagogie@iticparis.com
+                                {t('auth.login.help_email')}
                             </a>
                         </p>
                     </div>

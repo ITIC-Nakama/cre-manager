@@ -103,9 +103,9 @@ export default function RegisterPage() {
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.register.help_title')}</p>
                         <p className="text-[#9aa0a6] text-sm">
                             {t('auth.register.help_contact')}{' '}
-                            <a href="mailto:pedagogie@iticparis.com"
+                            <a href={`mailto:${t('auth.register.help_email')}`}
                                 className="font-semibold itic-gradient-blue underline underline-offset-2 hover:opacity-80 transition-opacity">
-                                pedagogie@iticparis.com
+                                {t('auth.register.help_email')}
                             </a>
                         </p>
                     </div>
