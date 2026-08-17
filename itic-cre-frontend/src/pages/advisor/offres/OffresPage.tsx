@@ -20,6 +20,7 @@ import {
 import { useContractTypes } from '../../../hooks/useApplications';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
+import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import type { JobOffer } from '../../../types/models/JobOffer';
@@ -46,6 +47,7 @@ export default function OffresPage() {
     const [sectorFilter, setSectorFilter] = useState('');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
+    const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -357,7 +359,7 @@ export default function OffresPage() {
                                                 </a>
                                             )}
                                             <button
-                                                onClick={() => { setEditingOffer(row.original); setIsReadOnly(true); setFormOpen(true); }}
+                                                onClick={() => setViewingOffer(row.original)}
                                                 className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                                                 title={t('dashboard.offres.actions.view_details', "Consulter les détails")}
                                             >
@@ -420,6 +422,20 @@ export default function OffresPage() {
                     </div>
                 )}
             </div>
+
+            {viewingOffer && (
+                <JobOfferDetailModal
+                    offer={viewingOffer}
+                    onClose={() => setViewingOffer(null)}
+                    showAdminActions={true}
+                    onEdit={(offer) => {
+                        setViewingOffer(null);
+                        setEditingOffer(offer);
+                        setIsReadOnly(false);
+                        setFormOpen(true);
+                    }}
+                />
+            )}
 
             {formOpen && (
                 <JobOfferFormModal

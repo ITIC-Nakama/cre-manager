@@ -1,4 +1,4 @@
-import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 
@@ -13,15 +13,18 @@ interface EtudiantsFiltersProps {
     search: string;
     filterStatus: FilterStatus;
     promotionFilter: string;
+    studyYearFilter: string;
     includeAnonymized: boolean;
     isFetching: boolean;
     isLoading: boolean;
     isAdmin: boolean;
     filterOptions: FilterOption[];
     promotionOptions: FilterOption[];
+    studyYearOptions: FilterOption[];
     onSearchChange: (value: string) => void;
     onFilterChange: (value: FilterStatus) => void;
     onPromotionChange: (value: string) => void;
+    onStudyYearChange: (value: string) => void;
     onIncludeAnonymizedChange: (value: boolean) => void;
 }
 
@@ -29,15 +32,18 @@ export default function EtudiantsFilters({
     search,
     filterStatus,
     promotionFilter,
+    studyYearFilter,
     includeAnonymized,
     isFetching,
     isLoading,
     isAdmin,
     filterOptions,
     promotionOptions,
+    studyYearOptions,
     onSearchChange,
     onFilterChange,
     onPromotionChange,
+    onStudyYearChange,
     onIncludeAnonymizedChange,
 }: EtudiantsFiltersProps) {
     const { t } = useTranslation();
@@ -75,6 +81,15 @@ export default function EtudiantsFilters({
                 searchable
                 searchPlaceholder={t('dashboard.etudiants.promotion_search_placeholder')}
                 noResultsLabel={t('dashboard.etudiants.promotion_no_results')}
+            />
+
+            {/* Study year select */}
+            <CustomSelect
+                value={studyYearFilter}
+                options={studyYearOptions}
+                onChange={onStudyYearChange}
+                icon={<Calendar className="h-4 w-4 text-slate-400" />}
+                className="min-w-44"
             />
 
             {/* Admin anonymized checkbox */}

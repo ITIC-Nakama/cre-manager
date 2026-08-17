@@ -78,8 +78,11 @@ public class PromotionController {
     @PutMapping("/{id}/students/{studentId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
     @Operation(summary = "Affecter un étudiant à la promotion (ajout ou changement de promotion)")
-    public ResponseEntity<Void> assignStudent(@PathVariable UUID id, @PathVariable UUID studentId) {
-        promotionService.assignStudentToPromotion(id, studentId);
+    public ResponseEntity<Void> assignStudent(
+            @PathVariable UUID id,
+            @PathVariable UUID studentId,
+            @RequestParam(required = false) Integer studyYear) {
+        promotionService.assignStudentToPromotion(id, studentId, studyYear);
         return ResponseEntity.noContent().build();
     }
 }

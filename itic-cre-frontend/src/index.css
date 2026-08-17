@@ -267,7 +267,7 @@ html.dark body {
 /* ─── Styles Globaux Dark Mode ITIC (Formulaires, Cartes, Modales, Tableaux, Composants) ─── */
 
 /* 1. Cartes & Surfaces de conteneurs */
-.dark .bg-white,
+.dark .bg-white:not([role="switch"]):not([role="switch"] *):not(.switch-knob),
 .dark .bg-slate-800,
 .dark .bg-slate-900,
 .dark .bg-slate-950 {
@@ -363,11 +363,11 @@ html.dark body {
 }
 
 /* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B71FF) */
-.dark button.bg-primary,
-.dark button.bg-indigo-600,
-.dark button.bg-blue-600,
-.dark button.bg-\[\#3B71FF\],
-.dark button.bg-\[\#3f74ff\] {
+.dark button.bg-primary:not([role="switch"]),
+.dark button.bg-indigo-600:not([role="switch"]),
+.dark button.bg-blue-600:not([role="switch"]),
+.dark button.bg-\[\#3B71FF\]:not([role="switch"]),
+.dark button.bg-\[\#3f74ff\]:not([role="switch"]) {
   background: #3B71FF !important;
   background: linear-gradient(90deg, #3B71FF 0%, #5B8DEF 100%) !important;
   color: #ffffff !important;
@@ -376,11 +376,11 @@ html.dark body {
   border: none !important;
 }
 
-.dark button.bg-primary:hover,
-.dark button.bg-indigo-600:hover,
-.dark button.bg-blue-600:hover,
-.dark button.bg-\[\#3B71FF\]:hover,
-.dark button.bg-\[\#3f74ff\]:hover {
+.dark button.bg-primary:not([role="switch"]):hover,
+.dark button.bg-indigo-600:not([role="switch"]):hover,
+.dark button.bg-blue-600:not([role="switch"]):hover,
+.dark button.bg-\[\#3B71FF\]:not([role="switch"]):hover,
+.dark button.bg-\[\#3f74ff\]:not([role="switch"]):hover {
   opacity: 0.95 !important;
   box-shadow: none !important;
 }

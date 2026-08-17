@@ -26,7 +26,7 @@ public class ResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                   Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        if (isSwaggerPath(request) || body instanceof CustomResponseEntity || body instanceof Resource) {
+        if (isSwaggerPath(request) || body instanceof CustomResponseEntity || body instanceof Resource || body instanceof byte[]) {
             return body;
         }
 

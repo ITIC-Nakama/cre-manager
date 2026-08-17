@@ -62,8 +62,8 @@ export function useRemoveStudentFromPromotion() {
 export function useAssignStudentToPromotion() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ promotionId, studentId }: { promotionId: string; studentId: string }) =>
-            assignStudentToPromotion(promotionId, studentId),
+        mutationFn: ({ promotionId, studentId, studyYear }: { promotionId: string; studentId: string; studyYear?: number }) =>
+            assignStudentToPromotion(promotionId, studentId, studyYear),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['promotions'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });

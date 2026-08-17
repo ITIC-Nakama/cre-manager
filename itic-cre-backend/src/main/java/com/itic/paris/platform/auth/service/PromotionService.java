@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +48,12 @@ public class PromotionService {
         Promotion promotion = new Promotion();
         promotion.setName(dto.getName().trim());
         promotion.setYear(dto.getYear() != null ? dto.getYear().trim() : null);
+        promotion.setHasYears(dto.isHasYears());
+        if (dto.getAvailableYears() != null) {
+            promotion.setAvailableYears(new ArrayList<>(dto.getAvailableYears()));
+        } else {
+            promotion.setAvailableYears(new ArrayList<>());
+        }
         Promotion saved = promotionRepository.save(promotion);
 
         currentActor().ifPresent(actor -> auditLogService.log(AuditAction.PROMOTION_CREATED, actor,
@@ -64,6 +71,12 @@ public class PromotionService {
         }
         promotion.setName(dto.getName().trim());
         promotion.setYear(dto.getYear() != null ? dto.getYear().trim() : null);
+        promotion.setHasYears(dto.isHasYears());
+        if (dto.getAvailableYears() != null) {
+            promotion.setAvailableYears(new ArrayList<>(dto.getAvailableYears()));
+        } else {
+            promotion.setAvailableYears(new ArrayList<>());
+        }
         Promotion saved = promotionRepository.save(promotion);
 
         currentActor().ifPresent(actor -> auditLogService.log(AuditAction.PROMOTION_UPDATED, actor,
@@ -91,6 +104,7 @@ public class PromotionService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
         student.setPromotion(null);
+        student.setStudyYear(null);
         studentRepository.save(student);
 
         currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_REMOVED_FROM_PROMOTION, actor,
@@ -100,12 +114,22 @@ public class PromotionService {
 
     @Transactional
     public void assignStudentToPromotion(UUID promotionId, UUID studentId) {
+        assignStudentToPromotion(promotionId, studentId, null);
+    }
+
+    @Transactional
+    public void assignStudentToPromotion(UUID promotionId, UUID studentId, Integer studyYear) {
         Promotion promotion = findById(promotionId);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
         Promotion previous = student.getPromotion();
         student.setPromotion(promotion);
+        if (studyYear != null) {
+            student.setStudyYear(studyYear);
+        } else if (!promotion.isHasYears()) {
+            student.setStudyYear(null);
+        }
         studentRepository.save(student);
 
         String label = student.getFirstName() + " " + student.getLastName();

@@ -92,4 +92,30 @@ class StudentSpecificationIntegrationTest {
         assertThat(inactiveResult.getContent()).hasSize(1);
         assertThat(inactiveResult.getContent().get(0).getFirstName()).isEqualTo("Bob");
     }
+
+    @Test
+    @DisplayName("Should filter students by study year")
+    void testStudyYearFilter() {
+        student1.setStudyYear(1);
+        studentRepository.save(student1);
+
+        student2.setStudyYear(2);
+        studentRepository.save(student2);
+
+        Page<Student> year1Result = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(null, 1, null, null, null, null, null, null, false),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(year1Result.getContent()).hasSize(1);
+        assertThat(year1Result.getContent().get(0).getFirstName()).isEqualTo("Alice");
+
+        Page<Student> year2Result = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(null, 2, null, null, null, null, null, null, false),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(year2Result.getContent()).hasSize(1);
+        assertThat(year2Result.getContent().get(0).getFirstName()).isEqualTo("Bob");
+    }
 }

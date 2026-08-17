@@ -26,6 +26,7 @@ export function removeStudentFromPromotion(promotionId: string, studentId: strin
     return apiClient.delete(`/promotions/${promotionId}/students/${studentId}`).then(() => undefined);
 }
 
-export function assignStudentToPromotion(promotionId: string, studentId: string): Promise<void> {
-    return apiClient.put(`/promotions/${promotionId}/students/${studentId}`).then(() => undefined);
+export function assignStudentToPromotion(promotionId: string, studentId: string, studyYear?: number): Promise<void> {
+    const params = studyYear !== undefined && studyYear !== null ? { studyYear } : undefined;
+    return apiClient.put(`/promotions/${promotionId}/students/${studentId}`, null, { params }).then(() => undefined);
 }

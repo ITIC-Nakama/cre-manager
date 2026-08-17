@@ -168,11 +168,15 @@ public class DashboardService {
             long cvsUploaded = cvRepository.countByStudentPromotionId(promo.getId());
             List<Map<String, Object>> gradeDistrib = buildGradeDistribution(promo.getId(), allGrades);
 
+            Map<String, Object> promoMap = new LinkedHashMap<>();
+            promoMap.put("id", promo.getId());
+            promoMap.put("nom", promo.getName());
+            promoMap.put("annee", promo.getYear() != null ? promo.getYear() : "");
+            promoMap.put("hasYears", promo.isHasYears());
+            promoMap.put("availableYears", promo.getAvailableYears() != null ? promo.getAvailableYears() : List.of());
+
             Map<String, Object> stat = new LinkedHashMap<>();
-            stat.put("promotion", Map.of(
-                    "id", promo.getId(),
-                    "nom", promo.getName(),
-                    "annee", promo.getYear() != null ? promo.getYear() : ""));
+            stat.put("promotion", promoMap);
             stat.put("studentCount", studentCount);
             stat.put("activeStudents", activeCount);
             stat.put("inactiveStudents", studentCount - activeCount);
@@ -190,11 +194,17 @@ public class DashboardService {
     public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
                                                      Boolean isActive, Boolean hasCv, Boolean hasStale,
                                                      Boolean includeAnonymized, Pageable pageable) {
+        return getStudentList(promotionId, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
+    }
+
+    public Page<Map<String, Object>> getStudentList(UUID promotionId, Integer studyYear, String search,
+                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
+                                                     Boolean includeAnonymized, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
         Specification<Student> spec = StudentSpecification.withStudentListFilters(
-                promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
+                promotionId, studyYear, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
         );
         List<Student> students;
         long totalElements;
@@ -237,6 +247,7 @@ public class DashboardService {
             row.put("promotion", student.getPromotion() != null
                     ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
                     : null);
+            row.put("studyYear", student.getStudyYear());
             row.put("xpTotal", student.getXpTotal());
             row.put("grade", grade != null
                     ? Map.of("nom", grade.getNom(), "icone", grade.getIcone() != null ? grade.getIcone() : "")
@@ -373,10 +384,15 @@ public class DashboardService {
 
     public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, UUID statusId, UUID typeContratId,
                                                                      String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
+        return getApplicationsGroupedByStudent(promotionId, null, statusId, typeContratId, search, stale, activeStudentsOnly, pageable);
+    }
+
+    public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, Integer studyYear, UUID statusId, UUID typeContratId,
+                                                                     String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
 
         Specification<Student> spec = StudentSpecification.withApplicationFilters(
-                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
+                promotionId, studyYear, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
         );
         Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
@@ -427,6 +443,7 @@ public class DashboardService {
             group.put("promotion", student.getPromotion() != null
                     ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
                     : null);
+            group.put("studyYear", student.getStudyYear());
             group.put("applications", appRows);
             group.put("staleCount", staleCount);
             return group;
@@ -511,8 +528,11 @@ public class DashboardService {
         detail.put("emailVerified", student.isEmailVerified());
         detail.put("promotion", student.getPromotion() != null
                 ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName(),
-                        "annee", student.getPromotion().getYear() != null ? student.getPromotion().getYear() : "")
+                        "annee", student.getPromotion().getYear() != null ? student.getPromotion().getYear() : "",
+                        "hasYears", student.getPromotion().isHasYears(),
+                        "availableYears", student.getPromotion().getAvailableYears() != null ? student.getPromotion().getAvailableYears() : List.of())
                 : null);
+        detail.put("studyYear", student.getStudyYear());
         detail.put("xpTotal", student.getXpTotal());
         detail.put("grade", grade != null
                 ? Map.of("nom", grade.getNom(), "xpMinimum", grade.getXpMinimum(),

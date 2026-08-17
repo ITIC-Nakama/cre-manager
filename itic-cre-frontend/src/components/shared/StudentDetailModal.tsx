@@ -1,7 +1,12 @@
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck, Pencil, Check, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
 import { isAnonymizedStudent } from '../../utils/studentUtils';
+import { usePromotions, useAssignStudentToPromotion, useRemoveStudentFromPromotion } from '../../hooks/usePromotions';
+import { formatPromotionLabel } from '../../utils/promotionUtils';
+import CustomSelect from '../basics/CustomSelect';
 
 interface Props {
     student: StudentRow;
@@ -20,6 +25,68 @@ function formatDateTime(iso: string | null) {
 
 export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive }: Props) {
     const { t } = useTranslation();
+    const { data: promotions } = usePromotions();
+    const assignMutation = useAssignStudentToPromotion();
+    const removeMutation = useRemoveStudentFromPromotion();
+
+    const [isEditingPromo, setIsEditingPromo] = useState(false);
+    const [selectedPromoId, setSelectedPromoId] = useState(student.promotion?.id ?? '');
+    const [selectedStudyYear, setSelectedStudyYear] = useState<number | null>(student.studyYear ?? null);
+    const [savingPromo, setSavingPromo] = useState(false);
+
+    const [localPromotion, setLocalPromotion] = useState<{ id: string; nom: string } | null | undefined>(student.promotion);
+    const [localStudyYear, setLocalStudyYear] = useState<number | null | undefined>(student.studyYear);
+
+    const selectedPromotion = useMemo(() => {
+        return promotions?.find((p) => p.id === selectedPromoId);
+    }, [promotions, selectedPromoId]);
+
+    const promoOptions = useMemo(() => {
+        return [
+            { value: '', label: t('dashboard.etudiants.detail.no_promotion', '— Aucune promotion —') },
+            ...(promotions ?? []).map((p) => ({
+                value: p.id,
+                label: formatPromotionLabel(p),
+            })),
+        ];
+    }, [promotions, t]);
+
+    const studyYearOptions = useMemo(() => {
+        if (!selectedPromotion?.hasYears || !selectedPromotion.availableYears?.length) return [];
+        return selectedPromotion.availableYears.map((yr) => ({
+            value: String(yr),
+            label: t(`study_years.year_${yr}`, `${yr}e année`),
+        }));
+    }, [selectedPromotion, t]);
+
+    const handleSavePromotion = async () => {
+        setSavingPromo(true);
+        try {
+            if (!selectedPromoId) {
+                if (student.promotion?.id) {
+                    await removeMutation.mutateAsync({ promotionId: student.promotion.id, studentId: student.id });
+                }
+                setLocalPromotion(null);
+                setLocalStudyYear(null);
+            } else {
+                const effectiveYear = selectedPromotion?.hasYears ? (selectedStudyYear ?? undefined) : undefined;
+                await assignMutation.mutateAsync({
+                    promotionId: selectedPromoId,
+                    studentId: student.id,
+                    studyYear: effectiveYear,
+                });
+                setLocalPromotion({ id: selectedPromoId, nom: selectedPromotion?.name ?? '' });
+                setLocalStudyYear(effectiveYear ?? null);
+            }
+            setIsEditingPromo(false);
+            toast.success(t('dashboard.etudiants.detail.toast_promo_updated', 'Affectation mise à jour avec succès !'));
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.detail.toast_promo_update_error', 'Erreur lors de la mise à jour de la promotion.'));
+        } finally {
+            setSavingPromo(false);
+        }
+    };
 
     return (
         <div
@@ -73,16 +140,104 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                     </div>
 
                     {/* Basic Info Cards */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3">
-                            <p className="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                                <GraduationCap className="h-3.5 w-3.5" />
-                                {t('dashboard.etudiants.table.promotion')}
-                            </p>
-                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                                {student.promotion?.nom || '—'}
-                            </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Promotion & Year Card with Live Editor */}
+                        <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3 flex flex-col justify-between">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <p className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                                    <GraduationCap className="h-3.5 w-3.5 text-indigo-500" />
+                                    {t('dashboard.etudiants.table.promotion')}
+                                </p>
+                                {!isEditingPromo && !isAnonymizedStudent(student) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedPromoId(localPromotion?.id ?? '');
+                                            setSelectedStudyYear(localStudyYear ?? null);
+                                            setIsEditingPromo(true);
+                                        }}
+                                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                                        title={t('dashboard.etudiants.detail.edit_promotion', 'Modifier')}
+                                    >
+                                        <Pencil className="h-3 w-3" />
+                                        <span>{t('common.edit', 'Modifier')}</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {isEditingPromo ? (
+                                <div className="space-y-2.5 pt-1 animate-fadeIn">
+                                    <div>
+                                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                            {t('dashboard.promotions.label_name', 'Promotion')}
+                                        </label>
+                                        <CustomSelect
+                                            value={selectedPromoId}
+                                            options={promoOptions}
+                                            disabled={savingPromo}
+                                            searchable={promoOptions.length > 5}
+                                            searchPlaceholder={t('dashboard.promotions.placeholder_add_student', 'Rechercher…')}
+                                            onChange={(newId) => {
+                                                setSelectedPromoId(newId);
+                                                const p = promotions?.find((item) => item.id === newId);
+                                                if (p?.hasYears && p.availableYears?.length) {
+                                                    setSelectedStudyYear(p.availableYears[0]);
+                                                } else {
+                                                    setSelectedStudyYear(null);
+                                                }
+                                            }}
+                                            className="w-full text-xs"
+                                        />
+                                    </div>
+
+                                    {selectedPromotion?.hasYears && studyYearOptions.length > 0 ? (
+                                        <div>
+                                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                                {t('dashboard.promotions.available_years_label', 'Année d\'étude')}
+                                            </label>
+                                            <CustomSelect
+                                                value={selectedStudyYear ? String(selectedStudyYear) : ''}
+                                                options={studyYearOptions}
+                                                disabled={savingPromo}
+                                                onChange={(val) => setSelectedStudyYear(val ? Number(val) : null)}
+                                                className="w-full text-xs"
+                                            />
+                                        </div>
+                                    ) : null}
+
+                                    <div className="flex items-center justify-end gap-1.5 pt-1">
+                                        <button
+                                            type="button"
+                                            disabled={savingPromo}
+                                            onClick={() => setIsEditingPromo(false)}
+                                            className="px-2.5 py-1 rounded-lg text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                                        >
+                                            {t('common.cancel', 'Annuler')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={savingPromo}
+                                            onClick={handleSavePromotion}
+                                            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50"
+                                        >
+                                            {savingPromo ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                            {t('common.save', 'Enregistrer')}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
+                                    <span>{localPromotion?.nom || t('dashboard.etudiants.detail.no_promotion', 'Aucune')}</span>
+                                    {localStudyYear && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40">
+                                            {t(`study_years.year_${localStudyYear}`, `${localStudyYear}e année`)}
+                                        </span>
+                                    )}
+                                </p>
+                            )}
                         </div>
+
+                        {/* Grade & XP Card */}
                         <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3">
                             <p className="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
                                 <Star className="h-3.5 w-3.5 text-violet-400" />

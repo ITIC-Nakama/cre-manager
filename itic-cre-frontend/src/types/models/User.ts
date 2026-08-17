@@ -11,6 +11,14 @@ export interface UserProfileDTO {
     jobTitle?: string | null;
     lang?: string;
     pendingEmail?: string | null;
+    promotion?: {
+        id: string;
+        name: string;
+        year?: string;
+        hasYears?: boolean;
+        availableYears?: number[];
+    } | null;
+    studyYear?: number | null;
 }
 
 // Converts the raw API user into the frontend-friendly DTO
@@ -38,5 +46,15 @@ export function toUserProfileDTO(apiUser: any): UserProfileDTO {
         jobTitle: apiUser.jobTitle,
         lang: apiUser.lang,
         pendingEmail: apiUser.pendingEmail,
+        promotion: apiUser.promotion
+            ? {
+                  id: apiUser.promotion.id,
+                  name: apiUser.promotion.name ?? apiUser.promotion.nom,
+                  year: apiUser.promotion.year,
+                  hasYears: apiUser.promotion.hasYears,
+                  availableYears: apiUser.promotion.availableYears,
+              }
+            : null,
+        studyYear: apiUser.studyYear ?? null,
     };
 }

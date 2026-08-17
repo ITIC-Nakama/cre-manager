@@ -20,6 +20,9 @@ public class Student extends User {
     @Column(name = "last_activity")
     private Instant lastActivity;
 
+    @Column(name = "study_year")
+    private Integer studyYear;
+
     // Le proxy Hibernate lazy expose des proprietes internes (hibernateLazyInitializer,
     // handler) que Jackson ne sait pas serialiser quand cette entite est renvoyee
     // directement (ex: PUT /auth/users/me) — on les ignore explicitement.

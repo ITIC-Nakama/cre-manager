@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useApplicationGroupedList, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import { usePromotions } from '../../../hooks/usePromotions';
 import { exportApplicationsCsv } from '../../../api-s/requests/DashboardRequest';
+import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
@@ -70,7 +71,7 @@ export default function CandidaturesPage() {
         { value: '', label: t('dashboard.candidatures.filter_all_promotions') },
         ...(promotions ?? []).map((p) => ({
             value: p.id,
-            label: p.year ? `${p.name} (${p.year})` : p.name,
+            label: formatPromotionLabel(p),
         })),
     ], [promotions, t]);
 

@@ -35,6 +35,7 @@ import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 import PromotionsPage from './pages/admin/PromotionsPage'
+import PromotionDetailPage from './pages/admin/PromotionDetailPage'
 import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 
@@ -119,6 +120,7 @@ function App() {
           <Route element={<RequireAuthMiddleware allowedRoles={[Role.ADMIN]} redirectTo="/supervisor/dashboard"><Outlet /></RequireAuthMiddleware>}>
             <Route path="/admin/conseillers" element={<AdvisorPage />} />
             <Route path="/admin/promotions"  element={<PromotionsPage />} />
+            <Route path="/admin/promotions/:id" element={<PromotionDetailPage />} />
             <Route path="/admin/audit"       element={<AuditLogsPage />} />
           </Route>
 

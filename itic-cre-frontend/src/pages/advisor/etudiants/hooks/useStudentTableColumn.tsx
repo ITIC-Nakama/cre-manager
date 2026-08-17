@@ -40,10 +40,18 @@ export function useStudentColumns() {
         col.accessor((row) => row.promotion?.nom ?? '', {
             id: 'promotion',
             header: t('dashboard.etudiants.table.promotion'),
-            cell: ({ getValue }) => {
+            cell: ({ row, getValue }) => {
                 const value = getValue();
+                const studyYear = row.original.studyYear;
                 return value ? (
-                    <TruncatedText text={value} className="max-w-[240px] text-slate-500 dark:text-slate-400 text-sm" />
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <TruncatedText text={value} className="max-w-[200px] text-slate-500 dark:text-slate-400 text-sm" />
+                        {studyYear && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40">
+                                {t(`study_years.year_${studyYear}`, `${studyYear}e année`)}
+                            </span>
+                        )}
+                    </div>
                 ) : (
                     <span className="text-slate-300 dark:text-slate-600">—</span>
                 );

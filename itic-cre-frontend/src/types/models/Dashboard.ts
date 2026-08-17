@@ -34,6 +34,7 @@ export interface StudentRow {
   lastName: string;
   email: string;
   promotion: { id: string; nom: string } | null;
+  studyYear?: number | null;
   xpTotal: number;
   grade: { nom: string; icone: string } | null;
   lastActivity: string | null;
@@ -60,6 +61,7 @@ export interface StudentListParams {
   hasCv?: boolean;
   hasStale?: boolean;
   promotionId?: string;
+  studyYear?: number;
   includeAnonymized?: boolean;
 }
 

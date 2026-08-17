@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class PromotionDto {
 
@@ -13,4 +15,8 @@ public class PromotionDto {
 
     @Size(max = 20)
     private String year;
+
+    private boolean hasYears = false;
+
+    private List<Integer> availableYears;
 }

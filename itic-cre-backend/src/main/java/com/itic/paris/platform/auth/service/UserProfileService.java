@@ -63,6 +63,7 @@ public class UserProfileService {
     private final CVRepository cvRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
 
     public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
@@ -142,6 +143,16 @@ public class UserProfileService {
         }
         if (user instanceof Advisor advisor && updateDto.getJobTitle() != null) {
             advisor.setJobTitle(updateDto.getJobTitle());
+        }
+        if (user instanceof Student student) {
+            if (updateDto.getPromotionId() != null) {
+                com.itic.paris.platform.auth.model.Promotion promo = promotionRepository.findById(updateDto.getPromotionId())
+                        .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
+                student.setPromotion(promo);
+            }
+            if (updateDto.getStudyYear() != null) {
+                student.setStudyYear(updateDto.getStudyYear());
+            }
         }
 
         User saved = userRepository.save(user);

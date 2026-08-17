@@ -15,8 +15,10 @@ import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
+import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
@@ -43,8 +45,8 @@ public class AuthService {
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
-    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
-    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
+    private final PromotionRepository promotionRepository;
+    private final NotificationEmailService notificationEmailService;
     private final UserProfileService userProfileService;
 
     public Object login(UserLoginDto loginDto) {
@@ -85,10 +87,21 @@ public class AuthService {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ROLE_NOT_FOUND);
         }
 
-        com.itic.paris.platform.auth.model.Promotion promotion = null;
+        Promotion promotion = null;
         if (userDto.getPromotionId() != null) {
             promotion = promotionRepository.findById(userDto.getPromotionId())
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
+            if (promotion.isHasYears()) {
+                if (userDto.getStudyYear() == null) {
+                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.STUDY_YEAR_REQUIRED);
+                }
+                if (promotion.getAvailableYears() != null && !promotion.getAvailableYears().isEmpty()
+                        && !promotion.getAvailableYears().contains(userDto.getStudyYear())) {
+                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_STUDY_YEAR);
+                }
+            } else {
+                userDto.setStudyYear(null);
+            }
         }
 
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
@@ -299,6 +312,7 @@ public class AuthService {
             profile.put("xpTotal", student.getXpTotal());
             profile.put("lastActivity", student.getLastActivity());
             profile.put("promotion", sanitizePromotion(student.getPromotion()));
+            profile.put("studyYear", student.getStudyYear());
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());
@@ -315,6 +329,8 @@ public class AuthService {
         dto.put("id", unproxied.getId());
         dto.put("name", unproxied.getName());
         dto.put("year", unproxied.getYear());
+        dto.put("hasYears", unproxied.isHasYears());
+        dto.put("availableYears", unproxied.getAvailableYears());
         return dto;
     }
 

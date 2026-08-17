@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
 import { Plus, Loader2, GraduationCap, Pencil, Trash2, Users } from 'lucide-react';
@@ -6,14 +7,14 @@ import { toast } from 'sonner';
 
 import { usePromotions, useCreatePromotion, useUpdatePromotion, useDeletePromotion } from '../../hooks/usePromotions';
 import { useAllStudents } from '../../hooks/useDashboard';
-import type { Promotion } from '../../types/models/Promotion';
+import type { Promotion, PromotionData } from '../../types/models/Promotion';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import PromotionModal from './components/PromotionModal';
-import PromotionStudentsModal from './components/PromotionStudentsModal';
 
 export default function PromotionsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: promotions, isLoading } = usePromotions();
   const { data: students } = useAllStudents(true);
 
@@ -37,8 +38,6 @@ export default function PromotionsPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const [studentsModal, setStudentsModal] = useState<{ isOpen: boolean; promotion?: Promotion }>({ isOpen: false });
-
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -61,14 +60,27 @@ export default function PromotionsPage() {
     }
   };
 
-  const handleSave = async (data: { name: string; year: string }) => {
+  const handleSave = async (data: PromotionData) => {
     setSaving(true);
     try {
       if (modal.mode === 'create') {
-        await createMutation.mutateAsync({ name: data.name, year: data.year || undefined });
+        await createMutation.mutateAsync({
+          name: data.name,
+          year: data.year || undefined,
+          hasYears: data.hasYears,
+          availableYears: data.availableYears,
+        });
         toast.success(t('dashboard.promotions.toast_created'));
       } else if (modal.mode === 'edit' && modal.promotion) {
-        await updateMutation.mutateAsync({ id: modal.promotion.id, data: { name: data.name, year: data.year || undefined } });
+        await updateMutation.mutateAsync({
+          id: modal.promotion.id,
+          data: {
+            name: data.name,
+            year: data.year || undefined,
+            hasYears: data.hasYears,
+            availableYears: data.availableYears,
+          },
+        });
         toast.success(t('dashboard.promotions.toast_updated'));
       }
       setModal({ isOpen: false, mode: 'create' });
@@ -137,6 +149,7 @@ export default function PromotionsPage() {
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <th className="px-6 py-4">{t('dashboard.promotions.table.name')}</th>
                 <th className="px-6 py-4">{t('dashboard.promotions.table.year')}</th>
+                <th className="px-6 py-4">{t('dashboard.promotions.table.years_levels')}</th>
                 <th className="px-6 py-4">{t('dashboard.promotions.table.students')}</th>
                 <th className="px-6 py-4 text-right">{t('dashboard.promotions.table.actions')}</th>
               </tr>
@@ -144,13 +157,13 @@ export default function PromotionsPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-16">
+                  <td colSpan={5} className="text-center py-16">
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : !promotions || promotions.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-16 text-slate-400">
+                  <td colSpan={5} className="text-center py-16 text-slate-400">
                     <GraduationCap className="h-8 w-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
                     {t('dashboard.promotions.table.empty')}
                   </td>
@@ -172,6 +185,24 @@ export default function PromotionsPage() {
                         {promotion.year || <span className="text-slate-300 dark:text-slate-600">—</span>}
                       </td>
                       <td className="px-6 py-4">
+                        {promotion.hasYears && promotion.availableYears && promotion.availableYears.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {promotion.availableYears.map((y) => (
+                              <span
+                                key={y}
+                                className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40"
+                              >
+                                {t(`study_years.year_${y}`, `${y}e`)}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-500 text-xs italic">
+                            {t('study_years.no_years')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
                         <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                           <Users className="h-3.5 w-3.5" />
                           {t('dashboard.promotions.table.student_count', { count })}
@@ -179,7 +210,7 @@ export default function PromotionsPage() {
                       </td>
                       <td className="px-6 py-4 text-right space-x-1">
                         <button
-                          onClick={() => setStudentsModal({ isOpen: true, promotion })}
+                          onClick={() => navigate(`/admin/promotions/${promotion.id}`)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer text-xs font-semibold"
                           title={t('dashboard.promotions.actions.manage_students')}
                         >
@@ -217,12 +248,6 @@ export default function PromotionsPage() {
         saving={saving}
         onClose={() => setModal({ isOpen: false, mode: 'create' })}
         onSave={handleSave}
-      />
-
-      <PromotionStudentsModal
-        isOpen={studentsModal.isOpen}
-        promotion={studentsModal.promotion}
-        onClose={() => setStudentsModal({ isOpen: false })}
       />
 
       <ConfirmDialog

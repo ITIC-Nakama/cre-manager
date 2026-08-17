@@ -51,29 +51,31 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/includeAnonymized")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/includeAnonymized")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
+        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, studyYear, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
     }
 
     @GetMapping("/students/all")
     @Operation(summary = "Liste complète non-paginée de tous les étudiants (pour export ou vue d'ensemble)")
     public ResponseEntity<?> allStudents(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
         Page<Map<String, Object>> result = dashboardService.getStudentList(
-                promotionId, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
+                promotionId, studyYear, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
         );
         return ResponseEntity.ok(result.getContent());
     }
@@ -95,13 +97,14 @@ public class DashboardController {
     @Operation(summary = "Liste paginée des étudiants avec leurs candidatures")
     public ResponseEntity<?> applicationsGroupedByStudent(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) UUID statusId,
             @RequestParam(required = false) UUID typeContratId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, studyYear, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
     }
 
     @GetMapping("/applications/export")

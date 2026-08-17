@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions } from '../../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../../utils/csvExport';
+import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../../components/shared/StudentDetailModal';
@@ -34,6 +35,7 @@ export default function EtudiantsPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
     const [promotionFilter, setPromotionFilter] = useState('');
+    const [studyYearFilter, setStudyYearFilter] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
@@ -84,9 +86,28 @@ export default function EtudiantsPage() {
         { value: '', label: t('dashboard.etudiants.filter_all_promotions') },
         ...(promotions ?? []).map((promotion) => ({
             value: promotion.id,
-            label: promotion.year ? `${promotion.name} (${promotion.year})` : promotion.name,
+            label: formatPromotionLabel(promotion),
         })),
     ], [promotions, t]);
+
+    const selectedPromotion = useMemo(() => {
+        return (promotions ?? []).find((p) => p.id === promotionFilter);
+    }, [promotions, promotionFilter]);
+
+    const availableYears = useMemo(() => {
+        if (selectedPromotion?.hasYears && selectedPromotion.availableYears?.length) {
+            return selectedPromotion.availableYears;
+        }
+        return [1, 2, 3, 4, 5];
+    }, [selectedPromotion]);
+
+    const studyYearOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.filter_study_year_all') },
+        ...availableYears.map((year) => ({
+            value: String(year),
+            label: t(`study_years.year_${year}`, `${year}e année`),
+        })),
+    ], [availableYears, t]);
 
     const params = {
         page,
@@ -96,6 +117,7 @@ export default function EtudiantsPage() {
         hasCv: filterStatus === 'no-cv' ? false : undefined,
         hasStale: filterStatus === 'stale' ? true : undefined,
         promotionId: promotionFilter || undefined,
+        studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
     };
 
@@ -129,6 +151,12 @@ export default function EtudiantsPage() {
 
     const handlePromotionFilterChange = (value: string) => {
         setPromotionFilter(value);
+        setStudyYearFilter('');
+        setPage(0);
+    };
+
+    const handleStudyYearFilterChange = (value: string) => {
+        setStudyYearFilter(value);
         setPage(0);
     };
 
@@ -195,15 +223,18 @@ export default function EtudiantsPage() {
                 search={search}
                 filterStatus={filterStatus}
                 promotionFilter={promotionFilter}
+                studyYearFilter={studyYearFilter}
                 includeAnonymized={includeAnonymized}
                 isFetching={isFetching}
                 isLoading={isLoading}
                 isAdmin={isAdmin}
                 filterOptions={filterOptions}
                 promotionOptions={promotionOptions}
+                studyYearOptions={studyYearOptions}
                 onSearchChange={handleSearch}
                 onFilterChange={handleFilterChange}
                 onPromotionChange={handlePromotionFilterChange}
+                onStudyYearChange={handleStudyYearFilterChange}
                 onIncludeAnonymizedChange={(checked) => {
                     setIncludeAnonymized(checked);
                     setPage(0);

@@ -3,6 +3,8 @@ package com.itic.paris.platform.auth.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -19,4 +21,13 @@ public class Promotion {
 
     @Column(length = 20)
     private String year;
+
+    @Column(name = "has_years", nullable = false)
+    private boolean hasYears = false;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "promotion_available_years", joinColumns = @JoinColumn(name = "promotion_id"))
+    @Column(name = "study_year", nullable = false)
+    @OrderBy("study_year ASC")
+    private List<Integer> availableYears = new ArrayList<>();
 }

@@ -23,6 +23,19 @@ public class StudentSpecification {
             Instant staleThreshold,
             Boolean activeStudentsOnly
     ) {
+        return withApplicationFilters(promotionId, null, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly);
+    }
+
+    public static Specification<Student> withApplicationFilters(
+            UUID promotionId,
+            Integer studyYear,
+            UUID statusId,
+            UUID typeContratId,
+            String search,
+            Boolean stale,
+            Instant staleThreshold,
+            Boolean activeStudentsOnly
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -37,6 +50,11 @@ public class StudentSpecification {
             // Promotion filter
             if (promotionId != null) {
                 predicates.add(cb.equal(root.get("promotion").get("id"), promotionId));
+            }
+
+            // Study year filter
+            if (studyYear != null) {
+                predicates.add(cb.equal(root.get("studyYear"), studyYear));
             }
 
             // Subquery EXISTS on Application table
@@ -95,11 +113,25 @@ public class StudentSpecification {
             Boolean hasStale,
             Instant staleThreshold
     ) {
-        return withStudentListFilters(promotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
+        return withStudentListFilters(promotionId, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
     }
 
     public static Specification<Student> withStudentListFilters(
             UUID promotionId,
+            String search,
+            Boolean isActive,
+            Instant inactiveThreshold,
+            Boolean hasCv,
+            Boolean hasStale,
+            Instant staleThreshold,
+            Boolean includeAnonymized
+    ) {
+        return withStudentListFilters(promotionId, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
+    }
+
+    public static Specification<Student> withStudentListFilters(
+            UUID promotionId,
+            Integer studyYear,
             String search,
             Boolean isActive,
             Instant inactiveThreshold,
@@ -119,6 +151,11 @@ public class StudentSpecification {
             // Promotion filter
             if (promotionId != null) {
                 predicates.add(cb.equal(root.get("promotion").get("id"), promotionId));
+            }
+
+            // Study year filter
+            if (studyYear != null) {
+                predicates.add(cb.equal(root.get("studyYear"), studyYear));
             }
 
             // Search filter

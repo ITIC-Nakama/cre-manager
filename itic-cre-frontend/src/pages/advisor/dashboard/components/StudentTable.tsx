@@ -82,7 +82,10 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       {student.promotion && (
-                        <span className="text-xs text-slate-400">{student.promotion.nom}</span>
+                        <span className="text-xs text-slate-400">
+                          {student.promotion.nom}
+                          {student.studyYear ? ` (${t(`study_years.year_${student.studyYear}`, `${student.studyYear}e`)})` : ''}
+                        </span>
                       )}
                       {student.grade && (
                         <span className="text-xs text-violet-500 flex items-center gap-0.5">
