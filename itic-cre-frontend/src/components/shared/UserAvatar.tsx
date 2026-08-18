@@ -21,14 +21,17 @@ export default function UserAvatar({ profilePicture, firstName, lastName, classN
     setImgError(false);
   }, [profilePicture]);
 
-  const canEnlarge = enlargeOnClick && !onClick && !!profilePicture && !imgError;
+  const hasImage = !!profilePicture && !imgError;
+  const canEnlarge = enlargeOnClick && !onClick && hasImage;
 
-  const handleClick = canEnlarge
-    ? (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowLightbox(true);
-      }
-    : onClick;
+  const handleClick = onClick
+    ? onClick
+    : enlargeOnClick
+      ? (e: React.MouseEvent) => {
+          e.stopPropagation();
+          if (hasImage) setShowLightbox(true);
+        }
+      : undefined;
 
   const avatar = profilePicture && !imgError
     ? (
