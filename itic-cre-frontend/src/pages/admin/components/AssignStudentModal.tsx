@@ -51,7 +51,6 @@ export default function AssignStudentModal({ isOpen, promotion, yearSelectOption
       toast.success(t('dashboard.promotions.toast_student_assigned', 'Étudiant affecté avec succès'));
       setSearch('');
       setDebouncedSearch('');
-      onClose();
     } catch (err) {
       console.error(err);
       toast.error(t('dashboard.promotions.toast_student_assign_error', "Erreur lors de l'affectation"));

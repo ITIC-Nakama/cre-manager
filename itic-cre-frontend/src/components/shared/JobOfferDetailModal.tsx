@@ -134,29 +134,18 @@ export default function JobOfferDetailModal({
                         </div>
                     </div>
 
-                    {/* External Link Notice & Direct Link */}
+                    {/* External Link Notice (le lien d'action equivalent est dans le footer, toujours visible sans scroll) */}
                     {offer.externalLink && (
-                        <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100/80 dark:border-indigo-900/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="flex items-start gap-2.5">
-                                <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
-                                        {t('dashboard.offres.detail_modal.external_link_notice', "Cette offre redirige vers une plateforme externe pour candidater.")}
-                                    </p>
-                                    <p className="text-xs text-indigo-700/80 dark:text-indigo-300/70 truncate max-w-md mt-0.5">
-                                        {offer.externalLink}
-                                    </p>
-                                </div>
+                        <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-start gap-2.5">
+                            <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+                                    {t('dashboard.offres.detail_modal.external_link_notice', "Cette offre redirige vers une plateforme externe pour candidater.")}
+                                </p>
+                                <p className="text-xs text-indigo-700/80 dark:text-indigo-300/70 truncate max-w-md mt-0.5">
+                                    {offer.externalLink}
+                                </p>
                             </div>
-                            <a
-                                href={offer.externalLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] text-white transition-all shrink-0 shadow-xs cursor-pointer"
-                            >
-                                <ExternalLink className="h-3.5 w-3.5" />
-                                {t('dashboard.offres.detail_modal.external_link_button', "Consulter l'annonce")}
-                            </a>
                         </div>
                     )}
                 </div>
