@@ -14,16 +14,7 @@ import java.util.UUID;
 
 public class StudentSpecification {
 
-    public static Specification<Student> withApplicationFilters(
-            UUID promotionId,
-            Integer studyYear,
-            UUID statusId,
-            UUID typeContratId,
-            String search,
-            Boolean stale,
-            Instant staleThreshold,
-            Boolean activeStudentsOnly
-    ) {
+    public static Specification<Student> withApplicationFilters(ApplicationFilterCriteria criteria, Instant staleThreshold) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -31,18 +22,18 @@ public class StudentSpecification {
             predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
 
             // Active student filter
-            if (Boolean.TRUE.equals(activeStudentsOnly)) {
+            if (Boolean.TRUE.equals(criteria.getActiveStudentsOnly())) {
                 predicates.add(cb.isTrue(root.get("active")));
             }
 
             // Promotion filter
-            if (promotionId != null) {
-                predicates.add(cb.equal(root.get("promotion").get("id"), promotionId));
+            if (criteria.getPromotionId() != null) {
+                predicates.add(cb.equal(root.get("promotion").get("id"), criteria.getPromotionId()));
             }
 
             // Study year filter
-            if (studyYear != null) {
-                predicates.add(cb.equal(root.get("studyYear"), studyYear));
+            if (criteria.getStudyYear() != null) {
+                predicates.add(cb.equal(root.get("studyYear"), criteria.getStudyYear()));
             }
 
             // Subquery EXISTS on Application table
@@ -53,20 +44,21 @@ public class StudentSpecification {
             List<Predicate> subPredicates = new ArrayList<>();
             subPredicates.add(cb.equal(appRoot.get("student"), root));
 
-            if (statusId != null) {
-                subPredicates.add(cb.equal(appRoot.get("status").get("id"), statusId));
+            if (criteria.getStatusId() != null) {
+                subPredicates.add(cb.equal(appRoot.get("status").get("id"), criteria.getStatusId()));
             }
 
-            if (typeContratId != null) {
-                subPredicates.add(cb.equal(appRoot.get("typeContrat").get("id"), typeContratId));
+            if (criteria.getTypeContratId() != null) {
+                subPredicates.add(cb.equal(appRoot.get("typeContrat").get("id"), criteria.getTypeContratId()));
             }
 
-            if (Boolean.TRUE.equals(stale) && staleThreshold != null) {
+            if (Boolean.TRUE.equals(criteria.getStale()) && staleThreshold != null) {
                 Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
                 subPredicates.add(cb.isTrue(statusJoin.get("declencheAlerte")));
                 subPredicates.add(cb.lessThan(appRoot.get("dateModification"), staleThreshold));
             }
 
+            String search = criteria.getSearch();
             if (search != null && !search.trim().isEmpty()) {
                 String searchLike = "%" + search.trim().toLowerCase() + "%";
                 Expression<String> fullName = cb.concat(
@@ -92,89 +84,39 @@ public class StudentSpecification {
         };
     }
 
-    public static Specification<Student> withStudentListFilters(
-            UUID promotionId,
-            String search,
-            Boolean isActive,
-            Instant inactiveThreshold,
-            Boolean hasCv,
-            Boolean hasStale,
-            Instant staleThreshold
-    ) {
-        return withStudentListFilters(promotionId, null, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
-    }
-
-    public static Specification<Student> withStudentListFilters(
-            UUID promotionId,
-            String search,
-            Boolean isActive,
-            Instant inactiveThreshold,
-            Boolean hasCv,
-            Boolean hasStale,
-            Instant staleThreshold,
-            Boolean includeAnonymized
-    ) {
-        return withStudentListFilters(promotionId, null, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
-    }
-
-    public static Specification<Student> withStudentListFilters(
-            UUID promotionId,
-            Integer studyYear,
-            String search,
-            Boolean isActive,
-            Instant inactiveThreshold,
-            Boolean hasCv,
-            Boolean hasStale,
-            Instant staleThreshold,
-            Boolean includeAnonymized
-    ) {
-        return withStudentListFilters(promotionId, studyYear, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
-    }
-
-    public static Specification<Student> withStudentListFilters(
-            UUID promotionId,
-            Integer studyYear,
-            Boolean studyYearMissing,
-            UUID excludePromotionId,
-            String search,
-            Boolean isActive,
-            Instant inactiveThreshold,
-            Boolean hasCv,
-            Boolean hasStale,
-            Instant staleThreshold,
-            Boolean includeAnonymized
-    ) {
+    public static Specification<Student> withStudentListFilters(StudentFilterCriteria criteria, Instant inactiveThreshold, Instant staleThreshold) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Exclude RGPD anonymized accounts unless explicitly requested by an admin
-            if (!Boolean.TRUE.equals(includeAnonymized)) {
+            if (!Boolean.TRUE.equals(criteria.getIncludeAnonymized())) {
                 predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
             }
 
             // Promotion filter
-            if (promotionId != null) {
-                predicates.add(cb.equal(root.get("promotion").get("id"), promotionId));
+            if (criteria.getPromotionId() != null) {
+                predicates.add(cb.equal(root.get("promotion").get("id"), criteria.getPromotionId()));
             }
 
             // Exclude students already in a given promotion (ex: recherche pour affecter un
             // etudiant a une promotion — evite de filtrer apres pagination, ce qui peut vider
             // une page entiere de resultats deja pris)
-            if (excludePromotionId != null) {
+            if (criteria.getExcludePromotionId() != null) {
                 predicates.add(cb.or(
                         cb.isNull(root.get("promotion")),
-                        cb.notEqual(root.get("promotion").get("id"), excludePromotionId)
+                        cb.notEqual(root.get("promotion").get("id"), criteria.getExcludePromotionId())
                 ));
             }
 
             // Study year filter — "missing" (ex: onglet "Sans niveau") prime sur une valeur exacte
-            if (Boolean.TRUE.equals(studyYearMissing)) {
+            if (Boolean.TRUE.equals(criteria.getStudyYearMissing())) {
                 predicates.add(cb.isNull(root.get("studyYear")));
-            } else if (studyYear != null) {
-                predicates.add(cb.equal(root.get("studyYear"), studyYear));
+            } else if (criteria.getStudyYear() != null) {
+                predicates.add(cb.equal(root.get("studyYear"), criteria.getStudyYear()));
             }
 
             // Search filter
+            String search = criteria.getSearch();
             if (search != null && !search.trim().isEmpty()) {
                 String searchLike = "%" + search.trim().toLowerCase() + "%";
                 Expression<String> fullName = cb.concat(
@@ -191,6 +133,7 @@ public class StudentSpecification {
             }
 
             // Active/Inactive filter
+            Boolean isActive = criteria.getIsActive();
             if (isActive != null && inactiveThreshold != null) {
                 if (Boolean.TRUE.equals(isActive)) {
                     predicates.add(cb.and(
@@ -206,6 +149,7 @@ public class StudentSpecification {
             }
 
             // Has CV filter
+            Boolean hasCv = criteria.getHasCv();
             if (hasCv != null) {
                 Subquery<UUID> cvSubquery = query.subquery(UUID.class);
                 Root<CV> cvRoot = cvSubquery.from(CV.class);
@@ -220,7 +164,7 @@ public class StudentSpecification {
             }
 
             // Has Stale applications filter
-            if (Boolean.TRUE.equals(hasStale) && staleThreshold != null) {
+            if (Boolean.TRUE.equals(criteria.getHasStale()) && staleThreshold != null) {
                 Subquery<UUID> staleSubquery = query.subquery(UUID.class);
                 Root<Application> appRoot = staleSubquery.from(Application.class);
                 Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);

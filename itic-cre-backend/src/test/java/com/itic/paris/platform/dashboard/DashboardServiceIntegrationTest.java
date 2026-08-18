@@ -5,6 +5,7 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
@@ -163,7 +164,8 @@ public class DashboardServiceIntegrationTest {
         studentRepository.save(anonymizedStudent);
 
         Page<Map<String, Object>> result = dashboardService.getStudentList(
-                null, null, null, null, null, false, org.springframework.data.domain.Pageable.unpaged()
+                StudentFilterCriteria.builder().includeAnonymized(false).build(),
+                org.springframework.data.domain.Pageable.unpaged()
         );
 
         assertThat(result.getContent()).isNotEmpty();

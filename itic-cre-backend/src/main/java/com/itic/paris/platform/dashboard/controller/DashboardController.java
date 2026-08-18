@@ -1,6 +1,8 @@
 package com.itic.paris.platform.dashboard.controller;
 
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
+import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
+import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
 import com.itic.paris.platform.dashboard.service.DashboardService;
 import com.itic.paris.platform.shared.local.LanguageUtil;
@@ -75,7 +77,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
+        StudentFilterCriteria criteria = StudentFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
+                .excludePromotionId(excludePromotionId).search(search).isActive(isActive)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .build();
+        return ResponseEntity.ok(dashboardService.getStudentList(criteria, pageable));
     }
 
     @GetMapping("/students/all")
@@ -90,9 +97,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
-        Page<Map<String, Object>> result = dashboardService.getStudentList(
-                promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
-        );
+        StudentFilterCriteria criteria = StudentFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
+                .excludePromotionId(excludePromotionId).search(search).isActive(isActive)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .build();
+        Page<Map<String, Object>> result = dashboardService.getStudentList(criteria, Pageable.unpaged());
         return ResponseEntity.ok(result.getContent());
     }
 
@@ -120,7 +130,11 @@ public class DashboardController {
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, studyYear, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+        ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
+                .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly)
+                .build();
+        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(criteria, pageable));
     }
 
     @GetMapping("/applications/export")

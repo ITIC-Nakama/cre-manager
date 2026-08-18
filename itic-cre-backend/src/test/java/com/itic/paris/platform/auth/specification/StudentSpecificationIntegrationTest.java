@@ -63,7 +63,8 @@ class StudentSpecificationIntegrationTest {
     @DisplayName("Should filter students by search term matching first name, last name or email")
     void testSearchFilter() {
         Page<Student> result = studentRepository.findAll(
-                StudentSpecification.withStudentListFilters(null, "dupont", null, null, null, null, null),
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().search("dupont").build(), null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -77,7 +78,8 @@ class StudentSpecificationIntegrationTest {
         Instant threshold = Instant.now().minus(15, ChronoUnit.DAYS);
 
         Page<Student> activeResult = studentRepository.findAll(
-                StudentSpecification.withStudentListFilters(null, null, true, threshold, null, null, null),
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().isActive(true).build(), threshold, null),
                 PageRequest.of(0, 10)
         );
 
@@ -85,7 +87,8 @@ class StudentSpecificationIntegrationTest {
         assertThat(activeResult.getContent().get(0).getFirstName()).isEqualTo("Alice");
 
         Page<Student> inactiveResult = studentRepository.findAll(
-                StudentSpecification.withStudentListFilters(null, null, false, threshold, null, null, null),
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().isActive(false).build(), threshold, null),
                 PageRequest.of(0, 10)
         );
 
@@ -103,7 +106,8 @@ class StudentSpecificationIntegrationTest {
         studentRepository.save(student2);
 
         Page<Student> year1Result = studentRepository.findAll(
-                StudentSpecification.withStudentListFilters(null, 1, null, null, null, null, null, null, false),
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().studyYear(1).includeAnonymized(false).build(), null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -111,7 +115,8 @@ class StudentSpecificationIntegrationTest {
         assertThat(year1Result.getContent().get(0).getFirstName()).isEqualTo("Alice");
 
         Page<Student> year2Result = studentRepository.findAll(
-                StudentSpecification.withStudentListFilters(null, 2, null, null, null, null, null, null, false),
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().studyYear(2).includeAnonymized(false).build(), null, null),
                 PageRequest.of(0, 10)
         );
 

@@ -19,6 +19,8 @@ import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
+import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
+import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentSpecification;
 import com.itic.paris.platform.crm.specification.ApplicationSpecification;
 import org.springframework.data.jpa.domain.Specification;
@@ -225,28 +227,11 @@ public class DashboardService {
 
     // ─── Student list ────────────────────────────────────────────────────────
 
-    public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
-                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
-                                                     Boolean includeAnonymized, Pageable pageable) {
-        return getStudentList(promotionId, null, null, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
-    }
-
-    public Page<Map<String, Object>> getStudentList(UUID promotionId, Integer studyYear, String search,
-                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
-                                                     Boolean includeAnonymized, Pageable pageable) {
-        return getStudentList(promotionId, studyYear, null, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
-    }
-
-    public Page<Map<String, Object>> getStudentList(UUID promotionId, Integer studyYear, Boolean studyYearMissing,
-                                                     UUID excludePromotionId, String search,
-                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
-                                                     Boolean includeAnonymized, Pageable pageable) {
+    public Page<Map<String, Object>> getStudentList(StudentFilterCriteria criteria, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
-        Specification<Student> spec = StudentSpecification.withStudentListFilters(
-                promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
-        );
+        Specification<Student> spec = StudentSpecification.withStudentListFilters(criteria, inactiveThreshold, staleThreshold);
         List<Student> students;
         long totalElements;
         if (pageable == null || pageable.isUnpaged()) {
@@ -423,13 +408,13 @@ public class DashboardService {
         return escaped;
     }
 
-    public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, Integer studyYear, UUID statusId, UUID typeContratId,
-                                                                     String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
+    public Page<Map<String, Object>> getApplicationsGroupedByStudent(ApplicationFilterCriteria criteria, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
+        UUID statusId = criteria.getStatusId();
+        UUID typeContratId = criteria.getTypeContratId();
+        Boolean stale = criteria.getStale();
 
-        Specification<Student> spec = StudentSpecification.withApplicationFilters(
-                promotionId, studyYear, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
-        );
+        Specification<Student> spec = StudentSpecification.withApplicationFilters(criteria, staleThreshold);
         Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
         List<Map<String, Object>> content = studentPage.getContent().stream().map(student -> {
