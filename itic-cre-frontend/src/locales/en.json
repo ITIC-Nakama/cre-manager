@@ -18,7 +18,10 @@
     },
     "back": "Back",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "save": "Save"
   },
   "roles": {
     "student": "Student",
@@ -285,7 +288,11 @@
       "detail": {
         "total_applications": "Total applications",
         "stale_applications": "Late applications",
-        "last_activity": "Last active: {{date}}"
+        "last_activity": "Last active: {{date}}",
+        "edit_promotion": "Edit",
+        "no_promotion": "None",
+        "toast_promo_updated": "Assignment updated successfully!",
+        "toast_promo_update_error": "Error updating promotion."
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} student",
@@ -1055,63 +1062,6 @@
       },
       "subtitle": "View security and action audit logs."
     },
-    "promotions": {
-      "title": "Promotions",
-      "subtitle_one": "{{count}} promotion total",
-      "subtitle_other": "{{count}} promotions total",
-      "create_button": "Create a promotion",
-      "has_years_label": "Study year levels required",
-      "has_years_desc": "Allows students to choose their year (1st, 2nd, etc.)",
-      "available_years_label": "Available study years",
-      "table": {
-        "name": "Name",
-        "year": "Year",
-        "years_levels": "Year levels",
-        "students": "Students",
-        "actions": "Actions",
-        "student_count_one": "{{count}} student",
-        "student_count_other": "{{count}} students",
-        "empty": "No promotion yet.",
-        "student_count": "{{count}} students"
-      },
-      "actions": {
-        "edit": "Edit",
-        "delete": "Delete",
-        "manage_students": "Manage students"
-      },
-      "modal_create": "Create a promotion",
-      "modal_edit": "Edit promotion",
-      "label_name": "Name",
-      "placeholder_name": "E.g. Promotion 2026",
-      "label_year": "Year",
-      "placeholder_year": "E.g. 2025-2026",
-      "btn_cancel": "Cancel",
-      "btn_save": "Save",
-      "toast_created": "Promotion created successfully!",
-      "toast_updated": "Promotion updated successfully!",
-      "toast_save_error": "Error saving promotion.",
-      "toast_name_exists": "A promotion with this name already exists.",
-      "confirm_delete_title": "Delete promotion",
-      "confirm_delete": "Are you sure you want to delete the promotion \"{{name}}\"?",
-      "toast_deleted": "Promotion deleted successfully!",
-      "toast_delete_error": "Error deleting promotion.",
-      "toast_has_students": "Cannot delete this promotion: remove all students first.",
-      "modal_students": "Students of {{name}}",
-      "no_students": "No students in this promotion.",
-      "btn_remove_student": "Remove",
-      "confirm_remove_student_title": "Remove from promotion",
-      "confirm_remove_student": "Remove \"{{name}}\" from this promotion? The student will not be deleted, only unlinked from the promotion.",
-      "toast_student_removed": "Student removed from promotion successfully!",
-      "toast_student_remove_error": "Error removing student.",
-      "label_add_student": "Add or move a student",
-      "placeholder_add_student": "Search a student by name or email…",
-      "no_search_results": "No student found.",
-      "currently_in": "currently in {{name}}",
-      "btn_add_student": "Add",
-      "toast_student_assigned": "Student assigned to promotion successfully!",
-      "toast_student_assign_error": "Error assigning student.",
-      "subtitle": "Manage promotions and student classes."
-    },
     "parametres": {
       "profile": {
         "title": "Profile",
@@ -1250,9 +1200,9 @@
     },
     "promotions": {
       "title": "Promotions",
-      "subtitle": "Manage cohorts, tracks, and student study year levels.",
+      "subtitle_one": "{{count}} promotion total",
+      "subtitle_other": "{{count}} promotions total",
       "create_button": "Create a promotion",
-      "btn_create": "Create a promotion",
       "table": {
         "name": "Promotion name",
         "year": "Academic year",
@@ -1274,8 +1224,10 @@
       "student_count_one": "{{count}} student",
       "student_count_other": "{{count}} students",
       "student_count": "{{count}} student(s)",
-      "modal_create_title": "Create a promotion",
-      "modal_edit_title": "Edit promotion",
+      "modal_create": "Create a promotion",
+      "modal_edit": "Edit promotion",
+      "btn_cancel": "Cancel",
+      "btn_save": "Save",
       "modal_students": "Students — {{name}}",
       "has_years_label": "Year levels required",
       "has_years_desc": "Allows students to select their study year (1st, 2nd year, etc.)",

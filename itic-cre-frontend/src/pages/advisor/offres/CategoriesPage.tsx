@@ -37,7 +37,7 @@ export default function CategoriesPage() {
                     onClick={() => setTab('sectors')}
                     className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors cursor-pointer ${
                         tab === 'sectors'
-                            ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+                            ? 'border-[#E2762F] text-[#E2762F]'
                             : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                 >
@@ -48,7 +48,7 @@ export default function CategoriesPage() {
                     onClick={() => setTab('contractTypes')}
                     className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors cursor-pointer ${
                         tab === 'contractTypes'
-                            ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+                            ? 'border-[#E2762F] text-[#E2762F]'
                             : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                 >

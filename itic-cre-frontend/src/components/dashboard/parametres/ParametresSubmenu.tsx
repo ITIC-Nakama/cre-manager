@@ -28,7 +28,7 @@ export default function ParametresSubmenu({
         onClick={() => onTabChange('profile')}
         className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
           activeTab === 'profile'
-            ? 'border-[#3B71FF] text-[#3B71FF]'
+            ? 'border-[#E2762F] text-[#E2762F]'
             : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
         }`}
       >
@@ -44,7 +44,7 @@ export default function ParametresSubmenu({
         onClick={() => onTabChange('system')}
         className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
           activeTab === 'system'
-            ? 'border-[#3B71FF] text-[#3B71FF]'
+            ? 'border-[#E2762F] text-[#E2762F]'
             : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
         }`}
       >
