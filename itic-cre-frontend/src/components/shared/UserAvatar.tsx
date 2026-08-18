@@ -57,10 +57,16 @@ export default function UserAvatar({ profilePicture, firstName, lastName, classN
       {showLightbox && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 animate-fadeIn"
-          onClick={() => setShowLightbox(false)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowLightbox(false);
+          }}
         >
           <button
-            onClick={() => setShowLightbox(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLightbox(false);
+            }}
             className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
             aria-label="Fermer"
           >
