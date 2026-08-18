@@ -278,6 +278,9 @@ public class CVService {
         studentMap.put("firstName", student.getFirstName());
         studentMap.put("lastName", student.getLastName());
         studentMap.put("email", student.getEmail());
+        studentMap.put("profilePicture", student.getProfilePicture() != null
+                ? cloudStorage.getFile(student.getProfilePicture())
+                : null);
         if (student.getPromotion() != null) {
             Map<String, Object> promoMap = new HashMap<>();
             promoMap.put("id", student.getPromotion().getId());

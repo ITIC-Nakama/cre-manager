@@ -89,9 +89,19 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-indigo-500" />
-                        </div>
+                        {cv.student ? (
+                            <UserAvatar
+                                profilePicture={cv.student.profilePicture}
+                                firstName={cv.student.firstName}
+                                lastName={cv.student.lastName}
+                                className="h-10 w-10"
+                                enlargeOnClick
+                            />
+                        ) : (
+                            <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-indigo-500" />
+                            </div>
+                        )}
                         <div>
                             <p className="text-base font-bold text-slate-900 dark:text-white">
                                 {cv.student
@@ -227,6 +237,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                                     firstName={c.advisor?.firstName ?? 'C'}
                                                     lastName={c.advisor?.lastName ?? ''}
                                                     className="h-8 w-8 flex-shrink-0"
+                                                    enlargeOnClick
                                                 />
                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
                                                     {c.advisor
