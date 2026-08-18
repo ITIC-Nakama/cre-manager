@@ -303,6 +303,26 @@ public class DashboardControllerIntegrationTest {
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(1))));
         }
+
+        @Test
+        @DisplayName("GET /dashboard/promotions/student-counts returns student counts map by promotion")
+        void getPromotionStudentCountsReturnsMap() throws Exception {
+            mockMvc.perform(get("/dashboard/promotions/student-counts")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data." + promotion.getId()).value(greaterThanOrEqualTo(2)));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/promotions/{promotionId}/year-counts returns grouped study year stats")
+        void getPromotionYearCountsReturnsData() throws Exception {
+            mockMvc.perform(get("/dashboard/promotions/" + promotion.getId() + "/year-counts")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalStudents", greaterThanOrEqualTo(2)))
+                    .andExpect(jsonPath("$.data.counts.1", greaterThanOrEqualTo(1)))
+                    .andExpect(jsonPath("$.data.counts.2", greaterThanOrEqualTo(1)));
+        }
     }
 
     @Nested

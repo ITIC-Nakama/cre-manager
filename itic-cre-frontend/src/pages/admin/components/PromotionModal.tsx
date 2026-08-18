@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAvailableStudyYears } from '../../../hooks/usePromotions';
 import type { Promotion, PromotionData } from '../../../types/models/Promotion';
 
 interface PromotionModalProps {
@@ -12,14 +14,15 @@ interface PromotionModalProps {
   onSave: (data: PromotionData) => void;
 }
 
-const ALL_YEARS = [1, 2, 3, 4, 5];
-
 export default function PromotionModal({ isOpen, mode, promotion, saving, onClose, onSave }: PromotionModalProps) {
   const { t } = useTranslation();
+  const { data: systemYears } = useAvailableStudyYears();
+  const allYears = systemYears ?? [];
+
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
   const [hasYears, setHasYears] = useState(false);
-  const [availableYears, setAvailableYears] = useState<number[]>([1, 2]);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -27,12 +30,12 @@ export default function PromotionModal({ isOpen, mode, promotion, saving, onClos
         setName(promotion.name);
         setYear(promotion.year || '');
         setHasYears(promotion.hasYears ?? false);
-        setAvailableYears(promotion.availableYears && promotion.availableYears.length > 0 ? promotion.availableYears : [1, 2]);
+        setAvailableYears(promotion.availableYears ?? []);
       } else {
         setName('');
         setYear('');
         setHasYears(false);
-        setAvailableYears([1, 2]);
+        setAvailableYears([]);
       }
     }
   }, [isOpen, mode, promotion]);
@@ -42,15 +45,18 @@ export default function PromotionModal({ isOpen, mode, promotion, saving, onClos
   const toggleYear = (y: number) => {
     setAvailableYears((prev) => {
       if (prev.includes(y)) {
-        if (prev.length === 1) return prev; // Keep at least one year
         return prev.filter((item) => item !== y).sort((a, b) => a - b);
       }
       return [...prev, y].sort((a, b) => a - b);
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (hasYears && availableYears.length === 0) {
+      toast.error(t('dashboard.promotions.select_at_least_one_year', "Veuillez sélectionner au moins un niveau d'année."));
+      return;
+    }
     onSave({
       name,
       year: year.trim() || undefined,
@@ -141,7 +147,7 @@ export default function PromotionModal({ isOpen, mode, promotion, saving, onClos
                   {t('dashboard.promotions.available_years_label')}
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {ALL_YEARS.map((y) => {
+                  {allYears.map((y) => {
                     const isSelected = availableYears.includes(y);
                     return (
                       <button

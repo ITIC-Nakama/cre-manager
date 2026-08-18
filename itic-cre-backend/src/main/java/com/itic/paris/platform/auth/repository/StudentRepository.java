@@ -23,8 +23,17 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
     @Query("SELECT COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByPromotionId(UUID promotionId);
 
+    @Query("SELECT s.studyYear, COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.email NOT LIKE '%@rgpd.deleted' GROUP BY s.studyYear")
+    List<Object[]> countGroupedByStudyYearForPromotion(UUID promotionId);
+
+    @Query("SELECT s.promotion.id, COUNT(s) FROM Student s WHERE s.promotion.id IS NOT NULL AND s.email NOT LIKE '%@rgpd.deleted' GROUP BY s.promotion.id")
+    List<Object[]> countGroupedByPromotionId();
+
     @Query("SELECT COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByPromotionIdAndActiveTrue(UUID promotionId);
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.lastActivity > :since AND s.email NOT LIKE '%@rgpd.deleted'")
+    long countByPromotionIdAndLastActivityAfter(UUID promotionId, Instant since);
 
     @Query("SELECT COUNT(s) FROM Student s WHERE s.email NOT LIKE '%@rgpd.deleted'")
     long countNonAnonymizedStudents();

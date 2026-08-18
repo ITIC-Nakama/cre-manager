@@ -163,7 +163,7 @@ public class DashboardService {
             long studentCount = studentRepository.countByPromotionId(promo.getId());
             double avgXp = studentCount == 0 ? 0
                     : studentRepository.averageXpByPromotion(promo.getId());
-            long activeCount = studentRepository.countByLastActivityAfter(inactiveThreshold);
+            long activeCount = studentRepository.countByPromotionIdAndLastActivityAfter(promo.getId(), inactiveThreshold);
             long totalApps = applicationRepository.countByStudentPromotionId(promo.getId());
             long cvsUploaded = cvRepository.countByStudentPromotionId(promo.getId());
             List<Map<String, Object>> gradeDistrib = buildGradeDistribution(promo.getId(), allGrades);
@@ -189,22 +189,63 @@ public class DashboardService {
         }).toList();
     }
 
+    public Map<String, Long> getPromotionStudentCounts() {
+        Map<String, Long> map = new LinkedHashMap<>();
+        List<Object[]> rows = studentRepository.countGroupedByPromotionId();
+        for (Object[] row : rows) {
+            if (row[0] != null && row[1] != null) {
+                map.put(row[0].toString(), ((Number) row[1]).longValue());
+            }
+        }
+        return map;
+    }
+
+    public Map<String, Object> getPromotionYearCounts(UUID promotionId) {
+        long total = studentRepository.countByPromotionId(promotionId);
+        Map<String, Long> counts = new LinkedHashMap<>();
+        long unassigned = 0;
+
+        List<Object[]> rows = studentRepository.countGroupedByStudyYearForPromotion(promotionId);
+        for (Object[] row : rows) {
+            Integer year = (Integer) row[0];
+            long count = ((Number) row[1]).longValue();
+            if (year != null) {
+                counts.put(String.valueOf(year), count);
+            } else {
+                unassigned += count;
+            }
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalStudents", total);
+        result.put("counts", counts);
+        result.put("unassigned", unassigned);
+        return result;
+    }
+
     // ─── Student list ────────────────────────────────────────────────────────
 
     public Page<Map<String, Object>> getStudentList(UUID promotionId, String search,
                                                      Boolean isActive, Boolean hasCv, Boolean hasStale,
                                                      Boolean includeAnonymized, Pageable pageable) {
-        return getStudentList(promotionId, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
+        return getStudentList(promotionId, null, null, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
     }
 
     public Page<Map<String, Object>> getStudentList(UUID promotionId, Integer studyYear, String search,
+                                                     Boolean isActive, Boolean hasCv, Boolean hasStale,
+                                                     Boolean includeAnonymized, Pageable pageable) {
+        return getStudentList(promotionId, studyYear, null, null, search, isActive, hasCv, hasStale, includeAnonymized, pageable);
+    }
+
+    public Page<Map<String, Object>> getStudentList(UUID promotionId, Integer studyYear, Boolean studyYearMissing,
+                                                     UUID excludePromotionId, String search,
                                                      Boolean isActive, Boolean hasCv, Boolean hasStale,
                                                      Boolean includeAnonymized, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
 
         Specification<Student> spec = StudentSpecification.withStudentListFilters(
-                promotionId, studyYear, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
+                promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized
         );
         List<Student> students;
         long totalElements;
@@ -380,11 +421,6 @@ public class DashboardService {
             return "\"" + escaped + "\"";
         }
         return escaped;
-    }
-
-    public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, UUID statusId, UUID typeContratId,
-                                                                     String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
-        return getApplicationsGroupedByStudent(promotionId, null, statusId, typeContratId, search, stale, activeStudentsOnly, pageable);
     }
 
     public Page<Map<String, Object>> getApplicationsGroupedByStudent(UUID promotionId, Integer studyYear, UUID statusId, UUID typeContratId,

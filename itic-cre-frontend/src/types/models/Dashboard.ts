@@ -28,6 +28,12 @@ export interface DashboardOverview {
   cvsToReview: number;
 }
 
+export interface PromotionYearCounts {
+  totalStudents: number;
+  counts: Record<string, number>;
+  unassigned: number;
+}
+
 export interface StudentRow {
   id: string;
   firstName: string;
@@ -62,6 +68,8 @@ export interface StudentListParams {
   hasStale?: boolean;
   promotionId?: string;
   studyYear?: number;
+  studyYearMissing?: boolean;
+  excludePromotionId?: string;
   includeAnonymized?: boolean;
 }
 

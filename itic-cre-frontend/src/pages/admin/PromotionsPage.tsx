@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
@@ -6,7 +6,7 @@ import { Plus, Loader2, GraduationCap, Pencil, Trash2, Users } from 'lucide-reac
 import { toast } from 'sonner';
 
 import { usePromotions, useCreatePromotion, useUpdatePromotion, useDeletePromotion } from '../../hooks/usePromotions';
-import { useAllStudents } from '../../hooks/useDashboard';
+import { usePromotionStudentCounts } from '../../hooks/useDashboard';
 import type { Promotion, PromotionData } from '../../types/models/Promotion';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -16,17 +16,7 @@ export default function PromotionsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: promotions, isLoading } = usePromotions();
-  const { data: students } = useAllStudents(true);
-
-  const studentCountByPromotion = useMemo(() => {
-    const counts = new Map<string, number>();
-    (students ?? []).forEach((student) => {
-      if (student.promotion?.id) {
-        counts.set(student.promotion.id, (counts.get(student.promotion.id) ?? 0) + 1);
-      }
-    });
-    return counts;
-  }, [students]);
+  const { data: studentCounts } = usePromotionStudentCounts();
 
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
@@ -170,7 +160,7 @@ export default function PromotionsPage() {
                 </tr>
               ) : (
                 promotions.map((promotion) => {
-                  const count = studentCountByPromotion.get(promotion.id) ?? 0;
+                  const count = studentCounts?.[promotion.id] ?? 0;
                   return (
                     <tr key={promotion.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-6 py-4">

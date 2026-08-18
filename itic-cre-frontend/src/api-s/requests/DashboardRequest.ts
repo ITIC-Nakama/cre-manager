@@ -1,5 +1,11 @@
 import { apiClient } from '../AxiosApiClient';
-import type { DashboardOverview, StudentRow, StudentPage, StudentListParams } from '../../types/models/Dashboard';
+import type {
+    DashboardOverview,
+    PromotionYearCounts,
+    StudentRow,
+    StudentPage,
+    StudentListParams,
+} from '../../types/models/Dashboard';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
@@ -10,6 +16,14 @@ export function fetchDashboardOverview(): Promise<DashboardOverview> {
     return apiClient.get('/dashboard/overview').then(unwrap<DashboardOverview>);
 }
 
+export function fetchPromotionStudentCounts(): Promise<Record<string, number>> {
+    return apiClient.get('/dashboard/promotions/student-counts').then(unwrap<Record<string, number>>);
+}
+
+export function fetchPromotionYearCounts(promotionId: string): Promise<PromotionYearCounts> {
+    return apiClient.get(`/dashboard/promotions/${promotionId}/year-counts`).then(unwrap<PromotionYearCounts>);
+}
+
 export function fetchStudentList(params: StudentListParams = {}): Promise<StudentPage> {
     const query: Record<string, unknown> = { page: params.page ?? 0, size: params.size ?? 20 };
     if (params.search)      query.search     = params.search;
@@ -17,6 +31,9 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
     if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
     if (params.promotionId)               query.promotionId = params.promotionId;
+    if (params.studyYear    !== undefined) query.studyYear  = params.studyYear;
+    if (params.studyYearMissing !== undefined) query.studyYearMissing = params.studyYearMissing;
+    if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
@@ -29,6 +46,9 @@ export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'
     if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
     if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
     if (params.promotionId)               query.promotionId = params.promotionId;
+    if (params.studyYear    !== undefined) query.studyYear  = params.studyYear;
+    if (params.studyYearMissing !== undefined) query.studyYearMissing = params.studyYearMissing;
+    if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
     return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);

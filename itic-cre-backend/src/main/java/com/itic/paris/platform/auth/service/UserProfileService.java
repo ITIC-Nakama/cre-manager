@@ -6,6 +6,7 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Advisor;
+import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
@@ -145,13 +146,30 @@ public class UserProfileService {
             advisor.setJobTitle(updateDto.getJobTitle());
         }
         if (user instanceof Student student) {
+            Promotion previousPromotion = student.getPromotion();
+
             if (updateDto.getPromotionId() != null) {
-                com.itic.paris.platform.auth.model.Promotion promo = promotionRepository.findById(updateDto.getPromotionId())
+                Promotion newPromotion = promotionRepository.findById(updateDto.getPromotionId())
                         .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
-                student.setPromotion(promo);
+                student.setPromotion(newPromotion);
+
+                if (previousPromotion == null || !previousPromotion.getId().equals(newPromotion.getId())) {
+                    currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_ASSIGNED_TO_PROMOTION, actor,
+                            student.getId(), (previousPromotion != null
+                                    ? "Déplacé de la promotion " + previousPromotion.getName() + " vers " + newPromotion.getName()
+                                    : "Affecté à la promotion " + newPromotion.getName())
+                                    + " : " + student.getFirstName() + " " + student.getLastName()));
+                }
             }
-            if (updateDto.getStudyYear() != null) {
-                student.setStudyYear(updateDto.getStudyYear());
+
+            Promotion effectivePromotion = student.getPromotion();
+            if (effectivePromotion != null) {
+                Integer effectiveStudyYear = updateDto.getStudyYear() != null
+                        ? updateDto.getStudyYear() : student.getStudyYear();
+                PromotionService.validateStudyYear(effectivePromotion, effectiveStudyYear);
+                student.setStudyYear(effectivePromotion.isHasYears() ? effectiveStudyYear : null);
+            } else if (updateDto.getStudyYear() != null) {
+                student.setStudyYear(null);
             }
         }
 

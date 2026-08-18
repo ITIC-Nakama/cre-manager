@@ -10,6 +10,10 @@ export function fetchPromotions(): Promise<Promotion[]> {
     return apiClient.get('/promotions').then((response) => unwrap<Promotion[]>(response));
 }
 
+export function fetchAvailableStudyYears(): Promise<number[]> {
+    return apiClient.get('/promotions/available-years').then((response) => unwrap<number[]>(response));
+}
+
 export function createPromotion(data: PromotionData): Promise<Promotion> {
     return apiClient.post('/promotions', data).then((response) => unwrap<Promotion>(response));
 }

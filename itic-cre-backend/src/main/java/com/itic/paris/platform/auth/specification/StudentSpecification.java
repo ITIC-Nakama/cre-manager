@@ -16,18 +16,6 @@ public class StudentSpecification {
 
     public static Specification<Student> withApplicationFilters(
             UUID promotionId,
-            UUID statusId,
-            UUID typeContratId,
-            String search,
-            Boolean stale,
-            Instant staleThreshold,
-            Boolean activeStudentsOnly
-    ) {
-        return withApplicationFilters(promotionId, null, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly);
-    }
-
-    public static Specification<Student> withApplicationFilters(
-            UUID promotionId,
             Integer studyYear,
             UUID statusId,
             UUID typeContratId,
@@ -113,7 +101,7 @@ public class StudentSpecification {
             Boolean hasStale,
             Instant staleThreshold
     ) {
-        return withStudentListFilters(promotionId, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
+        return withStudentListFilters(promotionId, null, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, false);
     }
 
     public static Specification<Student> withStudentListFilters(
@@ -126,12 +114,28 @@ public class StudentSpecification {
             Instant staleThreshold,
             Boolean includeAnonymized
     ) {
-        return withStudentListFilters(promotionId, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
+        return withStudentListFilters(promotionId, null, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
     }
 
     public static Specification<Student> withStudentListFilters(
             UUID promotionId,
             Integer studyYear,
+            String search,
+            Boolean isActive,
+            Instant inactiveThreshold,
+            Boolean hasCv,
+            Boolean hasStale,
+            Instant staleThreshold,
+            Boolean includeAnonymized
+    ) {
+        return withStudentListFilters(promotionId, studyYear, null, null, search, isActive, inactiveThreshold, hasCv, hasStale, staleThreshold, includeAnonymized);
+    }
+
+    public static Specification<Student> withStudentListFilters(
+            UUID promotionId,
+            Integer studyYear,
+            Boolean studyYearMissing,
+            UUID excludePromotionId,
             String search,
             Boolean isActive,
             Instant inactiveThreshold,
@@ -153,8 +157,20 @@ public class StudentSpecification {
                 predicates.add(cb.equal(root.get("promotion").get("id"), promotionId));
             }
 
-            // Study year filter
-            if (studyYear != null) {
+            // Exclude students already in a given promotion (ex: recherche pour affecter un
+            // etudiant a une promotion — evite de filtrer apres pagination, ce qui peut vider
+            // une page entiere de resultats deja pris)
+            if (excludePromotionId != null) {
+                predicates.add(cb.or(
+                        cb.isNull(root.get("promotion")),
+                        cb.notEqual(root.get("promotion").get("id"), excludePromotionId)
+                ));
+            }
+
+            // Study year filter — "missing" (ex: onglet "Sans niveau") prime sur une valeur exacte
+            if (Boolean.TRUE.equals(studyYearMissing)) {
+                predicates.add(cb.isNull(root.get("studyYear")));
+            } else if (studyYear != null) {
                 predicates.add(cb.equal(root.get("studyYear"), studyYear));
             }
 

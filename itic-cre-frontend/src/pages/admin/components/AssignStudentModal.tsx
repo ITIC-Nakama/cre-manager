@@ -25,11 +25,11 @@ export default function AssignStudentModal({ isOpen, promotion, yearSelectOption
   const [addStudyYear, setAddStudyYear] = useState<number>(() => promotion.availableYears?.[0] ?? 1);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: searchData, isFetching: searching } = useStudentList({
-    search: debouncedSearch || undefined,
-    size: 10,
-  });
-  const searchResults = (searchData?.content ?? []).filter((s) => s.promotion?.id !== promotion.id);
+  const { data: searchData, isFetching: searching } = useStudentList(
+    { search: debouncedSearch || undefined, excludePromotionId: promotion.id, size: 10 },
+    isOpen && !!debouncedSearch
+  );
+  const searchResults = searchData?.content ?? [];
 
   if (!isOpen) return null;
 

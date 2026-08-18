@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
-import { usePromotions } from '../../../hooks/usePromotions';
+import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
@@ -90,6 +90,8 @@ export default function EtudiantsPage() {
         })),
     ], [promotions, t]);
 
+    const { data: systemYears } = useAvailableStudyYears();
+
     const selectedPromotion = useMemo(() => {
         return (promotions ?? []).find((p) => p.id === promotionFilter);
     }, [promotions, promotionFilter]);
@@ -98,8 +100,8 @@ export default function EtudiantsPage() {
         if (selectedPromotion?.hasYears && selectedPromotion.availableYears?.length) {
             return selectedPromotion.availableYears;
         }
-        return [1, 2, 3, 4, 5];
-    }, [selectedPromotion]);
+        return systemYears ?? [];
+    }, [selectedPromotion, systemYears]);
 
     const studyYearOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_study_year_all') },

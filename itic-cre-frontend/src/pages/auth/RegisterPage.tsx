@@ -51,7 +51,7 @@ export default function RegisterPage() {
             value: '',
             label: t('auth.register.study_year_placeholder'),
         },
-        ...(availableYears.length > 0 ? availableYears : [1, 2, 3, 4, 5]).map((year) => ({
+        ...availableYears.map((year) => ({
             value: String(year),
             label: t(`study_years.year_${year}`, `${year}e année`),
         })),

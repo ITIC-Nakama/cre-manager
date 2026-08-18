@@ -1316,7 +1316,8 @@
       "toast_name_exists": "Une promotion avec ce nom existe déjà.",
       "toast_has_students": "Impossible de supprimer cette promotion car elle contient des étudiants.",
       "toast_save_error": "Erreur lors de l'enregistrement de la promotion.",
-      "toast_delete_error": "Erreur lors de la suppression de la promotion."
+      "toast_delete_error": "Erreur lors de la suppression de la promotion.",
+      "select_at_least_one_year": "Veuillez sélectionner au moins un niveau d'année."
     }
   },
   "cta": {

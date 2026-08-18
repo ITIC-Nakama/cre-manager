@@ -91,15 +91,8 @@ public class AuthService {
         if (userDto.getPromotionId() != null) {
             promotion = promotionRepository.findById(userDto.getPromotionId())
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
-            if (promotion.isHasYears()) {
-                if (userDto.getStudyYear() == null) {
-                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.STUDY_YEAR_REQUIRED);
-                }
-                if (promotion.getAvailableYears() != null && !promotion.getAvailableYears().isEmpty()
-                        && !promotion.getAvailableYears().contains(userDto.getStudyYear())) {
-                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_STUDY_YEAR);
-                }
-            } else {
+            PromotionService.validateStudyYear(promotion, userDto.getStudyYear());
+            if (!promotion.isHasYears()) {
                 userDto.setStudyYear(null);
             }
         }

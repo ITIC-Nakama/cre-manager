@@ -50,18 +50,32 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getPromotionStats());
     }
 
+    @GetMapping("/promotions/student-counts")
+    @Operation(summary = "Effectif d'étudiants par promotion (clé: promotionId, valeur: nombre)")
+    public ResponseEntity<?> promotionStudentCounts() {
+        return ResponseEntity.ok(dashboardService.getPromotionStudentCounts());
+    }
+
+    @GetMapping("/promotions/{promotionId}/year-counts")
+    @Operation(summary = "Répartition et effectifs des étudiants d'une promotion par niveau d'année")
+    public ResponseEntity<?> promotionYearCounts(@PathVariable UUID promotionId) {
+        return ResponseEntity.ok(dashboardService.getPromotionYearCounts(promotionId));
+    }
+
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/includeAnonymized")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/includeAnonymized")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
+            @RequestParam(required = false) Boolean studyYearMissing,
+            @RequestParam(required = false) UUID excludePromotionId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, studyYear, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
+        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
     }
 
     @GetMapping("/students/all")
@@ -69,13 +83,15 @@ public class DashboardController {
     public ResponseEntity<?> allStudents(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
+            @RequestParam(required = false) Boolean studyYearMissing,
+            @RequestParam(required = false) UUID excludePromotionId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
         Page<Map<String, Object>> result = dashboardService.getStudentList(
-                promotionId, studyYear, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
+                promotionId, studyYear, studyYearMissing, excludePromotionId, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
         );
         return ResponseEntity.ok(result.getContent());
     }

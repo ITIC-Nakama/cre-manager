@@ -35,6 +35,29 @@ public class PromotionService {
         return promotionRepository.findAll();
     }
 
+    public List<Integer> getAvailableStudyYears() {
+        return List.of(1, 2, 3, 4, 5);
+    }
+
+    /**
+     * Valide qu'une annee d'etude est coherente avec la configuration de la promotion —
+     * obligatoire si hasYears, et dans availableYears si celle-ci est renseignee. Partagee
+     * par les 3 chemins qui peuvent affecter/modifier la promotion+annee d'un etudiant
+     * (inscription, affectation conseiller, edition admin) pour eviter les etats incoherents.
+     */
+    public static void validateStudyYear(Promotion promotion, Integer studyYear) {
+        if (!promotion.isHasYears()) {
+            return;
+        }
+        if (studyYear == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.STUDY_YEAR_REQUIRED);
+        }
+        if (promotion.getAvailableYears() != null && !promotion.getAvailableYears().isEmpty()
+                && !promotion.getAvailableYears().contains(studyYear)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_STUDY_YEAR);
+        }
+    }
+
     public Promotion findById(UUID id) {
         return promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
@@ -113,23 +136,16 @@ public class PromotionService {
     }
 
     @Transactional
-    public void assignStudentToPromotion(UUID promotionId, UUID studentId) {
-        assignStudentToPromotion(promotionId, studentId, null);
-    }
-
-    @Transactional
     public void assignStudentToPromotion(UUID promotionId, UUID studentId, Integer studyYear) {
         Promotion promotion = findById(promotionId);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
+        validateStudyYear(promotion, studyYear);
+
         Promotion previous = student.getPromotion();
         student.setPromotion(promotion);
-        if (studyYear != null) {
-            student.setStudyYear(studyYear);
-        } else if (!promotion.isHasYears()) {
-            student.setStudyYear(null);
-        }
+        student.setStudyYear(promotion.isHasYears() ? studyYear : null);
         studentRepository.save(student);
 
         String label = student.getFirstName() + " " + student.getLastName();

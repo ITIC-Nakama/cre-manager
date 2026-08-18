@@ -31,6 +31,12 @@ public class PromotionController {
         return ResponseEntity.ok(promotionService.findAll());
     }
 
+    @GetMapping("/available-years")
+    @Operation(summary = "Lister les niveaux d'années d'études configurés par le serveur")
+    public ResponseEntity<?> getAvailableYears() {
+        return ResponseEntity.ok(promotionService.getAvailableStudyYears());
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Obtenir une promotion par ID")
     public ResponseEntity<?> findById(@PathVariable UUID id) {

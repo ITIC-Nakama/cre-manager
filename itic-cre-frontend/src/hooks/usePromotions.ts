@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     fetchPromotions,
+    fetchAvailableStudyYears,
     createPromotion,
     updatePromotion,
     deletePromotion,
@@ -14,6 +15,14 @@ export function usePromotions() {
         queryKey: ['promotions'],
         queryFn: fetchPromotions,
         staleTime: 5 * 60 * 1000,
+    });
+}
+
+export function useAvailableStudyYears() {
+    return useQuery({
+        queryKey: ['promotions', 'available-years'],
+        queryFn: fetchAvailableStudyYears,
+        staleTime: 30 * 60 * 1000,
     });
 }
 
@@ -54,6 +63,7 @@ export function useRemoveStudentFromPromotion() {
             removeStudentFromPromotion(promotionId, studentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['promotions'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'promotions'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
         },
     });
@@ -66,6 +76,7 @@ export function useAssignStudentToPromotion() {
             assignStudentToPromotion(promotionId, studentId, studyYear),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['promotions'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'promotions'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
         },
     });
