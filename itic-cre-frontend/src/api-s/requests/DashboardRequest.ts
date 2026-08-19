@@ -34,6 +34,7 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.studyYear    !== undefined) query.studyYear  = params.studyYear;
     if (params.studyYearMissing !== undefined) query.studyYearMissing = params.studyYearMissing;
     if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
+    if (params.advisorId)                 query.advisorId = params.advisorId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
@@ -49,6 +50,7 @@ export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'
     if (params.studyYear    !== undefined) query.studyYear  = params.studyYear;
     if (params.studyYearMissing !== undefined) query.studyYearMissing = params.studyYearMissing;
     if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
+    if (params.advisorId)                 query.advisorId = params.advisorId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
 
     return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);

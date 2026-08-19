@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,44 +40,83 @@ public class AdvisorService {
 
     @Transactional
     public void assignStudentToAdvisor(UUID advisorId, UUID studentId) {
+        assignStudentsToAdvisor(advisorId, List.of(studentId));
+    }
+
+    /**
+     * Affectation groupee — un seul enregistrement d'audit pour tout le lot (pas un par etudiant),
+     * mais un email individuel est bien envoye a chaque etudiant affecte. Permet d'affecter une
+     * promotion, une annee ou une selection arbitraire en un seul appel. Transaction unique : si un
+     * des identifiants est invalide, tout est annule (tout ou rien).
+     */
+    @Transactional
+    public void assignStudentsToAdvisor(UUID advisorId, List<UUID> studentIds) {
+        if (studentIds == null || studentIds.isEmpty()) {
+            return;
+        }
         Advisor advisor = advisorRepository.findById(advisorId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+
+        List<String> assignedLabels = new ArrayList<>();
+        for (UUID studentId : studentIds) {
+            assignedLabels.add(assignOne(advisor, studentId));
+        }
+
+        String advisorLabel = advisor.getFirstName() + " " + advisor.getLastName();
+        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_ASSIGNED_TO_ADVISOR, actor,
+                advisor.getId(), assignedLabels.size() + " étudiant(s) affecté(s) à " + advisorLabel
+                        + " : " + joinLabels(assignedLabels)));
+    }
+
+    private String assignOne(Advisor advisor, UUID studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
-        Advisor previous = student.getAdvisor();
         student.setAdvisor(advisor);
         studentRepository.save(student);
-
-        String label = student.getFirstName() + " " + student.getLastName();
-        String advisorLabel = advisor.getFirstName() + " " + advisor.getLastName();
-        String description = (previous != null && !previous.getId().equals(advisorId))
-                ? "Conseiller changé de " + previous.getFirstName() + " " + previous.getLastName()
-                        + " vers " + advisorLabel + " : " + label
-                : "Conseiller " + advisorLabel + " affecté à : " + label;
-
-        currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_ASSIGNED_TO_ADVISOR, actor,
-                student.getId(), description));
 
         eventPublisher.publishEvent(new AdvisorAssignedEvent(
                 student.getEmail(), student.getFirstName(), student.getLang(),
                 advisor.getFirstName(), advisor.getLastName(), advisor.getJobTitle()));
+
+        return student.getFirstName() + " " + student.getLastName();
     }
 
     @Transactional
     public void removeStudentFromAdvisor(UUID studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        removeStudentsFromAdvisor(List.of(studentId));
+    }
 
-        Advisor previous = student.getAdvisor();
-        student.setAdvisor(null);
-        studentRepository.save(student);
-
-        if (previous != null) {
-            currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_REMOVED_FROM_ADVISOR, actor,
-                    student.getId(), "Retiré du conseiller " + previous.getFirstName() + " " + previous.getLastName()
-                            + " : " + student.getFirstName() + " " + student.getLastName()));
+    /**
+     * Retrait groupe — un seul enregistrement d'audit pour tout le lot (pas un par etudiant).
+     */
+    @Transactional
+    public void removeStudentsFromAdvisor(List<UUID> studentIds) {
+        if (studentIds == null || studentIds.isEmpty()) {
+            return;
         }
+        List<String> removedLabels = new ArrayList<>();
+        for (UUID studentId : studentIds) {
+            Student student = studentRepository.findById(studentId)
+                    .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+            if (student.getAdvisor() != null) {
+                student.setAdvisor(null);
+                studentRepository.save(student);
+                removedLabels.add(student.getFirstName() + " " + student.getLastName());
+            }
+        }
+
+        if (!removedLabels.isEmpty()) {
+            currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_REMOVED_FROM_ADVISOR, actor,
+                    null, removedLabels.size() + " étudiant(s) retiré(s) de leur conseiller : " + joinLabels(removedLabels)));
+        }
+    }
+
+    private static String joinLabels(List<String> labels) {
+        if (labels.size() > 10) {
+            return String.join(", ", labels.subList(0, 10)) + " et " + (labels.size() - 10) + " autre(s)";
+        }
+        return String.join(", ", labels);
     }
 
     public List<AdvisorDirectoryDTO> getActiveAdvisorDirectory() {

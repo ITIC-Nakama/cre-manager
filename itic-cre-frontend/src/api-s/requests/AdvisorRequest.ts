@@ -52,6 +52,14 @@ export function removeStudentFromAdvisor(advisorId: string, studentId: string): 
   return apiClient.delete(`/advisors/${advisorId}/students/${studentId}`).then(() => undefined);
 }
 
+export function assignStudentsToAdvisor(advisorId: string, studentIds: string[]): Promise<void> {
+  return apiClient.put(`/advisors/${advisorId}/students`, { studentIds }).then(() => undefined);
+}
+
+export function removeStudentsFromAdvisor(studentIds: string[]): Promise<void> {
+  return apiClient.put('/advisors/students/remove', { studentIds }).then(() => undefined);
+}
+
 export function fetchAdvisorDirectory(): Promise<AdvisorDirectoryEntry[]> {
   return apiClient.get('/advisors/directory').then((r) => unwrap<AdvisorDirectoryEntry[]>(r));
 }

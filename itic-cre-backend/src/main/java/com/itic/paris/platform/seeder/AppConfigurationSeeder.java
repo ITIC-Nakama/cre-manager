@@ -63,6 +63,12 @@ public class AppConfigurationSeeder implements ApplicationRunner {
                 "1095",
                 "Durée avant suppression automatique des comptes étudiants inactifs en jours (3 ans - RGPD)"
         );
+
+        seedIfMissing(
+                AppConfigurationKey.INACTIVE_STUDENT_DAYS,
+                "14",
+                "Nombre de jours sans connexion avant qu'un étudiant soit considéré comme inactif dans les statistiques"
+        );
     }
 
     private void seedIfMissing(AppConfigurationKey key, String defaultValue, String description) {

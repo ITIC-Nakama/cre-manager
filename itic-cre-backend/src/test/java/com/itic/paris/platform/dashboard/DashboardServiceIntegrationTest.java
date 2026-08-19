@@ -134,7 +134,7 @@ public class DashboardServiceIntegrationTest {
         activeStudent.setLastActivity(Instant.now());
         studentRepository.save(activeStudent);
 
-        Map<String, Object> overview = dashboardService.getOverview();
+        Map<String, Object> overview = dashboardService.getOverview(null);
 
         long totalStudents = ((Number) overview.get("totalStudents")).longValue();
         long nonAnonymized = ((Number) overview.get("nonAnonymizedStudents")).longValue();

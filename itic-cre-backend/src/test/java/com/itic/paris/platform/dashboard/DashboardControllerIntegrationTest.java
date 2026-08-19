@@ -273,8 +273,10 @@ public class DashboardControllerIntegrationTest {
         @Test
         @DisplayName("GET /dashboard/overview returns aggregated statistics")
         void getOverviewReturnsStatistics() throws Exception {
+            // Vue globale (ADMIN) — la vue ADVISOR est desormais limitee a son propre
+            // portefeuille et n'a pas ces etudiants de test assignes (voir advisorSeesOnlyOwnPortfolio...).
             mockMvc.perform(get("/dashboard/overview")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.totalStudents", greaterThanOrEqualTo(2)))
                     .andExpect(jsonPath("$.data.activeStudents", greaterThanOrEqualTo(1)))
@@ -282,6 +284,47 @@ public class DashboardControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.averageXp").exists())
                     .andExpect(jsonPath("$.data.applicationsByStatus").isArray())
                     .andExpect(jsonPath("$.data.gradeDistribution").isArray());
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/overview as ADVISOR is limited to their own assigned students (portfolio)")
+        void advisorSeesOnlyOwnPortfolioOverview() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+            // inactiveStudent volontairement non affecte — ne doit apparaitre dans aucun total.
+
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalStudents").value(1))
+                    .andExpect(jsonPath("$.data.totalApplications").value(2))
+                    .andExpect(jsonPath("$.data.totalCvs").value(1));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/overview as ADVISOR with no assigned students returns all-zero portfolio")
+        void advisorWithNoAssignedStudentsSeesEmptyPortfolio() throws Exception {
+            // Ni activeStudent ni inactiveStudent ne sont affectes a cet advisor.
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalStudents").value(0))
+                    .andExpect(jsonPath("$.data.totalApplications").value(0))
+                    .andExpect(jsonPath("$.data.gradeDistribution").isArray());
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students?advisorId= filters the student list to that advisor's portfolio")
+        void studentListFilteredByAdvisorId() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+
+            mockMvc.perform(get("/dashboard/students")
+                            .param("advisorId", advisor.getId().toString())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(1)))
+                    .andExpect(jsonPath("$.data.content[0].id").value(activeStudent.getId().toString()));
         }
 
         @Test

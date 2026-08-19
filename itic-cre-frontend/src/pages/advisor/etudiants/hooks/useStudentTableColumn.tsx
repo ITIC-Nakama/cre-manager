@@ -1,38 +1,47 @@
 import { useMemo } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { FileText, Loader2, ShieldAlert } from 'lucide-react';
+import { FileText, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
-import type { Advisor } from '../../../../types/models/Advisor';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
-import CustomSelect from '../../../../components/basics/CustomSelect';
 
 const col = createColumnHelper<StudentRow>();
 
 interface UseStudentColumnsOptions {
     isAdmin: boolean;
-    advisors: Advisor[];
-    updatingAdvisorId: string | null;
-    onAssignAdvisor: (student: StudentRow, advisorId: string) => void;
-    onRemoveAdvisor: (student: StudentRow) => void;
 }
 
-export function useStudentColumns({
-    isAdmin,
-    advisors,
-    updatingAdvisorId,
-    onAssignAdvisor,
-    onRemoveAdvisor,
-}: UseStudentColumnsOptions) {
+export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
     const { t } = useTranslation();
 
-    const advisorOptions = useMemo(() => [
-        { value: '', label: t('dashboard.etudiants.table.no_advisor', 'Aucun conseiller') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
-    ], [advisors, t]);
-
     return useMemo(() => [
+        ...(isAdmin ? [col.display({
+            id: 'select',
+            header: ({ table }) => (
+                <input
+                    type="checkbox"
+                    checked={table.getIsAllPageRowsSelected()}
+                    ref={(el) => {
+                        if (el) el.indeterminate = !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected();
+                    }}
+                    onChange={table.getToggleAllPageRowsSelectedHandler()}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+            ),
+            cell: ({ row }) => {
+                const isAnon = isAnonymizedStudent(row.original);
+                return (
+                    <input
+                        type="checkbox"
+                        checked={row.getIsSelected()}
+                        disabled={isAnon}
+                        onChange={row.getToggleSelectedHandler()}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    />
+                );
+            },
+        })] : []),
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
             id: 'name',
             header: t('dashboard.etudiants.table.student'),
@@ -84,31 +93,9 @@ export function useStudentColumns({
             header: t('dashboard.etudiants.table.advisor', 'Conseiller'),
             cell: ({ row }) => {
                 const student = row.original;
-                if (updatingAdvisorId === student.id) {
-                    return <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />;
-                }
-                if (!isAdmin) {
-                    return student.advisor
-                        ? <span className="text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
-                        : <span className="text-slate-300 dark:text-slate-600">—</span>;
-                }
-                return (
-                    <div className="w-44">
-                        <CustomSelect
-                            value={student.advisor?.id ?? ''}
-                            options={advisorOptions}
-                            searchable
-                            onChange={(advisorId) => {
-                                if (advisorId) {
-                                    onAssignAdvisor(student, advisorId);
-                                } else {
-                                    onRemoveAdvisor(student);
-                                }
-                            }}
-                            className="w-full text-xs"
-                        />
-                    </div>
-                );
+                return student.advisor
+                    ? <span className="text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
+                    : <span className="text-slate-300 dark:text-slate-600">—</span>;
             },
             enableSorting: false,
         }),
@@ -160,6 +147,5 @@ export function useStudentColumns({
             ),
             enableSorting: false,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [t, isAdmin, advisorOptions, updatingAdvisorId, onAssignAdvisor, onRemoveAdvisor]);
+    ], [t, isAdmin]);
 }

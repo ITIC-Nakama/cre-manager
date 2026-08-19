@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -98,10 +99,28 @@ public class AdvisorController {
         return ResponseEntity.ok().build();
     }
 
+    public record BulkAssignRequest(List<UUID> studentIds) {}
+
+    @PutMapping("/{advisorId}/students")
+    @Operation(summary = "Affecter un conseiller à plusieurs étudiants en une seule fois — promotion, sélection ou année complète (admin)")
+    public ResponseEntity<?> assignStudents(@PathVariable UUID advisorId, @RequestBody BulkAssignRequest request) {
+        advisorService.assignStudentsToAdvisor(advisorId, request.studentIds());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{advisorId}/students/{studentId}")
     @Operation(summary = "Retirer un étudiant de son conseiller (admin)")
     public ResponseEntity<?> removeStudent(@PathVariable UUID advisorId, @PathVariable UUID studentId) {
         advisorService.removeStudentFromAdvisor(studentId);
+        return ResponseEntity.ok().build();
+    }
+
+    public record BulkRemoveRequest(List<UUID> studentIds) {}
+
+    @PutMapping("/students/remove")
+    @Operation(summary = "Retirer plusieurs étudiants de leur conseiller en une seule fois (admin)")
+    public ResponseEntity<?> removeStudents(@RequestBody BulkRemoveRequest request) {
+        advisorService.removeStudentsFromAdvisor(request.studentIds());
         return ResponseEntity.ok().build();
     }
 

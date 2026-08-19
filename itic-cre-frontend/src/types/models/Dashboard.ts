@@ -28,6 +28,7 @@ export interface DashboardOverview {
   applicationsByStatus: AppByStatus[];
   cvsByStatut: CvByStatut[];
   cvsToReview: number;
+  inactiveStudentDays?: number;
 }
 
 export interface PromotionYearCounts {
@@ -73,6 +74,7 @@ export interface StudentListParams {
   studyYear?: number;
   studyYearMissing?: boolean;
   excludePromotionId?: string;
+  advisorId?: string;
   includeAnonymized?: boolean;
 }
 

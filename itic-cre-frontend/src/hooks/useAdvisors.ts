@@ -9,6 +9,8 @@ import {
   reactivateAdvisor,
   assignStudentToAdvisor,
   removeStudentFromAdvisor,
+  assignStudentsToAdvisor,
+  removeStudentsFromAdvisor,
   fetchAdvisorDirectory,
   uploadAdvisorPublicPicture,
 } from '../api-s/requests/AdvisorRequest';
@@ -99,6 +101,27 @@ export function useRemoveStudentFromAdvisor() {
   return useMutation({
     mutationFn: ({ advisorId, studentId }: { advisorId: string; studentId: string }) =>
       removeStudentFromAdvisor(advisorId, studentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+    },
+  });
+}
+
+export function useAssignStudentsToAdvisor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ advisorId, studentIds }: { advisorId: string; studentIds: string[] }) =>
+      assignStudentsToAdvisor(advisorId, studentIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+    },
+  });
+}
+
+export function useRemoveStudentsFromAdvisor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (studentIds: string[]) => removeStudentsFromAdvisor(studentIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
     },

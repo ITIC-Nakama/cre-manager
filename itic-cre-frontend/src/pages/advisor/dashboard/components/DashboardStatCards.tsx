@@ -17,10 +17,12 @@ interface Props {
   overview: DashboardOverview | null | undefined;
   loading: boolean;
   cvsToReview?: number;
+  isAdmin?: boolean;
 }
 
-export default function DashboardStatCards({ overview, loading, cvsToReview }: Props) {
+export default function DashboardStatCards({ overview, loading, cvsToReview, isAdmin = false }: Props) {
   const { t } = useTranslation();
+  const scope = isAdmin ? 'admin' : 'advisor';
 
   const cards: StatCard[] = [
     {
@@ -120,11 +122,11 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
                       <div className="space-y-2 text-[11px] leading-relaxed text-slate-200">
                         <p>
                           <strong className="text-emerald-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_active_label')} :</strong>{' '}
-                          {t('dashboard.advisor.stats.students_tooltip_active')}
+                          {t(`dashboard.advisor.stats.students_tooltip_active_${scope}`, { days: overview?.inactiveStudentDays ?? 14 })}
                         </p>
                         <p>
                           <strong className="text-amber-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_inactive_label')} :</strong>{' '}
-                          {t('dashboard.advisor.stats.students_tooltip_inactive')}
+                          {t(`dashboard.advisor.stats.students_tooltip_inactive_${scope}`, { days: overview?.inactiveStudentDays ?? 14 })}
                         </p>
                         <p>
                           <strong className="text-purple-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_anonymized_label')} :</strong>{' '}

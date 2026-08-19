@@ -17,6 +17,7 @@ public class StudentFilterCriteria {
     private final Integer studyYear;
     private final Boolean studyYearMissing;
     private final UUID excludePromotionId;
+    private final UUID advisorId;
     private final String search;
     private final Boolean isActive;
     private final Boolean hasCv;

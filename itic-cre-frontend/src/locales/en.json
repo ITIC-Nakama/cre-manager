@@ -183,6 +183,7 @@
       "role_admin": "Admin",
       "role_advisor": "Advisor",
       "subtitle": "Global monitoring and support for students in their internship or work-study search.",
+      "subtitle_advisor": "Monitoring and support for your students in their internship or work-study search.",
       "create_advisor": "Create advisor",
       "export_csv": "Export CSV",
       "stats": {
@@ -191,9 +192,11 @@
         "students_sub_with_anonymized": "{{active}} active · {{inactive}} inactive (+{{anonymized}} deleted RGPD)",
         "students_tooltip_title": "Understanding the numbers",
         "students_tooltip_active_label": "Active",
-        "students_tooltip_active": "Student who logged in or acted on the platform in the last 14 days.",
+        "students_tooltip_active_advisor": "Student in your portfolio who logged in or acted on the platform in the last {{days}} days.",
+        "students_tooltip_active_admin": "Student who logged in or acted on the platform in the last {{days}} days.",
         "students_tooltip_inactive_label": "Inactive",
-        "students_tooltip_inactive": "Portfolio student with no activity for +14 days.",
+        "students_tooltip_inactive_advisor": "Student in your portfolio with no activity for +{{days}} days.",
+        "students_tooltip_inactive_admin": "Platform student with no activity for +{{days}} days.",
         "students_tooltip_anonymized_label": "Deleted (GDPR)",
         "students_tooltip_anonymized": "Anonymized account (identity erased). Past applications remain in activity stats.",
         "students_tooltip_equation": "Total enrolled = Active + Inactive + Deleted RGPD",
@@ -269,6 +272,8 @@
       "filter_no_cv": "No CV",
       "filter_show_anonymized": "Show deleted accounts (GDPR)",
       "filter_all_promotions": "All cohorts",
+      "filter_all_advisors": "All advisors",
+      "filter_my_students": "My students only",
       "filter_study_year": "Study year",
       "filter_study_year_all": "All years",
       "promotion_search_placeholder": "Search a cohort…",
@@ -328,12 +333,24 @@
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
       "toast_reactivate_error": "Error reactivating account.",
-      "toast_advisor_assigned": "Advisor assigned successfully!",
-      "toast_advisor_assign_error": "Error assigning advisor.",
-      "toast_advisor_removed": "Advisor removed successfully!",
-      "toast_advisor_remove_error": "Error removing advisor.",
       "subtitle": "Manage and track student progress.",
-      "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
+      "anonymized_account": "GDPR anonymized account (cannot be reactivated)",
+      "bulk": {
+        "selected_count_one": "{{count}} student selected",
+        "selected_count_other": "{{count}} students selected",
+        "assign_button": "Assign",
+        "pick_advisor": "Choose an advisor…",
+        "cancel": "Cancel",
+        "select_all_matching": "Select all {{count}} students matching the filter",
+        "select_all_error": "Error while selecting students.",
+        "assign_success_one": "{{count}} student assigned successfully!",
+        "assign_success_other": "{{count}} students assigned successfully!",
+        "assign_error": "Error during bulk assignment.",
+        "remove_button": "Remove",
+        "remove_success_one": "Advisor removed for {{count}} student!",
+        "remove_success_other": "Advisor removed for {{count}} students!",
+        "remove_error": "Error during bulk removal."
+      }
     },
     "students": {
       "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
@@ -1155,7 +1172,8 @@
           "PROMOTION_REMINDER_MONTHS": "Timeframe in months before promotion update reminder",
           "GDPR_OTP_RETENTION_HOURS": "Email verification OTP code retention period (hours)",
           "GDPR_AUDIT_LOG_RETENTION_DAYS": "Legal audit and security log retention period (days)",
-          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Retention period before automatic anonymization of inactive accounts (days)"
+          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Retention period before automatic anonymization of inactive accounts (days)",
+          "INACTIVE_STUDENT_DAYS": "Days without login before a student is considered inactive (statistics)"
         }
       },
       "preferences": {

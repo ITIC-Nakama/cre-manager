@@ -16,6 +16,7 @@ import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.model.XPHistory;
 import com.itic.paris.platform.gamification.repository.GradeRepository;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -54,13 +55,20 @@ public class DashboardService {
     private final XPHistoryRepository xpHistoryRepository;
     private final ICloudStorage cloudStorage;
     private final NotificationEmailService notificationEmailService;
+    private final AppConfigurationService appConfigurationService;
 
-    private static final int INACTIVE_DAYS = 14;
     private static final int STALE_DAYS = 10;
 
     // ─── Overview ────────────────────────────────────────────────────────────
 
-    public Map<String, Object> getOverview() {
+    /**
+     * @param advisorId si renseigne, les statistiques sont limitees aux etudiants affectes a ce
+     *                  conseiller ("mon portefeuille") — sinon vue globale plateforme (admin).
+     */
+    public Map<String, Object> getOverview(UUID advisorId) {
+        if (advisorId != null) {
+            return getOverviewForAdvisor(advisorId);
+        }
         long nonAnonymizedStudents = studentRepository.countNonAnonymizedStudents();
         long anonymizedStudents = studentRepository.countAnonymizedStudents();
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
@@ -68,7 +76,7 @@ public class DashboardService {
         long totalCvs = cvRepository.count();
         double averageXp = studentRepository.averageXp();
 
-        Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
         long activeStudents = studentRepository.countByLastActivityAfterAndNonAnonymized(inactiveThreshold);
         long inactiveStudents = Math.max(0, nonAnonymizedStudents - activeStudents);
 
@@ -123,6 +131,106 @@ public class DashboardService {
         overview.put("cvsByStatut", cvsByStatut);
         overview.put("gradeDistribution", gradeDistribution);
         overview.put("topStudents", topStudents);
+        overview.put("inactiveStudentDays", appConfigurationService.getInactiveStudentDays());
+        return overview;
+    }
+
+    /** Meme forme que getOverview(), mais toutes les requetes sont limitees aux etudiants du conseiller. */
+    private Map<String, Object> getOverviewForAdvisor(UUID advisorId) {
+        List<UUID> studentIds = studentRepository.findIdsByAdvisorId(advisorId);
+        List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
+
+        if (studentIds.isEmpty()) {
+            return emptyOverview(allGrades);
+        }
+
+        long nonAnonymizedStudents = studentRepository.countNonAnonymizedByIdIn(studentIds);
+        long anonymizedStudents = studentRepository.countAnonymizedByIdIn(studentIds);
+        long totalStudents = nonAnonymizedStudents + anonymizedStudents;
+        long totalApplications = applicationRepository.countByStudentIdIn(studentIds);
+        long totalCvs = cvRepository.countByStudentIdIn(studentIds);
+        double averageXp = studentRepository.averageXpByIdIn(studentIds);
+
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
+        long activeStudents = studentRepository.countByIdInAndLastActivityAfter(studentIds, inactiveThreshold);
+        long inactiveStudents = Math.max(0, nonAnonymizedStudents - activeStudents);
+
+        long studentsWithCvCount = cvRepository.countStudentsWithCvByIdIn(studentIds);
+        long studentsWithoutCv = Math.max(0, nonAnonymizedStudents - studentsWithCvCount);
+
+        Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
+        long staleApplicationsCount = applicationRepository.countStaleApplicationsForStudents(studentIds, staleThreshold);
+
+        long recentApplications7d = applicationRepository.countByDateCreationAfterAndStudentIdIn(
+                Instant.now().minus(7, ChronoUnit.DAYS), studentIds);
+        long recentApplications30d = applicationRepository.countByDateCreationAfterAndStudentIdIn(
+                Instant.now().minus(30, ChronoUnit.DAYS), studentIds);
+
+        List<Map<String, Object>> appsByStatus = applicationRepository.countGroupedByStatusForStudents(studentIds)
+                .stream().map(row -> Map.<String, Object>of(
+                        "statusId", row[0],
+                        "statusNom", row[1],
+                        "couleur", row[2] != null ? row[2] : "#9CA3AF",
+                        "count", row[3]
+                )).toList();
+
+        List<Map<String, Object>> cvsByStatut = cvRepository.countGroupedByStatutForStudents(studentIds)
+                .stream().map(row -> Map.<String, Object>of(
+                        "statutId", row[0],
+                        "statutNom", row[1],
+                        "couleur", row[2] != null ? row[2] : "#9CA3AF",
+                        "count", row[3]
+                )).toList();
+
+        List<Map<String, Object>> gradeDistribution = buildGradeDistributionForStudents(studentIds, allGrades);
+
+        List<Map<String, Object>> topStudents = studentRepository.findTop5ByIdInAndActiveTrueOrderByXpTotalDesc(studentIds)
+                .stream().map(s -> buildStudentSummary(s, allGrades)).toList();
+
+        Map<String, Object> overview = new LinkedHashMap<>();
+        overview.put("totalStudents", totalStudents);
+        overview.put("nonAnonymizedStudents", nonAnonymizedStudents);
+        overview.put("anonymizedStudents", anonymizedStudents);
+        overview.put("totalApplications", totalApplications);
+        overview.put("totalCvs", totalCvs);
+        overview.put("averageXp", Math.round(averageXp));
+        overview.put("activeStudents", activeStudents);
+        overview.put("inactiveStudents", inactiveStudents);
+        overview.put("studentsWithoutCv", studentsWithoutCv);
+        overview.put("staleApplicationsCount", staleApplicationsCount);
+        overview.put("recentApplications7d", recentApplications7d);
+        overview.put("cvsToReview", cvRepository.countNotInFinalStatutForStudents(studentIds));
+        overview.put("recentApplications30d", recentApplications30d);
+        overview.put("applicationsByStatus", appsByStatus);
+        overview.put("cvsByStatut", cvsByStatut);
+        overview.put("gradeDistribution", gradeDistribution);
+        overview.put("topStudents", topStudents);
+        overview.put("inactiveStudentDays", appConfigurationService.getInactiveStudentDays());
+        return overview;
+    }
+
+    /** Portefeuille vide (aucun etudiant affecte) — evite d'executer des requetes "IN ()" invalides. */
+    private Map<String, Object> emptyOverview(List<Grade> allGrades) {
+        Map<String, Object> overview = new LinkedHashMap<>();
+        overview.put("totalStudents", 0L);
+        overview.put("nonAnonymizedStudents", 0L);
+        overview.put("anonymizedStudents", 0L);
+        overview.put("totalApplications", 0L);
+        overview.put("totalCvs", 0L);
+        overview.put("averageXp", 0L);
+        overview.put("activeStudents", 0L);
+        overview.put("inactiveStudents", 0L);
+        overview.put("studentsWithoutCv", 0L);
+        overview.put("staleApplicationsCount", 0L);
+        overview.put("recentApplications7d", 0L);
+        overview.put("cvsToReview", 0L);
+        overview.put("recentApplications30d", 0L);
+        overview.put("applicationsByStatus", List.of());
+        overview.put("cvsByStatut", List.of());
+        overview.put("gradeDistribution", allGrades.stream()
+                .map(g -> Map.<String, Object>of("grade", g.getNom(), "count", 0L)).toList());
+        overview.put("topStudents", List.of());
+        overview.put("inactiveStudentDays", appConfigurationService.getInactiveStudentDays());
         return overview;
     }
 
@@ -159,7 +267,7 @@ public class DashboardService {
 
     public List<Map<String, Object>> getPromotionStats() {
         List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
-        Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
 
         return promotionRepository.findAll().stream().map(promo -> {
             long studentCount = studentRepository.countByPromotionId(promo.getId());
@@ -229,7 +337,7 @@ public class DashboardService {
 
     public Page<Map<String, Object>> getStudentList(StudentFilterCriteria criteria, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(STALE_DAYS, ChronoUnit.DAYS);
-        Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
 
         Specification<Student> spec = StudentSpecification.withStudentListFilters(criteria, inactiveThreshold, staleThreshold);
         List<Student> students;
@@ -612,6 +720,23 @@ public class DashboardService {
 
     private List<Map<String, Object>> buildGradeDistribution(List<Grade> grades) {
         return buildGradeDistribution(null, grades);
+    }
+
+    private List<Map<String, Object>> buildGradeDistributionForStudents(List<UUID> studentIds, List<Grade> grades) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (int i = 0; i < grades.size(); i++) {
+            Grade g = grades.get(i);
+            long count;
+            if (i < grades.size() - 1) {
+                int minXp = g.getXpMinimum();
+                int maxXp = grades.get(i + 1).getXpMinimum() - 1;
+                count = studentRepository.countByIdInAndXpTotalBetween(studentIds, minXp, maxXp);
+            } else {
+                count = studentRepository.countByIdInAndXpTotalGreaterThanEqual(studentIds, g.getXpMinimum());
+            }
+            list.add(Map.of("grade", g.getNom(), "count", count));
+        }
+        return list;
     }
 
     private List<Map<String, Object>> buildGradeDistribution(UUID promotionId, List<Grade> grades) {

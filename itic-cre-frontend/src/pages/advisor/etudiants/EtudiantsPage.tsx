@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
-import { useAdvisors, useAssignStudentToAdvisor, useRemoveStudentFromAdvisor } from '../../../hooks/useAdvisors';
+import { useAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
@@ -21,78 +21,53 @@ import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
 import { useCVByStudent, useCVStatuts } from '../../../hooks/useCV';
+import { isAnonymizedStudent } from '../../../utils/studentUtils';
 
 import { useStudentColumns } from './hooks/useStudentTableColumn';
 import StudentTable from './components/StudentTable';
 import EtudiantsHeader from './components/EtudiantsHeader';
 import EtudiantsFilters, { type FilterStatus } from './components/EtudiantsFilters';
+import BulkAssignBar from './components/BulkAssignBar';
 
 const PAGE_SIZE = 20;
 
 export default function EtudiantsPage() {
     const { t } = useTranslation();
+    const currentUser = useUserStore((state) => state.user);
+    const isAdmin = currentUser?.role === Role.ADMIN;
+
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
     const [promotionFilter, setPromotionFilter] = useState('');
     const [studyYearFilter, setStudyYearFilter] = useState('');
+    // Un conseiller voit par defaut uniquement ses propres etudiants ("mon portefeuille") ;
+    // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
+    const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [sorting, setSorting] = useState<SortingState>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
     const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
-    const [updatingAdvisorId, setUpdatingAdvisorId] = useState<string | null>(null);
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+    const [selectingAllMatching, setSelectingAllMatching] = useState(false);
+    const [bulkProcessing, setBulkProcessing] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
     const deactivateMutation = useDeactivateStudent();
     const reactivateMutation = useReactivateStudent();
-    const assignAdvisorMutation = useAssignStudentToAdvisor();
-    const removeAdvisorMutation = useRemoveStudentFromAdvisor();
+    const bulkAssignAdvisorMutation = useAssignStudentsToAdvisor();
+    const bulkRemoveAdvisorMutation = useRemoveStudentsFromAdvisor();
     const [includeAnonymized, setIncludeAnonymized] = useState(false);
     const { data: promotions } = usePromotions();
-    const currentUser = useUserStore((state) => state.user);
-    const isAdmin = currentUser?.role === Role.ADMIN;
 
     const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
     const { data: cvStatuts = [] } = useCVStatuts();
     const { data: advisorsPage } = useAdvisors({ size: 1000 });
 
-    const handleAssignAdvisor = async (student: StudentRow, advisorId: string) => {
-        setUpdatingAdvisorId(student.id);
-        try {
-            await assignAdvisorMutation.mutateAsync({ advisorId, studentId: student.id });
-            toast.success(t('dashboard.etudiants.toast_advisor_assigned', 'Conseiller affecté avec succès !'));
-        } catch (err) {
-            console.error(err);
-            toast.error(t('dashboard.etudiants.toast_advisor_assign_error', "Erreur lors de l'affectation du conseiller."));
-        } finally {
-            setUpdatingAdvisorId(null);
-        }
-    };
-
-    const handleRemoveAdvisor = async (student: StudentRow) => {
-        if (!student.advisor) return;
-        setUpdatingAdvisorId(student.id);
-        try {
-            await removeAdvisorMutation.mutateAsync({ advisorId: student.advisor.id, studentId: student.id });
-            toast.success(t('dashboard.etudiants.toast_advisor_removed', 'Conseiller retiré avec succès !'));
-        } catch (err) {
-            console.error(err);
-            toast.error(t('dashboard.etudiants.toast_advisor_remove_error', 'Erreur lors du retrait du conseiller.'));
-        } finally {
-            setUpdatingAdvisorId(null);
-        }
-    };
-
-    const columns = useStudentColumns({
-        isAdmin,
-        advisors: advisorsPage?.content ?? [],
-        updatingAdvisorId,
-        onAssignAdvisor: handleAssignAdvisor,
-        onRemoveAdvisor: handleRemoveAdvisor,
-    });
+    const columns = useStudentColumns({ isAdmin });
 
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -129,6 +104,11 @@ export default function EtudiantsPage() {
         })),
     ], [promotions, t]);
 
+    const advisorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
+        ...(advisorsPage?.content ?? []).map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+    ], [advisorsPage, t]);
+
     const { data: systemYears } = useAvailableStudyYears();
 
     const selectedPromotion = useMemo(() => {
@@ -159,6 +139,7 @@ export default function EtudiantsPage() {
         hasStale: filterStatus === 'stale' ? true : undefined,
         promotionId: promotionFilter || undefined,
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
+        advisorId: advisorFilter || undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
     };
 
@@ -170,17 +151,31 @@ export default function EtudiantsPage() {
     const table = useReactTable({
         data: students,
         columns,
-        state: { sorting },
+        state: { sorting, rowSelection },
         onSortingChange: setSorting,
+        onRowSelectionChange: setRowSelection,
+        getRowId: (row) => row.id,
+        enableRowSelection: (row) => isAdmin && !isAnonymizedStudent(row.original),
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
         manualSorting: true,
         pageCount: totalPages,
     });
 
+    const selectedIds = useMemo(() => Object.keys(rowSelection).filter((id) => rowSelection[id]), [rowSelection]);
+    const allMatchingSelected = totalElements > 0 && selectedIds.length >= totalElements;
+
+    const bulkAdvisorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
+        ...(advisorsPage?.content ?? []).map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+    ], [advisorsPage, t]);
+
+    const clearSelection = () => setRowSelection({});
+
     const handleSearch = (value: string) => {
         setSearch(value);
         setPage(0);
+        clearSelection();
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
@@ -188,17 +183,71 @@ export default function EtudiantsPage() {
     const handleFilterChange = (value: FilterStatus) => {
         setFilterStatus(value);
         setPage(0);
+        clearSelection();
     };
 
     const handlePromotionFilterChange = (value: string) => {
         setPromotionFilter(value);
         setStudyYearFilter('');
         setPage(0);
+        clearSelection();
     };
 
     const handleStudyYearFilterChange = (value: string) => {
         setStudyYearFilter(value);
         setPage(0);
+        clearSelection();
+    };
+
+    const handleAdvisorFilterChange = (value: string) => {
+        setAdvisorFilter(value);
+        setPage(0);
+        clearSelection();
+    };
+
+    const handleSelectAllMatching = async () => {
+        setSelectingAllMatching(true);
+        try {
+            const all = await fetchAllStudents(params);
+            const selection: Record<string, boolean> = {};
+            all.forEach((s) => {
+                if (!isAnonymizedStudent(s)) selection[s.id] = true;
+            });
+            setRowSelection(selection);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.bulk.select_all_error', 'Erreur lors de la sélection.'));
+        } finally {
+            setSelectingAllMatching(false);
+        }
+    };
+
+    const handleBulkAssign = async (advisorId: string) => {
+        setBulkProcessing(true);
+        try {
+            await bulkAssignAdvisorMutation.mutateAsync({ advisorId, studentIds: selectedIds });
+            toast.success(t('dashboard.etudiants.bulk.assign_success', { count: selectedIds.length }));
+            clearSelection();
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.bulk.assign_error', 'Erreur lors de l\'affectation groupée.'));
+        } finally {
+            setBulkProcessing(false);
+        }
+    };
+
+    const handleBulkRemove = async () => {
+        setBulkProcessing(true);
+        try {
+            await bulkRemoveAdvisorMutation.mutateAsync(selectedIds);
+            toast.success(t('dashboard.etudiants.bulk.remove_success', { count: selectedIds.length }));
+            clearSelection();
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.bulk.remove_error', 'Erreur lors du retrait groupé.'));
+        } finally {
+            setBulkProcessing(false);
+        }
     };
 
     const handleNotify = async (student: StudentRow, message?: string): Promise<void> => {
@@ -265,22 +314,44 @@ export default function EtudiantsPage() {
                 filterStatus={filterStatus}
                 promotionFilter={promotionFilter}
                 studyYearFilter={studyYearFilter}
+                advisorFilter={advisorFilter}
                 includeAnonymized={includeAnonymized}
                 isFetching={isFetching}
                 isLoading={isLoading}
                 isAdmin={isAdmin}
+                currentUserId={currentUser ? String(currentUser.id) : ''}
                 filterOptions={filterOptions}
                 promotionOptions={promotionOptions}
                 studyYearOptions={studyYearOptions}
+                advisorOptions={advisorOptions}
                 onSearchChange={handleSearch}
                 onFilterChange={handleFilterChange}
                 onPromotionChange={handlePromotionFilterChange}
                 onStudyYearChange={handleStudyYearFilterChange}
+                onAdvisorFilterChange={handleAdvisorFilterChange}
                 onIncludeAnonymizedChange={(checked) => {
                     setIncludeAnonymized(checked);
                     setPage(0);
+                    clearSelection();
                 }}
             />
+
+            {/* Bulk assign bar */}
+            {isAdmin && selectedIds.length > 0 && (
+                <BulkAssignBar
+                    selectedCount={selectedIds.length}
+                    totalElements={totalElements}
+                    allPageRowsSelected={table.getIsAllPageRowsSelected()}
+                    allMatchingSelected={allMatchingSelected}
+                    advisorOptions={bulkAdvisorOptions}
+                    processing={bulkProcessing}
+                    selectingAllMatching={selectingAllMatching}
+                    onAssign={handleBulkAssign}
+                    onRemove={handleBulkRemove}
+                    onClear={clearSelection}
+                    onSelectAllMatching={handleSelectAllMatching}
+                />
+            )}
 
             {/* Table */}
             <StudentTable

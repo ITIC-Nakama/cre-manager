@@ -1,5 +1,6 @@
 package com.itic.paris.platform.dashboard.controller;
 
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
@@ -35,9 +36,12 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/overview")
-    @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut")
+    @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut. " +
+            "Limitee au portefeuille du conseiller connecte (role ADVISOR) ; vue globale plateforme pour un ADMIN.")
     public ResponseEntity<?> overview() {
-        return ResponseEntity.ok(dashboardService.getOverview());
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID advisorId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
+        return ResponseEntity.ok(dashboardService.getOverview(advisorId));
     }
 
     @GetMapping("/stale-applications")
@@ -65,12 +69,13 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/includeAnonymized")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) Boolean studyYearMissing,
             @RequestParam(required = false) UUID excludePromotionId,
+            @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
@@ -79,7 +84,7 @@ public class DashboardController {
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
-                .excludePromotionId(excludePromotionId).search(search).isActive(isActive)
+                .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
                 .build();
         return ResponseEntity.ok(dashboardService.getStudentList(criteria, pageable));
@@ -92,6 +97,7 @@ public class DashboardController {
             @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) Boolean studyYearMissing,
             @RequestParam(required = false) UUID excludePromotionId,
+            @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
@@ -99,7 +105,7 @@ public class DashboardController {
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
-                .excludePromotionId(excludePromotionId).search(search).isActive(isActive)
+                .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
                 .build();
         Page<Map<String, Object>> result = dashboardService.getStudentList(criteria, Pageable.unpaged());

@@ -98,6 +98,11 @@ public class StudentSpecification {
                 predicates.add(cb.equal(root.get("promotion").get("id"), criteria.getPromotionId()));
             }
 
+            // Advisor filter — "mes etudiants" cote conseiller, ou filtrage par conseiller specifique cote admin
+            if (criteria.getAdvisorId() != null) {
+                predicates.add(cb.equal(root.get("advisor").get("id"), criteria.getAdvisorId()));
+            }
+
             // Exclude students already in a given promotion (ex: recherche pour affecter un
             // etudiant a une promotion — evite de filtrer apres pagination, ce qui peut vider
             // une page entiere de resultats deja pris)

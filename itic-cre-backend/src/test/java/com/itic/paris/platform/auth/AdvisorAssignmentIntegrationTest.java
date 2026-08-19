@@ -1,5 +1,6 @@
 package com.itic.paris.platform.auth;
 
+import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
 import com.itic.paris.platform.auth.model.Admin;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -60,6 +62,9 @@ public class AdvisorAssignmentIntegrationTest {
 
     @Autowired
     private AdvisorRepository advisorRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -188,6 +193,93 @@ public class AdvisorAssignmentIntegrationTest {
 
         Student reloaded = studentRepository.findById(student.getId()).orElseThrow();
         assertThat(reloaded.getAdvisor()).isNotNull();
+    }
+
+    @Test
+    public void testBulkAssign_AssignsAllStudentsInOneCall() throws Exception {
+        Student secondStudent = new Student();
+        secondStudent.setEmail("advisee.second@itic.fr");
+        secondStudent.setFirstName("Bea");
+        secondStudent.setLastName("Trice");
+        secondStudent.setPassword("Password123!");
+        secondStudent.setEmailVerified(true);
+        secondStudent.setActive(true);
+        secondStudent.setRole(student.getRole());
+        secondStudent = studentRepository.save(secondStudent);
+
+        String body = "{\"studentIds\":[\"" + student.getId() + "\",\"" + secondStudent.getId() + "\"]}";
+
+        long auditCountBefore = auditLogRepository.count();
+
+        mockMvc.perform(put("/advisors/{advisorId}/students", advisor.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        assertThat(studentRepository.findById(student.getId()).orElseThrow().getAdvisor()).isNotNull();
+        assertThat(studentRepository.findById(secondStudent.getId()).orElseThrow().getAdvisor().getId())
+                .isEqualTo(advisor.getId());
+
+        // Un seul enregistrement d'audit pour tout le lot, pas un par étudiant affecté.
+        assertThat(auditLogRepository.count() - auditCountBefore).isEqualTo(1);
+    }
+
+    @Test
+    public void testBulkAssign_EmptyList_IsNoOpNotError() {
+        advisorService.assignStudentsToAdvisor(advisor.getId(), List.of());
+        assertThat(studentRepository.findById(student.getId()).orElseThrow().getAdvisor()).isNull();
+    }
+
+    @Test
+    public void testBulkAssign_RequiresAdmin() throws Exception {
+        String body = "{\"studentIds\":[\"" + student.getId() + "\"]}";
+        mockMvc.perform(put("/advisors/{advisorId}/students", advisor.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testBulkRemove_RemovesAdvisorFromAllStudentsInOneCall() throws Exception {
+        Student secondStudent = new Student();
+        secondStudent.setEmail("advisee.toremove@itic.fr");
+        secondStudent.setFirstName("Cy");
+        secondStudent.setLastName("Prien");
+        secondStudent.setPassword("Password123!");
+        secondStudent.setEmailVerified(true);
+        secondStudent.setActive(true);
+        secondStudent.setRole(student.getRole());
+        secondStudent = studentRepository.save(secondStudent);
+
+        advisorService.assignStudentsToAdvisor(advisor.getId(), List.of(student.getId(), secondStudent.getId()));
+
+        String body = "{\"studentIds\":[\"" + student.getId() + "\",\"" + secondStudent.getId() + "\"]}";
+
+        long auditCountBefore = auditLogRepository.count();
+
+        mockMvc.perform(put("/advisors/students/remove")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        assertThat(studentRepository.findById(student.getId()).orElseThrow().getAdvisor()).isNull();
+        assertThat(studentRepository.findById(secondStudent.getId()).orElseThrow().getAdvisor()).isNull();
+
+        // Un seul enregistrement d'audit pour tout le lot, pas un par étudiant retiré.
+        assertThat(auditLogRepository.count() - auditCountBefore).isEqualTo(1);
+    }
+
+    @Test
+    public void testBulkRemove_RequiresAdmin() throws Exception {
+        String body = "{\"studentIds\":[\"" + student.getId() + "\"]}";
+        mockMvc.perform(put("/advisors/students/remove")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
     }
 
     @Test

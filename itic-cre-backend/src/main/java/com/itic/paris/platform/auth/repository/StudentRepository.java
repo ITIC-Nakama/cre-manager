@@ -81,4 +81,28 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     @Query("SELECT s FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 3")
     List<Student> findTop3ByActiveTrueOrderByXpTotalDesc();
+
+    // ─── Filtrage par conseiller — vue "mon portefeuille" du dashboard advisor ──────
+
+    @Query("SELECT s.id FROM Student s WHERE s.advisor.id = :advisorId AND s.email NOT LIKE '%@rgpd.deleted'")
+    List<UUID> findIdsByAdvisorId(UUID advisorId);
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.id IN :ids AND s.email NOT LIKE '%@rgpd.deleted'")
+    long countNonAnonymizedByIdIn(List<UUID> ids);
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.id IN :ids AND s.email LIKE '%@rgpd.deleted'")
+    long countAnonymizedByIdIn(List<UUID> ids);
+
+    @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.id IN :ids AND s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
+    double averageXpByIdIn(List<UUID> ids);
+
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.id IN :ids AND s.lastActivity > :since AND s.email NOT LIKE '%@rgpd.deleted'")
+    long countByIdInAndLastActivityAfter(List<UUID> ids, Instant since);
+
+    @Query("SELECT s FROM Student s WHERE s.id IN :ids AND s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 5")
+    List<Student> findTop5ByIdInAndActiveTrueOrderByXpTotalDesc(List<UUID> ids);
+
+    long countByIdInAndXpTotalBetween(List<UUID> ids, int minXp, int maxXp);
+
+    long countByIdInAndXpTotalGreaterThanEqual(List<UUID> ids, int minXp);
 }

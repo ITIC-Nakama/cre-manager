@@ -50,7 +50,7 @@ export default function AdvisorDashboard() {
               )}
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
-            {t('dashboard.advisor.subtitle')}
+            {isAdmin ? t('dashboard.advisor.subtitle') : t('dashboard.advisor.subtitle_advisor')}
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function AdvisorDashboard() {
       </div>
 
       {/* Overview Stat Cards */}
-      <DashboardStatCards overview={overview} loading={loadingOverview} />
+      <DashboardStatCards overview={overview} loading={loadingOverview} isAdmin={isAdmin} />
 
       {/* Main Grid: Status Distribution & Stale Alert Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

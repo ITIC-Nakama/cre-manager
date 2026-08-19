@@ -45,6 +45,12 @@ public class AppConfigurationService {
                 .orElse(1095);
     }
 
+    public int getInactiveStudentDays() {
+        return appConfigurationRepository.findByKey(AppConfigurationKey.INACTIVE_STUDENT_DAYS)
+                .map(c -> Integer.parseInt(c.getValue()))
+                .orElse(14);
+    }
+
     public List<AppConfigurationDTO> getAll() {
         return appConfigurationRepository.findAll().stream()
                 .map(this::mapToDTO)
@@ -78,6 +84,8 @@ public class AppConfigurationService {
             } else if (key == AppConfigurationKey.GDPR_AUDIT_LOG_RETENTION_DAYS && (val < 1 || val > 3650)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             } else if (key == AppConfigurationKey.GDPR_INACTIVE_STUDENT_RETENTION_DAYS && (val < 1 || val > 3650)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
+            } else if (key == AppConfigurationKey.INACTIVE_STUDENT_DAYS && (val < 1 || val > 365)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             }
         } catch (NumberFormatException e) {
