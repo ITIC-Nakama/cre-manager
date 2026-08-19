@@ -37,6 +37,10 @@ public enum AuditAction {
     STUDENT_REMOVED_FROM_PROMOTION,
     STUDENT_ASSIGNED_TO_PROMOTION,
 
+    // --- Actions d'affectation conseiller ---
+    STUDENT_ASSIGNED_TO_ADVISOR,
+    STUDENT_REMOVED_FROM_ADVISOR,
+
     // --- Autre / Action générique ---
     OTHER
 }

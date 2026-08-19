@@ -166,22 +166,22 @@ export default function OffresPage() {
                             <div
                                 key={offer.id}
                                 onClick={() => setSelectedOffer(offer)}
-                                className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-400/80 dark:hover:border-indigo-500/70 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40 transition-all duration-300 ease-out hover:-translate-y-1.5 flex flex-col gap-3.5 cursor-pointer group"
+                                className="relative overflow-hidden bg-white dark:bg-slate-900 border border-indigo-200/60 dark:border-indigo-900/50 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40 transition-all duration-300 ease-out hover:-translate-y-1.5 flex flex-col gap-3.5 cursor-pointer group"
                             >
-                                {/* Top animated gradient accent */}
-                                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                
-                                {/* Background subtle radiant sheen on hover */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-transparent to-violet-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                {/* Top gradient accent */}
+                                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500" />
+
+                                {/* Background subtle radiant sheen */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-transparent to-violet-500/[0.02] pointer-events-none" />
 
                                 {/* Header with company avatar & arrow indicator */}
                                 <div className="flex items-start justify-between gap-3 relative z-10">
                                     <div className="flex items-start gap-3 min-w-0">
-                                        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0 border border-slate-200/40 dark:border-slate-700/40 group-hover:border-indigo-200/60 dark:group-hover:border-indigo-800/60 shadow-2xs">
+                                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs">
                                             <Building2 className="h-5 w-5" />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-base line-clamp-1 leading-snug">
+                                            <p className="font-bold text-indigo-600 dark:text-indigo-400 text-base line-clamp-1 leading-snug">
                                                 {offer.title}
                                             </p>
                                             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">
@@ -189,18 +189,18 @@ export default function OffresPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 transition-all duration-300 flex items-center justify-center shrink-0">
-                                        <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+                                    <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                        <ArrowUpRight className="h-4 w-4" />
                                     </div>
                                 </div>
 
                                 {/* Tags */}
                                 <div className="flex flex-wrap items-center gap-2 relative z-10">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100/80 dark:border-indigo-900/30 group-hover:border-indigo-200 dark:group-hover:border-indigo-800/60 transition-colors">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100/80 dark:border-indigo-900/30">
                                         <FileSignature className="h-3 w-3" />{offer.contractType.label}
                                     </span>
                                     {offer.sector && (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-100/80 dark:border-violet-900/30 group-hover:border-violet-200 dark:group-hover:border-violet-800/60 transition-colors">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-100/80 dark:border-violet-900/30">
                                             <Layers className="h-3 w-3" />{offer.sector.label}
                                         </span>
                                     )}
@@ -212,7 +212,7 @@ export default function OffresPage() {
                                 </div>
 
                                 {/* Description */}
-                                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed flex-1 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors relative z-10">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed flex-1 relative z-10">
                                     {offer.description}
                                 </p>
 

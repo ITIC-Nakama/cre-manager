@@ -1,3 +1,5 @@
+import type { AdvisorDirectoryEntry } from './Advisor';
+
 export interface CvByStatut {
   statutId: string;
   statutNom: string;
@@ -40,6 +42,7 @@ export interface StudentRow {
   lastName: string;
   email: string;
   promotion: { id: string; nom: string } | null;
+  advisor: { id: string; firstName: string; lastName: string } | null;
   studyYear?: number | null;
   xpTotal: number;
   grade: { nom: string; icone: string } | null;
@@ -144,4 +147,5 @@ export interface StudentDashboardSummary {
   candidatures: ApplicationStats;
   afaireAujourdhui: Task[];
   ranking: Ranking;
+  advisor: AdvisorDirectoryEntry | null;
 }

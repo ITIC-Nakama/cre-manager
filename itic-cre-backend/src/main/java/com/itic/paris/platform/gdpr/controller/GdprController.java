@@ -2,6 +2,7 @@ package com.itic.paris.platform.gdpr.controller;
 
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.gdpr.service.GdprService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +23,7 @@ import java.util.UUID;
 public class GdprController {
 
     private final GdprService gdprService;
-    private final com.itic.paris.platform.auth.repository.UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/export")
     @Operation(summary = "Exporter mes données personnelles (Portabilité RGPD)", description = "Télécharge un fichier JSON contenant l'ensemble des données enregistrées")

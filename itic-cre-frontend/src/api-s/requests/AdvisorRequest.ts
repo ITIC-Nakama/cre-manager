@@ -6,6 +6,7 @@ import type {
   CreateAdvisorData,
   UpdateAdvisorData,
   DeleteOrDeactivateResult,
+  AdvisorDirectoryEntry,
 } from '../../types/models/Advisor';
 
 function unwrap<T>(response: { data: unknown }): T {
@@ -41,4 +42,26 @@ export function deactivateUser(id: string): Promise<Advisor> {
 
 export function reactivateAdvisor(id: string): Promise<Advisor> {
   return apiClient.patch(`/auth/users/${id}/reactivate`).then((r) => unwrap<Advisor>(r));
+}
+
+export function assignStudentToAdvisor(advisorId: string, studentId: string): Promise<void> {
+  return apiClient.put(`/advisors/${advisorId}/students/${studentId}`).then(() => undefined);
+}
+
+export function removeStudentFromAdvisor(advisorId: string, studentId: string): Promise<void> {
+  return apiClient.delete(`/advisors/${advisorId}/students/${studentId}`).then(() => undefined);
+}
+
+export function fetchAdvisorDirectory(): Promise<AdvisorDirectoryEntry[]> {
+  return apiClient.get('/advisors/directory').then((r) => unwrap<AdvisorDirectoryEntry[]>(r));
+}
+
+export function uploadAdvisorPublicPicture(advisorId: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiClient
+    .post(`/advisors/${advisorId}/public-picture`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => unwrap<{ publicPictureUrl: string }>(r).publicPictureUrl);
 }

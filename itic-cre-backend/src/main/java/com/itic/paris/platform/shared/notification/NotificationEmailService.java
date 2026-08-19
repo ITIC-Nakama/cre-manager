@@ -1,6 +1,7 @@
 package com.itic.paris.platform.shared.notification;
 
 import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
+import com.itic.paris.platform.shared.notification.event.AdvisorAssignedEvent;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
@@ -40,6 +41,18 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderCVCommentEmail(
                 event.studentFirstName(), event.commentContent());
         sendHtml(event.studentEmail(), "Nouveau commentaire sur votre CV", html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onAdvisorAssigned(AdvisorAssignedEvent event) {
+        String advisorName = event.advisorFirstName() + " " + event.advisorLastName();
+        String html = emailTemplateService.renderAdvisorAssignedEmail(
+                event.studentLang(), event.studentFirstName(), advisorName, event.advisorJobTitle());
+        String subject = "en".equals(event.studentLang())
+                ? "Your advisor has been assigned — ITIC CRE"
+                : "Votre conseiller a été assigné — ITIC CRE";
+        sendHtml(event.studentEmail(), subject, html);
     }
 
     @Async

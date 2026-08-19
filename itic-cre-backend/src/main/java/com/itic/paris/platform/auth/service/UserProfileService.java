@@ -12,12 +12,15 @@ import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
+import com.itic.paris.platform.auth.repository.AdvisorRepository;
+import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.skill.repository.ArticleRepository;
 import com.itic.paris.platform.skill.repository.SkillCategoryRepository;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -56,7 +59,7 @@ public class UserProfileService {
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
-    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
+    private final NotificationEmailService notificationEmailService;
     private final CVCommentaireRepository cvCommentaireRepository;
     private final JobOfferRepository jobOfferRepository;
     private final ArticleRepository articleRepository;
@@ -64,7 +67,8 @@ public class UserProfileService {
     private final CVRepository cvRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
-    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
+    private final PromotionRepository promotionRepository;
+    private final AdvisorRepository advisorRepository;
 
     public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
@@ -392,6 +396,43 @@ public class UserProfileService {
 
         user.setProfilePicture(path);
         userRepository.save(user);
+
+        return cloudStorage.getFile(path);
+    }
+
+    /**
+     * Photo "publique" dédiée d'un conseiller, distincte de sa photo de compte
+     * (profilePicture) — copie de updateProfilePicture, mais cible AdvisorRepository
+     * et écrit dans publicProfilePicture. Si absente, l'étudiant voit profilePicture
+     * en repli (voir AdvisorService.effectivePicture).
+     */
+    @Transactional
+    public String updateAdvisorPublicPicture(UUID advisorId, MultipartFile file) throws IOException {
+        if (file.getSize() > maxImageSizeMb * 1024L * 1024L) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_FILE_TOO_LARGE);
+        }
+
+        Advisor advisor = advisorRepository.findById(advisorId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+
+        if (advisor.getPublicProfilePicture() != null) {
+            cloudStorage.deleteFile(advisor.getPublicProfilePicture());
+        }
+
+        String fileExtension = ALLOWED_IMAGE_EXTENSIONS.get(file.getContentType());
+        if (fileExtension == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_INVALID_FILE_TYPE);
+        }
+
+        String path = publicFolder + "/avatars/" + advisorId + "-public-" + System.currentTimeMillis() + fileExtension;
+
+        boolean success = cloudStorage.uploadFile(file, path);
+        if (!success) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.REQUEST_PROCESSING_FAILED);
+        }
+
+        advisor.setPublicProfilePicture(path);
+        advisorRepository.save(advisor);
 
         return cloudStorage.getFile(path);
     }

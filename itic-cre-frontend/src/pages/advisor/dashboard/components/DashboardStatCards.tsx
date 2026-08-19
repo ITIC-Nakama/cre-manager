@@ -119,15 +119,15 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
                       </div>
                       <div className="space-y-2 text-[11px] leading-relaxed text-slate-200">
                         <p>
-                          <strong className="text-emerald-400 font-semibold">Actif :</strong>{' '}
+                          <strong className="text-emerald-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_active_label')} :</strong>{' '}
                           {t('dashboard.advisor.stats.students_tooltip_active')}
                         </p>
                         <p>
-                          <strong className="text-amber-400 font-semibold">Inactif :</strong>{' '}
+                          <strong className="text-amber-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_inactive_label')} :</strong>{' '}
                           {t('dashboard.advisor.stats.students_tooltip_inactive')}
                         </p>
                         <p>
-                          <strong className="text-purple-400 font-semibold">Supprimé (RGPD) :</strong>{' '}
+                          <strong className="text-purple-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_anonymized_label')} :</strong>{' '}
                           {t('dashboard.advisor.stats.students_tooltip_anonymized')}
                         </p>
                       </div>

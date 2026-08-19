@@ -273,6 +273,11 @@ public class DashboardService {
             row.put("promotion", student.getPromotion() != null
                     ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
                     : null);
+            row.put("advisor", student.getAdvisor() != null
+                    ? Map.of("id", student.getAdvisor().getId(),
+                             "firstName", student.getAdvisor().getFirstName(),
+                             "lastName", student.getAdvisor().getLastName())
+                    : null);
             row.put("studyYear", student.getStudyYear());
             row.put("xpTotal", student.getXpTotal());
             row.put("grade", grade != null

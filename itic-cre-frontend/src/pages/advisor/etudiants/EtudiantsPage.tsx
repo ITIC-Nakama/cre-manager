@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
+import { useAdvisors, useAssignStudentToAdvisor, useRemoveStudentFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
@@ -41,11 +42,14 @@ export default function EtudiantsPage() {
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
     const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
+    const [updatingAdvisorId, setUpdatingAdvisorId] = useState<string | null>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const notifyMutation = useNotifyStudent();
     const deactivateMutation = useDeactivateStudent();
     const reactivateMutation = useReactivateStudent();
+    const assignAdvisorMutation = useAssignStudentToAdvisor();
+    const removeAdvisorMutation = useRemoveStudentFromAdvisor();
     const [includeAnonymized, setIncludeAnonymized] = useState(false);
     const { data: promotions } = usePromotions();
     const currentUser = useUserStore((state) => state.user);
@@ -53,7 +57,42 @@ export default function EtudiantsPage() {
 
     const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
     const { data: cvStatuts = [] } = useCVStatuts();
-    const columns = useStudentColumns();
+    const { data: advisorsPage } = useAdvisors({ size: 1000 });
+
+    const handleAssignAdvisor = async (student: StudentRow, advisorId: string) => {
+        setUpdatingAdvisorId(student.id);
+        try {
+            await assignAdvisorMutation.mutateAsync({ advisorId, studentId: student.id });
+            toast.success(t('dashboard.etudiants.toast_advisor_assigned', 'Conseiller affecté avec succès !'));
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_advisor_assign_error', "Erreur lors de l'affectation du conseiller."));
+        } finally {
+            setUpdatingAdvisorId(null);
+        }
+    };
+
+    const handleRemoveAdvisor = async (student: StudentRow) => {
+        if (!student.advisor) return;
+        setUpdatingAdvisorId(student.id);
+        try {
+            await removeAdvisorMutation.mutateAsync({ advisorId: student.advisor.id, studentId: student.id });
+            toast.success(t('dashboard.etudiants.toast_advisor_removed', 'Conseiller retiré avec succès !'));
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_advisor_remove_error', 'Erreur lors du retrait du conseiller.'));
+        } finally {
+            setUpdatingAdvisorId(null);
+        }
+    };
+
+    const columns = useStudentColumns({
+        isAdmin,
+        advisors: advisorsPage?.content ?? [],
+        updatingAdvisorId,
+        onAssignAdvisor: handleAssignAdvisor,
+        onRemoveAdvisor: handleRemoveAdvisor,
+    });
 
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;

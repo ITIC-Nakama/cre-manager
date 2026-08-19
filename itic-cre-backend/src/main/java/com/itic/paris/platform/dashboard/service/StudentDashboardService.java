@@ -3,7 +3,9 @@ package com.itic.paris.platform.dashboard.service;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.dtos.AdvisorDirectoryDTO;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.service.AdvisorService;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
@@ -43,6 +45,7 @@ public class StudentDashboardService {
     private final GamificationService gamificationService;
     private final GamificationAdminService gamificationAdminService;
     private final AppConfigurationService appConfigurationService;
+    private final AdvisorService advisorService;
 
     @Autowired(required = false)
     private HttpServletRequest request;
@@ -71,8 +74,11 @@ public class StudentDashboardService {
         ApplicationStatsDTO applicationStats = buildApplicationStats(studentId, staleAlertDays);
         List<TaskDTO> tasks = buildTasks(student, applicationStats, cvSummary, staleAlertDays, promotionReminderMonths, lang);
         RankingDTO ranking = buildRanking(student);
+        AdvisorDirectoryDTO advisor = student.getAdvisor() != null
+                ? advisorService.toDirectoryDTO(student.getAdvisor())
+                : null;
 
-        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking);
+        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking, advisor);
     }
 
     private RankingDTO buildRanking(Student student) {

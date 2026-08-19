@@ -23,6 +23,7 @@ import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
 import QuizPage from './pages/student/connaissances/QuizPage'
+import ConseillersPage from './pages/student/conseillers/ConseillersPage'
 import AdvisorDashboard from './pages/advisor/dashboard/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/etudiants/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/candidatures/CandidaturesPage'
@@ -96,6 +97,7 @@ function App() {
           <Route path="/student/candidatures"  element={<CandidaturesListPage />} />
           <Route path="/student/candidatures/:id" element={<CandidatureDetailPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
+          <Route path="/student/conseillers"   element={<ConseillersPage />} />
           <Route path="/student/connaissances"                        element={<SkillTreePage />} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />

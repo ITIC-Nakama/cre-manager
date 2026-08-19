@@ -13,4 +13,7 @@ public class Advisor extends User {
 
     @Column(name = "job_title")
     private String jobTitle;
+
+    @Column(name = "public_profile_picture")
+    private String publicProfilePicture;
 }

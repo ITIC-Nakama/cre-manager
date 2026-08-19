@@ -1,15 +1,36 @@
 import { useMemo } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { AlertCircle, FileText, ShieldAlert } from 'lucide-react';
+import { FileText, Loader2, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
+import type { Advisor } from '../../../../types/models/Advisor';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
+import CustomSelect from '../../../../components/basics/CustomSelect';
 
 const col = createColumnHelper<StudentRow>();
 
-export function useStudentColumns() {
+interface UseStudentColumnsOptions {
+    isAdmin: boolean;
+    advisors: Advisor[];
+    updatingAdvisorId: string | null;
+    onAssignAdvisor: (student: StudentRow, advisorId: string) => void;
+    onRemoveAdvisor: (student: StudentRow) => void;
+}
+
+export function useStudentColumns({
+    isAdmin,
+    advisors,
+    updatingAdvisorId,
+    onAssignAdvisor,
+    onRemoveAdvisor,
+}: UseStudentColumnsOptions) {
     const { t } = useTranslation();
+
+    const advisorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.table.no_advisor', 'Aucun conseiller') },
+        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+    ], [advisors, t]);
 
     return useMemo(() => [
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
@@ -27,7 +48,7 @@ export function useStudentColumns() {
                             {isAnon && (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                     <ShieldAlert className="h-3 w-3" />
-                                    Supprimé (RGPD)
+                                    {t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}
                                 </span>
                             )}
                         </div>
@@ -56,21 +77,40 @@ export function useStudentColumns() {
                     <span className="text-slate-300 dark:text-slate-600">—</span>
                 );
             },
-            enableSorting: false,
+            enableSorting: true,
         }),
-        col.accessor('applicationCount', {
-            header: t('dashboard.etudiants.table.applications'),
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.original.applicationCount}</span>
-                    {row.original.staleApplicationCount > 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
-                            <AlertCircle className="h-3 w-3" />
-                            {t('dashboard.etudiants.table.stale', { count: row.original.staleApplicationCount })}
-                        </span>
-                    )}
-                </div>
-            ),
+        col.accessor((row) => row.advisor ? `${row.advisor.firstName} ${row.advisor.lastName}` : '', {
+            id: 'advisor',
+            header: t('dashboard.etudiants.table.advisor', 'Conseiller'),
+            cell: ({ row }) => {
+                const student = row.original;
+                if (updatingAdvisorId === student.id) {
+                    return <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />;
+                }
+                if (!isAdmin) {
+                    return student.advisor
+                        ? <span className="text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
+                        : <span className="text-slate-300 dark:text-slate-600">—</span>;
+                }
+                return (
+                    <div className="w-44">
+                        <CustomSelect
+                            value={student.advisor?.id ?? ''}
+                            options={advisorOptions}
+                            searchable
+                            onChange={(advisorId) => {
+                                if (advisorId) {
+                                    onAssignAdvisor(student, advisorId);
+                                } else {
+                                    onRemoveAdvisor(student);
+                                }
+                            }}
+                            className="w-full text-xs"
+                        />
+                    </div>
+                );
+            },
+            enableSorting: false,
         }),
         col.accessor('xpTotal', {
             header: t('dashboard.etudiants.table.grade_xp').split(' / ')[0],
@@ -120,19 +160,6 @@ export function useStudentColumns() {
             ),
             enableSorting: false,
         }),
-        col.accessor('lastActivity', {
-            header: t('dashboard.etudiants.table.last_activity'),
-            cell: ({ getValue }) => {
-                const val = getValue();
-                if (!val) return <span className="text-xs text-slate-400">—</span>;
-                const date = new Date(val);
-                return (
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
-                        {date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                );
-            },
-        }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [t]);
+    ], [t, isAdmin, advisorOptions, updatingAdvisorId, onAssignAdvisor, onRemoveAdvisor]);
 }

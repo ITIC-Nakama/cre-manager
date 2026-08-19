@@ -110,6 +110,7 @@
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
       "conseillers": "Relations Entreprises",
+      "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
       "audit": "Journal d'audit",
       "configuration": "Configuration",
@@ -138,6 +139,10 @@
         "general": "général",
         "rank_prefix": "Tu es",
         "rank_suffix": "sur {{total}}"
+      },
+      "advisor": {
+        "title": "Mon conseiller",
+        "empty": "Aucun conseiller n'a encore été affecté."
       },
       "applications": {
         "title": "Candidatures récentes",
@@ -185,9 +190,12 @@
         "students_sub": "{{active}} actifs · {{inactive}} inactifs",
         "students_sub_with_anonymized": "{{active}} actifs · {{inactive}} inactifs (+{{anonymized}} supprimé RGPD)",
         "students_tooltip_title": "Comprendre le calcul",
-        "students_tooltip_active": "Actif : Étudiant connecté ou ayant eu une activité dans les 14 derniers jours.",
-        "students_tooltip_inactive": "Inactif : Étudiant du portefeuille sans activité depuis +14 jours.",
-        "students_tooltip_anonymized": "Supprimé (RGPD) : Compte anonymisé (identité effacée). Ses candidatures restent dans l'activité.",
+        "students_tooltip_active_label": "Actif",
+        "students_tooltip_active": "Étudiant connecté ou ayant eu une activité dans les 14 derniers jours.",
+        "students_tooltip_inactive_label": "Inactif",
+        "students_tooltip_inactive": "Étudiant du portefeuille sans activité depuis +14 jours.",
+        "students_tooltip_anonymized_label": "Supprimé (RGPD)",
+        "students_tooltip_anonymized": "Compte anonymisé (identité effacée). Ses candidatures restent dans l'activité.",
         "students_tooltip_equation": "Total inscrits = Actifs + Inactifs + Supprimés RGPD",
         "applications_label": "Candidatures totales",
         "applications_sub": "+{{count}} cette semaine",
@@ -274,6 +282,9 @@
         "cv": "CV",
         "status": "Statut",
         "actions": "Actions",
+        "advisor": "Conseiller",
+        "no_advisor": "Aucun conseiller",
+        "gdpr_badge": "Supprimé (RGPD)",
         "cv_deposited": "Déposé",
         "cv_none": "Aucun",
         "active": "Actif",
@@ -317,6 +328,10 @@
       "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
       "toast_reactivated": "Compte réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
+      "toast_advisor_assigned": "Conseiller affecté avec succès !",
+      "toast_advisor_assign_error": "Erreur lors de l'affectation du conseiller.",
+      "toast_advisor_removed": "Conseiller retiré avec succès !",
+      "toast_advisor_remove_error": "Erreur lors du retrait du conseiller.",
       "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants.",
       "anonymized_account": "Compte anonymisé RGPD (non réactivable)"
     },
@@ -977,6 +992,11 @@
       "label_phone": "Téléphone",
       "label_job_title": "Fonction",
       "placeholder_job_title": "Ex : Chargé de Relations Entreprises",
+      "label_public_picture": "Photo publique (visible par les étudiants)",
+      "hint_public_picture": "Optionnel — si absente, la photo de compte du conseiller est utilisée à la place.",
+      "btn_change_picture": "Changer la photo",
+      "toast_picture_updated": "Photo mise à jour avec succès !",
+      "toast_picture_error": "Erreur lors de la mise à jour de la photo.",
       "btn_cancel": "Annuler",
       "btn_save": "Enregistrer",
       "btn_create": "Créer",
@@ -1011,6 +1031,12 @@
         "generic": "Une erreur est survenue."
       },
       "subtitle": "Gérez les comptes du personnel (Chargés de Relations Entreprises & Administrateurs)."
+    },
+    "conseillers_directory": {
+      "title": "Conseillers",
+      "subtitle": "Retrouvez l'ensemble des conseillers de la plateforme et leurs coordonnées.",
+      "empty": "Aucun conseiller disponible pour le moment.",
+      "role_badge": "Conseiller"
     },
     "audit_page": {
       "title": "Journal d'audit",

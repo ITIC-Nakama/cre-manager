@@ -110,6 +110,7 @@
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
       "conseillers": "Corporate Relations",
+      "conseillers_directory": "Advisors",
       "promotions": "Cohorts",
       "audit": "Audit Log",
       "configuration": "Configuration",
@@ -138,6 +139,10 @@
         "general": "general",
         "rank_prefix": "You are",
         "rank_suffix": "out of {{total}}"
+      },
+      "advisor": {
+        "title": "My advisor",
+        "empty": "No advisor has been assigned yet."
       },
       "applications": {
         "title": "Recent Applications",
@@ -185,9 +190,12 @@
         "students_sub": "{{active}} active · {{inactive}} inactive",
         "students_sub_with_anonymized": "{{active}} active · {{inactive}} inactive (+{{anonymized}} deleted RGPD)",
         "students_tooltip_title": "Understanding the numbers",
-        "students_tooltip_active": "Active: Student who logged in or acted on the platform in the last 14 days.",
-        "students_tooltip_inactive": "Inactive: Portfolio student with no activity for +14 days.",
-        "students_tooltip_anonymized": "Deleted (RGPD): Anonymized account (identity erased). Past applications remain in activity stats.",
+        "students_tooltip_active_label": "Active",
+        "students_tooltip_active": "Student who logged in or acted on the platform in the last 14 days.",
+        "students_tooltip_inactive_label": "Inactive",
+        "students_tooltip_inactive": "Portfolio student with no activity for +14 days.",
+        "students_tooltip_anonymized_label": "Deleted (GDPR)",
+        "students_tooltip_anonymized": "Anonymized account (identity erased). Past applications remain in activity stats.",
         "students_tooltip_equation": "Total enrolled = Active + Inactive + Deleted RGPD",
         "applications_label": "Total applications",
         "applications_sub": "+{{count}} this week",
@@ -274,6 +282,9 @@
         "cv": "CV",
         "status": "Status",
         "actions": "Actions",
+        "advisor": "Advisor",
+        "no_advisor": "No advisor",
+        "gdpr_badge": "Deleted (GDPR)",
         "cv_deposited": "Uploaded",
         "cv_none": "None",
         "active": "Active",
@@ -317,6 +328,10 @@
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
       "toast_reactivate_error": "Error reactivating account.",
+      "toast_advisor_assigned": "Advisor assigned successfully!",
+      "toast_advisor_assign_error": "Error assigning advisor.",
+      "toast_advisor_removed": "Advisor removed successfully!",
+      "toast_advisor_remove_error": "Error removing advisor.",
       "subtitle": "Manage and track student progress.",
       "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
     },
@@ -977,6 +992,11 @@
       "label_phone": "Phone",
       "label_job_title": "Position",
       "placeholder_job_title": "Ex: Corporate Relations Officer",
+      "label_public_picture": "Public picture (visible to students)",
+      "hint_public_picture": "Optional — if absent, the advisor's account picture is used instead.",
+      "btn_change_picture": "Change picture",
+      "toast_picture_updated": "Picture updated successfully!",
+      "toast_picture_error": "Error updating picture.",
       "btn_cancel": "Cancel",
       "btn_save": "Save",
       "btn_create": "Create",
@@ -1011,6 +1031,12 @@
         "generic": "An error occurred."
       },
       "subtitle": "Manage staff accounts (Corporate Relations Officers & Administrators)."
+    },
+    "conseillers_directory": {
+      "title": "Advisors",
+      "subtitle": "Find all advisors on the platform and their contact details.",
+      "empty": "No advisor available at the moment.",
+      "role_badge": "Advisor"
     },
     "audit_page": {
       "title": "Audit Log",

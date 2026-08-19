@@ -1,5 +1,6 @@
 import { useUserStore } from '../../../store/UserStore';
 import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
+import MyAdvisorCard from './components/MyAdvisorCard';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
@@ -76,14 +77,17 @@ export default function StudentDashboard() {
   return (
     <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Welcome header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-          <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
-          {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue',firstName)}
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
-          {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
+            {renderTitleWithGradient(t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', { name: firstName }), 'itic-gradient-blue',firstName)}
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
+            {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}
+          </p>
+        </div>
+        <MyAdvisorCard advisor={data?.advisor ?? null} />
       </div>
 
       {/* Alert CV to correct */}
