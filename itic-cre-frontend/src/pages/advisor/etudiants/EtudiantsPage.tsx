@@ -172,8 +172,11 @@ export default function EtudiantsPage() {
 
     const bulkAdvisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
-        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
-    ], [advisors, t]);
+        ...advisors.map((a) => ({
+            value: a.id,
+            label: a.id === currentUserId ? t('common.me_option', 'Moi') : formatStaffLabel(a, t('common.admin_tag', '(Admin)')),
+        })),
+    ], [advisors, t, currentUserId]);
 
     const clearSelection = () => setRowSelection({});
 
