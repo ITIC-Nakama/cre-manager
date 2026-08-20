@@ -8,6 +8,7 @@ import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.dtos.AdvisorDirectoryDTO;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -54,8 +55,7 @@ public class AdvisorService {
         if (studentIds == null || studentIds.isEmpty()) {
             return;
         }
-        Advisor advisor = advisorRepository.findById(advisorId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+        User advisor = resolveAssignmentTarget(advisorId);
 
         List<String> assignedLabels = new ArrayList<>();
         for (UUID studentId : studentIds) {
@@ -68,7 +68,18 @@ public class AdvisorService {
                         + " : " + joinLabels(assignedLabels)));
     }
 
-    private String assignOne(Advisor advisor, UUID studentId) {
+    /** Un ADVISOR ou un ADMIN peut etre affecte comme conseiller referent — les deux roles sont symetriques ici. */
+    private User resolveAssignmentTarget(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+        RoleEnum role = user.getRole() != null ? user.getRole().getName() : null;
+        if (role != RoleEnum.ADVISOR && role != RoleEnum.ADMIN) {
+            throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND);
+        }
+        return user;
+    }
+
+    private String assignOne(User advisor, UUID studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
 
@@ -127,7 +138,8 @@ public class AdvisorService {
                 .toList();
     }
 
-    public AdvisorDirectoryDTO toDirectoryDTO(Advisor advisor) {
+    /** User plutot que Advisor : le "conseiller referent" d'un etudiant peut aussi etre un ADMIN. */
+    public AdvisorDirectoryDTO toDirectoryDTO(User advisor) {
         return new AdvisorDirectoryDTO(
                 advisor.getId(),
                 advisor.getFirstName(),
@@ -137,10 +149,9 @@ public class AdvisorService {
                 effectivePicture(advisor));
     }
 
-    public String effectivePicture(Advisor advisor) {
-        String path = advisor.getPublicProfilePicture() != null
-                ? advisor.getPublicProfilePicture()
-                : advisor.getProfilePicture();
+    public String effectivePicture(User advisor) {
+        String publicPicture = advisor instanceof Advisor a ? a.getPublicProfilePicture() : null;
+        String path = publicPicture != null ? publicPicture : advisor.getProfilePicture();
         return path != null ? cloudStorage.getFile(path) : null;
     }
 

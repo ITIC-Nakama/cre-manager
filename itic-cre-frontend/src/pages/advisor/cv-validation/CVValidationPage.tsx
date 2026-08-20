@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAllCVs, useCVStatuts, useCVStats } from '../../../hooks/useCV';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
+import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
@@ -90,7 +91,7 @@ export default function CVValidationPage() {
 
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t]);
 
     const columns = useMemo(() => [

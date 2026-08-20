@@ -1,4 +1,5 @@
-import { Plus, FileText, Briefcase, AlertCircle, LayoutDashboard } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, FileText, Briefcase, AlertCircle, LayoutDashboard, Globe, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,10 +20,15 @@ export default function AdvisorDashboard() {
   const isAdmin = user?.role === Role.ADMIN;
   const firstName = user?.firstName || t('dashboard.advisor.role_advisor');
 
-  const { data: overview, isLoading: loadingOverview } = useDashboardOverview();
+  // Un admin peut basculer entre la vue globale (tous les portefeuilles) et son propre
+  // portefeuille, au même titre qu'un conseiller — un conseiller n'a pas ce choix.
+  const [viewMode, setViewMode] = useState<'global' | 'mine'>('global');
+  const scopeAdvisorId = isAdmin && viewMode === 'mine' && user?.id != null ? String(user.id) : undefined;
+
+  const { data: overview, isLoading: loadingOverview } = useDashboardOverview(scopeAdvisorId);
   // Top 5 des étudiants nécessitant une action — filtré, trié et limité côté backend
-  // (scopé au portefeuille pour un conseiller, vue globale pour un admin).
-  const { data: students = [], isLoading: loadingStudents } = useStudentsNeedingAttention();
+  // (scopé au portefeuille pour un conseiller, vue globale ou scopée pour un admin selon le toggle).
+  const { data: students = [], isLoading: loadingStudents } = useStudentsNeedingAttention(scopeAdvisorId);
   const notifyMutation = useNotifyStudent();
 
   const handleNotifyStudent = async (student: StudentRow, customMessage?: string) => {
@@ -53,6 +59,32 @@ export default function AdvisorDashboard() {
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
             {isAdmin ? t('dashboard.advisor.subtitle') : t('dashboard.advisor.subtitle_advisor')}
           </p>
+          {isAdmin && (
+            <div className="inline-flex items-center p-0.5 mt-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+              <button
+                onClick={() => setViewMode('global')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  viewMode === 'global'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <Globe className="h-3 w-3" />
+                {t('dashboard.advisor.view_toggle.global', 'Vue globale')}
+              </button>
+              <button
+                onClick={() => setViewMode('mine')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  viewMode === 'mine'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <UserIcon className="h-3 w-3" />
+                {t('dashboard.advisor.view_toggle.mine', 'Mon portefeuille')}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -74,7 +106,7 @@ export default function AdvisorDashboard() {
       </div>
 
       {/* Overview Stat Cards */}
-      <DashboardStatCards overview={overview} loading={loadingOverview} isAdmin={isAdmin} />
+      <DashboardStatCards overview={overview} loading={loadingOverview} isAdmin={isAdmin && !scopeAdvisorId} />
 
       {/* Main Grid: Status Distribution & Stale Alert Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

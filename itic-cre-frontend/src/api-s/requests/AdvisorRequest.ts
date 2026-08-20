@@ -22,9 +22,13 @@ export function fetchAdmins(params: AdvisorListParams = {}): Promise<AdvisorPage
   return apiClient.get('/advisors', { params: { ...params, role: 'ADMIN' } }).then((r) => unwrap<AdvisorPage>(r));
 }
 
-/** Tous les conseillers actifs, sans pagination — pour alimenter les listes déroulantes (filtre "par conseiller"). */
+/**
+ * Tout le staff (conseillers ET admins), sans pagination — pour alimenter les listes déroulantes
+ * (filtre/affectation "par conseiller"). Un admin peut être affecté comme conseiller référent au
+ * même titre qu'un conseiller — pas de filtre de rôle ici.
+ */
 export function fetchAllAdvisors(): Promise<Advisor[]> {
-  return apiClient.get('/advisors/all', { params: { role: 'ADVISOR' } }).then((r) => unwrap<Advisor[]>(r));
+  return apiClient.get('/advisors/all').then((r) => unwrap<Advisor[]>(r));
 }
 
 export function createAdvisor(data: CreateAdvisorData): Promise<Advisor> {

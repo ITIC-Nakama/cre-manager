@@ -12,6 +12,7 @@ import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromoti
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
+import { formatStaffLabel } from '../../../utils/staffUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../../components/shared/StudentDetailModal';
@@ -106,7 +107,7 @@ export default function EtudiantsPage() {
 
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t]);
 
     const { data: systemYears } = useAvailableStudyYears();
@@ -167,7 +168,7 @@ export default function EtudiantsPage() {
 
     const bulkAdvisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t]);
 
     const clearSelection = () => setRowSelection({});

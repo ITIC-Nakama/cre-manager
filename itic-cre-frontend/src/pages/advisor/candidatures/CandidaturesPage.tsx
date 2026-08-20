@@ -12,6 +12,7 @@ import { usePromotions } from '../../../hooks/usePromotions';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { exportApplicationsCsv } from '../../../api-s/requests/DashboardRequest';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
+import { formatStaffLabel } from '../../../utils/staffUtils';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
@@ -93,7 +94,7 @@ export default function CandidaturesPage() {
 
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t]);
 
     const { data, isLoading, isFetching } = useApplicationGroupedList({
