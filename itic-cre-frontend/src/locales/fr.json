@@ -486,6 +486,7 @@
       "search_placeholder": "Rechercher (intitulé, entreprise)…",
       "filter_all_contracts": "Tous les types de contrat",
       "filter_all_sectors": "Tous les secteurs",
+      "filter_all_statuses": "Toutes les offres",
       "categories_button": "Secteurs & contrats",
       "categories": {
         "page_title": "Secteurs & types de contrat",
@@ -599,6 +600,7 @@
         "deactivated": "Offre désactivée.",
         "activated": "Offre réactivée.",
         "deleted": "Offre supprimée.",
+        "has_applications": "Impossible de supprimer : des candidatures sont liées à cette offre. Désactivez-la plutôt.",
         "action_error": "Une erreur est survenue.",
         "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",

@@ -80,6 +80,7 @@ public enum MessageKey {
     JOB_OFFER_UPDATED("job-offer-updated", "Offre d'emploi mise à jour avec succès", "Job offer updated successfully"),
     JOB_OFFER_DEACTIVATED("job-offer-deactivated", "Offre d'emploi désactivée", "Job offer deactivated"),
     JOB_OFFER_DELETED("job-offer-deleted", "Offre d'emploi supprimée", "Job offer deleted"),
+    JOB_OFFER_HAS_APPLICATIONS("job-offer-has-applications", "Impossible de supprimer : des candidatures sont liées à cette offre. Désactivez-la plutôt.", "Cannot delete: applications are linked to this offer. Deactivate it instead."),
     CONTRACT_TYPE_CREATED("contract-type-created", "Type de contrat créé avec succès", "Contract type created successfully"),
     CONTRACT_TYPE_LABEL_ALREADY_EXISTS("contract-type-label-already-exists", "Un type de contrat avec ce label existe déjà", "A contract type with this label already exists"),
     SECTOR_LABEL_ALREADY_EXISTS("sector-label-already-exists", "Un secteur avec ce label existe déjà", "A sector with this label already exists"),

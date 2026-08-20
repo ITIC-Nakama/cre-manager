@@ -128,4 +128,41 @@ class JobOfferSpecificationIntegrationTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getCompany()).isEqualTo("Capgemini");
     }
+
+    @Test
+    @DisplayName("Should filter to only active offers when active=true")
+    void testWithSearchAndFiltersActiveTrue() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndFilters(null, null, null, true),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent())
+                .extracting(JobOffer::getCompany)
+                .containsExactlyInAnyOrder("BNP Paribas", "Capgemini");
+    }
+
+    @Test
+    @DisplayName("Should filter to only inactive offers when active=false")
+    void testWithSearchAndFiltersActiveFalse() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndFilters(null, null, null, false),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCompany()).isEqualTo("Société Générale");
+    }
+
+    @Test
+    @DisplayName("Should return all offers regardless of active state when active param is null")
+    void testWithSearchAndFiltersActiveNullReturnsAll() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.withSearchAndFilters(null, null, null, null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(3);
+    }
 }

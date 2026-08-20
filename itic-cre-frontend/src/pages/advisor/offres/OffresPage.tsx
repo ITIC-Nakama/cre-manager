@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags, SlidersHorizontal,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -45,6 +45,8 @@ export default function OffresPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
     const [sectorFilter, setSectorFilter] = useState('');
+    // Actives par defaut — evite d'afficher d'emblee les offres desactivees accumulees.
+    const [activeFilter, setActiveFilter] = useState('true');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
@@ -66,6 +68,7 @@ export default function OffresPage() {
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
         sectorId: sectorFilter || undefined,
+        active: activeFilter === '' ? undefined : activeFilter === 'true',
     };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
     const offers = data?.content ?? [];
@@ -83,6 +86,12 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_sectors', 'Tous les secteurs') },
         ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
     ], [sectors, t]);
+
+    const activeFilterOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
+        { value: 'true', label: t('dashboard.offres.table.active', 'Active') },
+        { value: 'false', label: t('dashboard.offres.table.inactive', 'Inactive') },
+    ], [t]);
 
     const createMutation = useCreateJobOffer();
     const updateMutation = useUpdateJobOffer();
@@ -131,6 +140,11 @@ export default function OffresPage() {
         setPage(0);
     };
 
+    const handleActiveFilterChange = (value: string) => {
+        setActiveFilter(value);
+        setPage(0);
+    };
+
     const handleSave = async (payload: JobOfferPayload) => {
         if (editingOffer) {
             await updateMutation.mutateAsync({ id: editingOffer.id, payload });
@@ -163,8 +177,12 @@ export default function OffresPage() {
                 try {
                     await deleteMutation.mutateAsync(offer.id);
                     toast.success(t('dashboard.offres.toast.deleted'));
-                } catch {
-                    toast.error(t('dashboard.offres.toast.action_error'));
+                } catch (err: any) {
+                    if (err.response?.data?.messageKey === 'job-offer-has-applications') {
+                        toast.error(t('dashboard.offres.toast.has_applications'));
+                    } else {
+                        toast.error(t('dashboard.offres.toast.action_error'));
+                    }
                 }
             }
         );
@@ -301,6 +319,13 @@ export default function OffresPage() {
                     options={sectorOptions}
                     onChange={handleSectorChange}
                     icon={<Layers className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={activeFilter}
+                    options={activeFilterOptions}
+                    onChange={handleActiveFilterChange}
+                    icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
                 {isFetching && !isLoading && (

@@ -9,14 +9,23 @@ import com.itic.paris.platform.auth.repository.AdvisorRepository;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.model.ApplicationStatus;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
+import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.Sector;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
+import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import com.itic.paris.platform.jobboard.repository.SectorRepository;
 import com.itic.paris.platform.jobboard.service.JobApplicationService;
 import com.itic.paris.platform.jobboard.service.JobOfferService;
+import com.itic.paris.platform.shared.local.MessageKey;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +67,18 @@ public class JobOfferIntegrationTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private JobOfferRepository jobOfferRepository;
+
+    @Autowired
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApplicationStatusRepository applicationStatusRepository;
 
     private Advisor advisor;
     private Student student;
@@ -237,5 +258,73 @@ public class JobOfferIntegrationTest {
 
         assertThatThrownBy(() -> jobOfferService.create(request))
                 .isInstanceOf(AppException.class);
+    }
+
+    @Test
+    public void testDeleteJobOfferWithoutApplicationsSucceeds() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur sans candidature");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre jamais candidatee");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO created = jobOfferService.create(request);
+
+        jobOfferService.delete(created.getId());
+
+        assertThat(jobOfferRepository.findById(created.getId())).isEmpty();
+    }
+
+    @Test
+    public void testDeleteJobOfferCascadesJobboardApplicationClicks() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur avec clic postuler");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre avec un clic jobboard mais aucune candidature CRM");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO offer = jobOfferService.create(request);
+
+        // Cree directement la ligne "clic postuler" via le repository (pas via
+        // JobApplicationService.apply(), qui cree systematiquement AUSSI une candidature CRM
+        // via createFromJobboard — on isole ici le cas ou seule la trace jobboard existe).
+        JobApplication jobClick = new JobApplication();
+        jobClick.setJobOffer(jobOfferRepository.findById(offer.getId()).orElseThrow());
+        jobClick.setStudent(student);
+        jobApplicationRepository.save(jobClick);
+        assertThat(jobApplicationRepository.countByJobOfferId(offer.getId())).isEqualTo(1);
+
+        jobOfferService.delete(offer.getId());
+
+        assertThat(jobOfferRepository.findById(offer.getId())).isEmpty();
+        assertThat(jobApplicationRepository.countByJobOfferId(offer.getId())).isZero();
+    }
+
+    @Test
+    public void testDeleteJobOfferWithCrmApplicationThrowsAndKeepsOffer() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur avec candidature CRM");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre reliee a une vraie candidature CRM suivie");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO offer = jobOfferService.create(request);
+
+        ApplicationStatus status = applicationStatusRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("Aucun statut de candidature seede"));
+
+        Application application = new Application();
+        application.setStudent(student);
+        application.setEntreprise("ITIC Tech");
+        application.setPoste("Développeur avec candidature CRM");
+        application.setStatus(status);
+        application.setDateCreation(Instant.now());
+        application.setDateModification(Instant.now());
+        application.setSourceJobOffer(jobOfferRepository.findById(offer.getId()).orElseThrow());
+        applicationRepository.save(application);
+
+        assertThatThrownBy(() -> jobOfferService.delete(offer.getId()))
+                .isInstanceOf(AppException.class)
+                .satisfies(ex -> assertThat(((AppException) ex).getMessageKey())
+                        .isEqualTo(MessageKey.JOB_OFFER_HAS_APPLICATIONS));
+
+        assertThat(jobOfferRepository.findById(offer.getId())).isPresent();
     }
 }

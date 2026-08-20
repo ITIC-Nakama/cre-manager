@@ -58,13 +58,14 @@ public class JobOfferController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId")
+    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId/active")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
             @RequestParam(required = false) UUID sectorId,
+            @RequestParam(required = false) Boolean active,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, active, pageable));
     }
 
     @GetMapping("/search/company")

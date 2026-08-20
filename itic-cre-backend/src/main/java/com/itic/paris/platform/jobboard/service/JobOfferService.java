@@ -2,6 +2,7 @@ package com.itic.paris.platform.jobboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.itic.paris.platform.jobboard.specification.JobOfferSpecification ;
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ public class JobOfferService {
     private final ContractTypeRepository contractTypeRepository;
     private final SectorRepository sectorRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
@@ -131,13 +134,28 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, sectorId, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, Boolean active, Pageable pageable) {
         Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndFilters(search, contractTypeId, sectorId), pageable);
+                JobOfferSpecification.withSearchAndFilters(search, contractTypeId, sectorId, active), pageable);
         return page.map(this::mapToDTO);
     }
 
+    @Transactional
     public void delete(UUID id) {
-        jobOfferRepository.deleteById(id);
+        JobOffer jobOffer = jobOfferRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
+
+        if (applicationRepository.countBySourceJobOfferId(id) > 0) {
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.JOB_OFFER_HAS_APPLICATIONS);
+        }
+
+        // Les clics "postuler" du jobboard n'ont pas de valeur de suivi (pas de notes/statut/XP,
+        // contrairement a la candidature CRM verifiee ci-dessus) — on peut les supprimer avec l'offre.
+        jobApplicationRepository.deleteByJobOfferId(id);
+        jobOfferRepository.delete(jobOffer);
     }
 
     private JobOfferDTO mapToDTO(JobOffer jobOffer) {

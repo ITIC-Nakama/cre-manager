@@ -57,6 +57,7 @@ export interface JobOfferListParams {
     search?: string;
     contractTypeId?: string;
     sectorId?: string;
+    active?: boolean;
 }
 
 export interface JobOfferPayload {

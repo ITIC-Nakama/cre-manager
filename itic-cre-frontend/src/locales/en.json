@@ -486,6 +486,7 @@
       "search_placeholder": "Search (title, company)…",
       "filter_all_contracts": "All contract types",
       "filter_all_sectors": "All sectors",
+      "filter_all_statuses": "All offers",
       "categories_button": "Sectors & contracts",
       "categories": {
         "page_title": "Sectors & contract types",
@@ -599,6 +600,7 @@
         "deactivated": "Offer deactivated.",
         "activated": "Offer reactivated.",
         "deleted": "Offer deleted.",
+        "has_applications": "Cannot delete: applications are linked to this offer. Deactivate it instead.",
         "action_error": "Something went wrong.",
         "applied": "Application sent! It has been added to your tracker.",
         "already_applied": "You already applied to this offer.",
