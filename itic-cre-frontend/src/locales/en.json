@@ -293,10 +293,7 @@
         "inactive": "Inactive",
         "account_disabled": "Account disabled",
         "empty": "No students match your criteria.",
-        "last_activity": "Last active",
-        "stale_one": "{{count}} late",
-        "stale_other": "{{count}} late",
-        "stale": "Follow-up required"
+        "last_activity": "Last active"
       },
       "detail": {
         "total_applications": "Total applications",
@@ -309,8 +306,7 @@
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} student",
-        "info_other": "Page {{current}} of {{total}} — {{count}} students",
-        "info": "Showing {{from}} to {{to}} of {{total}} students"
+        "info_other": "Page {{current}} of {{total}} — {{count}} students"
       },
       "actions": {
         "view": "View profile",
@@ -383,10 +379,6 @@
         "last_update": "Last update",
         "empty": "No applications match your criteria."
       },
-      "pagination": {
-        "info_one": "Page {{current}} of {{total}} — {{count}} application",
-        "info_other": "Page {{current}} of {{total}} — {{count}} applications"
-      },
       "detail": {
         "student": "Student",
         "contract": "Contract type",
@@ -420,9 +412,7 @@
           "stale_days_one": "{{count}} day with no update",
           "stale_days_other": "{{count}} days with no update",
           "next_step_button": "Next step",
-          "next_step_xp": "+{{xp}} XP",
-          "stale_days": "Pending for {{days}}d",
-          "days_ago": "{{days}} days ago"
+          "next_step_xp": "+{{xp}} XP"
         },
         "form": {
           "create_title": "Add an application",
@@ -476,9 +466,7 @@
           "xp_preview": "+{{xp}} XP"
         },
         "subtitle": "Track your applications and job opportunities."
-      },
-      "student_count": "{{count}} students",
-      "pagination_info": "Page {{current}} of {{total}}"
+      }
     },
     "cv_validation": {
       "title": "CV Validation"
@@ -566,8 +554,7 @@
         "info_one": "Page {{current}} of {{total}} — {{count}} offer",
         "info_other": "Page {{current}} of {{total}} — {{count}} offers",
         "prev": "Previous",
-        "next": "Next",
-        "info": "Showing {{from}} to {{to}} of {{total}} offers"
+        "next": "Next"
       },
       "form": {
         "create_title": "Publish an offer",
@@ -790,7 +777,8 @@
       "no_articles_short": "No articles",
       "toast_title_too_long": "Title must not exceed 200 characters.",
       "pagination": {
-        "info": "Showing {{from}} to {{to}} of {{total}} articles",
+        "info_one": "Page {{current}} of {{total}} — {{count}} article",
+        "info_other": "Page {{current}} of {{total}} — {{count}} articles",
         "prev": "Previous",
         "next": "Next"
       },
@@ -1043,8 +1031,7 @@
         "admin_cannot_be_deleted": "An administrator account cannot be physically deleted.",
         "admin_password_reset_forbidden": "Resetting another administrator's password is forbidden.",
         "generic": "An error occurred."
-      },
-      "subtitle": "Manage staff accounts (Corporate Relations Officers & Administrators)."
+      }
     },
     "conseillers_directory": {
       "title": "Advisors",

@@ -293,10 +293,7 @@
         "inactive": "Inactif",
         "account_disabled": "Compte désactivé",
         "empty": "Aucun étudiant ne correspond à vos critères.",
-        "last_activity": "Dernière connexion",
-        "stale_one": "{{count}} en retard",
-        "stale_other": "{{count}} en retard",
-        "stale": "Relance nécessaire"
+        "last_activity": "Dernière connexion"
       },
       "detail": {
         "total_applications": "Total candidatures",
@@ -309,8 +306,7 @@
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants",
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} étudiants"
+        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants"
       },
       "actions": {
         "view": "Consulter le dossier",
@@ -383,10 +379,6 @@
         "last_update": "Dernière mise à jour",
         "empty": "Aucune candidature ne correspond à vos critères."
       },
-      "pagination": {
-        "info_one": "Page {{current}} sur {{total}} — {{count}} candidature",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} candidatures"
-      },
       "detail": {
         "student": "Étudiant",
         "contract": "Type de contrat",
@@ -420,9 +412,7 @@
           "stale_days_one": "{{count}} jour sans nouvelle",
           "stale_days_other": "{{count}} jours sans nouvelle",
           "next_step_button": "Étape suivante",
-          "next_step_xp": "+{{xp}} XP",
-          "stale_days": "En attente depuis {{days}}j",
-          "days_ago": "Il y a {{days}} jours"
+          "next_step_xp": "+{{xp}} XP"
         },
         "form": {
           "create_title": "Ajouter une candidature",
@@ -476,9 +466,7 @@
           "xp_preview": "+{{xp}} XP"
         },
         "subtitle": "Suivez l'évolution de vos candidatures et opportunités de stage ou d'alternance."
-      },
-      "student_count": "{{count}} étudiants",
-      "pagination_info": "Page {{current}} sur {{total}}"
+      }
     },
     "cv_validation": {
       "title": "Validation des CVs"
@@ -566,8 +554,7 @@
         "info_one": "Page {{current}} sur {{total}} — {{count}} offre",
         "info_other": "Page {{current}} sur {{total}} — {{count}} offres",
         "prev": "Précédent",
-        "next": "Suivant",
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} offres"
+        "next": "Suivant"
       },
       "form": {
         "create_title": "Publier une offre",
@@ -790,7 +777,8 @@
       "no_articles_short": "Aucun article",
       "toast_title_too_long": "Le titre ne doit pas dépasser 200 caractères.",
       "pagination": {
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} articles",
+        "info_one": "Page {{current}} sur {{total}} — {{count}} article",
+        "info_other": "Page {{current}} sur {{total}} — {{count}} articles",
         "prev": "Précédent",
         "next": "Suivant"
       },
@@ -1043,8 +1031,7 @@
         "admin_cannot_be_deleted": "Un administrateur ne peut pas être supprimé physiquement.",
         "admin_password_reset_forbidden": "La réinitialisation du mot de passe d'un administrateur par un tiers est interdite.",
         "generic": "Une erreur est survenue."
-      },
-      "subtitle": "Gérez les comptes du personnel (Chargés de Relations Entreprises & Administrateurs)."
+      }
     },
     "conseillers_directory": {
       "title": "Conseillers",
