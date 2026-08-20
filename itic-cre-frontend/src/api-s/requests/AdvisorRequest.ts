@@ -44,14 +44,6 @@ export function reactivateAdvisor(id: string): Promise<Advisor> {
   return apiClient.patch(`/auth/users/${id}/reactivate`).then((r) => unwrap<Advisor>(r));
 }
 
-export function assignStudentToAdvisor(advisorId: string, studentId: string): Promise<void> {
-  return apiClient.put(`/advisors/${advisorId}/students/${studentId}`).then(() => undefined);
-}
-
-export function removeStudentFromAdvisor(advisorId: string, studentId: string): Promise<void> {
-  return apiClient.delete(`/advisors/${advisorId}/students/${studentId}`).then(() => undefined);
-}
-
 export function assignStudentsToAdvisor(advisorId: string, studentIds: string[]): Promise<void> {
   return apiClient.put(`/advisors/${advisorId}/students`, { studentIds }).then(() => undefined);
 }

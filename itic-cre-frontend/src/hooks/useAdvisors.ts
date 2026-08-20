@@ -7,8 +7,6 @@ import {
   deleteAdvisor,
   deactivateUser,
   reactivateAdvisor,
-  assignStudentToAdvisor,
-  removeStudentFromAdvisor,
   assignStudentsToAdvisor,
   removeStudentsFromAdvisor,
   fetchAdvisorDirectory,
@@ -81,28 +79,6 @@ export function useReactivateAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
-    },
-  });
-}
-
-export function useAssignStudentToAdvisor() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ advisorId, studentId }: { advisorId: string; studentId: string }) =>
-      assignStudentToAdvisor(advisorId, studentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
-    },
-  });
-}
-
-export function useRemoveStudentFromAdvisor() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ advisorId, studentId }: { advisorId: string; studentId: string }) =>
-      removeStudentFromAdvisor(advisorId, studentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
     },
   });
 }

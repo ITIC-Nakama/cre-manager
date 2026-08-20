@@ -10,7 +10,9 @@ import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
-import com.itic.paris.platform.dashboard.service.DashboardService;
+import com.itic.paris.platform.dashboard.service.ApplicationReportingService;
+import com.itic.paris.platform.dashboard.service.DashboardOverviewService;
+import com.itic.paris.platform.dashboard.service.StudentReportingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DashboardServiceIntegrationTest {
 
     @Autowired
-    private DashboardService dashboardService;
+    private DashboardOverviewService dashboardOverviewService;
+
+    @Autowired
+    private StudentReportingService studentReportingService;
+
+    @Autowired
+    private ApplicationReportingService applicationReportingService;
 
     @Autowired
     private StudentRepository studentRepository;
@@ -97,7 +105,7 @@ public class DashboardServiceIntegrationTest {
     @Test
     public void testGetApplicationListFilterActiveStudentsOnly() {
         // When activeStudentsOnly = true
-        Page<Map<String, Object>> activeOnlyPage = dashboardService.getApplicationList(
+        Page<Map<String, Object>> activeOnlyPage = applicationReportingService.getApplicationList(
                 null, null, null, null, null, true, PageRequest.of(0, 50)
         );
 
@@ -106,7 +114,7 @@ public class DashboardServiceIntegrationTest {
         assertThat(activeOnlyPage.getContent().get(0).get("id")).isEqualTo(activeApp.getId());
 
         // When activeStudentsOnly = false (ou null)
-        Page<Map<String, Object>> allPage = dashboardService.getApplicationList(
+        Page<Map<String, Object>> allPage = applicationReportingService.getApplicationList(
                 null, null, null, null, null, false, PageRequest.of(0, 50)
         );
 
@@ -134,7 +142,7 @@ public class DashboardServiceIntegrationTest {
         activeStudent.setLastActivity(Instant.now());
         studentRepository.save(activeStudent);
 
-        Map<String, Object> overview = dashboardService.getOverview(null);
+        Map<String, Object> overview = dashboardOverviewService.getOverview(null);
 
         long totalStudents = ((Number) overview.get("totalStudents")).longValue();
         long nonAnonymized = ((Number) overview.get("nonAnonymizedStudents")).longValue();
@@ -163,7 +171,7 @@ public class DashboardServiceIntegrationTest {
         anonymizedStudent.setRole(studentRole);
         studentRepository.save(anonymizedStudent);
 
-        Page<Map<String, Object>> result = dashboardService.getStudentList(
+        Page<Map<String, Object>> result = studentReportingService.getStudentList(
                 StudentFilterCriteria.builder().includeAnonymized(false).build(),
                 org.springframework.data.domain.Pageable.unpaged()
         );
