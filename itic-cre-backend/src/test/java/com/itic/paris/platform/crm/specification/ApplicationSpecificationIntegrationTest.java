@@ -86,7 +86,7 @@ class ApplicationSpecificationIntegrationTest {
     @DisplayName("Should filter applications by enterprise search query")
     void testFilterByEnterprise() {
         Page<Application> result = applicationRepository.findAll(
-                ApplicationSpecification.withFilters(null, null, null, "Google", null, null, null),
+                ApplicationSpecification.withFilters(null, null, null, "Google", null, null, null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -98,7 +98,7 @@ class ApplicationSpecificationIntegrationTest {
     @DisplayName("Should filter applications by status ID")
     void testFilterByStatus() {
         Page<Application> result = applicationRepository.findAll(
-                ApplicationSpecification.withFilters(null, status.getId(), null, null, null, null, null),
+                ApplicationSpecification.withFilters(null, status.getId(), null, null, null, null, null, null),
                 PageRequest.of(0, 10)
         );
 

@@ -38,6 +38,7 @@ export interface CVListParams {
     size?: number;
     statutId?: string;
     search?: string;
+    advisorId?: string;
 }
 
 export interface CVStatCount {

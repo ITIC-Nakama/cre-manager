@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
-import { useAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
+import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
@@ -65,7 +65,7 @@ export default function EtudiantsPage() {
 
     const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
     const { data: cvStatuts = [] } = useCVStatuts();
-    const { data: advisorsPage } = useAdvisors({ size: 1000 });
+    const { data: advisors = [] } = useAllAdvisors();
 
     const columns = useStudentColumns({ isAdmin });
 
@@ -106,8 +106,8 @@ export default function EtudiantsPage() {
 
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...(advisorsPage?.content ?? []).map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
-    ], [advisorsPage, t]);
+        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+    ], [advisors, t]);
 
     const { data: systemYears } = useAvailableStudyYears();
 
@@ -167,8 +167,8 @@ export default function EtudiantsPage() {
 
     const bulkAdvisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
-        ...(advisorsPage?.content ?? []).map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
-    ], [advisorsPage, t]);
+        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
+    ], [advisors, t]);
 
     const clearSelection = () => setRowSelection({});
 

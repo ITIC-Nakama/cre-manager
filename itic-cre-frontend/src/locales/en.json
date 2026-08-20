@@ -223,16 +223,13 @@
       },
       "students_widget": {
         "title": "Students to follow",
-        "subtitle_one": "{{count}} student · top 5 priority",
-        "subtitle_other": "{{count}} students · top 5 priority",
+        "subtitle_one": "{{count}} student needs attention",
+        "subtitle_other": "{{count}} students need attention",
         "see_all": "See all",
-        "empty": "No students registered.",
         "no_alerts": "All students are up to date — no active alerts.",
         "stale_badge_one": "{{count}} late",
         "stale_badge_other": "{{count}} late",
         "no_cv": "No CV",
-        "ok": "✓ OK",
-        "subtitle": "Students list and follow-up status",
         "stale_badge": "Follow-up required"
       },
       "audit": {

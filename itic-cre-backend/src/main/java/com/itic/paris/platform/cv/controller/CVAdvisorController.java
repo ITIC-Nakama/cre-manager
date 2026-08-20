@@ -31,18 +31,19 @@ public class CVAdvisorController {
     private final CVService cvService;
 
     @GetMapping
-    @Operation(summary = "Lister tous les CVs paginés (filtre par statutId et recherche optionnels)")
+    @Operation(summary = "Lister tous les CVs paginés (filtres statutId/recherche/advisorId optionnels)")
     public ResponseEntity<?> listAll(
             @RequestParam(required = false) UUID statutId,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID advisorId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, pageable));
+        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, advisorId, pageable));
     }
 
     @GetMapping("/stats")
-    @Operation(summary = "Obtenir les statistiques des CVs par statut")
-    public ResponseEntity<?> getStats() {
-        return ResponseEntity.ok(cvService.getCVStats());
+    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller")
+    public ResponseEntity<?> getStats(@RequestParam(required = false) UUID advisorId) {
+        return ResponseEntity.ok(cvService.getCVStats(advisorId));
     }
 
     @GetMapping("/student/{studentId}")

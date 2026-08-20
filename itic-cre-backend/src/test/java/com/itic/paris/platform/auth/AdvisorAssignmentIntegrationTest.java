@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -390,5 +391,22 @@ public class AdvisorAssignmentIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.advisor.id").value(advisor.getId().toString()))
                 .andExpect(jsonPath("$.data.advisor.email").value(advisor.getEmail()));
+    }
+
+    @Test
+    public void testFindAllUnpaged_ReturnsEveryMatchingAdvisorWithoutPagination() throws Exception {
+        mockMvc.perform(get("/advisors/all")
+                        .param("role", "ADVISOR")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].id").value(advisor.getId().toString()));
+    }
+
+    @Test
+    public void testFindAllUnpaged_RequiresAdmin() throws Exception {
+        mockMvc.perform(get("/advisors/all")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken))
+                .andExpect(status().isForbidden());
     }
 }

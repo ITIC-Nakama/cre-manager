@@ -58,29 +58,41 @@ public class AdvisorController {
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         log.info("[GET /advisors] Request received with role='{}', search='{}'", role, search);
 
-        RoleEnum targetRole = null;
-        if (role != null && !role.isBlank()) {
-            try {
-                targetRole = RoleEnum.valueOf(role.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.warn("[GET /advisors] Invalid role string specified: '{}'", role);
-            }
-        }
-
-        Page<User> result;
-        if (targetRole != null) {
-            result = userRepository.findByRoleNameAndSearch(targetRole, search, pageable);
-        } else {
-            result = userRepository.findAllStaffBySearch(search, pageable);
-        }
-
-        // Ces entités sont détachées (pas de @Transactional sur cette méthode) — les muter
-        // ici pour remplacer les chemins de stockage bruts par des URLs résolues n'est
-        // jamais persisté, seulement reflété dans la réponse JSON.
+        RoleEnum targetRole = resolveTargetRole(role);
+        Page<User> result = queryStaff(targetRole, search, pageable);
         result.forEach(this::resolvePictures);
 
         log.info("[GET /advisors] Query for targetRole={} returned {} elements", targetRole, result.getTotalElements());
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "Lister tout le staff filtré par rôle (ADVISOR/ADMIN) sans pagination — pour les listes déroulantes (ex: filtre conseiller)")
+    public ResponseEntity<List<User>> findAllUnpaged(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search) {
+        RoleEnum targetRole = resolveTargetRole(role);
+        List<User> result = queryStaff(targetRole, search, Pageable.unpaged()).getContent();
+        result.forEach(this::resolvePictures);
+        return ResponseEntity.ok(result);
+    }
+
+    private RoleEnum resolveTargetRole(String role) {
+        if (role == null || role.isBlank()) {
+            return null;
+        }
+        try {
+            return RoleEnum.valueOf(role.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("[GET /advisors] Invalid role string specified: '{}'", role);
+            return null;
+        }
+    }
+
+    private Page<User> queryStaff(RoleEnum targetRole, String search, Pageable pageable) {
+        return targetRole != null
+                ? userRepository.findByRoleNameAndSearch(targetRole, search, pageable)
+                : userRepository.findAllStaffBySearch(search, pageable);
     }
 
     private void resolvePictures(User user) {

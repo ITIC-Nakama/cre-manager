@@ -36,6 +36,11 @@ public class StudentSpecification {
                 predicates.add(cb.equal(root.get("studyYear"), criteria.getStudyYear()));
             }
 
+            // Advisor filter — "mes etudiants" cote conseiller, ou filtrage par conseiller specifique cote admin
+            if (criteria.getAdvisorId() != null) {
+                predicates.add(cb.equal(root.get("advisor").get("id"), criteria.getAdvisorId()));
+            }
+
             // Subquery EXISTS on Application table
             Subquery<UUID> subquery = query.subquery(UUID.class);
             Root<Application> appRoot = subquery.from(Application.class);
@@ -182,6 +187,48 @@ public class StudentSpecification {
                 );
                 predicates.add(cb.exists(staleSubquery));
             }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    /**
+     * Etudiants "necessitant attention" (candidature stagnante OU CV manquant), tries par pertinence
+     * (candidature stagnante d'abord, puis CV manquant) — calcule cote base de donnees pour eviter de
+     * rapatrier un lot arbitraire d'etudiants et de deviner un "top 5" cote client.
+     */
+    public static Specification<Student> needingAttention(UUID advisorId, Instant staleThreshold) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
+
+            if (advisorId != null) {
+                predicates.add(cb.equal(root.get("advisor").get("id"), advisorId));
+            }
+
+            Subquery<UUID> staleSubquery = query.subquery(UUID.class);
+            Root<Application> appRoot = staleSubquery.from(Application.class);
+            Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
+            staleSubquery.select(appRoot.get("id"));
+            staleSubquery.where(
+                    cb.equal(appRoot.get("student"), root),
+                    cb.isTrue(statusJoin.get("declencheAlerte")),
+                    cb.lessThan(appRoot.get("dateModification"), staleThreshold)
+            );
+            Predicate hasStale = cb.exists(staleSubquery);
+
+            Subquery<UUID> cvSubquery = query.subquery(UUID.class);
+            Root<CV> cvRoot = cvSubquery.from(CV.class);
+            cvSubquery.select(cvRoot.get("id"));
+            cvSubquery.where(cb.equal(cvRoot.get("student"), root));
+            Predicate noCv = cb.not(cb.exists(cvSubquery));
+
+            predicates.add(cb.or(hasStale, noCv));
+
+            Expression<Integer> staleScore = cb.<Integer>selectCase().when(hasStale, 2).otherwise(0);
+            Expression<Integer> noCvScore = cb.<Integer>selectCase().when(noCv, 1).otherwise(0);
+            query.orderBy(cb.desc(cb.sum(staleScore, noCvScore)));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

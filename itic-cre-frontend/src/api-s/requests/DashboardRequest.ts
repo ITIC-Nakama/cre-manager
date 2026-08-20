@@ -40,6 +40,11 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }
 
+/** Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés et scopés côté backend. */
+export function fetchStudentsNeedingAttention(): Promise<StudentRow[]> {
+    return apiClient.get('/dashboard/students/needing-attention').then(unwrap<StudentRow[]>);
+}
+
 export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {
     const query: Record<string, unknown> = {};
     if (params.search)      query.search     = params.search;
@@ -64,6 +69,7 @@ export function exportApplicationsCsv(params: Record<string, unknown> = {}): Pro
     if (params.typeContratId)      query.typeContratId      = params.typeContratId;
     if (params.stale !== undefined) query.stale             = params.stale;
     if (params.activeStudentsOnly !== undefined) query.activeStudentsOnly = params.activeStudentsOnly;
+    if (params.advisorId)          query.advisorId          = params.advisorId;
 
     return apiClient.get('/dashboard/applications/export', {
         params: query,

@@ -3,7 +3,6 @@ package com.itic.paris.platform.crm.specification;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
-import com.itic.paris.platform.jobboard.model.ContractType;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -21,7 +20,8 @@ public class ApplicationSpecification {
             String search,
             Boolean stale,
             Instant staleThreshold,
-            Boolean activeStudentsOnly
+            Boolean activeStudentsOnly,
+            UUID advisorId
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -37,6 +37,11 @@ public class ApplicationSpecification {
             // Promotion filter
             if (promotionId != null) {
                 predicates.add(cb.equal(studentJoin.get("promotion").get("id"), promotionId));
+            }
+
+            // Advisor filter — "mes etudiants" cote conseiller, ou filtrage par conseiller specifique cote admin
+            if (advisorId != null) {
+                predicates.add(cb.equal(studentJoin.get("advisor").get("id"), advisorId));
             }
 
             // Status filter

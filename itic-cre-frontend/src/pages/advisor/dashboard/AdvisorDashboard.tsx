@@ -6,7 +6,7 @@ import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
-import { useDashboardOverview, useStudentList, useNotifyStudent } from '../../../hooks/useDashboard';
+import { useDashboardOverview, useStudentsNeedingAttention, useNotifyStudent } from '../../../hooks/useDashboard';
 import DashboardStatCards from './components/DashboardStatCards';
 import StatusDistributionPanel from './components/StatusDistributionPanel';
 import StudentTable from './components/StudentTable';
@@ -20,8 +20,9 @@ export default function AdvisorDashboard() {
   const firstName = user?.firstName || t('dashboard.advisor.role_advisor');
 
   const { data: overview, isLoading: loadingOverview } = useDashboardOverview();
-  const { data: studentPage, isLoading: loadingStudents } = useStudentList({ size: 200 });
-  const students = studentPage?.content ?? [];
+  // Top 5 des étudiants nécessitant une action — filtré, trié et limité côté backend
+  // (scopé au portefeuille pour un conseiller, vue globale pour un admin).
+  const { data: students = [], isLoading: loadingStudents } = useStudentsNeedingAttention();
   const notifyMutation = useNotifyStudent();
 
   const handleNotifyStudent = async (student: StudentRow, customMessage?: string) => {

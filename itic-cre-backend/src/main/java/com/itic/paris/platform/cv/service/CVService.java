@@ -6,7 +6,6 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.cv.specification.CVSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
@@ -135,8 +134,8 @@ public class CVService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, Pageable pageable) {
-        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search), pageable);
+    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Pageable pageable) {
+        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId), pageable);
         return page.map(this::buildCVResponse);
     }
 
@@ -326,14 +325,16 @@ public class CVService {
     private static final Pattern FILENAME_UNSAFE_CHARS = Pattern.compile("[^A-Za-z0-9]+");
 
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCVStats() {
-        return cvRepository.countGroupedByStatut()
-                .stream().map(row -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("statutId", row[0]);
-                    map.put("count", row[3]);
-                    return map;
-                }).toList();
+    public List<Map<String, Object>> getCVStats(UUID advisorId) {
+        List<Object[]> rows = advisorId != null
+                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId))
+                : cvRepository.countGroupedByStatut();
+        return rows.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("statutId", row[0]);
+            map.put("count", row[3]);
+            return map;
+        }).toList();
     }
 
     /** Signature binaire d'un PDF ("%PDF-") — le Content-Type et le nom de fichier sont fournis par le client et falsifiables. */

@@ -255,4 +255,40 @@ public class CVIntegrationTest {
         assertThat(comments).hasSize(1);
         assertThat(comments.get(0).get("contenu")).isEqualTo(commentDto.getContenu());
     }
+
+    @Test
+    public void testGetCVStats_ScopedByAdvisor_OnlyCountsOwnPortfolio() throws Exception {
+        testStudent.setAdvisor(testAdvisor);
+        studentRepository.save(testStudent);
+
+        CV assignedCv = new CV();
+        assignedCv.setStudent(testStudent);
+        assignedCv.setFilePath("cvs/assigned.pdf");
+        assignedCv.setStatut(enAttenteStatut);
+        cvRepository.save(assignedCv);
+
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        Student otherStudent = new Student();
+        otherStudent.setEmail("cv.other.student@itic.fr");
+        otherStudent.setFirstName("Other");
+        otherStudent.setLastName("Student");
+        otherStudent.setPassword("Secret123!");
+        otherStudent.setEmailVerified(true);
+        otherStudent.setRole(studentRole);
+        otherStudent = studentRepository.save(otherStudent);
+
+        CV unassignedCv = new CV();
+        unassignedCv.setStudent(otherStudent);
+        unassignedCv.setFilePath("cvs/unassigned.pdf");
+        unassignedCv.setStatut(enAttenteStatut);
+        cvRepository.save(unassignedCv);
+
+        long scopedTotal = cvService.getCVStats(testAdvisor.getId())
+                .stream().mapToLong(row -> ((Number) row.get("count")).longValue()).sum();
+        long globalTotal = cvService.getCVStats(null)
+                .stream().mapToLong(row -> ((Number) row.get("count")).longValue()).sum();
+
+        assertThat(scopedTotal).isEqualTo(1);
+        assertThat(globalTotal).isGreaterThanOrEqualTo(2);
+    }
 }

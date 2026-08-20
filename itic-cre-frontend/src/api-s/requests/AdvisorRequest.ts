@@ -22,6 +22,11 @@ export function fetchAdmins(params: AdvisorListParams = {}): Promise<AdvisorPage
   return apiClient.get('/advisors', { params: { ...params, role: 'ADMIN' } }).then((r) => unwrap<AdvisorPage>(r));
 }
 
+/** Tous les conseillers actifs, sans pagination — pour alimenter les listes déroulantes (filtre "par conseiller"). */
+export function fetchAllAdvisors(): Promise<Advisor[]> {
+  return apiClient.get('/advisors/all', { params: { role: 'ADVISOR' } }).then((r) => unwrap<Advisor[]>(r));
+}
+
 export function createAdvisor(data: CreateAdvisorData): Promise<Advisor> {
   const role = data.role || 'ADVISOR';
   return apiClient.post('/auth/admin/users', { ...data, role }).then((r) => unwrap<Advisor>(r));

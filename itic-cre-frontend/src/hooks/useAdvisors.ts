@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdvisors,
+  fetchAllAdvisors,
   fetchAdmins,
   createAdvisor,
   updateAdvisor,
@@ -18,6 +19,13 @@ export function useAdvisors(params: AdvisorListParams = {}) {
   return useQuery({
     queryKey: ['advisors', params],
     queryFn: () => fetchAdvisors(params),
+  });
+}
+
+export function useAllAdvisors() {
+  return useQuery({
+    queryKey: ['advisors', 'all'],
+    queryFn: fetchAllAdvisors,
   });
 }
 

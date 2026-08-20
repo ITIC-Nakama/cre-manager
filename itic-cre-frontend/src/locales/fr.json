@@ -223,16 +223,13 @@
       },
       "students_widget": {
         "title": "Étudiants à suivre",
-        "subtitle_one": "{{count}} étudiant · top 5 prioritaires",
-        "subtitle_other": "{{count}} étudiants · top 5 prioritaires",
+        "subtitle_one": "{{count}} étudiant nécessite une action",
+        "subtitle_other": "{{count}} étudiants nécessitent une action",
         "see_all": "Voir tous",
-        "empty": "Aucun étudiant enregistré.",
         "no_alerts": "Tous les étudiants sont à jour — aucune alerte active.",
         "stale_badge_one": "{{count}} en retard",
         "stale_badge_other": "{{count}} en retard",
         "no_cv": "Sans CV",
-        "ok": "✓ OK",
-        "subtitle": "Liste des étudiants et statut de relance",
         "stale_badge": "Relance nécessaire"
       },
       "audit": {

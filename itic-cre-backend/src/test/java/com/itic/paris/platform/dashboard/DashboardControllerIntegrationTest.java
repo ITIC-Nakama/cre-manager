@@ -328,6 +328,44 @@ public class DashboardControllerIntegrationTest {
         }
 
         @Test
+        @DisplayName("GET /dashboard/students/needing-attention returns students with a stale application or no CV, ranked by relevance")
+        void studentsNeedingAttentionReturnsRankedList() throws Exception {
+            // activeStudent : a un CV mais une candidature stagnante (staleApplication) -> score 2.
+            // inactiveStudent : aucune candidature, aucun CV -> score 1 (CV manquant).
+            mockMvc.perform(get("/dashboard/students/needing-attention")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", hasSize(2)))
+                    .andExpect(jsonPath("$.data[0].id").value(activeStudent.getId().toString()))
+                    .andExpect(jsonPath("$.data[0].staleApplicationCount").value(1))
+                    .andExpect(jsonPath("$.data[1].id").value(inactiveStudent.getId().toString()))
+                    .andExpect(jsonPath("$.data[1].hasCv").value(false));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students/needing-attention as ADVISOR is limited to their own portfolio")
+        void studentsNeedingAttentionScopedToAdvisorPortfolio() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+            // inactiveStudent volontairement non affecte — ne doit pas apparaitre.
+
+            mockMvc.perform(get("/dashboard/students/needing-attention")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", hasSize(1)))
+                    .andExpect(jsonPath("$.data[0].id").value(activeStudent.getId().toString()));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students/needing-attention as ADVISOR with no assigned students returns empty list")
+        void studentsNeedingAttentionEmptyForAdvisorWithNoPortfolio() throws Exception {
+            mockMvc.perform(get("/dashboard/students/needing-attention")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", hasSize(0)));
+        }
+
+        @Test
         @DisplayName("GET /dashboard/stale-applications returns list of inactive applications")
         void getStaleApplicationsReturnsList() throws Exception {
             mockMvc.perform(get("/dashboard/stale-applications")
@@ -462,6 +500,44 @@ public class DashboardControllerIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, org.hamcrest.Matchers.containsString("candidatures-export-")))
                     .andExpect(content().contentType("text/csv; charset=UTF-8"));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/applications?advisorId= limits the flat list to that advisor's portfolio")
+        void getApplicationsFilteredByAdvisorId() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+            // inactiveStudent volontairement non affecte — n'a d'ailleurs aucune candidature.
+
+            mockMvc.perform(get("/dashboard/applications")
+                            .param("advisorId", advisor.getId().toString())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(2)));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/applications?advisorId= returns empty for an advisor with no assigned students")
+        void getApplicationsFilteredByAdvisorIdReturnsEmptyWhenNoPortfolio() throws Exception {
+            mockMvc.perform(get("/dashboard/applications")
+                            .param("advisorId", advisor.getId().toString())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(0)));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/applications/grouped-by-student?advisorId= limits the grouped list to that advisor's portfolio")
+        void getApplicationsGroupedByStudentFilteredByAdvisorId() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+
+            mockMvc.perform(get("/dashboard/applications/grouped-by-student")
+                            .param("advisorId", advisor.getId().toString())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(1)))
+                    .andExpect(jsonPath("$.data.content[0].studentId").value(activeStudent.getId().toString()));
         }
     }
 

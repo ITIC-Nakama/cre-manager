@@ -24,6 +24,7 @@ import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -72,6 +73,30 @@ public class StudentReportingService {
             totalElements = studentPage.getTotalElements();
         }
 
+        List<Map<String, Object>> content = buildStudentRows(students, staleThreshold, inactiveThreshold);
+
+        if (pageable != null && pageable.isUnpaged()) {
+            return new PageImpl<>(content);
+        }
+        return new PageImpl<>(content, pageable, totalElements);
+    }
+
+    /**
+     * Etudiants necessitant une action du conseiller (candidature stagnante ou CV manquant),
+     * tries par pertinence et limites cote base de donnees — evite de rapatrier un lot arbitraire
+     * d'etudiants juste pour en retenir 5 cote client (voir StudentSpecification.needingAttention).
+     */
+    public List<Map<String, Object>> getStudentsNeedingAttention(UUID advisorId) {
+        Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
+
+        Specification<Student> spec = StudentSpecification.needingAttention(advisorId, staleThreshold);
+        List<Student> students = studentRepository.findAll(spec, PageRequest.of(0, 5)).getContent();
+
+        return buildStudentRows(students, staleThreshold, inactiveThreshold);
+    }
+
+    private List<Map<String, Object>> buildStudentRows(List<Student> students, Instant staleThreshold, Instant inactiveThreshold) {
         List<UUID> studentIds = students.stream().map(Student::getId).toList();
         List<Grade> allGrades = gradeRepository.findAllByOrderByOrdreAsc();
 
@@ -87,7 +112,7 @@ public class StudentReportingService {
                         .filter(a -> studentIds.contains(a.getStudent().getId()))
                         .collect(Collectors.groupingBy(a -> a.getStudent().getId(), Collectors.counting()));
 
-        List<Map<String, Object>> content = students.stream().map(student -> {
+        return students.stream().map(student -> {
             Grade grade = GradeUtils.resolveGrade(student.getXpTotal(), allGrades);
             boolean active = student.getLastActivity() != null
                     && student.getLastActivity().isAfter(inactiveThreshold);
@@ -121,11 +146,6 @@ public class StudentReportingService {
             row.put("isAnonymized", student.isAnonymized());
             return row;
         }).toList();
-
-        if (pageable != null && pageable.isUnpaged()) {
-            return new PageImpl<>(content);
-        }
-        return new PageImpl<>(content, pageable, totalElements);
     }
 
     public Map<String, Object> getStudentDetail(UUID studentId) {

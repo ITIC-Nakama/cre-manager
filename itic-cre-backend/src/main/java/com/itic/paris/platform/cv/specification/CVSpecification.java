@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class CVSpecification {
 
-    public static Specification<CV> withFilters(UUID statutId, String search) {
+    public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -21,6 +21,11 @@ public class CVSpecification {
             // Filter by statut
             if (statutId != null) {
                 predicates.add(cb.equal(root.get("statut").get("id"), statutId));
+            }
+
+            // Advisor filter — "mes etudiants" cote conseiller, ou filtrage par conseiller specifique cote admin
+            if (advisorId != null) {
+                predicates.add(cb.equal(studentJoin.get("advisor").get("id"), advisorId));
             }
 
             // Filter by search (firstName, lastName, email)

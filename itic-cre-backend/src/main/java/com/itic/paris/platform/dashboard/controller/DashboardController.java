@@ -50,6 +50,15 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardOverviewService.getOverview(advisorId));
     }
 
+    @GetMapping("/students/needing-attention")
+    @Operation(summary = "Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés par pertinence. " +
+            "Limité au portefeuille du conseiller connecté (role ADVISOR) ; vue globale plateforme pour un ADMIN.")
+    public ResponseEntity<?> studentsNeedingAttention() {
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID advisorId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
+        return ResponseEntity.ok(studentReportingService.getStudentsNeedingAttention(advisorId));
+    }
+
     @GetMapping("/stale-applications")
     @Operation(summary = "Candidatures en alerte — sans changement de statut depuis plus de 10 jours")
     public ResponseEntity<?> staleApplications() {
@@ -119,7 +128,7 @@ public class DashboardController {
     }
 
     @GetMapping("/applications")
-    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale/activeStudentsOnly")
+    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale/activeStudentsOnly/advisorId")
     public ResponseEntity<?> applications(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) UUID statusId,
@@ -127,8 +136,9 @@ public class DashboardController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(applicationReportingService.getApplicationList(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+        return ResponseEntity.ok(applicationReportingService.getApplicationList(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, advisorId, pageable));
     }
 
     @GetMapping("/applications/grouped-by-student")
@@ -141,10 +151,11 @@ public class DashboardController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId,
             @PageableDefault(size = 20) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
-                .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly)
+                .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
                 .build();
         return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }
@@ -157,9 +168,10 @@ public class DashboardController {
             @RequestParam(required = false) UUID typeContratId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
-            @RequestParam(required = false) Boolean activeStudentsOnly) {
+            @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId) {
 
-        byte[] csvBytes = applicationReportingService.exportApplicationsCsv(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly);
+        byte[] csvBytes = applicationReportingService.exportApplicationsCsv(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, advisorId);
         String filename = "candidatures-export-" + LocalDate.now() + ".csv";
 
         return ResponseEntity.ok()

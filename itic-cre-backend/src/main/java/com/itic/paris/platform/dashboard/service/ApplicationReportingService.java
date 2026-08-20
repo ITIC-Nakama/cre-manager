@@ -65,11 +65,12 @@ public class ApplicationReportingService {
     }
 
     public Page<Map<String, Object>> getApplicationList(UUID promotionId, UUID statusId, UUID typeContratId,
-                                                          String search, Boolean stale, Boolean activeStudentsOnly, Pageable pageable) {
+                                                          String search, Boolean stale, Boolean activeStudentsOnly,
+                                                          UUID advisorId, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
 
         Specification<Application> spec = ApplicationSpecification.withFilters(
-                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
+                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly, advisorId
         );
         Page<Application> page = applicationRepository.findAll(spec, pageable);
 
@@ -118,11 +119,11 @@ public class ApplicationReportingService {
     }
 
     public byte[] exportApplicationsCsv(UUID promotionId, UUID statusId, UUID typeContratId,
-                                         String search, Boolean stale, Boolean activeStudentsOnly) {
+                                         String search, Boolean stale, Boolean activeStudentsOnly, UUID advisorId) {
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
 
         Specification<Application> spec = ApplicationSpecification.withFilters(
-                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly
+                promotionId, statusId, typeContratId, search, stale, staleThreshold, activeStudentsOnly, advisorId
         );
 
         List<Application> applications = applicationRepository.findAll(spec);

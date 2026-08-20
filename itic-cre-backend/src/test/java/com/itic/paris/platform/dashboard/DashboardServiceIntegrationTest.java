@@ -106,7 +106,7 @@ public class DashboardServiceIntegrationTest {
     public void testGetApplicationListFilterActiveStudentsOnly() {
         // When activeStudentsOnly = true
         Page<Map<String, Object>> activeOnlyPage = applicationReportingService.getApplicationList(
-                null, null, null, null, null, true, PageRequest.of(0, 50)
+                null, null, null, null, null, true, null, PageRequest.of(0, 50)
         );
 
         // Then : ne doit contenir QUE la candidature de l'étudiant actif
@@ -115,7 +115,7 @@ public class DashboardServiceIntegrationTest {
 
         // When activeStudentsOnly = false (ou null)
         Page<Map<String, Object>> allPage = applicationReportingService.getApplicationList(
-                null, null, null, null, null, false, PageRequest.of(0, 50)
+                null, null, null, null, null, false, null, PageRequest.of(0, 50)
         );
 
         // Then : doit inclure les candidatures des étudiants actifs ET désactivés (au moins 2)

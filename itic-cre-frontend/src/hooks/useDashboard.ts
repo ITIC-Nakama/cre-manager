@@ -4,6 +4,7 @@ import {
     fetchPromotionStudentCounts,
     fetchPromotionYearCounts,
     fetchStudentList,
+    fetchStudentsNeedingAttention,
     notifyStudent,
     deactivateStudent,
     reactivateStudent,
@@ -38,6 +39,13 @@ export function useStudentList(params: StudentListParams = {}, enabled = true) {
         queryFn: () => fetchStudentList(params),
         placeholderData: (prev) => prev,
         enabled,
+    });
+}
+
+export function useStudentsNeedingAttention() {
+    return useQuery({
+        queryKey: ['dashboard', 'students', 'needing-attention'],
+        queryFn: fetchStudentsNeedingAttention,
     });
 }
 

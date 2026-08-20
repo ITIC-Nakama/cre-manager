@@ -98,6 +98,7 @@ export interface ApplicationListParams {
     typeContratId?: string;
     stale?: boolean;
     activeStudentsOnly?: boolean;
+    advisorId?: string;
 }
 
 export interface StudentGroupDTO {
