@@ -105,10 +105,14 @@ export default function EtudiantsPage() {
         })),
     ], [promotions, t]);
 
+    const currentUserId = currentUser ? String(currentUser.id) : '';
+
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...advisors.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
-    ], [advisors, t]);
+        ...advisors
+            .filter((a) => a.id !== currentUserId)
+            .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
+    ], [advisors, t, currentUserId]);
 
     const { data: systemYears } = useAvailableStudyYears();
 
@@ -320,7 +324,7 @@ export default function EtudiantsPage() {
                 isFetching={isFetching}
                 isLoading={isLoading}
                 isAdmin={isAdmin}
-                currentUserId={currentUser ? String(currentUser.id) : ''}
+                currentUserId={currentUserId}
                 filterOptions={filterOptions}
                 promotionOptions={promotionOptions}
                 studyYearOptions={studyYearOptions}
