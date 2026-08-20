@@ -119,7 +119,7 @@ export default function EtudiantsFilters({
                     options={advisorOptions}
                     onChange={onAdvisorFilterChange}
                     icon={<Users className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
+                    className={`min-w-48 transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
                     searchable
                 />
             )}
