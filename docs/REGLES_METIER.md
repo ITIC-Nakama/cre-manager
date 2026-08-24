@@ -75,6 +75,12 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Transmis soit en cookie (`token`), soit en header `Authorization: Bearer`.
 - Le refresh échoue aussi si `mustChangePassword = true`.
 
+### Affectation conseiller référent (Admin-en-tant-que-conseiller)
+- `Student.advisor` accepte n'importe quel membre du staff actif (`ADVISOR` **ou** `ADMIN`) — un admin peut être affecté comme conseiller référent d'un étudiant au même titre qu'un conseiller, et les admins sont assignables entre eux (pas seulement en auto-affectation).
+- `PUT /advisors/{advisorId}/students` (`ADMIN` uniquement) affecte un lot d'étudiants ; retirer le conseiller d'un étudiant remet `advisor = null`.
+- **Dashboard** (`GET /dashboard/overview`, `GET /dashboard/students/needing-attention`) : un `ADVISOR` est toujours scopé à son propre id. Un `ADMIN` peut passer un `advisorId` optionnel pour voir un portefeuille précis (toggle "Vue globale / Mon portefeuille" côté interface), ou l'omettre pour la vue globale (comportement par défaut).
+- **Étudiants / Candidatures / CV Validation** : un `ADMIN` dispose d'une checkbox "Mes étudiants uniquement" (même mécanisme que pour un `ADVISOR`) en plus du picker complet des conseillers ; le picker de filtre exclut l'admin courant (couvert par la checkbox), mais le picker d'**affectation** (bulk-assign) l'inclut toujours, en tête de liste, sous le libellé "Moi".
+
 ### Promotions
 - Nom **unique**.
 - Lecture (lister / consulter) : ouverte à **tout utilisateur connecté**, sans restriction de rôle (advisor et étudiant inclus).
@@ -123,6 +129,9 @@ Ces libellés sont traduits dynamiquement par le backend selon la langue spécif
 - Un étudiant **ne peut postuler qu'une seule fois** à une offre donnée (`409 already-applied` sinon).
 - Postuler via le jobboard crée **automatiquement** une candidature CRM au statut "Postulé", avec la note `"Candidature créée automatiquement via le Jobboard"`.
 - XP attribuée à la candidature jobboard : le `gainXP` du statut "Postulé" s'il est **> 0**, sinon repli sur la config générique `CANDIDATURE_CREATED` (jamais les deux à la fois).
+- **Secteurs** (`Sector`) : CRUD réservé `ADVISOR`/`ADMIN`, label unique (409 `sector-label-already-exists`), flag `active` bascule sans suppression. Un étudiant ne voit que la liste des secteurs actifs (`GET /jobboard/sectors/active/list`).
+- **Suppression d'une offre** (`JobOfferService.delete()`) : bloquée (409 `job-offer-has-applications`) si au moins une candidature CRM réelle (`Application.sourceJobOffer`) est liée — protège les notes/statut/XP de l'étudiant. Si seuls des clics "postuler" jobboard existent sans candidature CRM associée (cas rare, `apply()` crée aujourd'hui toujours les deux ensemble), la suppression réussit et nettoie ces clics avec l'offre. `deactivate`/`activate` restent l'alternative sans risque pour retirer une offre du jobboard sans toucher aux candidatures.
+- **Filtre actif/inactif** (page admin Offres) : `GET /jobboard/offers` accepte un paramètre `active` optionnel (`true`/`false`/absent = toutes) ; l'interface présélectionne "Actives" par défaut.
 
 ---
 

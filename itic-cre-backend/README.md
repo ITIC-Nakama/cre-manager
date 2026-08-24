@@ -55,13 +55,16 @@ Liste non exhaustive (voir `.env.example` pour la liste complète) :
 
 ```
 platform/
-├── auth/          # Inscription, login, JWT, rôles, profils, promotions
-├── crm/           # Candidatures étudiant (pipeline Kanban)
+├── auth/          # Inscription, login, JWT, rôles, profils, promotions, affectation conseiller
+├── crm/           # Candidatures étudiant (liste + détail, pas de Kanban)
 ├── cv/            # Upload CV PDF, statuts, commentaires conseiller
-├── dashboard/     # Statistiques agrégées pour les conseillers
-├── gamification/  # XP, grades, skill tree, historique
-├── jobboard/      # Offres d'emploi, candidatures Jobboard → CRM auto-link
+├── dashboard/     # Statistiques agrégées pour les conseillers/admins
+├── gamification/  # XP, grades, historique
+├── gdpr/          # Anonymisation, purge planifiée, export de données
+├── jobboard/      # Offres d'emploi, secteurs, candidatures Jobboard → CRM auto-link
+├── skill/         # Skill tree, articles, quiz
 ├── audit/         # Journal des actions
+├── seeder/        # Données de démarrage (rôles, statuts, config par défaut)
 └── shared/        # Config, exceptions, i18n, stockage, notifications
 ```
 
