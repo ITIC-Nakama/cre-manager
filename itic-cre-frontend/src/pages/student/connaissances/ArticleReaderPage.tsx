@@ -54,6 +54,8 @@ export default function ArticleReaderPage() {
   }, [article?.id, article?.hasQuiz, categoryId, queryClient]);
 
   useEffect(() => {
+    if (isLoading || !article) return;
+
     const scrollEl = contentRef.current?.closest('main');
     if (!scrollEl) return;
 
@@ -71,7 +73,7 @@ export default function ArticleReaderPage() {
     handleScroll();
     scrollEl.addEventListener('scroll', handleScroll, { passive: true });
     return () => scrollEl.removeEventListener('scroll', handleScroll);
-  }, [articleId]);
+  }, [articleId, isLoading, article]);
 
   const node = useMemo(
     () => progress?.nodes.find((n) => n.categoryId === categoryId),
@@ -112,9 +114,10 @@ export default function ArticleReaderPage() {
 
   return (
     <div ref={contentRef} className="flex flex-col gap-6 pb-16 max-w-3xl mx-auto">
-      {/* Reading progress bar, pinned to the top of the scrollable content area.
-          Sur mobile, réduite et centrée pour ne pas passer sous le bouton burger (fixed top-4 left-4). */}
-      <div className="sticky top-0 -mt-8 z-30 h-1 w-2/3 max-w-xs mx-auto rounded-full lg:w-full lg:max-w-none lg:mx-0 lg:rounded-none bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
+      {/* Reading progress bar. Sur mobile : fixe, alignée sur la même ligne que le bouton
+          burger (fixed top-4 left-4, ~38px de haut), démarrant juste après lui plutôt que
+          centrée sur l'écran. Sur desktop : redevient sticky pleine largeur en haut du contenu. */}
+      <div className="fixed top-[33px] left-[70px] right-4 z-30 h-1 rounded-full lg:sticky lg:top-0 lg:-mt-8 lg:left-auto lg:right-auto lg:w-full lg:max-w-none lg:rounded-none bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-[width] duration-150 ease-out"
           style={{ width: `${readProgress}%` }}
