@@ -112,8 +112,9 @@ export default function ArticleReaderPage() {
 
   return (
     <div ref={contentRef} className="flex flex-col gap-6 pb-16 max-w-3xl mx-auto">
-      {/* Reading progress bar, pinned to the top of the scrollable content area */}
-      <div className="sticky top-0 -mt-8 z-30 h-1 w-full bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
+      {/* Reading progress bar, pinned to the top of the scrollable content area.
+          Sur mobile, réduite et centrée pour ne pas passer sous le bouton burger (fixed top-4 left-4). */}
+      <div className="sticky top-0 -mt-8 z-30 h-1 w-2/3 max-w-xs mx-auto rounded-full lg:w-full lg:max-w-none lg:mx-0 lg:rounded-none bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-[width] duration-150 ease-out"
           style={{ width: `${readProgress}%` }}
