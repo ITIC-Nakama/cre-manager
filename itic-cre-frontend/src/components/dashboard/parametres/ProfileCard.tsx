@@ -316,7 +316,7 @@ export default function ProfileCard() {
                 value={promotionId}
                 options={promoOptions}
                 searchable={promoOptions.length > 5}
-                searchPlaceholder={t('dashboard.promotions.placeholder_add_student', 'Rechercher…')}
+                searchPlaceholder={t('dashboard.etudiants.promotion_search_placeholder', 'Rechercher une promotion…')}
                 onChange={(val) => {
                   setPromotionId(val);
                   const p = promotions?.find((item) => item.id === val);

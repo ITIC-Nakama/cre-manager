@@ -170,13 +170,15 @@ export default function EtudiantsPage() {
     const selectedIds = useMemo(() => Object.keys(rowSelection).filter((id) => rowSelection[id]), [rowSelection]);
     const allMatchingSelected = totalElements > 0 && selectedIds.length >= totalElements;
 
-    const bulkAdvisorOptions = useMemo(() => [
-        { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
-        ...advisors.map((a) => ({
-            value: a.id,
-            label: a.id === currentUserId ? t('common.me_option', 'Moi') : formatStaffLabel(a, t('common.admin_tag', '(Admin)')),
-        })),
-    ], [advisors, t, currentUserId]);
+    const bulkAdvisorOptions = useMemo(() => {
+        const me = advisors.find((a) => a.id === currentUserId);
+        const others = advisors.filter((a) => a.id !== currentUserId);
+        return [
+            { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
+            ...(me ? [{ value: me.id, label: t('common.me_option', 'Moi') }] : []),
+            ...others.map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
+        ];
+    }, [advisors, t, currentUserId]);
 
     const clearSelection = () => setRowSelection({});
 
