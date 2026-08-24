@@ -12,7 +12,7 @@ interface Props {
 
 export default function CandidatureStepper({ candidature, statuses, changing, readOnly = false, onChangeStatus }: Props) {
     const { t } = useTranslation();
-    const steps = statuses.filter((s) => s.ordre >= 2 && s.ordre <= 5).sort((a, b) => a.ordre - b.ordre);
+    const steps = statuses.filter((s) => s.ordre >= 1 && s.ordre <= 5).sort((a, b) => a.ordre - b.ordre);
     const isOutsidePipeline = !steps.some((s) => s.id === candidature.status.id);
 
     return (
