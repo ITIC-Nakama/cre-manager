@@ -11,10 +11,10 @@ import {
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../types/models/Dashboard';
 
-export function useDashboardOverview() {
+export function useDashboardOverview(advisorId?: string) {
     return useQuery({
-        queryKey: ['dashboard', 'overview'],
-        queryFn: fetchDashboardOverview,
+        queryKey: ['dashboard', 'overview', advisorId ?? null],
+        queryFn: () => fetchDashboardOverview(advisorId),
     });
 }
 
@@ -42,10 +42,10 @@ export function useStudentList(params: StudentListParams = {}, enabled = true) {
     });
 }
 
-export function useStudentsNeedingAttention() {
+export function useStudentsNeedingAttention(advisorId?: string) {
     return useQuery({
-        queryKey: ['dashboard', 'students', 'needing-attention'],
-        queryFn: fetchStudentsNeedingAttention,
+        queryKey: ['dashboard', 'students', 'needing-attention', advisorId ?? null],
+        queryFn: () => fetchStudentsNeedingAttention(advisorId),
     });
 }
 

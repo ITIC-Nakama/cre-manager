@@ -43,20 +43,21 @@ public class DashboardController {
 
     @GetMapping("/overview")
     @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut. " +
-            "Limitee au portefeuille du conseiller connecte (role ADVISOR) ; vue globale plateforme pour un ADMIN.")
-    public ResponseEntity<?> overview() {
+            "Limitee au portefeuille du conseiller connecte (role ADVISOR) ; vue globale plateforme pour un ADMIN, sauf s'il precise advisorId " +
+            "(ex: son propre portefeuille via le toggle \"Vue globale / Mon portefeuille\").")
+    public ResponseEntity<?> overview(@RequestParam(required = false) UUID advisorId) {
         boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
-        UUID advisorId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
-        return ResponseEntity.ok(dashboardOverviewService.getOverview(advisorId));
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : advisorId;
+        return ResponseEntity.ok(dashboardOverviewService.getOverview(scopeId));
     }
 
     @GetMapping("/students/needing-attention")
     @Operation(summary = "Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés par pertinence. " +
-            "Limité au portefeuille du conseiller connecté (role ADVISOR) ; vue globale plateforme pour un ADMIN.")
-    public ResponseEntity<?> studentsNeedingAttention() {
+            "Limité au portefeuille du conseiller connecté (role ADVISOR) ; vue globale plateforme pour un ADMIN, sauf s'il precise advisorId.")
+    public ResponseEntity<?> studentsNeedingAttention(@RequestParam(required = false) UUID advisorId) {
         boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
-        UUID advisorId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
-        return ResponseEntity.ok(studentReportingService.getStudentsNeedingAttention(advisorId));
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : advisorId;
+        return ResponseEntity.ok(studentReportingService.getStudentsNeedingAttention(scopeId));
     }
 
     @GetMapping("/stale-applications")

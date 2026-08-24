@@ -87,6 +87,7 @@ public class AdvisorAssignmentIntegrationTest {
 
     private Student student;
     private Advisor advisor;
+    private Admin admin;
     private String adminToken;
     private String studentToken;
 
@@ -120,7 +121,7 @@ public class AdvisorAssignmentIntegrationTest {
         advisor.setRole(advisorRole);
         advisor = advisorRepository.save(advisor);
 
-        Admin admin = new Admin();
+        admin = new Admin();
         admin.setEmail("admin.assignment@itic.fr");
         admin.setFirstName("Alice");
         admin.setLastName("Ministrator");
@@ -408,5 +409,69 @@ public class AdvisorAssignmentIntegrationTest {
         mockMvc.perform(get("/advisors/all")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testAssignStudentToAnotherAdmin_Succeeds() throws Exception {
+        // Un ADMIN peut etre affecte comme conseiller referent au meme titre qu'un ADVISOR —
+        // symetrie voulue, pas juste une auto-affectation.
+        Role adminRole = roleRepository.findByName(RoleEnum.ADMIN);
+        Admin secondAdmin = new Admin();
+        secondAdmin.setEmail("admin.second@itic.fr");
+        secondAdmin.setFirstName("Bob");
+        secondAdmin.setLastName("Ministrator");
+        secondAdmin.setPassword("Password123!");
+        secondAdmin.setEmailVerified(true);
+        secondAdmin.setActive(true);
+        secondAdmin.setRole(adminRole);
+        secondAdmin = (Admin) userRepository.save(secondAdmin);
+
+        mockMvc.perform(put("/advisors/{advisorId}/students/{studentId}", secondAdmin.getId(), student.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        Student reloaded = studentRepository.findById(student.getId()).orElseThrow();
+        assertThat(reloaded.getAdvisor()).isNotNull();
+        assertThat(reloaded.getAdvisor().getId()).isEqualTo(secondAdmin.getId());
+    }
+
+    @Test
+    public void testAssignStudentToStudentId_ThrowsNotFound() {
+        // Un etudiant n'est ni ADVISOR ni ADMIN — ne doit jamais devenir "conseiller referent".
+        Student otherStudent = new Student();
+        otherStudent.setEmail("advisee.notarget@itic.fr");
+        otherStudent.setFirstName("Not");
+        otherStudent.setLastName("Target");
+        otherStudent.setPassword("Password123!");
+        otherStudent.setEmailVerified(true);
+        otherStudent.setActive(true);
+        otherStudent.setRole(student.getRole());
+        UUID otherStudentId = studentRepository.save(otherStudent).getId();
+
+        assertThatThrownBy(() -> advisorService.assignStudentToAdvisor(otherStudentId, student.getId()))
+                .isInstanceOf(AppException.class)
+                .satisfies(ex -> assertThat(((AppException) ex).getMessageKey())
+                        .isEqualTo(MessageKey.ADVISOR_NOT_FOUND));
+    }
+
+    @Test
+    public void testDashboardOverview_AsAdmin_ScopedToGivenAdvisorId() throws Exception {
+        advisorService.assignStudentToAdvisor(admin.getId(), student.getId());
+
+        mockMvc.perform(get("/dashboard/overview")
+                        .param("advisorId", admin.getId().toString())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalStudents").value(1));
+    }
+
+    @Test
+    public void testDashboardOverview_AsAdmin_WithoutAdvisorIdIsGlobal() throws Exception {
+        advisorService.assignStudentToAdvisor(admin.getId(), student.getId());
+
+        mockMvc.perform(get("/dashboard/overview")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalStudents", org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
     }
 }

@@ -12,8 +12,8 @@ function unwrap<T>(response: { data: unknown }): T {
     return (d?.data ?? d) as T;
 }
 
-export function fetchDashboardOverview(): Promise<DashboardOverview> {
-    return apiClient.get('/dashboard/overview').then(unwrap<DashboardOverview>);
+export function fetchDashboardOverview(advisorId?: string): Promise<DashboardOverview> {
+    return apiClient.get('/dashboard/overview', { params: { advisorId } }).then(unwrap<DashboardOverview>);
 }
 
 export function fetchPromotionStudentCounts(): Promise<Record<string, number>> {
@@ -41,8 +41,8 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
 }
 
 /** Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés et scopés côté backend. */
-export function fetchStudentsNeedingAttention(): Promise<StudentRow[]> {
-    return apiClient.get('/dashboard/students/needing-attention').then(unwrap<StudentRow[]>);
+export function fetchStudentsNeedingAttention(advisorId?: string): Promise<StudentRow[]> {
+    return apiClient.get('/dashboard/students/needing-attention', { params: { advisorId } }).then(unwrap<StudentRow[]>);
 }
 
 export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {

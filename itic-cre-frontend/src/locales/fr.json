@@ -6,6 +6,8 @@
       "delete": "Supprimer",
       "deleting": "Suppression…"
     },
+    "admin_tag": "(Admin)",
+    "me_option": "Moi",
     "offline_banner": {
       "text": "Vous êtes actuellement hors-ligne. Consultation des données en cache."
     },
@@ -186,6 +188,10 @@
       "subtitle_advisor": "Suivi et accompagnement de vos étudiants dans leur recherche d'alternance ou de stage.",
       "create_advisor": "Créer un conseiller",
       "export_csv": "Exporter CSV",
+      "view_toggle": {
+        "global": "Vue globale",
+        "mine": "Mon portefeuille"
+      },
       "stats": {
         "students_label": "Étudiants inscrits",
         "students_sub": "{{active}} actifs · {{inactive}} inactifs",

@@ -6,6 +6,8 @@
       "delete": "Delete",
       "deleting": "Deleting…"
     },
+    "admin_tag": "(Admin)",
+    "me_option": "Me",
     "offline_banner": {
       "text": "You are currently offline. Viewing cached data."
     },
@@ -186,6 +188,10 @@
       "subtitle_advisor": "Monitoring and support for your students in their internship or work-study search.",
       "create_advisor": "Create advisor",
       "export_csv": "Export CSV",
+      "view_toggle": {
+        "global": "Global view",
+        "mine": "My portfolio"
+      },
       "stats": {
         "students_label": "Enrolled students",
         "students_sub": "{{active}} active · {{inactive}} inactive",

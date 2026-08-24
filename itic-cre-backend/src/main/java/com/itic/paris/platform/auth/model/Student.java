@@ -31,8 +31,11 @@ public class Student extends User {
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 
+    // Un ADVISOR ou un ADMIN peut etre affecte comme "conseiller referent" d'un etudiant
+    // (les deux roles sont symetriques pour cette affectation) — d'ou le type User plutot
+    // que Advisor. Voir V8__widen_student_advisor_to_any_staff.sql.
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "advisor_id")
-    private Advisor advisor;
+    private User advisor;
 }

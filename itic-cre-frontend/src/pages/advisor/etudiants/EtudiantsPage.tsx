@@ -12,6 +12,7 @@ import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromoti
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
+import { formatStaffLabel } from '../../../utils/staffUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../../components/shared/StudentDetailModal';
@@ -104,10 +105,14 @@ export default function EtudiantsPage() {
         })),
     ], [promotions, t]);
 
+    const currentUserId = currentUser ? String(currentUser.id) : '';
+
     const advisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
-    ], [advisors, t]);
+        ...advisors
+            .filter((a) => a.id !== currentUserId)
+            .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
+    ], [advisors, t, currentUserId]);
 
     const { data: systemYears } = useAvailableStudyYears();
 
@@ -167,8 +172,11 @@ export default function EtudiantsPage() {
 
     const bulkAdvisorOptions = useMemo(() => [
         { value: '', label: t('dashboard.etudiants.bulk.pick_advisor', 'Choisir un conseiller…') },
-        ...advisors.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` })),
-    ], [advisors, t]);
+        ...advisors.map((a) => ({
+            value: a.id,
+            label: a.id === currentUserId ? t('common.me_option', 'Moi') : formatStaffLabel(a, t('common.admin_tag', '(Admin)')),
+        })),
+    ], [advisors, t, currentUserId]);
 
     const clearSelection = () => setRowSelection({});
 
@@ -319,7 +327,7 @@ export default function EtudiantsPage() {
                 isFetching={isFetching}
                 isLoading={isLoading}
                 isAdmin={isAdmin}
-                currentUserId={currentUser ? String(currentUser.id) : ''}
+                currentUserId={currentUserId}
                 filterOptions={filterOptions}
                 promotionOptions={promotionOptions}
                 studyYearOptions={studyYearOptions}
