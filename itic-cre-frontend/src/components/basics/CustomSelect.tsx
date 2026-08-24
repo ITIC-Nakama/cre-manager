@@ -81,6 +81,17 @@ export default function CustomSelect({
     });
   };
 
+  // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement.
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnScroll = (e: Event) => {
+      if (panelRef.current?.contains(e.target as Node)) return;
+      setIsOpen(false);
+    };
+    window.addEventListener('scroll', closeOnScroll, true);
+    return () => window.removeEventListener('scroll', closeOnScroll, true);
+  }, [isOpen]);
+
   return (
     <div ref={containerRef} className={`relative inline-block text-left ${className}`} id={id}>
       {/* Trigger Button - Matches SwitchLanguage exactly */}
