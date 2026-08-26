@@ -5,6 +5,7 @@ import com.itic.paris.platform.shared.local.LanguageUtil;
 import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
@@ -25,7 +26,7 @@ public class ResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                   Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        if (isSwaggerPath(request) || body instanceof CustomResponseEntity) {
+        if (isSwaggerPath(request) || body instanceof CustomResponseEntity || body instanceof Resource || body instanceof byte[]) {
             return body;
         }
 

@@ -210,7 +210,7 @@ export default function ContenuPage() {
         <button
           onClick={() => setActiveTab('articles')}
           className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'articles'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              ? 'border-[#E2762F] text-[#E2762F]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
             }`}
         >
@@ -220,7 +220,7 @@ export default function ContenuPage() {
         <button
           onClick={() => setActiveTab('categories')}
           className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'categories'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              ? 'border-[#E2762F] text-[#E2762F]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
             }`}
         >

@@ -25,7 +25,12 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build Backend with Maven
+      - name: Run Backend Tests with Maven
+        run: |
+          cd itic-cre-backend
+          mvn -B test
+
+      - name: Build & Package Backend with Maven
         run: |
           cd itic-cre-backend
           mvn -B package
@@ -77,16 +82,18 @@ jobs:
   deploy:
     needs: build-and-compile
     runs-on: self-hosted
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Récupération du fichier JAR
+      # Téléchargé dans un dossier séparé du répertoire de travail de systemd,
+      # pour que la sauvegarde et la copie ci-dessous portent sur deux fichiers distincts.
       - name: Download Backend Artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
-          path: itic-cre-backend
+          path: itic-cre-backend-incoming
 
       # Récupération des fichiers React (dist)
       - name: Download Frontend Artifact
@@ -95,26 +102,74 @@ jobs:
           name: frontend-dist
           path: itic-cre-frontend/dist
 
-      # Déploiement sur l'environnement natif du serveur
+      # Déploiement sur l'environnement natif du serveur, avec sauvegarde de l'existant,
+      # bascule quasi sans coupure, health-check et rollback automatique en cas d'échec.
       - name: Deploy application in Native Mode
         working-directory: ${{ github.workspace }}
         env:
           ENV_DATA: ${{ secrets.BACKEND_ENV_CONTENT }}
         run: |
-          # 1. Configuration de l'environnement du Backend sur le serveur
+          set -e
+          BACKUP_ROOT="$HOME/itic-cre-backups"
+          TS=$(date +%Y%m%d-%H%M%S)
+          mkdir -p "$BACKUP_ROOT"
+
+          # --- 1. Sauvegarde de l'existant AVANT toute modification ---
+          # Le chemin du jar actuellement utilisé par systemd est découvert dynamiquement
+          # (pas supposé) pour rester correct même si l'unit file change un jour.
+          CURRENT_JAR=$(systemctl show itic-backend.service -p ExecStart --value 2>/dev/null | grep -oE '/[^ ]+\.jar' | head -1 || true)
+          if [ -n "$CURRENT_JAR" ] && [ -f "$CURRENT_JAR" ]; then
+            cp "$CURRENT_JAR" "$BACKUP_ROOT/app-${TS}.jar.bak"
+          fi
+          if [ -d /var/www/html ] && [ "$(ls -A /var/www/html 2>/dev/null)" ]; then
+            sudo rm -rf "$BACKUP_ROOT/frontend-previous"
+            sudo cp -r /var/www/html "$BACKUP_ROOT/frontend-previous"
+          fi
+
+          # --- 2. Déploiement ---
           echo "$ENV_DATA" > itic-cre-backend/.env
-          
-          # Ajuster les permissions pour s'assurer que le runner peut manipuler les fichiers
+          chmod 600 itic-cre-backend/.env
           sudo chown -R github-runner:github-runner itic-cre-backend
-          
-          # 2. Déploiement du Frontend (Nettoyage et copie vers le répertoire Nginx)
-          sudo rm -rf /var/www/html/*
-          sudo cp -r itic-cre-frontend/dist/* /var/www/html/
+
+          # rsync : ne touche que les fichiers modifies et supprime les fichiers obsoletes,
+          # fenetre de coupure de service quasi nulle.
+          sudo rsync -a --delete itic-cre-frontend/dist/ /var/www/html/
           sudo chown -R www-data:www-data /var/www/html/
-          
-          # 3. Redémarrage des services natifs du serveur
+
+          NEW_JAR=$(ls itic-cre-backend-incoming/*.jar | head -1)
+          DEST_JAR="${CURRENT_JAR:-itic-cre-backend/$(basename "$NEW_JAR")}"
+          sudo cp "$NEW_JAR" "$DEST_JAR"
+
           sudo systemctl restart itic-backend.service
           sudo systemctl restart nginx
+
+          # --- 3. Health-check post-déploiement ---
+          SUCCESS=false
+          for i in $(seq 1 15); do
+            if curl -sfL -o /dev/null "http://localhost:8080/api/v1/health"; then
+              SUCCESS=true
+              break
+            fi
+            sleep 4
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "::error::Health-check echoue apres deploiement — rollback automatique vers la version precedente"
+            if [ -n "$CURRENT_JAR" ] && [ -f "$BACKUP_ROOT/app-${TS}.jar.bak" ]; then
+              sudo cp "$BACKUP_ROOT/app-${TS}.jar.bak" "$CURRENT_JAR"
+              sudo systemctl restart itic-backend.service
+            fi
+            if [ -d "$BACKUP_ROOT/frontend-previous" ]; then
+              sudo rsync -a --delete "$BACKUP_ROOT/frontend-previous/" /var/www/html/
+              sudo systemctl restart nginx
+            fi
+            rm -f itic-cre-backend/.env
+            exit 1
+          fi
+
+          # --- 4. Nettoyage du secret sur disque une fois l'appli démarrée avec succès ---
+          # (l'appli ne relit .env qu'au démarrage, donc c'est sûr de le retirer maintenant)
+          shred -u itic-cre-backend/.env 2>/dev/null || rm -f itic-cre-backend/.env
 
       # Notifications Discord
       - name: Notify Discord on Success
@@ -136,5 +191,5 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           curl -s -H "Content-Type: application/json" -X POST \
-            -d "{\"embeds\":[{\"title\":\"Echec du Deploiement ITIC CRE\",\"description\":\"Une erreur est survenue durant la phase de deploiement natif.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
+            -d "{\"embeds\":[{\"title\":\"Echec du Deploiement ITIC CRE\",\"description\":\"Le health-check a echoue apres deploiement — un rollback automatique vers la version precedente a ete tente. Verifier l'etat du serveur.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"${COMMIT_SHA}\",\"inline\":true},{\"name\":\"Branche\",\"value\":\"${BRANCH}\",\"inline\":true}]}]}" \
             "${DISCORD_WEBHOOK}"

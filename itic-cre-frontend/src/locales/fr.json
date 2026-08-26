@@ -6,29 +6,70 @@
       "delete": "Supprimer",
       "deleting": "Suppression…"
     },
+    "admin_tag": "(Admin)",
+    "me_option": "Moi",
     "offline_banner": {
       "text": "Vous êtes actuellement hors-ligne. Consultation des données en cache."
     },
     "cookie_banner": {
       "title": "Gestion des Cookies Essentiels",
       "close": "Fermer",
-      "text": "ITIC-CRE utilise uniquement des cookies de session strictement nécessaires (authentification sécurisée JWT et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.",
+      "text": "ITIC Paris CRE utilise uniquement des cookies de session strictement nécessaires (authentification et choix de la langue). Aucun cookie publicitaire ou traceur tiers n'est utilisé.",
       "learn_more": "En savoir plus",
       "accept": "J'ai compris"
-    }
+    },
+    "back": "Retour",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "save": "Enregistrer"
   },
   "roles": {
     "student": "Étudiant",
     "admin": "Administrateur",
     "advisor": "Chargé de Relations Entreprises"
   },
+  "study_years": {
+    "year_1": "1ère année",
+    "year_2": "2ème année",
+    "year_3": "3ème année",
+    "year_4": "4ème année",
+    "year_5": "5ème année",
+    "all_years": "Toutes les années",
+    "no_years": "Sans niveau"
+  },
+  "student": {
+    "skilltree": {
+      "back_to_tree_tooltip": "Retourner à l'arbre de connaissances",
+      "tree_link": "Arbre"
+    }
+  },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
-    "banner_title": "Installer ITIC CRE",
+    "banner_title": "Installer ITIC Paris CRE",
     "banner_subtitle": "Accès rapide & mode hors-ligne",
     "banner_button": "Installer",
     "ios_title": "Installer sur iPhone / iPad",
-    "android_title": "Installer sur Android"
+    "ios_step1": "Appuyez sur le bouton",
+    "ios_step1_share": "Partager",
+    "ios_step1_suffix": "en bas de l'écran Safari.",
+    "ios_step2": "Faites défiler le menu et sélectionnez",
+    "ios_step2_add": "Sur l'écran d'accueil",
+    "android_title": "Installer sur Android",
+    "android_step1": "Ouvrez le menu de votre navigateur",
+    "android_step1_suffix": "(3 petits points en haut à droite).",
+    "android_step2": "Appuyez sur",
+    "android_step2_or": "ou",
+    "android_step2_install": "Installer l'application",
+    "android_step2_add": "Ajouter à l'écran d'accueil",
+    "desktop_title": "Installer sur Ordinateur (PC / Mac)",
+    "desktop_step1": "Cliquez sur l'icône d'installation",
+    "desktop_step1_suffix": "à droite dans la barre d'adresse de votre navigateur.",
+    "desktop_step2": "Ou ouvrez le menu de votre navigateur",
+    "desktop_step2_suffix": "(3 petits points) et cliquez sur",
+    "desktop_step2_install": "Installer ITIC Paris CRE...",
+    "got_it": "J'ai compris"
   },
   "nav": {
     "how_it_works": "Comment ça marche ?",
@@ -38,7 +79,7 @@
     "start": "Commencer"
   },
   "hero": {
-    "title": "Bienvenue sur ITIC CRE",
+    "title": "Bienvenue sur ITIC Paris CRE",
     "description": "La plateforme de suivi de vos candidatures de stage et d'alternance. Progressez dans votre recherche de carrière en toute confiance."
   },
   "features": {
@@ -71,10 +112,11 @@
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
       "conseillers": "Relations Entreprises",
+      "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
       "audit": "Journal d'audit",
       "configuration": "Configuration",
-      "parametres": "Profil",
+      "parametres": "Paramètres",
       "logout": "Déconnexion"
     },
     "home": {
@@ -100,10 +142,15 @@
         "rank_prefix": "Tu es",
         "rank_suffix": "sur {{total}}"
       },
+      "advisor": {
+        "title": "Mon conseiller",
+        "empty": "Aucun conseiller n'a encore été affecté."
+      },
       "applications": {
         "title": "Candidatures récentes",
         "empty": "Aucune candidature pour le moment",
-        "empty_desc": "Commencez par ajouter votre première candidature pour suivre son évolution ici."
+        "empty_desc": "Commencez par ajouter votre première candidature pour suivre son évolution ici.",
+        "view_all": "Voir tout"
       },
       "tasks": {
         "title": "À faire aujourd'hui",
@@ -162,16 +209,26 @@
       "role_admin": "Admin",
       "role_advisor": "Conseiller",
       "subtitle": "Suivi global et accompagnement des étudiants dans leur recherche d'alternance ou de stage.",
+      "subtitle_advisor": "Suivi et accompagnement de vos étudiants dans leur recherche d'alternance ou de stage.",
       "create_advisor": "Créer un conseiller",
       "export_csv": "Exporter CSV",
+      "view_toggle": {
+        "global": "Vue globale",
+        "mine": "Mon portefeuille"
+      },
       "stats": {
         "students_label": "Étudiants inscrits",
         "students_sub": "{{active}} actifs · {{inactive}} inactifs",
         "students_sub_with_anonymized": "{{active}} actifs · {{inactive}} inactifs (+{{anonymized}} supprimé RGPD)",
         "students_tooltip_title": "Comprendre le calcul",
-        "students_tooltip_active": "Actif : Étudiant connecté ou ayant eu une activité dans les 14 derniers jours.",
-        "students_tooltip_inactive": "Inactif : Étudiant du portefeuille sans activité depuis +14 jours.",
-        "students_tooltip_anonymized": "Supprimé (RGPD) : Compte anonymisé (identité effacée). Ses candidatures restent dans l'activité.",
+        "students_tooltip_active_label": "Actif",
+        "students_tooltip_active_advisor": "Étudiant de votre portefeuille connecté ou ayant eu une activité dans les {{days}} derniers jours.",
+        "students_tooltip_active_admin": "Étudiant connecté ou ayant eu une activité dans les {{days}} derniers jours.",
+        "students_tooltip_inactive_label": "Inactif",
+        "students_tooltip_inactive_advisor": "Étudiant de votre portefeuille sans activité depuis +{{days}} jours.",
+        "students_tooltip_inactive_admin": "Étudiant de la plateforme sans activité depuis +{{days}} jours.",
+        "students_tooltip_anonymized_label": "Supprimé (RGPD)",
+        "students_tooltip_anonymized": "Compte anonymisé (identité effacée). Ses candidatures restent dans l'activité.",
         "students_tooltip_equation": "Total inscrits = Actifs + Inactifs + Supprimés RGPD",
         "applications_label": "Candidatures totales",
         "applications_sub": "+{{count}} cette semaine",
@@ -196,16 +253,13 @@
       },
       "students_widget": {
         "title": "Étudiants à suivre",
-        "subtitle_one": "{{count}} étudiant · top 5 prioritaires",
-        "subtitle_other": "{{count}} étudiants · top 5 prioritaires",
+        "subtitle_one": "{{count}} étudiant nécessite une action",
+        "subtitle_other": "{{count}} étudiants nécessitent une action",
         "see_all": "Voir tous",
-        "empty": "Aucun étudiant enregistré.",
         "no_alerts": "Tous les étudiants sont à jour — aucune alerte active.",
         "stale_badge_one": "{{count}} en retard",
         "stale_badge_other": "{{count}} en retard",
         "no_cv": "Sans CV",
-        "ok": "✓ OK",
-        "subtitle": "Liste des étudiants et statut de relance",
         "stale_badge": "Relance nécessaire"
       },
       "audit": {
@@ -245,36 +299,44 @@
       "filter_no_cv": "Sans CV",
       "filter_show_anonymized": "Afficher les comptes supprimés (RGPD)",
       "filter_all_promotions": "Toutes les promotions",
+      "filter_all_advisors": "Tous les conseillers",
+      "filter_my_students": "Mes étudiants uniquement",
+      "filter_study_year": "Année d'étude",
+      "filter_study_year_all": "Toutes les années",
       "promotion_search_placeholder": "Rechercher une promotion…",
       "promotion_no_results": "Aucune promotion trouvée",
       "table": {
         "student": "Étudiant",
         "promotion": "Promotion",
+        "study_year": "Année",
         "applications": "Candidatures",
         "grade_xp": "Grade / XP",
         "cv": "CV",
         "status": "Statut",
         "actions": "Actions",
+        "advisor": "Conseiller",
+        "no_advisor": "Aucun conseiller",
+        "gdpr_badge": "Supprimé (RGPD)",
         "cv_deposited": "Déposé",
         "cv_none": "Aucun",
         "active": "Actif",
         "inactive": "Inactif",
         "account_disabled": "Compte désactivé",
         "empty": "Aucun étudiant ne correspond à vos critères.",
-        "last_activity": "Dernière connexion",
-        "stale_one": "{{count}} en retard",
-        "stale_other": "{{count}} en retard",
-        "stale": "Relance nécessaire"
+        "last_activity": "Dernière connexion"
       },
       "detail": {
         "total_applications": "Total candidatures",
         "stale_applications": "Candidatures en retard",
-        "last_activity": "Dernière connexion : {{date}}"
+        "last_activity": "Dernière connexion : {{date}}",
+        "edit_promotion": "Modifier",
+        "no_promotion": "Aucune",
+        "toast_promo_updated": "Affectation mise à jour avec succès !",
+        "toast_promo_update_error": "Erreur lors de la mise à jour de la promotion."
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants",
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} étudiants"
+        "info_other": "Page {{current}} sur {{total}} — {{count}} étudiants"
       },
       "actions": {
         "view": "Consulter le dossier",
@@ -294,7 +356,27 @@
       "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
       "toast_reactivated": "Compte réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
-      "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants."
+      "subtitle": "Gérez et suivez la progression de l'ensemble des étudiants.",
+      "anonymized_account": "Compte anonymisé RGPD (non réactivable)",
+      "bulk": {
+        "selected_count_one": "{{count}} étudiant sélectionné",
+        "selected_count_other": "{{count}} étudiants sélectionnés",
+        "assign_button": "Affecter",
+        "pick_advisor": "Choisir un conseiller…",
+        "cancel": "Annuler",
+        "select_all_matching": "Sélectionner les {{count}} étudiants correspondant au filtre",
+        "select_all_error": "Erreur lors de la sélection.",
+        "assign_success_one": "{{count}} étudiant affecté avec succès !",
+        "assign_success_other": "{{count}} étudiants affectés avec succès !",
+        "assign_error": "Erreur lors de l'affectation groupée.",
+        "remove_button": "Retirer",
+        "remove_success_one": "Conseiller retiré pour {{count}} étudiant !",
+        "remove_success_other": "Conseiller retiré pour {{count}} étudiants !",
+        "remove_error": "Erreur lors du retrait groupé."
+      }
+    },
+    "students": {
+      "anonymized_account": "Compte anonymisé RGPD (non réactivable)"
     },
     "candidatures": {
       "title": "Candidatures",
@@ -308,6 +390,9 @@
       "promotion_no_results": "Aucune promotion trouvée",
       "filter_stale_only": "En retard uniquement",
       "loading": "Chargement des candidatures…",
+      "toast_export_success": "Export CSV téléchargé avec succès",
+      "toast_export_error": "Erreur lors du téléchargement du CSV",
+      "export_csv": "Exporter CSV",
       "empty_title": "Aucun étudiant actif avec des candidatures",
       "empty_desc": "Modifiez vos filtres pour élargir la recherche.",
       "student_count_one": "{{count}} étudiant",
@@ -323,10 +408,6 @@
         "status": "Statut",
         "last_update": "Dernière mise à jour",
         "empty": "Aucune candidature ne correspond à vos critères."
-      },
-      "pagination": {
-        "info_one": "Page {{current}} sur {{total}} — {{count}} candidature",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} candidatures"
       },
       "detail": {
         "student": "Étudiant",
@@ -350,6 +431,9 @@
           "in_progress": "En cours",
           "completed": "Terminées"
         },
+        "pagination_prev": "Précédent",
+        "pagination_next": "Suivant",
+        "pagination_info": "Page {{current}} sur {{total}}",
         "card": {
           "via_jobboard": "Via le jobboard",
           "today": "Aujourd'hui",
@@ -358,9 +442,7 @@
           "stale_days_one": "{{count}} jour sans nouvelle",
           "stale_days_other": "{{count}} jours sans nouvelle",
           "next_step_button": "Étape suivante",
-          "next_step_xp": "+{{xp}} XP",
-          "stale_days": "En attente depuis {{days}}j",
-          "days_ago": "Il y a {{days}} jours"
+          "next_step_xp": "+{{xp}} XP"
         },
         "form": {
           "create_title": "Ajouter une candidature",
@@ -414,9 +496,16 @@
           "xp_preview": "+{{xp}} XP"
         },
         "subtitle": "Suivez l'évolution de vos candidatures et opportunités de stage ou d'alternance."
-      },
-      "student_count": "{{count}} étudiants",
-      "pagination_info": "Page {{current}} sur {{total}}"
+      }
+    },
+    "cv_validation": {
+      "title": "Validation des CVs"
+    },
+    "student_offres": {
+      "title": "Offres d'Emploi"
+    },
+    "audit": {
+      "title": "Journaux d'Audit"
     },
     "offres": {
       "title": "Offres d'emploi",
@@ -442,6 +531,43 @@
           "ADZUNA": "Adzuna"
         }
       },
+      "filter_all_sectors": "Tous les secteurs",
+      "filter_all_statuses": "Toutes les offres",
+      "categories_button": "Secteurs & contrats",
+      "categories": {
+        "page_title": "Secteurs & types de contrat",
+        "page_subtitle": "Gérez les catégories utilisées pour classer les offres d'emploi.",
+        "back_button": "Retour aux offres",
+        "tab_sectors": "Secteurs",
+        "tab_contract_types": "Types de contrat",
+        "add_button": "Ajouter",
+        "label_placeholder": "Nom",
+        "description_placeholder": "Description (optionnel)",
+        "table_label": "Nom",
+        "table_description": "Description",
+        "table_status": "Statut",
+        "table_actions": "Actions",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "empty": "Aucun élément pour l'instant.",
+        "count_one": "{{count}} élément",
+        "count_other": "{{count}} éléments",
+        "edit": "Modifier",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "activate": "Activer",
+        "deactivate": "Désactiver",
+        "delete": "Supprimer",
+        "confirm_delete_title": "Supprimer cet élément ?",
+        "confirm_delete_message": "Supprimer \"{{label}}\" ? Cette action est irréversible et échouera si des offres l'utilisent encore.",
+        "toast_created": "Créé avec succès.",
+        "toast_updated": "Mis à jour avec succès.",
+        "toast_deleted": "Supprimé avec succès.",
+        "toast_activated": "Activé avec succès.",
+        "toast_deactivated": "Désactivé avec succès.",
+        "toast_error": "Une erreur est survenue.",
+        "toast_delete_error": "Échec de la suppression — vérifiez qu'aucune offre ne l'utilise encore."
+      },
       "apply_button": "Marquer comme posté",
       "already_applied": "Déjà postulé",
       "withdraw_hint": "Retirer ma candidature — la carte correspondante sera aussi supprimée de mon suivi de candidatures.",
@@ -454,6 +580,7 @@
         "title": "Offre",
         "location": "Lieu",
         "contract": "Type de contrat",
+        "sector": "Secteur",
         "applications": "Candidatures",
         "status": "Statut",
         "active": "Active",
@@ -474,8 +601,7 @@
         "info_one": "Page {{current}} sur {{total}} — {{count}} offre",
         "info_other": "Page {{current}} sur {{total}} — {{count}} offres",
         "prev": "Précédent",
-        "next": "Suivant",
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} offres"
+        "next": "Suivant"
       },
       "form": {
         "create_title": "Publier une offre",
@@ -487,6 +613,12 @@
         "description_label": "Description",
         "location_label": "Lieu",
         "contract_label": "Type de contrat",
+        "sector_label": "Secteur",
+        "sector_none": "Aucun secteur",
+        "new_sector_button": "Nouveau secteur",
+        "new_sector_placeholder": "Nom du secteur",
+        "new_sector_add": "Ajouter",
+        "new_sector_error": "Échec de la création du secteur.",
         "link_label": "Lien externe (candidature)",
         "cancel": "Annuler",
         "save": "Enregistrer",
@@ -495,12 +627,26 @@
         "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
         "save_error": "Échec de l'enregistrement de l'offre."
       },
+      "detail_modal": {
+        "title": "Détails de l'offre",
+        "description_title": "Description du poste",
+        "about_company": "À propos de l'entreprise",
+        "contract": "Type de contrat",
+        "sector": "Secteur d'activité",
+        "location": "Localisation",
+        "published_at": "Publiée le {{date}}",
+        "external_link_notice": "Cette offre redirige vers une plateforme externe pour candidater.",
+        "external_link_button": "Consulter l'annonce",
+        "status_applied": "Vous avez déjà postulé à cette offre",
+        "close": "Fermer"
+      },
       "toast": {
         "created": "Offre publiée avec succès.",
         "updated": "Offre mise à jour.",
         "deactivated": "Offre désactivée.",
         "activated": "Offre réactivée.",
         "deleted": "Offre supprimée.",
+        "has_applications": "Impossible de supprimer : des candidatures sont liées à cette offre. Désactivez-la plutôt.",
         "action_error": "Une erreur est survenue.",
         "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",
@@ -679,7 +825,8 @@
       "no_articles_short": "Aucun article",
       "toast_title_too_long": "Le titre ne doit pas dépasser 200 caractères.",
       "pagination": {
-        "info": "Affichage de {{from}} à {{to}} sur {{total}} articles",
+        "info_one": "Page {{current}} sur {{total}} — {{count}} article",
+        "info_other": "Page {{current}} sur {{total}} — {{count}} articles",
         "prev": "Précédent",
         "next": "Suivant"
       },
@@ -782,6 +929,8 @@
       "toast_config_error": "Erreur lors de la mise à jour de la configuration.",
       "toast_config_updated": "Configuration mise à jour avec succès !",
       "toast_config_save_error": "Erreur lors de la mise à jour de la configuration.",
+      "toast_rule_updated": "Configuration mise à jour avec succès !",
+      "toast_rule_update_error": "Erreur lors de la mise à jour de la configuration.",
       "action": {
         "CANDIDATURE_CREATED": "Nouvelle candidature créée",
         "QUIZ_COMPLETED": "Quiz validé"
@@ -796,11 +945,15 @@
       "toast_app_status_error": "Erreur lors de la mise à jour du statut.",
       "toast_status_updated": "Statut mis à jour avec succès !",
       "toast_status_save_error": "Erreur lors de la mise à jour du statut.",
+      "toast_status_xp_updated": "Statut mis à jour avec succès !",
+      "toast_status_xp_update_error": "Erreur lors de la mise à jour du statut.",
       "sec2_cv_title": "Gains XP par statut de CV",
       "cv_status_section_title": "Points XP par statut de CV",
       "cv_status_section_desc": "Attribuez des points XP lorsqu'un CV atteint un statut donné (ex : validation du CV par un conseiller).",
       "toast_cv_status_success": "Statut de CV mis à jour avec succès !",
       "toast_cv_status_error": "Erreur lors de la mise à jour du statut.",
+      "toast_cv_xp_updated": "Statut de CV mis à jour avec succès !",
+      "toast_cv_xp_update_error": "Erreur lors de la mise à jour du statut.",
       "sec3_title": "Rangs & Grades de progression",
       "grades_section_title": "Grades de progression",
       "grades_section_desc": "Les grades sont attribués automatiquement aux étudiants selon leur total de points XP.",
@@ -889,8 +1042,19 @@
       "label_phone": "Téléphone",
       "label_job_title": "Fonction",
       "placeholder_job_title": "Ex : Chargé de Relations Entreprises",
+      "label_public_picture": "Photo publique (visible par les étudiants)",
+      "hint_public_picture": "Optionnel — si absente, la photo de compte du conseiller est utilisée à la place.",
+      "btn_change_picture": "Changer la photo",
+      "toast_picture_updated": "Photo mise à jour avec succès !",
+      "toast_picture_error": "Erreur lors de la mise à jour de la photo.",
       "btn_cancel": "Annuler",
       "btn_save": "Enregistrer",
+      "btn_create": "Créer",
+      "generate_password": "Régénérer",
+      "copy_password": "Copier",
+      "button_cancel": "Annuler",
+      "button_create": "Créer",
+      "button_save": "Enregistrer",
       "toast_created": "Membre créé avec succès !",
       "toast_admin_created": "Administrateur créé avec succès !",
       "toast_advisor_created": "Conseiller créé avec succès !",
@@ -915,8 +1079,13 @@
         "admin_cannot_be_deleted": "Un administrateur ne peut pas être supprimé physiquement.",
         "admin_password_reset_forbidden": "La réinitialisation du mot de passe d'un administrateur par un tiers est interdite.",
         "generic": "Une erreur est survenue."
-      },
-      "subtitle": "Gérez les comptes du personnel (Chargés de Relations Entreprises & Administrateurs)."
+      }
+    },
+    "conseillers_directory": {
+      "title": "Conseillers",
+      "subtitle": "Retrouvez l'ensemble des conseillers de la plateforme et leurs coordonnées.",
+      "empty": "Aucun conseiller disponible pour le moment.",
+      "role_badge": "Conseiller"
     },
     "audit_page": {
       "title": "Journal d'audit",
@@ -968,59 +1137,6 @@
       },
       "subtitle": "Consultez l'historique des actions et évènements de sécurité sur la plateforme."
     },
-    "promotions": {
-      "title": "Promotions",
-      "subtitle_one": "{{count}} promotion au total",
-      "subtitle_other": "{{count}} promotions au total",
-      "create_button": "Créer une promotion",
-      "table": {
-        "name": "Nom",
-        "year": "Année",
-        "students": "Étudiants",
-        "actions": "Actions",
-        "student_count_one": "{{count}} étudiant",
-        "student_count_other": "{{count}} étudiants",
-        "empty": "Aucune promotion pour le moment.",
-        "student_count": "{{count}} étudiants"
-      },
-      "actions": {
-        "edit": "Modifier",
-        "delete": "Supprimer",
-        "manage_students": "Gérer les étudiants"
-      },
-      "modal_create": "Créer une promotion",
-      "modal_edit": "Modifier la promotion",
-      "label_name": "Nom",
-      "placeholder_name": "Ex : Promotion 2026",
-      "label_year": "Année",
-      "placeholder_year": "Ex : 2025-2026",
-      "btn_cancel": "Annuler",
-      "btn_save": "Enregistrer",
-      "toast_created": "Promotion créée avec succès !",
-      "toast_updated": "Promotion mise à jour avec succès !",
-      "toast_save_error": "Erreur lors de l'enregistrement de la promotion.",
-      "toast_name_exists": "Une promotion avec ce nom existe déjà.",
-      "confirm_delete_title": "Supprimer la promotion",
-      "confirm_delete": "Êtes-vous sûr de vouloir supprimer la promotion \"{{name}}\" ?",
-      "toast_deleted": "Promotion supprimée avec succès !",
-      "toast_delete_error": "Erreur lors de la suppression de la promotion.",
-      "toast_has_students": "Impossible de supprimer cette promotion : retirez d'abord tous les étudiants.",
-      "modal_students": "Étudiants de {{name}}",
-      "no_students": "Aucun étudiant dans cette promotion.",
-      "btn_remove_student": "Retirer",
-      "confirm_remove_student_title": "Retirer de la promotion",
-      "confirm_remove_student": "Retirer \"{{name}}\" de cette promotion ? L'étudiant ne sera pas supprimé, seulement détaché de la promotion.",
-      "toast_student_removed": "Étudiant retiré de la promotion avec succès !",
-      "toast_student_remove_error": "Erreur lors du retrait de l'étudiant.",
-      "label_add_student": "Ajouter ou déplacer un étudiant",
-      "placeholder_add_student": "Rechercher un étudiant par nom ou email…",
-      "no_search_results": "Aucun étudiant trouvé.",
-      "currently_in": "actuellement dans {{name}}",
-      "btn_add_student": "Ajouter",
-      "toast_student_assigned": "Étudiant affecté à la promotion avec succès !",
-      "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant.",
-      "subtitle": "Gérez les promotions, filières et effectifs étudiants d'ITIC Paris."
-    },
     "parametres": {
       "profile": {
         "title": "Profil",
@@ -1043,6 +1159,7 @@
         "btn_enter_otp": "Saisir le code",
         "btn_cancel": "Annuler",
         "label_email": "Adresse email",
+        "label_promotion": "Promotion",
         "modal_otp_title": "Validation de la nouvelle adresse email",
         "modal_otp_desc": "Entrez le code à 6 chiffres envoyé à votre nouvelle adresse.",
         "btn_confirm_otp": "Valider le code"
@@ -1069,6 +1186,27 @@
         "modal_deleting": "Suppression...",
         "toast_delete_success": "Votre compte a été anonymisé et désactivé.",
         "toast_delete_error": "Erreur lors de la suppression de votre compte."
+      },
+      "submenus": {
+        "profile": "Paramètres du Profil",
+        "profile_admin": "Paramètres",
+        "system": "Configuration Applicative"
+      },
+      "app_config": {
+        "title": "Configuration Applicative Système",
+        "description": "Ajustez les seuils applicatifs globaux du backend (alertes de relance, règles de promotion).",
+        "btn_save": "Enregistrer",
+        "toast_success": "Configuration mise à jour avec succès !",
+        "toast_error": "Échec de la mise à jour de la configuration.",
+        "empty": "Aucune configuration à afficher.",
+        "keys": {
+          "STALE_ALERT_DAYS": "Nombre de jours d'inactivité avant alerte de relance (candidatures)",
+          "PROMOTION_REMINDER_MONTHS": "Délai en mois avant rappel de mise à jour de promotion",
+          "GDPR_OTP_RETENTION_HOURS": "Durée de conservation des codes OTP de vérification d'email (heures)",
+          "GDPR_AUDIT_LOG_RETENTION_DAYS": "Durée de conservation légale des journaux d'audit et traçabilité (jours)",
+          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Durée avant anonymisation/suppression automatique des comptes inactifs (jours)",
+          "INACTIVE_STUDENT_DAYS": "Nombre de jours sans connexion avant qu'un étudiant soit considéré comme inactif (statistiques)"
+        }
       },
       "preferences": {
         "title": "Préférences",
@@ -1135,6 +1273,79 @@
       "actions": {
         "review": "Examiner"
       }
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle_one": "{{count}} promotion au total",
+      "subtitle_other": "{{count}} promotions au total",
+      "create_button": "Créer une promotion",
+      "table": {
+        "name": "Nom de la promotion",
+        "year": "Année scolaire",
+        "years_levels": "Niveaux d'années",
+        "students": "Étudiants",
+        "actions": "Actions",
+        "empty": "Aucune promotion trouvée.",
+        "student_count_one": "{{count}} étudiant",
+        "student_count_other": "{{count}} étudiants",
+        "student_count": "{{count}} étudiant(s)"
+      },
+      "actions": {
+        "manage_students": "Gérer les étudiants",
+        "edit": "Modifier",
+        "delete": "Supprimer"
+      },
+      "empty": "Aucune promotion trouvée.",
+      "no_students": "Aucun étudiant dans cette sélection.",
+      "student_count_one": "{{count}} étudiant",
+      "student_count_other": "{{count}} étudiants",
+      "student_count": "{{count}} étudiant(s)",
+      "modal_create": "Créer une promotion",
+      "modal_edit": "Modifier la promotion",
+      "btn_cancel": "Annuler",
+      "btn_save": "Enregistrer",
+      "modal_students": "Étudiants — {{name}}",
+      "has_years_label": "Niveaux d'années requis",
+      "has_years_desc": "Permet aux étudiants de choisir leur niveau (1ère, 2ème année, etc.)",
+      "available_years_label": "Niveau d'année d'étude",
+      "label_name": "Promotion",
+      "label_year": "Année scolaire",
+      "placeholder_name": "Ex: BTS SIO, Bachelor Dev...",
+      "placeholder_year": "Ex: 2025-2026",
+      "label_add_student": "Affecter un étudiant à cette promotion",
+      "search_student_label": "Rechercher un étudiant",
+      "placeholder_add_student": "Rechercher par nom, prénom ou email...",
+      "no_search_results": "Aucun étudiant correspondant",
+      "currently_in": "Actuellement en {{name}}",
+      "btn_add_student": "Ajouter",
+      "btn_remove_student": "Retirer",
+      "btn_view_students": "Gérer les étudiants",
+      "tab_all": "Tous ({{count}})",
+      "tab_unassigned": "Sans niveau ({{count}})",
+      "search_in_promo": "Filtrer les étudiants...",
+      "filtered_count": "{{count}} affiché(s)",
+      "status_label": "Statut",
+      "change_year_tooltip": "Changer le niveau d'année",
+      "select_year_placeholder": "Niveau...",
+      "no_years": "Sans niveau",
+      "toast_year_updated": "Année d'étude mise à jour avec succès !",
+      "toast_year_update_error": "Erreur lors de la mise à jour de l'année.",
+      "toast_created": "Promotion créée avec succès.",
+      "toast_updated": "Promotion mise à jour avec succès.",
+      "toast_deleted": "Promotion supprimée avec succès.",
+      "toast_student_assigned": "Étudiant affecté avec succès.",
+      "toast_student_removed": "Étudiant retiré de la promotion.",
+      "toast_student_assign_error": "Erreur lors de l'affectation de l'étudiant.",
+      "toast_student_remove_error": "Erreur lors du retrait de l'étudiant.",
+      "confirm_delete_title": "Supprimer la promotion",
+      "confirm_delete": "Supprimer la promotion « {{name}} » ? Cette action est irréversible.",
+      "confirm_remove_student_title": "Retirer l'étudiant",
+      "confirm_remove_student": "Retirer {{name}} de cette promotion ?",
+      "toast_name_exists": "Une promotion avec ce nom existe déjà.",
+      "toast_has_students": "Impossible de supprimer cette promotion car elle contient des étudiants.",
+      "toast_save_error": "Erreur lors de l'enregistrement de la promotion.",
+      "toast_delete_error": "Erreur lors de la suppression de la promotion.",
+      "select_at_least_one_year": "Veuillez sélectionner au moins un niveau d'année."
     }
   },
   "cta": {
@@ -1146,12 +1357,13 @@
       "title": "Connexion à votre espace",
       "subtitle": "Accédez à votre espace en toute sécurité.",
       "portal_subtitle": "Portail stages et alternance",
-      "hero_title": "Accédez à votre espace ITIC CRE",
+      "hero_title": "Accédez à votre espace ITIC Paris CRE",
       "hero_description": "Un point d'entrée unique pour suivre les stages, les candidatures, les relances et les échanges avec les conseillers de ITIC Paris.",
       "help_title": "Besoin d'aide ?",
       "help_contact": "Contactez-nous :",
+      "help_email": "pole.entreprises@iticparis.com",
       "connexion_title": "Connexion",
-      "connexion_subtitle": "Connectez-vous à votre espace ITIC Paris.",
+      "connexion_subtitle": "Connectez-vous à votre espace ITIC Paris CRE.",
       "activate_account": "Activer mon compte (Code OTP)",
       "email_not_verified": "Votre adresse e-mail n'est pas validée.",
       "click_to_activate": "Cliquez ici pour activer votre compte.",
@@ -1172,10 +1384,11 @@
       "title": "Créer votre compte",
       "subtitle": "Inscrivez-vous pour accéder à la plateforme.",
       "portal_subtitle": "Portail stages et alternance",
-      "hero_title": "Rejoignez votre espace ITIC CRE",
+      "hero_title": "Rejoignez votre espace ITIC Paris CRE",
       "hero_description": "Créez votre compte et accédez à tous les outils pour suivre vos candidatures, vos stages et vos échanges avec vos conseillers.",
       "help_title": "Besoin d'aide ?",
       "help_contact": "Contactez-nous :",
+      "help_email": "pole.entreprises@iticparis.com",
       "register_title": "Créer un compte",
       "register_subtitle": "Remplissez le formulaire pour commencer.",
       "first_name_label": "Prénom",
@@ -1192,6 +1405,9 @@
       "promotion_required": "La promotion est requise.",
       "promotion_search_placeholder": "Rechercher une promotion…",
       "promotion_no_results": "Aucune promotion trouvée",
+      "study_year_label": "Année d'étude",
+      "study_year_placeholder": "Sélectionnez votre année",
+      "study_year_required": "L'année d'étude est requise pour cette promotion.",
       "creating": "Création...",
       "error_generic": "Une erreur est survenue lors de l'inscription.",
       "success_created": "Compte créé ! Un e-mail de validation vous a été envoyé.",
@@ -1268,7 +1484,7 @@
       "title": "Conditions Générales d'Utilisation",
       "last_updated": "Dernière mise à jour : {{date}}",
       "sec1_title": "1. Objet du service",
-      "sec1_desc": "La plateforme ITIC-CRE est un outil professionnel mis à la disposition des étudiants et des conseillers pédagogiques de l'école ITIC Paris. Elle a pour objet la gestion des CV, le suivi des candidatures d'alternance et de stage (CRM), l'accès aux offres partenaires et l'accompagnement pédagogique.",
+      "sec1_desc": "La plateforme ITIC Paris CRE est un outil professionnel mis à la disposition des étudiants et des conseillers pédagogiques de l'école ITIC Paris. Elle a pour objet la gestion des CV, le suivi des candidatures d'alternance et de stage (CRM), l'accès aux offres partenaires et l'accompagnement pédagogique.",
       "sec2_title": "2. Accès et création de compte",
       "sec2_desc": "L'accès à la plateforme est strictement réservé aux étudiants inscrits à l'ITIC Paris et au personnel pédagogique autorisé. Chaque utilisateur s'engage à fournir des informations exactes et à maintenir la confidentialité de ses identifiants de connexion.",
       "sec3_title": "3. Engagements des utilisateurs",
@@ -1282,7 +1498,7 @@
       "last_updated": "Dernière mise à jour : {{date}}",
       "gdpr_compliance": "Conforme au Règlement Général sur la Protection des Données (RGPD - UE 2016/679)",
       "sec1_title": "1. Protection de vos données",
-      "sec1_desc": "Chez ITIC Paris, la protection et le respect de votre vie privée sont une priorité fondamentale. Cette politique de confidentialité vise à vous informer en toute transparence des modalités de collecte, de traitement, de conservation et de sécurisation de vos données personnelles sur la plateforme ITIC-CRE.",
+      "sec1_desc": "Chez ITIC Paris, la protection et le respect de votre vie privée sont une priorité fondamentale. Cette politique de confidentialité vise à vous informer en toute transparence des modalités de collecte, de traitement, de conservation et de sécurisation de vos données personnelles sur la plateforme ITIC Paris CRE.",
       "sec2_title": "2. Informations personnelles enregistrées",
       "sec2_desc": "Afin d'assurer le suivi pédagogique et l'accompagnement vers l'emploi, nous collectons les données suivantes :",
       "sec2_item1_label": "Données de profil :",

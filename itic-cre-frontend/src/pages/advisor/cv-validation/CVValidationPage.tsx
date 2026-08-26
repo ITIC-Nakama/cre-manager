@@ -7,16 +7,20 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
-    Eye, CheckCircle, Clock, AlertTriangle,
+    Eye, CheckCircle, Clock, AlertTriangle, Users,
     ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAllCVs, useCVStatuts, useCVStats } from '../../../hooks/useCV';
+import { useAllAdvisors } from '../../../hooks/useAdvisors';
+import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import type { CVRow } from '../../../types/models/CV';
+import { useUserStore } from '../../../store/UserStore';
+import { Role } from '../../../types/models/Auth';
 
 const PAGE_SIZE_LOCAL = 20;
 
@@ -53,18 +57,26 @@ function StatutBadge({ nom, couleur }: { nom: string; couleur: string }) {
 
 export default function CVValidationPage() {
     const { t } = useTranslation();
+    const currentUser = useUserStore((state) => state.user);
+    const isAdmin = currentUser?.role === Role.ADMIN;
+
     const [statutFilter, setStatutFilter] = useState('');
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [selectedCV, setSelectedCV] = useState<CVRow | null>(null);
+    // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
+    // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
+    const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
 
     const { data: statuts = [] } = useCVStatuts();
-    const { data: stats = [] } = useCVStats();
+    const { data: stats = [] } = useCVStats(advisorFilter || undefined);
+    const { data: advisors = [] } = useAllAdvisors();
     const { data, isLoading } = useAllCVs({
         page,
         size: PAGE_SIZE_LOCAL,
         statutId: statutFilter || undefined,
         search: search.trim() || undefined,
+        advisorId: advisorFilter || undefined,
     });
 
     const pagedCVs = data?.content ?? [];
@@ -76,6 +88,15 @@ export default function CVValidationPage() {
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
         ...statuts.map((s) => ({ value: s.id, label: s.nom })),
     ], [statuts, t]);
+
+    const currentUserId = currentUser ? String(currentUser.id) : '';
+
+    const advisorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.etudiants.filter_all_advisors', 'Tous les conseillers') },
+        ...advisors
+            .filter((a) => a.id !== currentUserId)
+            .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
+    ], [advisors, t, currentUserId]);
 
     const columns = useMemo(() => [
         col.accessor((row) => row.student ? `${row.student.firstName} ${row.student.lastName}` : '—', {
@@ -145,6 +166,11 @@ export default function CVValidationPage() {
         setPage(0);
     };
 
+    const handleAdvisorFilterChange = (val: string) => {
+        setAdvisorFilter(val);
+        setPage(0);
+    };
+
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
 
@@ -178,6 +204,26 @@ export default function CVValidationPage() {
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
+                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <input
+                        type="checkbox"
+                        checked={advisorFilter === currentUserId}
+                        onChange={(e) => handleAdvisorFilterChange(e.target.checked ? currentUserId : '')}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <Users className="h-3.5 w-3.5 text-indigo-500" />
+                    <span>{t('dashboard.etudiants.filter_my_students', 'Mes étudiants uniquement')}</span>
+                </label>
+                {isAdmin && (
+                    <CustomSelect
+                        value={advisorFilter === currentUserId ? '' : advisorFilter}
+                        options={advisorOptions}
+                        onChange={handleAdvisorFilterChange}
+                        icon={<Users className="h-4 w-4 text-slate-400" />}
+                        className={`min-w-48 transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
+                        searchable
+                    />
+                )}
                 {isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}

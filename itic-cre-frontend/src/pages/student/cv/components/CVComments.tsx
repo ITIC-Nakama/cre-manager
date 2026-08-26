@@ -62,6 +62,7 @@ export default function CVComments({ comments }: Props) {
                   firstName={comment.advisor?.firstName ?? 'C'}
                   lastName={comment.advisor?.lastName ?? ''}
                   className="h-9 w-9 flex-shrink-0"
+                  enlargeOnClick
                 />
 
                 {/* Texte du commentaire & Métadonnées */}

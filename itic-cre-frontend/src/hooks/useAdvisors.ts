@@ -1,12 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdvisors,
+  fetchAllAdvisors,
   fetchAdmins,
   createAdvisor,
   updateAdvisor,
   deleteAdvisor,
   deactivateUser,
   reactivateAdvisor,
+  assignStudentsToAdvisor,
+  removeStudentsFromAdvisor,
+  fetchAdvisorDirectory,
+  uploadAdvisorPublicPicture,
 } from '../api-s/requests/AdvisorRequest';
 import type { AdvisorListParams, CreateAdvisorData, UpdateAdvisorData } from '../types/models/Advisor';
 
@@ -14,6 +19,13 @@ export function useAdvisors(params: AdvisorListParams = {}) {
   return useQuery({
     queryKey: ['advisors', params],
     queryFn: () => fetchAdvisors(params),
+  });
+}
+
+export function useAllAdvisors() {
+  return useQuery({
+    queryKey: ['advisors', 'all'],
+    queryFn: fetchAllAdvisors,
   });
 }
 
@@ -75,6 +87,47 @@ export function useReactivateAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+    },
+  });
+}
+
+export function useAssignStudentsToAdvisor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ advisorId, studentIds }: { advisorId: string; studentIds: string[] }) =>
+      assignStudentsToAdvisor(advisorId, studentIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+    },
+  });
+}
+
+export function useRemoveStudentsFromAdvisor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (studentIds: string[]) => removeStudentsFromAdvisor(studentIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+    },
+  });
+}
+
+export function useAdvisorDirectory() {
+  return useQuery({
+    queryKey: ['advisor-directory'],
+    queryFn: fetchAdvisorDirectory,
+  });
+}
+
+export function useUploadAdvisorPublicPicture() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ advisorId, file }: { advisorId: string; file: File }) =>
+      uploadAdvisorPublicPicture(advisorId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['advisors'] });
+      queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['advisor-directory'] });
     },
   });
 }

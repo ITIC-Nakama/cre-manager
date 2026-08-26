@@ -11,6 +11,7 @@ export function fetchAllCVs(params: CVListParams = {}): Promise<CVPage> {
     const query: Record<string, unknown> = { page: params.page ?? 0, size: params.size ?? 20 };
     if (params.statutId) query.statutId = params.statutId;
     if (params.search)   query.search   = params.search;
+    if (params.advisorId) query.advisorId = params.advisorId;
     return apiClient.get('/cv', { params: query }).then(unwrap<CVPage>);
 }
 
@@ -45,8 +46,8 @@ export function deleteCVComment(commentId: string): Promise<void> {
 }
 
 /** GET /cv/stats — obtenir le nombre de CV par statut */
-export function fetchCVStats(): Promise<CVStatCount[]> {
-    return apiClient.get('/cv/stats').then((r) => unwrap<CVStatCount[]>(r));
+export function fetchCVStats(advisorId?: string): Promise<CVStatCount[]> {
+    return apiClient.get('/cv/stats', { params: advisorId ? { advisorId } : undefined }).then((r) => unwrap<CVStatCount[]>(r));
 }
 
 /** POST /cv/me/upload — déposer ou remplacer le CV de l'étudiant connecté */

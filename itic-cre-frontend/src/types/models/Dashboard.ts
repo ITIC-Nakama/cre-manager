@@ -1,3 +1,5 @@
+import type { AdvisorDirectoryEntry } from './Advisor';
+
 export interface CvByStatut {
   statutId: string;
   statutNom: string;
@@ -26,6 +28,13 @@ export interface DashboardOverview {
   applicationsByStatus: AppByStatus[];
   cvsByStatut: CvByStatut[];
   cvsToReview: number;
+  inactiveStudentDays?: number;
+}
+
+export interface PromotionYearCounts {
+  totalStudents: number;
+  counts: Record<string, number>;
+  unassigned: number;
 }
 
 export interface StudentRow {
@@ -34,6 +43,8 @@ export interface StudentRow {
   lastName: string;
   email: string;
   promotion: { id: string; nom: string } | null;
+  advisor: { id: string; firstName: string; lastName: string } | null;
+  studyYear?: number | null;
   xpTotal: number;
   grade: { nom: string; icone: string } | null;
   lastActivity: string | null;
@@ -60,6 +71,10 @@ export interface StudentListParams {
   hasCv?: boolean;
   hasStale?: boolean;
   promotionId?: string;
+  studyYear?: number;
+  studyYearMissing?: boolean;
+  excludePromotionId?: string;
+  advisorId?: string;
   includeAnonymized?: boolean;
 }
 
@@ -109,7 +124,7 @@ export interface ApplicationStats {
 }
 
 export interface Task {
-  type: 'NO_CV' | 'CV_TO_CORRECT' | 'STALE_APPLICATION' | 'NO_APPLICATION';
+  type: 'NO_CV' | 'CV_TO_CORRECT' | 'STALE_APPLICATION' | 'NO_APPLICATION' | 'UPDATE_PROMOTION';
   label: string;
   refId: string | null;
 }
@@ -134,4 +149,5 @@ export interface StudentDashboardSummary {
   candidatures: ApplicationStats;
   afaireAujourdhui: Task[];
   ranking: Ranking;
+  advisor: AdvisorDirectoryEntry | null;
 }

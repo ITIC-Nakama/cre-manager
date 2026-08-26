@@ -5,6 +5,7 @@ export interface Advisor {
   lastName: string;
   phoneNumber: string | null;
   jobTitle: string | null;
+  publicProfilePicture?: string | null;
   mustChangePassword: boolean;
   active: boolean;
   createdAt: string;
@@ -51,4 +52,13 @@ export interface UpdateAdvisorData {
 export interface DeleteOrDeactivateResult {
   deleted: boolean;
   user: Advisor | null;
+}
+
+export interface AdvisorDirectoryEntry {
+  id: string;
+  firstName: string;
+  lastName: string;
+  jobTitle: string | null;
+  email: string;
+  profilePicture: string | null;
 }

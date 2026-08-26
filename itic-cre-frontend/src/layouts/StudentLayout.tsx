@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router-dom';
 import { Role } from '../types/models/Auth';
-import RequireAuth from './RequireAuth';
+import RequireAuthMiddleware from '../middleware/RequireAuthMiddleware';
 import Sidebar from '../components/head/Sidebar';
-import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function StudentLayout() {
@@ -12,13 +12,14 @@ export default function StudentLayout() {
     { label: t('dashboard.sidebar.accueil'),       icon: LayoutDashboard, to: '/student/dashboard' },
     { label: t('dashboard.sidebar.candidatures'),  icon: Briefcase,       to: '/student/candidatures' },
     { label: t('dashboard.sidebar.offres'),        icon: Building2,       to: '/student/offres' },
+    { label: t('dashboard.sidebar.conseillers_directory', 'Conseillers'), icon: Users, to: '/student/conseillers' },
     { label: t('dashboard.sidebar.formation'),     icon: Compass,         to: '/student/connaissances' },
     { label: t('dashboard.sidebar.cv'),            icon: FileText,        to: '/student/cv' },
     { label: t('dashboard.sidebar.profil'),        icon: User,            to: '/student/parametres' },
   ];
 
   return (
-    <RequireAuth allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
+    <RequireAuthMiddleware allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main className="flex-1 overflow-y-auto h-full lg:pl-0 pt-10 sm:pt-10 lg:pt-0">
@@ -27,7 +28,7 @@ export default function StudentLayout() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequireAuthMiddleware>
   );
 }
 

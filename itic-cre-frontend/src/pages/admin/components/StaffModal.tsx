@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Copy, Check, RefreshCw } from 'lucide-react';
+import { X, Loader2, Copy, Check, RefreshCw, Camera } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
 import { generatePassword } from '../../../utils/passwordGenerator';
 import { copyToClipboard } from '../../../utils/clipboard';
+import { useUploadAdvisorPublicPicture } from '../../../hooks/useAdvisors';
+import UserAvatar from '../../../components/shared/UserAvatar';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -25,6 +27,9 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
   const [phoneNumber, setPhoneNumber] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [copied, setCopied] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadPictureMutation = useUploadAdvisorPublicPicture();
 
   useEffect(() => {
     if (isOpen) {
@@ -44,12 +49,33 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
         setJobTitle('');
       }
       setCopied(false);
+      setPreviewUrl(null);
     }
-  }, [isOpen, mode, advisor]);
+    // Depend on advisor?.id (not the advisor object itself) — a background refetch
+    // (e.g. after uploading the public picture) hands us a new object reference for
+    // the same advisor, which would otherwise re-run this effect and wipe out the
+    // just-uploaded preview at the exact moment it should appear.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, mode, advisor?.id]);
 
   const handleRegeneratePassword = () => {
     setPassword(generatePassword());
     setCopied(false);
+  };
+
+  const handlePictureSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !advisor) return;
+
+    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      await uploadPictureMutation.mutateAsync({ advisorId: advisor.id, file });
+      toast.success(t('dashboard.conseillers.toast_picture_updated', 'Photo mise à jour avec succès !'));
+    } catch {
+      setPreviewUrl(null);
+      toast.error(t('dashboard.conseillers.toast_picture_error', 'Erreur lors de la mise à jour de la photo.'));
+    }
   };
 
   const handleCopyPassword = async () => {
@@ -145,7 +171,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
                   className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline cursor-pointer"
                 >
                   <RefreshCw className="h-3 w-3" />
-                  {t('dashboard.conseillers.generate_password')}
+                  {t('dashboard.conseillers.btn_regenerate')}
                 </button>
               </div>
               <div className="relative">
@@ -160,7 +186,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
                   type="button"
                   onClick={handleCopyPassword}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer"
-                  title={t('dashboard.conseillers.copy_password')}
+                  title={t('dashboard.conseillers.btn_copy')}
                 >
                   {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 </button>
@@ -191,6 +217,49 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
             </div>
           </div>
 
+          {mode === 'edit' && targetRole === 'ADVISOR' && advisor && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                {t('dashboard.conseillers.label_public_picture', 'Photo publique (visible par les étudiants)')}
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <UserAvatar
+                    profilePicture={previewUrl ?? advisor.publicProfilePicture}
+                    firstName={advisor.firstName}
+                    lastName={advisor.lastName}
+                    className="h-14 w-14"
+                    onClick={() => fileInputRef.current?.click()}
+                  />
+                  {uploadPictureMutation.isPending && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadPictureMutation.isPending}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                  {t('dashboard.conseillers.btn_change_picture', 'Changer la photo')}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handlePictureSelected}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-1.5">
+                {t('dashboard.conseillers.hint_public_picture', "Optionnel — si absente, la photo de compte du conseiller est utilisée à la place.")}
+              </p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
             <button
               type="button"
@@ -198,7 +267,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
               disabled={saving}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('dashboard.conseillers.button_cancel')}
+              {t('dashboard.conseillers.btn_cancel')}
             </button>
             <button
               type="submit"
@@ -206,7 +275,7 @@ export default function StaffModal({ isOpen, mode, advisor, targetRole = 'ADVISO
               className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === 'create' ? t('dashboard.conseillers.button_create') : t('dashboard.conseillers.button_save')}
+              {mode === 'create' ? t('dashboard.conseillers.btn_create') : t('dashboard.conseillers.btn_save')}
             </button>
           </div>
         </form>

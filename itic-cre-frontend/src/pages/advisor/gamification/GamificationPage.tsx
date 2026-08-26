@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
-import { Trophy, Plus, Award, ListChecks, FileCheck, Loader2 } from 'lucide-react';
+import { Trophy, Plus, Award, ListChecks, FileCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useUserStore } from '../../../store/UserStore';
@@ -164,8 +164,14 @@ export default function GamificationPage() {
 
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           {loadingConfigs ? (
-            <div className="p-8 flex justify-center text-slate-400">
-              <Loader2 className="h-6 w-6 animate-spin" />
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-4 animate-pulse">
+                  <div className="h-4 flex-1 rounded bg-slate-100 dark:bg-slate-800" />
+                  <div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" />
+                  <div className="h-4 w-10 rounded bg-slate-100 dark:bg-slate-800" />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -208,8 +214,13 @@ export default function GamificationPage() {
 
           <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm flex-1">
             {loadingAppStatuses ? (
-              <div className="p-8 flex justify-center text-slate-400">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-6 py-4 animate-pulse">
+                    <div className="h-4 flex-1 rounded bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-4 w-12 rounded bg-slate-100 dark:bg-slate-800" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -249,8 +260,13 @@ export default function GamificationPage() {
 
           <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm flex-1">
             {loadingCvStatuts ? (
-              <div className="p-8 flex justify-center text-slate-400">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-6 py-4 animate-pulse">
+                    <div className="h-4 flex-1 rounded bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-4 w-12 rounded bg-slate-100 dark:bg-slate-800" />
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -301,8 +317,10 @@ export default function GamificationPage() {
         </div>
 
         {loadingGrades ? (
-          <div className="p-12 flex justify-center text-slate-400 border rounded-2xl bg-white dark:bg-slate-900 dark:border-slate-800">
-            <Loader2 className="h-6 w-6 animate-spin" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-pulse" />
+            ))}
           </div>
         ) : sortedGrades.length === 0 ? (
           <div className="p-12 text-center text-slate-500 dark:text-slate-400 border rounded-2xl bg-white dark:bg-slate-900 dark:border-slate-800 text-sm">

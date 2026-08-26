@@ -20,6 +20,9 @@ public class Student extends User {
     @Column(name = "last_activity")
     private Instant lastActivity;
 
+    @Column(name = "study_year")
+    private Integer studyYear;
+
     // Le proxy Hibernate lazy expose des proprietes internes (hibernateLazyInitializer,
     // handler) que Jackson ne sait pas serialiser quand cette entite est renvoyee
     // directement (ex: PUT /auth/users/me) — on les ignore explicitement.
@@ -27,4 +30,12 @@ public class Student extends User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
+
+    // Un ADVISOR ou un ADMIN peut etre affecte comme "conseiller referent" d'un etudiant
+    // (les deux roles sont symetriques pour cette affectation) — d'ou le type User plutot
+    // que Advisor. Voir V8__widen_student_advisor_to_any_staff.sql.
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "advisor_id")
+    private User advisor;
 }

@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
+    fetchSectors,
+    createSector,
     createJobOffer,
     updateJobOffer,
     deactivateJobOffer,
@@ -29,6 +31,22 @@ export function useActiveJobOffers(params: JobOfferListParams = {}) {
         queryKey: ['job-offers', 'active', params],
         queryFn: () => fetchActiveJobOffers(params),
         placeholderData: (prev) => prev,
+    });
+}
+
+export function useSectors() {
+    return useQuery({
+        queryKey: ['sectors'],
+        queryFn: fetchSectors,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
+export function useCreateSector() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (label: string) => createSector(label),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sectors'] }),
     });
 }
 

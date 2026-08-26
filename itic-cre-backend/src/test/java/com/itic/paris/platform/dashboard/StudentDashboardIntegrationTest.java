@@ -202,4 +202,25 @@ public class StudentDashboardIntegrationTest {
         assertThat(summary.getGamification().getGradeNext().getNom()).isEqualTo("Avancé");
         assertThat(summary.getGamification().getXpProgress()).isEqualTo(25);
     }
+
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
+    @Test
+    public void testPromotionUpdateTaskTriggeredWhenAccountAgeExceedsConfiguredMonths() {
+        // Given: Student account created 10 months ago
+        Instant tenMonthsAgo = java.time.ZonedDateTime.now().minusMonths(10).toInstant();
+        entityManager.createNativeQuery("UPDATE users SET created_at = :date WHERE id = :id")
+                .setParameter("date", tenMonthsAgo)
+                .setParameter("id", studentA.getId())
+                .executeUpdate();
+        entityManager.clear();
+
+        // When
+        StudentDashboardSummaryDTO summary = studentDashboardService.getSummary();
+
+        // Then
+        List<String> taskTypes = summary.getAFaireAujourdhui().stream().map(TaskDTO::getType).toList();
+        assertThat(taskTypes).contains("UPDATE_PROMOTION");
+    }
 }

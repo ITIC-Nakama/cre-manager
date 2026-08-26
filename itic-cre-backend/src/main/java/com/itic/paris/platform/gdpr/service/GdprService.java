@@ -5,6 +5,8 @@ import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
+import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
@@ -155,6 +157,10 @@ public class GdprService {
 
     @Transactional
     public void anonymizeAndDeactivateUser(User user) {
+        if (UserMapper.roleOf(user) == RoleEnum.ADMIN) {
+            throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CANNOT_BE_DELETED);
+        }
+
         log.info("Démarrage anonymisation RGPD pour l'utilisateur ID: {}", user.getId());
 
         user.setFirstName("Anonyme");

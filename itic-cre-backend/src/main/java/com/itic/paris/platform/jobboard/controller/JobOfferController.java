@@ -47,24 +47,28 @@ public class JobOfferController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/source "
+    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/sectorId/source "
             + "(source=MANUAL par défaut, EXTERNAL pour toutes les offres externes, ou une source précise)")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
+            @RequestParam(required = false) UUID sectorId,
             @RequestParam(required = false) String source,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, source, pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, source, pageable));
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin")
+    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId/source/active")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID contractTypeId,
+            @RequestParam(required = false) UUID sectorId,
             @RequestParam(required = false) String source,
+            @RequestParam(required = false) Boolean active,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, source, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, pageable));
     }
 
     @GetMapping("/search/company")

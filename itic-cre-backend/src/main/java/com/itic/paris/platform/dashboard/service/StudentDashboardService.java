@@ -3,7 +3,9 @@ package com.itic.paris.platform.dashboard.service;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.dtos.AdvisorDirectoryDTO;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.service.AdvisorService;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +45,7 @@ public class StudentDashboardService {
     private final GamificationService gamificationService;
     private final GamificationAdminService gamificationAdminService;
     private final AppConfigurationService appConfigurationService;
+    private final AdvisorService advisorService;
 
     @Autowired(required = false)
     private HttpServletRequest request;
@@ -54,6 +58,7 @@ public class StudentDashboardService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
 
         int staleAlertDays = appConfigurationService.getStaleAlertDays();
+        int promotionReminderMonths = appConfigurationService.getPromotionReminderMonths();
 
         String lang = student.getLang();
         try {
@@ -67,10 +72,13 @@ public class StudentDashboardService {
         GamificationSummaryDTO gamification = buildGamificationSummary(student);
         CvSummaryDTO cvSummary = buildCvSummary(studentId);
         ApplicationStatsDTO applicationStats = buildApplicationStats(studentId, staleAlertDays);
-        List<TaskDTO> tasks = buildTasks(studentId, applicationStats, cvSummary, staleAlertDays, lang);
+        List<TaskDTO> tasks = buildTasks(student, applicationStats, cvSummary, staleAlertDays, promotionReminderMonths, lang);
         RankingDTO ranking = buildRanking(student);
+        AdvisorDirectoryDTO advisor = student.getAdvisor() != null
+                ? advisorService.toDirectoryDTO(student.getAdvisor())
+                : null;
 
-        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking);
+        return new StudentDashboardSummaryDTO(gamification, cvSummary, applicationStats, tasks, ranking, advisor);
     }
 
     private RankingDTO buildRanking(Student student) {
@@ -175,8 +183,10 @@ public class StudentDashboardService {
         );
     }
 
-    private List<TaskDTO> buildTasks(UUID studentId, ApplicationStatsDTO appStats,
-                                     CvSummaryDTO cvSummary, int staleAlertDays, String lang) {
+    private List<TaskDTO> buildTasks(Student student, ApplicationStatsDTO appStats,
+                                     CvSummaryDTO cvSummary, int staleAlertDays,
+                                     int promotionReminderMonths, String lang) {
+        UUID studentId = student.getId();
         List<TaskDTO> tasks = new ArrayList<>();
 
         if (appStats.getTotal() == 0) {
@@ -206,6 +216,17 @@ public class StudentDashboardService {
                     ));
                 }
             });
+        }
+
+        if (student.getCreatedAt() != null) {
+            Instant promotionReminderThreshold = ZonedDateTime.now().minusMonths(promotionReminderMonths).toInstant();
+            if (student.getCreatedAt().isBefore(promotionReminderThreshold)) {
+                tasks.add(new TaskDTO(
+                        "UPDATE_PROMOTION",
+                        MessageKey.TASK_UPDATE_PROMOTION.translate(lang),
+                        null
+                ));
+            }
         }
 
         return tasks;

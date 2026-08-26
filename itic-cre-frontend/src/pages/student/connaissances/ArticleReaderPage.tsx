@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import DOMPurify from 'dompurify';
 import {
   ArrowLeft,
   ArrowRight,
@@ -53,6 +54,8 @@ export default function ArticleReaderPage() {
   }, [article?.id, article?.hasQuiz, categoryId, queryClient]);
 
   useEffect(() => {
+    if (isLoading || !article) return;
+
     const scrollEl = contentRef.current?.closest('main');
     if (!scrollEl) return;
 
@@ -70,7 +73,7 @@ export default function ArticleReaderPage() {
     handleScroll();
     scrollEl.addEventListener('scroll', handleScroll, { passive: true });
     return () => scrollEl.removeEventListener('scroll', handleScroll);
-  }, [articleId]);
+  }, [articleId, isLoading, article]);
 
   const node = useMemo(
     () => progress?.nodes.find((n) => n.categoryId === categoryId),
@@ -87,6 +90,7 @@ export default function ArticleReaderPage() {
   const nextArticle = currentIndex >= 0 && currentIndex < sortedArticles.length - 1 ? sortedArticles[currentIndex + 1] : null;
 
   const readingMinutes = useMemo(() => (article ? estimateReadingMinutes(article.contenu) : 0), [article]);
+  const sanitizedContenu = useMemo(() => (article ? DOMPurify.sanitize(article.contenu) : ''), [article]);
   const authorName = article ? [article.createdByFirstName, article.createdByLastName].filter(Boolean).join(' ').trim() : '';
   const updatedDate = article?.dateModification
     ? new Date(article.dateModification).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -94,7 +98,7 @@ export default function ArticleReaderPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-24">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
       </div>
     );
@@ -102,7 +106,7 @@ export default function ArticleReaderPage() {
 
   if (isError || !article) {
     return (
-      <div className="flex justify-center py-24 text-sm text-slate-400">
+      <div className="flex items-center justify-center py-24 text-sm text-slate-400">
         {t('dashboard.connaissances.article.load_error')}
       </div>
     );
@@ -110,8 +114,10 @@ export default function ArticleReaderPage() {
 
   return (
     <div ref={contentRef} className="flex flex-col gap-6 pb-16 max-w-3xl mx-auto">
-      {/* Reading progress bar, pinned to the top of the scrollable content area */}
-      <div className="sticky top-0 -mt-8 z-30 h-1 w-full bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
+      {/* Reading progress bar. Sur mobile : fixe, alignée sur la même ligne que le bouton
+          burger (fixed top-4 left-4, ~38px de haut), démarrant juste après lui plutôt que
+          centrée sur l'écran. Sur desktop : redevient sticky pleine largeur en haut du contenu. */}
+      <div className="fixed top-[33px] left-[70px] right-4 z-30 h-1 rounded-full lg:sticky lg:top-0 lg:-mt-8 lg:left-auto lg:right-auto lg:w-full lg:max-w-none lg:rounded-none bg-slate-100 dark:bg-slate-800/60 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-[width] duration-150 ease-out"
           style={{ width: `${readProgress}%` }}
@@ -182,7 +188,7 @@ export default function ArticleReaderPage() {
         <div
           className="ql-editor-replacement"
           contentEditable={false}
-          dangerouslySetInnerHTML={{ __html: article.contenu }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContenu }}
         />
       </div>
 

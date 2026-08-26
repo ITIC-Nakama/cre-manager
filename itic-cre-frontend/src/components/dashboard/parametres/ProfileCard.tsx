@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Camera, Medal, Star, Zap, Mail, AlertCircle, X } from 'lucide-react';
+import { Loader2, Camera, Medal, Star, Zap, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -9,10 +9,14 @@ import {
   useUploadProfilePicture,
   useConfirmEmailChange,
   useCancelEmailChange,
-  useResendEmailChangeOtp
+  useResendEmailChangeOtp,
 } from '../../../hooks/useAuth';
 import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
+import { usePromotions } from '../../../hooks/usePromotions';
+import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import UserAvatar from '../../shared/UserAvatar';
+import CustomSelect, { type SelectOption } from '../../basics/CustomSelect';
+import EmailChangeOtpModal from './EmailChangeOtpModal';
 
 export default function ProfileCard() {
   const { t } = useTranslation();
@@ -26,28 +30,59 @@ export default function ProfileCard() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStudent = user?.role === Role.STUDENT;
+  const isAdvisor = user?.role === Role.ADVISOR;
   const { data: dashboardSummary } = useMyDashboardSummary(isStudent);
+  const { data: promotions } = usePromotions();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [jobTitle, setJobTitle] = useState(user?.jobTitle ?? '');
+  const [promotionId, setPromotionId] = useState(user?.promotion?.id ?? '');
+  const [studyYear, setStudyYear] = useState<number | null>(user?.studyYear ?? null);
   const [uploadingPicture, setUploadingPicture] = useState(false);
-
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
 
   useEffect(() => {
     setFirstName(user?.firstName ?? '');
     setLastName(user?.lastName ?? '');
     setEmail(user?.email ?? '');
     setJobTitle(user?.jobTitle ?? '');
+    setPromotionId(user?.promotion?.id ?? '');
+    setStudyYear(user?.studyYear ?? null);
   }, [user]);
+
+  const selectedPromotion = useMemo(() => {
+    return promotions?.find((p) => p.id === promotionId);
+  }, [promotions, promotionId]);
+
+  const promoOptions: SelectOption[] = useMemo(() => {
+    return [
+      { value: '', label: t('dashboard.etudiants.detail.no_promotion', '— Aucune promotion —') },
+      ...(promotions ?? []).map((p) => ({
+        value: p.id,
+        label: formatPromotionLabel(p),
+      })),
+    ];
+  }, [promotions, t]);
+
+  const studyYearOptions: SelectOption[] = useMemo(() => {
+    if (!selectedPromotion?.hasYears || !selectedPromotion.availableYears?.length) return [];
+    return selectedPromotion.availableYears.map((yr) => ({
+      value: String(yr),
+      label: t(`study_years.year_${yr}`, `${yr}e année`),
+    }));
+  }, [selectedPromotion, t]);
 
   if (!user) return null;
 
-  const isAdvisor = user.role === Role.ADVISOR;
-  const hasChanges = firstName !== user.firstName || lastName !== user.lastName || email !== user.email || (isAdvisor && jobTitle !== (user.jobTitle ?? ''));
+  const hasChanges =
+    firstName !== user.firstName ||
+    lastName !== user.lastName ||
+    email !== user.email ||
+    (isAdvisor && jobTitle !== (user.jobTitle ?? '')) ||
+    (isStudent &&
+      (promotionId !== (user.promotion?.id ?? '') || studyYear !== (user.studyYear ?? null)));
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +92,12 @@ export default function ProfileCard() {
         lastName,
         email,
         jobTitle: isAdvisor ? jobTitle : undefined,
+        promotionId: isStudent ? (promotionId || undefined) : undefined,
+        studyYear: isStudent && selectedPromotion?.hasYears && studyYear ? studyYear : undefined,
       });
+
+      const selectedPromo = promotions?.find((p) => p.id === promotionId);
+
       setUser({
         ...user,
         firstName: updated.firstName ?? firstName,
@@ -66,7 +106,20 @@ export default function ProfileCard() {
         profilePicture: updated.profilePicture ?? user.profilePicture,
         jobTitle: updated.jobTitle ?? user.jobTitle,
         pendingEmail: updated.pendingEmail ?? null,
+        promotion: isStudent
+          ? selectedPromo
+            ? {
+                id: selectedPromo.id,
+                name: selectedPromo.name,
+                year: selectedPromo.year ?? undefined,
+                hasYears: selectedPromo.hasYears,
+                availableYears: selectedPromo.availableYears,
+              }
+            : null
+          : user.promotion,
+        studyYear: isStudent && selectedPromo?.hasYears ? studyYear : null,
       });
+
       if (updated.pendingEmail) {
         setShowOtpModal(true);
         toast.info(t('dashboard.parametres.profile.toast_otp_sent', `Un code OTP a été envoyé à ${updated.pendingEmail}.`));
@@ -83,21 +136,14 @@ export default function ProfileCard() {
     }
   };
 
-  const handleConfirmOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpCode || otpCode.length < 6) return;
+  const handleConfirmOtp = async (code: string) => {
     try {
-      const updated = await confirmEmailChangeMutation.mutateAsync(otpCode);
-      setUser({
-        ...user,
-        email: updated.email,
-        pendingEmail: null,
-      });
+      const updated = await confirmEmailChangeMutation.mutateAsync(code);
+      setUser({ ...user, email: updated.email, pendingEmail: null });
       setEmail(updated.email);
       setShowOtpModal(false);
-      setOtpCode('');
       toast.success(t('dashboard.parametres.profile.toast_email_confirmed', 'Adresse e-mail mise à jour avec succès !'));
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error(t('auth.otp.invalid', 'Code OTP invalide ou expiré.'));
     }
@@ -106,13 +152,9 @@ export default function ProfileCard() {
   const handleCancelPending = async () => {
     try {
       await cancelEmailChangeMutation.mutateAsync();
-      setUser({
-        ...user,
-        pendingEmail: null,
-      });
+      setUser({ ...user, pendingEmail: null });
       setEmail(user.email);
       setShowOtpModal(false);
-      setOtpCode('');
       toast.info(t('dashboard.parametres.profile.toast_email_change_cancelled', 'Demande de modification annulée.'));
     } catch (err) {
       console.error(err);
@@ -125,7 +167,7 @@ export default function ProfileCard() {
       toast.success(t('auth.otp.resent', 'Un nouveau code OTP a été envoyé.'));
     } catch (err) {
       console.error(err);
-      toast.error(t('auth.otp.resend_failed', 'Échec de l\'envoi du code.'));
+      toast.error(t('auth.otp.resend_failed', "Échec de l'envoi du code."));
     }
   };
 
@@ -157,7 +199,7 @@ export default function ProfileCard() {
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                  {t('dashboard.parametres.profile.pending_email_title', 'Changement d\'adresse e-mail en attente')}
+                  {t('dashboard.parametres.profile.pending_email_title', "Changement d'adresse e-mail en attente")}
                 </p>
                 <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                   {t('dashboard.parametres.profile.pending_email_desc', 'Un code OTP a été envoyé à')} <span className="font-bold underline">{user.pendingEmail}</span>.
@@ -186,7 +228,7 @@ export default function ProfileCard() {
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            <UserAvatar onClick={() => fileInputRef.current?.click()}  profilePicture={user.profilePicture} firstName={user.firstName} lastName={user.lastName} className="h-16 w-16" />
+            <UserAvatar onClick={() => fileInputRef.current?.click()} profilePicture={user.profilePicture} firstName={user.firstName} lastName={user.lastName} className="h-16 w-16" />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -196,30 +238,21 @@ export default function ProfileCard() {
             >
               {uploadingPicture ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePictureChange}
-              className="hidden"
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePictureChange} className="hidden" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs text-slate-400">{user.email}</p>
             {isStudent && dashboardSummary && (
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                {/* Grade */}
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold border border-amber-100 dark:border-amber-900/40">
                   <Medal className="h-3 w-3" />
                   {dashboardSummary.gamification.grade.nom}
                 </span>
-                {/* XP Total */}
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-100 dark:border-indigo-900/40">
                   <Zap className="h-3 w-3" />
                   {dashboardSummary.gamification.xpTotal} XP
                 </span>
-                {/* Rang */}
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-100 dark:border-emerald-900/40">
                   <Star className="h-3 w-3" />
                   {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
@@ -231,7 +264,9 @@ export default function ProfileCard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_first_name')} <span className="text-rose-500">*</span></label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              {t('dashboard.parametres.profile.label_first_name')} <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               required
@@ -242,7 +277,9 @@ export default function ProfileCard() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_last_name')} <span className="text-rose-500">*</span></label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              {t('dashboard.parametres.profile.label_last_name')} <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               required
@@ -255,7 +292,9 @@ export default function ProfileCard() {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_email', 'Adresse email')} <span className="text-rose-500">*</span></label>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+            {t('dashboard.parametres.profile.label_email', 'Adresse email')} <span className="text-rose-500">*</span>
+          </label>
           <input
             type="email"
             required
@@ -266,9 +305,52 @@ export default function ProfileCard() {
           />
         </div>
 
+        {/* Student: Promotion & Study Year Selector */}
+        {isStudent && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                {t('dashboard.promotions.label_name', 'Promotion')}
+              </label>
+              <CustomSelect
+                value={promotionId}
+                options={promoOptions}
+                searchable={promoOptions.length > 5}
+                searchPlaceholder={t('dashboard.etudiants.promotion_search_placeholder', 'Rechercher une promotion…')}
+                onChange={(val) => {
+                  setPromotionId(val);
+                  const p = promotions?.find((item) => item.id === val);
+                  if (p?.hasYears && p.availableYears?.length) {
+                    setStudyYear(p.availableYears[0]);
+                  } else {
+                    setStudyYear(null);
+                  }
+                }}
+                className="w-full text-xs"
+              />
+            </div>
+
+            {selectedPromotion?.hasYears && studyYearOptions.length > 0 && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  {t('dashboard.promotions.available_years_label', "Niveau d'année d'étude")}
+                </label>
+                <CustomSelect
+                  value={studyYear ? String(studyYear) : ''}
+                  options={studyYearOptions}
+                  onChange={(val) => setStudyYear(val ? Number(val) : null)}
+                  className="w-full text-xs"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {isAdvisor && (
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.parametres.profile.label_job_title')}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              {t('dashboard.parametres.profile.label_job_title')}
+            </label>
             <input
               type="text"
               maxLength={120}
@@ -293,63 +375,15 @@ export default function ProfileCard() {
       </form>
 
       {/* OTP Verification Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl max-w-md w-full space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mail className="h-5 w-5 text-indigo-500" />
-                {t('dashboard.parametres.profile.modal_otp_title', 'Confirmation de l\'adresse e-mail')}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowOtpModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              {t('dashboard.parametres.profile.modal_otp_desc', 'Veuillez saisir le code à 6 chiffres envoyé à')} <span className="font-semibold text-slate-900 dark:text-white">{user.pendingEmail}</span>.
-            </p>
-
-            <form onSubmit={handleConfirmOtp} className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.trim())}
-                  placeholder="123456"
-                  className="w-full text-center tracking-[0.5em] font-mono text-xl font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  type="submit"
-                  disabled={otpCode.length < 6 || confirmEmailChangeMutation.isPending}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {confirmEmailChangeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {t('dashboard.parametres.profile.btn_confirm_otp', 'Valider le code')}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={resendOtpMutation.isPending}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer"
-                >
-                  {resendOtpMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.otp.resend_btn', 'Renvoyer')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EmailChangeOtpModal
+        isOpen={showOtpModal}
+        pendingEmail={user.pendingEmail ?? ''}
+        isConfirming={confirmEmailChangeMutation.isPending}
+        isResending={resendOtpMutation.isPending}
+        onClose={() => setShowOtpModal(false)}
+        onConfirm={handleConfirmOtp}
+        onResend={handleResendOtp}
+      />
     </div>
   );
 }

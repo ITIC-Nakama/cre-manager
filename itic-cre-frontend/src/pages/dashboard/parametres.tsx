@@ -9,13 +9,22 @@ import ProfileCard from '../../components/dashboard/parametres/ProfileCard';
 import PreferencesCard from '../../components/dashboard/parametres/PreferencesCard';
 import SecurityCard from '../../components/dashboard/parametres/SecurityCard';
 import GdprCard from '../../components/dashboard/parametres/GdprCard';
+import AppConfigCard from '../../components/dashboard/parametres/AppConfigCard';
+import ParametresSubmenu, { type ParametresTab } from '../../components/dashboard/parametres/ParametresSubmenu';
 import { useUpdatePassword } from '../../hooks/useAuth';
+import { Role } from '../../types/models/Auth';
 
 export default function ParametresPage() {
   const { t } = useTranslation();
+  const user = useUserStore((state) => state.user);
   const logout = useUserStore((state) => state.logout);
   const navigate = useNavigate();
   const { mutate: updatePassword, isPending } = useUpdatePassword();
+
+  // Onglet actif : 'profile' (mon profil) ou 'system' (configuration applicative)
+  const [activeTab, setActiveTab] = useState<ParametresTab>('profile');
+
+  const isAdmin = user?.role === Role.ADMIN;
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -88,23 +97,36 @@ export default function ParametresPage() {
         </p>
       </div>
 
-      <ProfileCard />
+      {/* Sous-menu / Onglets pour basculer entre le profil et la configuration système */}
+      <ParametresSubmenu
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        showSystemTab={isAdmin}
+      />
 
-      <PreferencesCard />
+      {activeTab === 'profile' ? (
+        <>
+          <ProfileCard />
 
-      <SecurityCard onChangePassword={() => setModalOpen(true)} />
+          <PreferencesCard />
 
-      <GdprCard />
+          <SecurityCard onChangePassword={() => setModalOpen(true)} />
 
-      {/* Bottom logout button */}
-      <button
-        id="btn-logout"
-        onClick={handleLogout}
-        className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700"
-      >
-        <LogOut className="h-4 w-4" />
-        <span>{t('dashboard.parametres.logout')}</span>
-      </button>
+          <GdprCard />
+
+          {/* Bottom logout button */}
+          <button
+            id="btn-logout"
+            onClick={handleLogout}
+            className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t('dashboard.parametres.logout')}</span>
+          </button>
+        </>
+      ) : (
+        <AppConfigCard />
+      )}
 
       {/* Modal Overlay for Password Change */}
       {modalOpen && (

@@ -1,6 +1,7 @@
 import { FileText, ExternalLink, RefreshCw, Zap } from 'lucide-react';
 import type { CVResponse } from '../../../../types/models/CV';
 import { useTranslation } from 'react-i18next';
+import { openFileSecurely } from '../../../../utils/fileUtils';
 
 interface Props {
   cv: CVResponse;
@@ -94,23 +95,21 @@ export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploadin
 
       {/* Boutons d'action */}
       <div className="flex flex-col sm:flex-row gap-2.5 mt-2 relative z-10">
-        <a
-          href={cv.url}
-          target="_blank"
-          rel="noreferrer"
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+        <button
+          onClick={() => openFileSecurely(cv.url, fileName)}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-900 hover:bg-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-600 text-white text-sm font-semibold transition-colors cursor-pointer"
         >
           {t('studentCv.sheet.viewBtn', 'Voir mon CV')}
           <ExternalLink className="h-4 w-4" />
-        </a>
+        </button>
 
         <button
           onClick={onReplaceToggle}
           disabled={isUploading}
           className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer disabled:opacity-50 ${
             isReplaceOpen
-              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 hover:bg-red-100/50'
-              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+              ? 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-500 dark:hover:bg-red-600 hover:text-white hover:border-red-500 dark:hover:border-red-600'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'
           }`}
         >
           <RefreshCw className={`h-4 w-4 ${isUploading ? 'animate-spin' : ''}`} />

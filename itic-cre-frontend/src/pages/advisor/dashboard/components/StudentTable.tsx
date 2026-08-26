@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mail, AlertCircle, Star, Loader2, FileText, ArrowRight } from 'lucide-react';
+import { Mail, AlertCircle, Star, FileText, ArrowRight } from 'lucide-react';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import NotifyStudentModal from '../../../../components/shared/NotifyStudentModal';
 
@@ -11,21 +11,10 @@ interface Props {
   onNotify: (student: StudentRow, message?: string) => Promise<void>;
 }
 
-function sortByAttention(students: StudentRow[]): StudentRow[] {
-  return [...students].sort((a, b) => {
-    const scoreA = (a.staleApplicationCount > 0 ? 2 : 0) + (!a.hasCv ? 1 : 0);
-    const scoreB = (b.staleApplicationCount > 0 ? 2 : 0) + (!b.hasCv ? 1 : 0);
-    return scoreB - scoreA;
-  });
-}
-
 export default function StudentTable({ students, loading, onNotify }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
-
-  const displayed = sortByAttention(students).slice(0, 5);
-  const hasAlerts = students.some((s) => s.staleApplicationCount > 0 || !s.hasCv);
 
   return (
     <>
@@ -48,16 +37,25 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
-          </div>
-        ) : displayed.length === 0 ? (
-          <div className="text-center py-10 text-sm text-slate-400">
-            {t('dashboard.advisor.students_widget.empty')}
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+            {[...Array(5)].map((_, i) => (
+              <li key={i} className="flex items-center gap-4 px-6 py-4 animate-pulse">
+                <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <div className="h-3.5 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-24 rounded bg-slate-100 dark:bg-slate-800" />
+                </div>
+                <div className="h-5 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+              </li>
+            ))}
+          </ul>
+        ) : students.length === 0 ? (
+          <div className="text-center py-10 text-sm text-emerald-600 dark:text-emerald-400">
+            {t('dashboard.advisor.students_widget.no_alerts')}
           </div>
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            {displayed.map((student) => {
+            {students.map((student) => {
               const stale = student.staleApplicationCount > 0;
               const noCv = !student.hasCv;
 
@@ -73,7 +71,10 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       {student.promotion && (
-                        <span className="text-xs text-slate-400">{student.promotion.nom}</span>
+                        <span className="text-xs text-slate-400">
+                          {student.promotion.nom}
+                          {student.studyYear ? ` (${t(`study_years.year_${student.studyYear}`, `${student.studyYear}e`)})` : ''}
+                        </span>
                       )}
                       {student.grade && (
                         <span className="text-xs text-violet-500 flex items-center gap-0.5">
@@ -96,11 +97,6 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
                         {t('dashboard.advisor.students_widget.no_cv')}
                       </span>
                     )}
-                    {!stale && !noCv && (
-                      <span className="text-xs text-emerald-500 font-medium">
-                        {t('dashboard.advisor.students_widget.ok')}
-                      </span>
-                    )}
                   </div>
 
                   <button
@@ -114,12 +110,6 @@ export default function StudentTable({ students, loading, onNotify }: Props) {
               );
             })}
           </ul>
-        )}
-
-        {!loading && !hasAlerts && students.length > 0 && (
-          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-emerald-600 dark:text-emerald-400 text-center">
-            {t('dashboard.advisor.students_widget.no_alerts')}
-          </div>
         )}
       </div>
 

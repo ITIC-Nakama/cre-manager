@@ -35,4 +35,12 @@ public class CV {
 
     @Column(name = "xp_awarded", nullable = false)
     private Boolean xpAwarded = false;
+
+    /**
+     * Verrou optimiste — empêche que deux changements de statut concurrents sur le même
+     * CV ne créditent l'XP deux fois (voir CVService.awardStatusXPIfNeeded).
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }

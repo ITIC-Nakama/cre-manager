@@ -25,6 +25,8 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     Optional<Application> findByStudentIdAndSourceJobOfferId(UUID studentId, UUID jobOfferId);
 
+    long countBySourceJobOfferId(UUID jobOfferId);
+
     boolean existsByStudentId(UUID studentId);
 
     long countByStudentId(UUID studentId);
@@ -59,4 +61,9 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     @Query("SELECT a FROM Application a WHERE a.student.id = :studentId AND a.status.declencheAlerte = true AND a.dateModification < :threshold ORDER BY a.dateModification ASC")
     List<Application> findStaleByStudentId(UUID studentId, Instant threshold);
+
+    @Query("SELECT COUNT(a) FROM Application a WHERE a.student.id IN :studentIds AND a.status.declencheAlerte = true AND a.dateModification < :threshold")
+    long countStaleApplicationsForStudents(List<UUID> studentIds, Instant threshold);
+
+    long countByDateCreationAfterAndStudentIdIn(Instant since, List<UUID> studentIds);
 }

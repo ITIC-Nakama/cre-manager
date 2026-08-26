@@ -32,6 +32,8 @@ public class CreateJobOfferRequest {
     @NotNull
     private UUID contractTypeId;
 
+    private UUID sectorId;
+
     @Size(max = 2048)
     private String externalLink;
 }

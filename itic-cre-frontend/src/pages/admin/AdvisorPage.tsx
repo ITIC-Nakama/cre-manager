@@ -248,7 +248,7 @@ export default function AdvisorPage() {
             {renderTitleWithGradient(t(isAdminsTab ? 'dashboard.admins.title' : 'dashboard.advisors.title', isAdminsTab ? 'Gestion des Administrateurs' : 'Gestion des Conseillers'), 'itic-gradient-blue')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
-            {t('dashboard.conseillers.subtitle_other', { count: totalElements })}
+            {t('dashboard.conseillers.subtitle', { count: totalElements })}
           </p>
         </div>
         <button

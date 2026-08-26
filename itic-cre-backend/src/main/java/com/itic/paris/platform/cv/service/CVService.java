@@ -6,7 +6,6 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.cv.specification.CVSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
@@ -36,11 +35,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.Normalizer;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -80,11 +83,10 @@ public class CVService {
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_STATUT_NOT_FOUND));
 
         CV cv = cvRepository.findByStudentId(studentId).orElse(new CV());
+        String previousPath = cv.getFilePath();
 
-        if (cv.getFilePath() != null) {
-            cloudStorage.deleteFile(cv.getFilePath());
-        }
-
+        // Le nouvel upload doit reussir avant qu'on touche a l'ancien fichier :
+        // sinon un echec d'upload laisse l'etudiant sans CV du tout (ancien supprime, nouveau jamais arrive).
         String path = "cvs/" + studentId + "-" + System.currentTimeMillis() + ".pdf";
         boolean success = cloudStorage.uploadFile(file, path);
         if (!success) {
@@ -101,6 +103,11 @@ public class CVService {
         awardStatusXPIfNeeded(cv, statutEnAttente);
 
         CV saved = cvRepository.save(cv);
+
+        if (previousPath != null) {
+            cloudStorage.deleteFile(previousPath);
+        }
+
         auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
 
         return buildCVResponse(saved);
@@ -127,8 +134,8 @@ public class CVService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, Pageable pageable) {
-        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search), pageable);
+    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Pageable pageable) {
+        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId), pageable);
         return page.map(this::buildCVResponse);
     }
 
@@ -259,6 +266,7 @@ public class CVService {
         response.put("uploadedAt", cv.getUploadedAt());
         response.put("updatedAt", cv.getUpdatedAt());
         response.put("url", cloudStorage.getFile(cv.getFilePath()));
+        response.put("nomFichier", buildFriendlyFileName(cv.getStudent()));
         response.put("studentId", cv.getStudent().getId());
         response.put("xpAwarded", cv.getXpAwarded());
 
@@ -269,6 +277,9 @@ public class CVService {
         studentMap.put("firstName", student.getFirstName());
         studentMap.put("lastName", student.getLastName());
         studentMap.put("email", student.getEmail());
+        studentMap.put("profilePicture", student.getProfilePicture() != null
+                ? cloudStorage.getFile(student.getProfilePicture())
+                : null);
         if (student.getPromotion() != null) {
             Map<String, Object> promoMap = new HashMap<>();
             promoMap.put("id", student.getPromotion().getId());
@@ -282,21 +293,59 @@ public class CVService {
         return response;
     }
 
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCVStats() {
-        return cvRepository.countGroupedByStatut()
-                .stream().map(row -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("statutId", row[0]);
-                    map.put("count", row[3]);
-                    return map;
-                }).toList();
+    /**
+     * Nom de fichier lisible affiché à l'étudiant (ex: "CV_Dupont_Jean_Master-Dev-2025.pdf"),
+     * indépendant du nom de stockage interne (UUID + timestamp) utilisé sur le disque/bucket.
+     */
+    private String buildFriendlyFileName(Student student) {
+        StringBuilder name = new StringBuilder("CV");
+        appendSlug(name, student.getLastName());
+        appendSlug(name, student.getFirstName());
+        if (student.getPromotion() != null) {
+            appendSlug(name, student.getPromotion().getName());
+        }
+        name.append(".pdf");
+        return name.toString();
     }
 
+    private void appendSlug(StringBuilder builder, String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String slug = FILENAME_UNSAFE_CHARS.matcher(normalized).replaceAll("-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+        if (!slug.isEmpty()) {
+            builder.append("_").append(slug);
+        }
+    }
+
+    private static final Pattern FILENAME_UNSAFE_CHARS = Pattern.compile("[^A-Za-z0-9]+");
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCVStats(UUID advisorId) {
+        List<Object[]> rows = advisorId != null
+                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId))
+                : cvRepository.countGroupedByStatut();
+        return rows.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("statutId", row[0]);
+            map.put("count", row[3]);
+            return map;
+        }).toList();
+    }
+
+    /** Signature binaire d'un PDF ("%PDF-") — le Content-Type et le nom de fichier sont fournis par le client et falsifiables. */
+    private static final byte[] PDF_MAGIC_BYTES = {0x25, 0x50, 0x44, 0x46, 0x2D};
+
     private boolean isPdf(MultipartFile file) {
-        String contentType = file.getContentType();
-        String filename = file.getOriginalFilename();
-        return "application/pdf".equals(contentType)
-                || (filename != null && filename.toLowerCase().endsWith(".pdf"));
+        try (InputStream in = file.getInputStream()) {
+            byte[] header = in.readNBytes(PDF_MAGIC_BYTES.length);
+            return Arrays.equals(header, PDF_MAGIC_BYTES);
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
-import { ArrowRight, AlertTriangle, RefreshCw, KeyRound, Lock, Mail } from 'lucide-react';
+import { ArrowRight, AlertTriangle, RefreshCw, KeyRound, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useResetPassword, useResetPasswordConfirm } from '../../hooks/useAuth';
 import { handleApiError } from '../../utils/errorHelper';
@@ -17,6 +17,8 @@ export default function ResetPasswordPage() {
     const [step, setStep] = useState<1 | 2>(1);
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [resendCooldown, setResendCooldown] = useState(0);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { mutate: requestReset, isPending: isRequesting } = useResetPassword();
     const { mutate: confirmReset, isPending: isConfirming } = useResetPasswordConfirm();
@@ -74,23 +76,23 @@ export default function ResetPasswordPage() {
 
     const inputBase = (hasError: boolean) =>
         `w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
-        focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
+        focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3B71FF]
         transition-all duration-200 disabled:opacity-60
         ${hasError ? 'border-red-400' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`;
 
     return (
-        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 overflow-y-auto relative">
+        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-8 overflow-y-auto relative">
 
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(63,116,255,0.08),transparent_50%)]" />
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(226,120,46,0.08),transparent_50%)]" />
 
-            <div className="flex flex-col gap-10 max-w-md w-full relative z-10">
+            <div className="flex flex-col gap-6 max-w-md w-full relative z-10">
 
                 {/* Logo + heading */}
-                <div className="flex flex-col items-center gap-5 text-center">
-                    <img src={logoDark} alt="ITIC Paris" className="h-16 w-auto dark:hidden" />
-                    <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto hidden dark:block" />
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-extrabold itic-gradient-blue">
+                <div className="flex flex-col items-center gap-3 text-center">
+                    <img src={logoDark} alt="ITIC Paris" className="h-14 w-auto dark:hidden" />
+                    <img src={logoWhite} alt="ITIC Paris" className="h-14 w-auto hidden dark:block" />
+                    <div className="space-y-1.5">
+                        <h1 className="text-3xl font-extrabold itic-gradient-warm">
                             {t('auth.reset_password.title')}
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-[#9aa0a6] leading-relaxed max-w-sm mx-auto">
@@ -100,8 +102,8 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {/* Card */}
-                <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-10">
-                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                <div className="w-full bg-white dark:bg-[#15171f] rounded-2xl shadow-xl p-8">
+                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (
                             <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm">
@@ -116,7 +118,7 @@ export default function ResetPasswordPage() {
                                 {t('auth.reset_password.email_label')} <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3B71FF] transition-colors pointer-events-none" />
                                 <input
                                     id="email"
                                     type="email"
@@ -144,7 +146,7 @@ export default function ResetPasswordPage() {
                                             type="button"
                                             disabled={resendCooldown > 0 || isRequesting || isConfirming}
                                             onClick={handleResend}
-                                            className="text-xs text-[#3f74ff] font-medium transition-colors disabled:text-slate-400 disabled:cursor-not-allowed hover:underline flex items-center gap-1 cursor-pointer"
+                                            className="text-xs text-[#3B71FF] font-medium transition-colors disabled:text-slate-400 disabled:cursor-not-allowed hover:underline flex items-center gap-1 cursor-pointer"
                                         >
                                             <RefreshCw className={`h-3 w-3 ${isRequesting ? 'animate-spin' : ''}`} />
                                             {resendCooldown > 0
@@ -153,7 +155,7 @@ export default function ResetPasswordPage() {
                                         </button>
                                     </div>
                                     <div className="relative group">
-                                        <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                        <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3B71FF] transition-colors pointer-events-none" />
                                         <input
                                             id="code"
                                             type="text"
@@ -177,18 +179,27 @@ export default function ResetPasswordPage() {
                                         {t('auth.reset_password.new_password_label')} <span className="text-rose-500">*</span>
                                     </label>
                                     <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3B71FF] transition-colors pointer-events-none" />
                                         <input
                                             id="newPassword"
-                                            type="password"
+                                            type={showNewPassword ? 'text' : 'password'}
                                             placeholder={t('auth.reset_password.new_password_placeholder')}
                                             disabled={isConfirming || isRequesting}
-                                            className={inputBase(!!errors.newPassword)}
+                                            className={`${inputBase(!!errors.newPassword)} pr-12`}
                                             {...register('newPassword', {
                                                 required: t('auth.login.password_required'),
                                                 minLength: { value: 8, message: 'Le mot de passe doit contenir au moins 8 caractères.' },
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            disabled={isConfirming || isRequesting}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
+                                            aria-label={showNewPassword ? t('auth.login.password_placeholder') : t('auth.login.password_label')}
+                                        >
+                                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                     {errors.newPassword && <p className="text-red-500 text-xs">{errors.newPassword.message as string}</p>}
                                 </div>
@@ -199,17 +210,26 @@ export default function ResetPasswordPage() {
                                         {t('auth.reset_password.confirm_password_label')} <span className="text-rose-500">*</span>
                                     </label>
                                     <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3B71FF] transition-colors pointer-events-none" />
                                         <input
                                             id="confirmPassword"
-                                            type="password"
+                                            type={showConfirmPassword ? 'text' : 'password'}
                                             placeholder={t('auth.reset_password.confirm_password_placeholder')}
                                             disabled={isConfirming || isRequesting}
-                                            className={inputBase(!!errors.confirmPassword)}
+                                            className={`${inputBase(!!errors.confirmPassword)} pr-12`}
                                             {...register('confirmPassword', {
                                                 required: t('auth.login.password_required'),
                                             })}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            disabled={isConfirming || isRequesting}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
+                                            aria-label={showConfirmPassword ? t('auth.login.password_placeholder') : t('auth.login.password_label')}
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                     {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message as string}</p>}
                                 </div>
@@ -221,22 +241,21 @@ export default function ResetPasswordPage() {
                             type="submit"
                             disabled={isRequesting || isConfirming}
                             className="w-full flex items-center justify-center gap-2
-                                bg-[#3f74ff] hover:bg-[#2a5de5] active:bg-[#1e4fd8]
-                                text-white font-semibold py-3 rounded-xl
-                                focus:outline-none focus:ring-2 focus:ring-[#3f74ff]/40 focus:ring-offset-2
-                                transition-all duration-200 hover:shadow-lg hover:shadow-[#3f74ff]/25
+                                btn-itic-primary py-3 rounded-xl
+                                focus:outline-none focus:ring-2 focus:ring-[#d95e3e]/40
+                                transition-all duration-200
                                 disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
                         >
-                            <span>
+                            <span className="text-white font-bold">
                                 {step === 1
                                     ? (isRequesting ? t('auth.verify_email.submitting_button') : t('auth.reset_password.submit_button'))
                                     : (isConfirming ? t('auth.verify_email.submitting_button') : t('auth.reset_password.submit_confirm_button'))}
                             </span>
-                            {!(isRequesting || isConfirming) && <ArrowRight className="h-4 w-4" />}
+                            {!(isRequesting || isConfirming) && <ArrowRight className="h-4 w-4 text-white" />}
                         </Button>
 
-                        <div className="flex flex-col items-center pt-2 text-center">
-                            <Link to="/login" className="text-sm text-[#3f74ff] hover:underline font-medium">
+                        <div className="flex flex-col items-center pt-1 text-center">
+                            <Link to="/login" className="text-sm text-[#3B71FF] hover:underline font-medium">
                                 {t('auth.reset_password.back_to_login')}
                             </Link>
                         </div>
@@ -245,7 +264,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {/* Warning banner */}
-                <div className="w-full p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/80 dark:border-amber-900/20 flex gap-3 text-left">
+                <div className="w-full p-3.5 rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/80 dark:border-amber-900/20 flex gap-3 text-left">
                     <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-xs md:text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
                         <strong className="font-semibold text-amber-900 dark:text-amber-200">{t('cta.warning_title')}</strong>{' '}

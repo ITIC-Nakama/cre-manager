@@ -19,6 +19,7 @@ export interface RegisterDTO {
     roleId: Role;
     lang: string;
     promotionId?: string;
+    studyYear?: number;
     privacyAccepted?: boolean;
 }
 
@@ -52,4 +53,6 @@ export interface UpdateProfileData {
     email?: string;
     jobTitle?: string;
     lang?: string;
+    promotionId?: string;
+    studyYear?: number;
 }

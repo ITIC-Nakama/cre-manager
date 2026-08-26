@@ -11,6 +11,10 @@ public class UserRegisterDto {
 
     private UUID promotionId;
 
+    @Min(1)
+    @Max(5)
+    private Integer studyYear;
+
     @NotBlank
     @Email
     private String email;

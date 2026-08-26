@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import com.itic.paris.platform.shared.storage.FileAccessFilter;
+import com.itic.paris.platform.shared.storage.ICloudStorage;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -46,12 +48,14 @@ public class SecurityConfig {
     );
 
     private final JWTAuthProvider jwtAuthProvider;
+    private final ICloudStorage cloudStorage;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
-    public SecurityConfig(JWTAuthProvider jwtAuthProvider) {
+    public SecurityConfig(JWTAuthProvider jwtAuthProvider, ICloudStorage cloudStorage) {
         this.jwtAuthProvider = jwtAuthProvider;
+        this.cloudStorage = cloudStorage;
     }
 
     @Bean
@@ -83,13 +87,16 @@ public class SecurityConfig {
         if (path.startsWith("/files/public/")) {
             return true;
         }
+        if (path.startsWith("/actuator/health") || path.startsWith("/actuator/info")) {
+            return true;
+        }
         if ("/error".equals(path)) {
             return true;
         }
         return PUBLIC_DOC_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
-    static String servletPath(HttpServletRequest request) {
+    public static String servletPath(HttpServletRequest request) {
         String path = request.getRequestURI();
         String contextPath = request.getContextPath();
         if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
@@ -104,7 +111,8 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwAuthFilter(jwtAuthProvider), BasicAuthenticationFilter.class)
-                .addFilterAfter(new MustChangePasswordFilter(), JwAuthFilter.class)
+                .addFilterAfter(new FileAccessFilter(cloudStorage), JwAuthFilter.class)
+                .addFilterAfter(new MustChangePasswordFilter(), FileAccessFilter.class)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -117,6 +125,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/files/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()

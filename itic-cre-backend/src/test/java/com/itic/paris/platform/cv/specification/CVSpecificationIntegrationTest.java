@@ -1,6 +1,8 @@
 package com.itic.paris.platform.cv.specification;
 
+import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.repository.AdvisorRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.repository.CVRepository;
@@ -31,6 +33,9 @@ class CVSpecificationIntegrationTest {
 
     @Autowired
     private StudentRepository studentRepository;
+
+    @Autowired
+    private AdvisorRepository advisorRepository;
 
     @Autowired
     private CVStatutRepository cvStatutRepository;
@@ -75,7 +80,49 @@ class CVSpecificationIntegrationTest {
     @DisplayName("Should filter CVs by search matching student name")
     void testFilterBySearch() {
         Page<CV> result = cvRepository.findAll(
-                CVSpecification.withFilters(null, "sophie"),
+                CVSpecification.withFilters(null, "sophie", null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getFilePath()).isEqualTo("/uploads/cv_sophie.pdf");
+    }
+
+    @Test
+    @DisplayName("Should filter CVs to only those of the given advisor's portfolio")
+    void testFilterByAdvisorId() {
+        Role advisorRole = roleRepository.findByName(RoleEnum.ADVISOR);
+        Advisor advisor = new Advisor();
+        advisor.setFirstName("Claire");
+        advisor.setLastName("Voyant");
+        advisor.setEmail("claire.voyant.cvspec@test.com");
+        advisor.setPassword("Password123!");
+        advisor.setRole(advisorRole);
+        advisor.setActive(true);
+        advisor = advisorRepository.save(advisor);
+        student.setAdvisor(advisor);
+        studentRepository.save(student);
+
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        Student unassignedStudent = new Student();
+        unassignedStudent.setFirstName("Marc");
+        unassignedStudent.setLastName("Dupuis");
+        unassignedStudent.setEmail("marc.dupuis.cvspec@test.com");
+        unassignedStudent.setPassword("Password123!");
+        unassignedStudent.setRole(studentRole);
+        unassignedStudent.setActive(true);
+        unassignedStudent = studentRepository.save(unassignedStudent);
+
+        CVStatut statut = cvStatutRepository.findAll().get(0);
+        CV otherCv = new CV();
+        otherCv.setStudent(unassignedStudent);
+        otherCv.setFilePath("/uploads/cv_marc.pdf");
+        otherCv.setStatut(statut);
+        otherCv.setUploadedAt(Instant.now());
+        cvRepository.save(otherCv);
+
+        Page<CV> result = cvRepository.findAll(
+                CVSpecification.withFilters(null, null, advisor.getId()),
                 PageRequest.of(0, 10)
         );
 

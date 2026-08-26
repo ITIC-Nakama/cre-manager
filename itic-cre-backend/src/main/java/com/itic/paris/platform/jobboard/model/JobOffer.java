@@ -47,6 +47,12 @@ public class JobOffer {
     @JoinColumn(name = "contract_type_id", nullable = false)
     private ContractType contractType;
 
+    // Rempli uniquement pour les offres creees manuellement par un conseiller/admin.
+    // Les offres importees depuis des sources externes restent sans secteur.
+    @ManyToOne
+    @JoinColumn(name = "sector_id")
+    private Sector sector;
+
     @Size(max = 2048)
     @Column(name = "external_link", length = 2048)
     private String externalLink;

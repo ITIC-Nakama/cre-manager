@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Loader2 } from 'lucide-react';
-import type { Promotion } from '../../../types/models/Promotion';
+import { X, Loader2, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAvailableStudyYears } from '../../../hooks/usePromotions';
+import type { Promotion, PromotionData } from '../../../types/models/Promotion';
 
 interface PromotionModalProps {
   isOpen: boolean;
@@ -9,31 +11,58 @@ interface PromotionModalProps {
   promotion?: Promotion;
   saving: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; year: string }) => void;
+  onSave: (data: PromotionData) => void;
 }
 
 export default function PromotionModal({ isOpen, mode, promotion, saving, onClose, onSave }: PromotionModalProps) {
   const { t } = useTranslation();
+  const { data: systemYears } = useAvailableStudyYears();
+  const allYears = systemYears ?? [];
+
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
+  const [hasYears, setHasYears] = useState(false);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && promotion) {
         setName(promotion.name);
         setYear(promotion.year || '');
+        setHasYears(promotion.hasYears ?? false);
+        setAvailableYears(promotion.availableYears ?? []);
       } else {
         setName('');
         setYear('');
+        setHasYears(false);
+        setAvailableYears([]);
       }
     }
   }, [isOpen, mode, promotion]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const toggleYear = (y: number) => {
+    setAvailableYears((prev) => {
+      if (prev.includes(y)) {
+        return prev.filter((item) => item !== y).sort((a, b) => a - b);
+      }
+      return [...prev, y].sort((a, b) => a - b);
+    });
+  };
+
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSave({ name, year });
+    if (hasYears && availableYears.length === 0) {
+      toast.error(t('dashboard.promotions.select_at_least_one_year', "Veuillez sélectionner au moins un niveau d'année."));
+      return;
+    }
+    onSave({
+      name,
+      year: year.trim() || undefined,
+      hasYears,
+      availableYears: hasYears ? availableYears : [],
+    });
   };
 
   return (
@@ -78,6 +107,68 @@ export default function PromotionModal({ isOpen, mode, promotion, saving, onClos
               disabled={saving}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
             />
+          </div>
+
+          {/* Has Years Switch */}
+          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {t('dashboard.promotions.has_years_label')}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t('dashboard.promotions.has_years_desc')}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={hasYears}
+                disabled={saving}
+                onClick={() => setHasYears((prev) => !prev)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  hasYears ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+                style={{ borderRadius: '9999px' }}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full shadow-md transition-transform duration-200 ease-in-out ${
+                    hasYears ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                  style={{ backgroundColor: '#ffffff', borderRadius: '9999px' }}
+                />
+              </button>
+            </div>
+
+            {/* Available Years Multi-Select */}
+            {hasYears && (
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-700/60 space-y-2 animate-fadeIn">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  {t('dashboard.promotions.available_years_label')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {allYears.map((y) => {
+                    const isSelected = availableYears.includes(y);
+                    return (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => toggleYear(y)}
+                        disabled={saving}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3" />}
+                        {t(`study_years.year_${y}`, `${y}e année`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 mt-2 pt-6 border-t border-slate-100 dark:border-slate-800/60">

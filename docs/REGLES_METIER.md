@@ -41,6 +41,14 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Suppression d'un conseiller** : si des données lui sont rattachées (commentaires CV, offres d'emploi créées, articles créés, catégories de compétences créées), le compte est **désactivé** (`active = false`) au lieu d'être supprimé. La suppression définitive n'a lieu que si **aucune donnée associée** n'existe.
 - **Coupure de session** : le flag `active` est vérifié **à chaque requête authentifiée** dans le filtre JWT ; un compte désactivé perd l'accès dès sa prochaine requête.
 
+### Retention & Purge Automatisée RGPD (Configuration Applicative Dynamique BDD)
+- **Conservation des données RGPD** : Les durées de rétention ne sont plus figées dans les fichiers d'environnement (`.env` / `application.properties`), mais sont gérées dynamiquement en base de données (`app_configuration`) et modifiables par les administrateurs depuis l'interface client ("Paramètres" → "Configuration Applicative") :
+  - **`GDPR_OTP_RETENTION_HOURS`** (par défaut : **24 heures**) : Délai de purge des codes OTP de vérification d'email expirés.
+  - **`GDPR_AUDIT_LOG_RETENTION_DAYS`** (par défaut : **365 jours**) : Durée de conservation légale des journaux d'audit et de traçabilité.
+  - **`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`** (par défaut : **1095 jours**, soit 3 ans) : Délai d'inactivité avant anonymisation/suppression automatique du compte étudiant.
+- **Tâche planifiée (`GdprPurgeScheduler`)** : Exécutée quotidiennement à 03:00 du matin, elle interroge directement `AppConfigurationService` pour appliquer dynamiquement les règles de purge et d'anonymisation configurées en BDD.
+- **Navigation & Interface Admin** : Dans le menu principal (sidebar), l'entrée est nommée **"Paramètres"** (avec icône de configuration) pour le rôle `ADMIN` au lieu de "Profil", donnant accès au sous-menu bilingue "Paramètres du Compte" et "Configuration Applicative".
+
 ### Anonymisation RGPD & Distinction Portefeuille vs Activité
 - **Effacement nominatif** : L'anonymisation RGPD (`GdprService`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
 - **Règle de filtrage selon le type de statistique** :
@@ -66,6 +74,12 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Refresh token : expiration par défaut **7 jours** (`REFRESH_TOKEN_EXPIRATION_TIME=604800000`).
 - Transmis soit en cookie (`token`), soit en header `Authorization: Bearer`.
 - Le refresh échoue aussi si `mustChangePassword = true`.
+
+### Affectation conseiller référent (Admin-en-tant-que-conseiller)
+- `Student.advisor` accepte n'importe quel membre du staff actif (`ADVISOR` **ou** `ADMIN`) — un admin peut être affecté comme conseiller référent d'un étudiant au même titre qu'un conseiller, et les admins sont assignables entre eux (pas seulement en auto-affectation).
+- `PUT /advisors/{advisorId}/students` (`ADMIN` uniquement) affecte un lot d'étudiants ; retirer le conseiller d'un étudiant remet `advisor = null`.
+- **Dashboard** (`GET /dashboard/overview`, `GET /dashboard/students/needing-attention`) : un `ADVISOR` est toujours scopé à son propre id. Un `ADMIN` peut passer un `advisorId` optionnel pour voir un portefeuille précis (toggle "Vue globale / Mon portefeuille" côté interface), ou l'omettre pour la vue globale (comportement par défaut).
+- **Étudiants / Candidatures / CV Validation** : un `ADMIN` dispose d'une checkbox "Mes étudiants uniquement" (même mécanisme que pour un `ADVISOR`) en plus du picker complet des conseillers ; le picker de filtre exclut l'admin courant (couvert par la checkbox), mais le picker d'**affectation** (bulk-assign) l'inclut toujours, en tête de liste, sous le libellé "Moi".
 
 ### Promotions
 - Nom **unique**.
@@ -115,6 +129,9 @@ Ces libellés sont traduits dynamiquement par le backend selon la langue spécif
 - Un étudiant **ne peut postuler qu'une seule fois** à une offre donnée (`409 already-applied` sinon).
 - Postuler via le jobboard crée **automatiquement** une candidature CRM au statut "Postulé", avec la note `"Candidature créée automatiquement via le Jobboard"`.
 - XP attribuée à la candidature jobboard : le `gainXP` du statut "Postulé" s'il est **> 0**, sinon repli sur la config générique `CANDIDATURE_CREATED` (jamais les deux à la fois).
+- **Secteurs** (`Sector`) : CRUD réservé `ADVISOR`/`ADMIN`, label unique (409 `sector-label-already-exists`), flag `active` bascule sans suppression. Un étudiant ne voit que la liste des secteurs actifs (`GET /jobboard/sectors/active/list`).
+- **Suppression d'une offre** (`JobOfferService.delete()`) : bloquée (409 `job-offer-has-applications`) si au moins une candidature CRM réelle (`Application.sourceJobOffer`) est liée — protège les notes/statut/XP de l'étudiant. Si seuls des clics "postuler" jobboard existent sans candidature CRM associée (cas rare, `apply()` crée aujourd'hui toujours les deux ensemble), la suppression réussit et nettoie ces clics avec l'offre. `deactivate`/`activate` restent l'alternative sans risque pour retirer une offre du jobboard sans toucher aux candidatures.
+- **Filtre actif/inactif** (page admin Offres) : `GET /jobboard/offers` accepte un paramètre `active` optionnel (`true`/`false`/absent = toutes) ; l'interface présélectionne "Actives" par défaut.
 
 ---
 
@@ -216,6 +233,37 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
   - Migrations automatisées au démarrage de Spring Boot via Flyway (`V1__pg_trgm_indexes.sql`).
   - Creation automatique de l'extension `pg_trgm` et d'index GIN trigrammes sur les colonnes de recherche floue textuelle (`ILIKE '%search%'`) : `(first_name || ' ' || last_name)`, `email`, `entreprise` et `poste`.
   - Temps de réponse des filtres et barres de recherche < 5 millisecondes sur la BDD de production.
+
+---
+
+## 11. Configuration Applicative Globale & Rétentions RGPD
+
+- **Contrôle d'accès strict (RBAC)** : Les endpoints d'administration de la configuration applicative (`/api/admin/app-config`) sont protégés par `@PreAuthorize("hasRole('ADMIN')")`. Seul le rôle `ADMIN` peut consulter et enregistrer les modifications de seuils.
+- **Seuils applicatifs configurables en BDD (`app_configuration`)** :
+  1. **`STALE_ALERT_DAYS`** (par défaut : `10` jours) : Nombre de jours d'inactivité sur une candidature avant l'envoi d'une alerte de relance.
+  2. **`PROMOTION_REMINDER_MONTHS`** (par défaut : `9` mois) : Délai en mois avant le rappel de mise à jour de la promotion de l'étudiant.
+  3. **`GDPR_OTP_RETENTION_HOURS`** (par défaut : `24` heures) : Durée de rétention des codes de vérification OTP d'inscription.
+  4. **`GDPR_AUDIT_LOG_RETENTION_DAYS`** (par défaut : `365` jours) : Conservation légale des journaux d'audit et de sécurité.
+  5. **`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`** (par défaut : `1095` jours) : Seuil de rétention des comptes inactifs avant purge/anonymisation.
+- **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`) sans redémarrer le serveur.
+
+---
+
+## 12. Emails transactionnels
+
+- Rendus via Thymeleaf (`itic-cre-backend/src/main/resources/templates/email/`), envoyés en asynchrone (`@Async`), jamais bloquants pour la requête HTTP d'origine.
+
+| Template | Déclencheur |
+|---|---|
+| `otp-verification.html` | Inscription étudiant / renvoi de code OTP |
+| `account-credentials.html` | Création d'un compte `ADVISOR`/`ADMIN` par un admin (mot de passe temporaire) |
+| `cv-notification.html` (variante statut) | Un conseiller change le statut d'un CV |
+| `cv-notification.html` (variante commentaire) | Un conseiller ajoute un commentaire sur un CV |
+| `student-reminder.html` | Un conseiller envoie un rappel libre via `POST /dashboard/students/{id}/notify` |
+
+- **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée uniquement pour le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
+- **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.
+- **Thème forcé en dark mode** : tous les templates déclarent `<meta name="color-scheme" content="dark">` / `<meta name="supported-color-schemes" content="dark">` et dupliquent chaque couleur de fond via l'attribut HTML `bgcolor` en plus du CSS inline, pour empêcher les clients mail mobiles (Gmail, Outlook, Apple Mail) d'inverser ou de repasser l'email en clair.
 
 ---
 

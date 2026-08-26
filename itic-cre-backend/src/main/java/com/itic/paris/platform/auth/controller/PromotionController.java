@@ -31,6 +31,12 @@ public class PromotionController {
         return ResponseEntity.ok(promotionService.findAll());
     }
 
+    @GetMapping("/available-years")
+    @Operation(summary = "Lister les niveaux d'années d'études configurés par le serveur")
+    public ResponseEntity<?> getAvailableYears() {
+        return ResponseEntity.ok(promotionService.getAvailableStudyYears());
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Obtenir une promotion par ID")
     public ResponseEntity<?> findById(@PathVariable UUID id) {
@@ -78,8 +84,11 @@ public class PromotionController {
     @PutMapping("/{id}/students/{studentId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('ADVISOR')")
     @Operation(summary = "Affecter un étudiant à la promotion (ajout ou changement de promotion)")
-    public ResponseEntity<Void> assignStudent(@PathVariable UUID id, @PathVariable UUID studentId) {
-        promotionService.assignStudentToPromotion(id, studentId);
+    public ResponseEntity<Void> assignStudent(
+            @PathVariable UUID id,
+            @PathVariable UUID studentId,
+            @RequestParam(required = false) Integer studyYear) {
+        promotionService.assignStudentToPromotion(id, studentId, studyYear);
         return ResponseEntity.noContent().build();
     }
 }

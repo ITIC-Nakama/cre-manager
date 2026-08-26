@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Search } from 'lucide-react';
 
 export interface SelectOption {
@@ -38,7 +39,9 @@ export default function CustomSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [autoDropUp, setAutoDropUp] = useState(false);
+  const [panelRect, setPanelRect] = useState<{ top: number; bottom: number; left: number; width: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const effectiveDropUp = dropUp || autoDropUp;
 
   const selectedLabel = options.find((o) => o.value === value)?.label ?? value;
@@ -47,10 +50,15 @@ export default function CustomSelect({
     ? options.filter((o) => o.label.toLowerCase().includes(search.trim().toLowerCase()))
     : options;
 
-  // Close when clicking outside
+  // Close when clicking outside — the dropdown panel is portaled to <body>, so it's
+  // no longer a DOM descendant of containerRef and must be checked separately.
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current && !containerRef.current.contains(target) &&
+        panelRef.current && !panelRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
@@ -64,12 +72,25 @@ export default function CustomSelect({
       if (next && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const estimatedDropdownHeight = (searchable ? 300 : 260);
-        setAutoDropUp(window.innerHeight - rect.bottom < estimatedDropdownHeight);
+        const shouldDropUp = window.innerHeight - rect.bottom < estimatedDropdownHeight;
+        setAutoDropUp(shouldDropUp);
+        setPanelRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
       }
       if (!next) setSearch('');
       return next;
     });
   };
+
+  // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement.
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnScroll = (e: Event) => {
+      if (panelRef.current?.contains(e.target as Node)) return;
+      setIsOpen(false);
+    };
+    window.addEventListener('scroll', closeOnScroll, true);
+    return () => window.removeEventListener('scroll', closeOnScroll, true);
+  }, [isOpen]);
 
   return (
     <div ref={containerRef} className={`relative inline-block text-left ${className}`} id={id}>
@@ -93,12 +114,20 @@ export default function CustomSelect({
         />
       </button>
 
-      {/* Dropdown panel - Matches SwitchLanguage exactly */}
-      {isOpen && (
+      {/* Dropdown panel — portaled to <body> so it can't be clipped by an ancestor's
+          overflow-x-auto (which forces overflow-y to auto too, per the CSS spec) */}
+      {isOpen && panelRect && createPortal(
         <div
-          className={`absolute ${
-            effectiveDropUp ? 'bottom-full mb-2' : 'top-full mt-2'
-          } right-0 z-50 min-w-full origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-black/5 dark:border-slate-800 dark:bg-slate-950 focus:outline-none`}
+          ref={panelRef}
+          style={{
+            position: 'fixed',
+            right: window.innerWidth - panelRect.left - panelRect.width,
+            minWidth: panelRect.width,
+            ...(effectiveDropUp
+              ? { bottom: window.innerHeight - panelRect.top + 8 }
+              : { top: panelRect.bottom + 8 }),
+          }}
+          className="z-[100] origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-black/5 dark:border-slate-800 dark:bg-slate-950 focus:outline-none"
         >
           {searchable && (
             <div className="relative px-0.5 pb-1.5 mb-1 border-b border-slate-100 dark:border-slate-800">
@@ -141,7 +170,8 @@ export default function CustomSelect({
               <p className="text-xs text-slate-400 text-center py-2">{noResultsLabel}</p>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

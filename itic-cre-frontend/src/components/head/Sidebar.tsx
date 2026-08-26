@@ -192,7 +192,7 @@ function SidebarContent({
                       navigate(profilePath);
                     }}
                     className="flex items-center gap-2.5 flex-1 min-w-0 p-1 -m-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1e2130] transition-colors cursor-pointer group/user"
-                    title={t('dashboard.sidebar.profil', 'Profil')}
+                    title={user?.role === Role.ADMIN ? t('dashboard.sidebar.parametres', 'Paramètres') : t('dashboard.sidebar.profil', 'Profil')}
                   >
                     <UserAvatar profilePicture={user?.profilePicture} firstName={user?.firstName ?? ''} lastName={user?.lastName ?? ''} />
                     <div className="flex-1 min-w-0">

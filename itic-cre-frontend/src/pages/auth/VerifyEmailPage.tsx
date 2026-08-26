@@ -65,18 +65,18 @@ export default function VerifyEmailPage() {
     };
 
     return (
-        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-10 overflow-y-auto relative">
+        <div className="flex-1 animate-gradient-bg flex flex-col items-center justify-center px-5 py-8 overflow-y-auto relative">
 
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(63,116,255,0.08),transparent_50%)]" />
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(226,120,46,0.08),transparent_50%)]" />
 
-            <div className="flex flex-col gap-10 max-w-md w-full relative z-10">
+            <div className="flex flex-col gap-6 max-w-md w-full relative z-10">
 
                 {/* Logo + heading */}
-                <div className="flex flex-col items-center gap-5 text-center">
-                    <img src={logoDark} alt="ITIC Paris" className="h-16 w-auto dark:hidden" />
-                    <img src={logoWhite} alt="ITIC Paris" className="h-16 w-auto hidden dark:block" />
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-extrabold itic-gradient-blue">
+                <div className="flex flex-col items-center gap-3 text-center">
+                    <img src={logoDark} alt="ITIC Paris" className="h-14 w-auto dark:hidden" />
+                    <img src={logoWhite} alt="ITIC Paris" className="h-14 w-auto hidden dark:block" />
+                    <div className="space-y-1.5">
+                        <h1 className="text-3xl font-extrabold itic-gradient-warm">
                             {t('auth.verify_email.title')}
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-[#9aa0a6] leading-relaxed max-w-sm mx-auto">
@@ -86,8 +86,8 @@ export default function VerifyEmailPage() {
                 </div>
 
                 {/* Card */}
-                <div className="w-full bg-white dark:bg-[#15171f] rounded-2xl shadow-xl p-10">
-                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                <div className="w-full bg-white dark:bg-[#15171f] rounded-2xl shadow-xl p-8">
+                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
 
                         {generalError && (
                             <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm">
@@ -107,7 +107,7 @@ export default function VerifyEmailPage() {
                                 placeholder={t('auth.login.email_placeholder')}
                                 disabled={isValidating || isResending}
                                 className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 px-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400
-                                    focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
+                                    focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3B71FF]
                                     transition-all duration-200 disabled:opacity-60
                                     ${errors.email ? 'border-red-400' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                 {...register('email', {
@@ -128,7 +128,7 @@ export default function VerifyEmailPage() {
                                     type="button"
                                     disabled={resendCooldown > 0 || isResending || isValidating}
                                     onClick={() => handleResend(getValues('email'))}
-                                    className="text-xs text-[#3f74ff] font-medium transition-colors disabled:text-slate-400 disabled:cursor-not-allowed hover:underline flex items-center gap-1 cursor-pointer"
+                                    className="text-xs text-[#3B71FF] font-medium transition-colors disabled:text-slate-400 disabled:cursor-not-allowed hover:underline flex items-center gap-1 cursor-pointer"
                                 >
                                     <RefreshCw className={`h-3 w-3 ${isResending ? 'animate-spin' : ''}`} />
                                     {resendCooldown > 0
@@ -144,7 +144,7 @@ export default function VerifyEmailPage() {
                                 autoComplete="one-time-code"
                                 disabled={isValidating || isResending}
                                 className={`w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 text-center tracking-[0.2em] font-semibold text-lg px-4 py-3 text-slate-800 dark:text-white placeholder-slate-400
-                                    focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff]
+                                    focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3B71FF]
                                     transition-all duration-200 disabled:opacity-60
                                     ${errors.code ? 'border-red-400' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                                 {...register('code', {
@@ -160,18 +160,17 @@ export default function VerifyEmailPage() {
                             type="submit"
                             disabled={isValidating || isResending}
                             className="w-full flex items-center justify-center gap-2
-                                bg-[#3f74ff] hover:bg-[#2a5de5] active:bg-[#1e4fd8]
-                                text-white font-semibold py-3 rounded-xl
-                                focus:outline-none focus:ring-2 focus:ring-[#3f74ff]/40 focus:ring-offset-2
-                                transition-all duration-200 hover:shadow-lg hover:shadow-[#3f74ff]/25
+                                btn-itic-primary py-3 rounded-xl
+                                focus:outline-none focus:ring-2 focus:ring-[#d95e3e]/40
+                                transition-all duration-200
                                 disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
                         >
-                            <span>{isValidating ? t('auth.verify_email.submitting_button') : t('auth.verify_email.submit_button')}</span>
-                            {!isValidating && <ArrowRight className="h-4 w-4" />}
+                            <span className="text-white font-bold">{isValidating ? t('auth.verify_email.submitting_button') : t('auth.verify_email.submit_button')}</span>
+                            {!isValidating && <ArrowRight className="h-4 w-4 text-white" />}
                         </Button>
 
-                        <div className="flex flex-col items-center pt-2 text-center">
-                            <Link to="/login" className="text-sm text-[#3f74ff] hover:underline font-medium">
+                        <div className="flex flex-col items-center pt-1 text-center">
+                            <Link to="/login" className="text-sm text-[#3B71FF] hover:underline font-medium">
                                 {t('auth.verify_email.back_to_login')}
                             </Link>
                         </div>

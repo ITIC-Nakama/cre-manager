@@ -5,7 +5,7 @@ import OfflineBanner from './components/common/OfflineBanner'
 import StudentLayout from './layouts/StudentLayout'
 import SupervisorLayout from './layouts/SupervisorLayout'
 import AuthLayout from './layouts/AuthLayout'
-import RequireAuth from './layouts/RequireAuth'
+import RequireAuthMiddleware from './middleware/RequireAuthMiddleware'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
@@ -23,10 +23,12 @@ import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
 import QuizPage from './pages/student/connaissances/QuizPage'
+import ConseillersPage from './pages/student/conseillers/ConseillersPage'
 import AdvisorDashboard from './pages/advisor/dashboard/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/etudiants/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/candidatures/CandidaturesPage'
 import SupervisorOffresPage from './pages/advisor/offres/OffresPage'
+import OffresCategoriesPage from './pages/advisor/offres/CategoriesPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import ContenuPage from './pages/advisor/formation/ContenuPage'
@@ -34,6 +36,7 @@ import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 import PromotionsPage from './pages/admin/PromotionsPage'
+import PromotionDetailPage from './pages/admin/PromotionDetailPage'
 import ChangePasswordRequiredPage from './pages/auth/ChangePasswordRequiredPage'
 
 
@@ -45,9 +48,9 @@ import PwaInstallBanner from './components/common/PwaInstallBanner'
 // Redirection component based on role
 function DashboardRedirect() {
   return (
-    <RequireAuth>
+    <RequireAuthMiddleware>
       <RoleBasedRedirect />
-    </RequireAuth>
+    </RequireAuthMiddleware>
   );
 }
 
@@ -94,6 +97,7 @@ function App() {
           <Route path="/student/candidatures"  element={<CandidaturesListPage />} />
           <Route path="/student/candidatures/:id" element={<CandidatureDetailPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
+          <Route path="/student/conseillers"   element={<ConseillersPage />} />
           <Route path="/student/connaissances"                        element={<SkillTreePage />} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
@@ -108,15 +112,17 @@ function App() {
           <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
           <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
+          <Route path="/supervisor/offres/categories" element={<OffresCategoriesPage />} />
           <Route path="/supervisor/cv"            element={<CVValidationPage />} />
           <Route path="/supervisor/contenu"       element={<ContenuPage />} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}
-          <Route element={<RequireAuth allowedRoles={[Role.ADMIN]} redirectTo="/supervisor/dashboard"><Outlet /></RequireAuth>}>
+          <Route element={<RequireAuthMiddleware allowedRoles={[Role.ADMIN]} redirectTo="/supervisor/dashboard"><Outlet /></RequireAuthMiddleware>}>
             <Route path="/admin/conseillers" element={<AdvisorPage />} />
             <Route path="/admin/promotions"  element={<PromotionsPage />} />
+            <Route path="/admin/promotions/:id" element={<PromotionDetailPage />} />
             <Route path="/admin/audit"       element={<AuditLogsPage />} />
           </Route>
 

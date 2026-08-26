@@ -1,8 +1,14 @@
 package com.itic.paris.platform.dashboard.controller;
 
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
+import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
+import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
-import com.itic.paris.platform.dashboard.service.DashboardService;
+import com.itic.paris.platform.dashboard.service.ApplicationReportingService;
+import com.itic.paris.platform.dashboard.service.DashboardOverviewService;
+import com.itic.paris.platform.dashboard.service.PromotionStatsService;
+import com.itic.paris.platform.dashboard.service.StudentReportingService;
 import com.itic.paris.platform.shared.local.LanguageUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,56 +36,100 @@ import java.util.UUID;
 @Tag(name = "Tableau de bord Conseiller", description = "Statistiques agrégées pour les conseillers et administrateurs")
 public class DashboardController {
 
-    private final DashboardService dashboardService;
+    private final DashboardOverviewService dashboardOverviewService;
+    private final PromotionStatsService promotionStatsService;
+    private final StudentReportingService studentReportingService;
+    private final ApplicationReportingService applicationReportingService;
 
     @GetMapping("/overview")
-    @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut")
-    public ResponseEntity<?> overview() {
-        return ResponseEntity.ok(dashboardService.getOverview());
+    @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut. " +
+            "Limitee au portefeuille du conseiller connecte (role ADVISOR) ; vue globale plateforme pour un ADMIN, sauf s'il precise advisorId " +
+            "(ex: son propre portefeuille via le toggle \"Vue globale / Mon portefeuille\").")
+    public ResponseEntity<?> overview(@RequestParam(required = false) UUID advisorId) {
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : advisorId;
+        return ResponseEntity.ok(dashboardOverviewService.getOverview(scopeId));
+    }
+
+    @GetMapping("/students/needing-attention")
+    @Operation(summary = "Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés par pertinence. " +
+            "Limité au portefeuille du conseiller connecté (role ADVISOR) ; vue globale plateforme pour un ADMIN, sauf s'il precise advisorId.")
+    public ResponseEntity<?> studentsNeedingAttention(@RequestParam(required = false) UUID advisorId) {
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : advisorId;
+        return ResponseEntity.ok(studentReportingService.getStudentsNeedingAttention(scopeId));
     }
 
     @GetMapping("/stale-applications")
     @Operation(summary = "Candidatures en alerte — sans changement de statut depuis plus de 10 jours")
     public ResponseEntity<?> staleApplications() {
-        return ResponseEntity.ok(dashboardService.getStaleApplications());
+        return ResponseEntity.ok(applicationReportingService.getStaleApplications());
     }
 
     @GetMapping("/promotions")
     @Operation(summary = "Statistiques par promotion — effectif, actifs, XP moyen, candidatures, CVs, répartition grades")
     public ResponseEntity<?> promotionStats() {
-        return ResponseEntity.ok(dashboardService.getPromotionStats());
+        return ResponseEntity.ok(promotionStatsService.getPromotionStats());
+    }
+
+    @GetMapping("/promotions/student-counts")
+    @Operation(summary = "Effectif d'étudiants par promotion (clé: promotionId, valeur: nombre)")
+    public ResponseEntity<?> promotionStudentCounts() {
+        return ResponseEntity.ok(promotionStatsService.getPromotionStudentCounts());
+    }
+
+    @GetMapping("/promotions/{promotionId}/year-counts")
+    @Operation(summary = "Répartition et effectifs des étudiants d'une promotion par niveau d'année")
+    public ResponseEntity<?> promotionYearCounts(@PathVariable UUID promotionId) {
+        return ResponseEntity.ok(promotionStatsService.getPromotionYearCounts(promotionId));
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/includeAnonymized")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
+            @RequestParam(required = false) Boolean studyYearMissing,
+            @RequestParam(required = false) UUID excludePromotionId,
+            @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getStudentList(promotionId, search, isActive, hasCv, hasStale, includeAnonymized, pageable));
+        StudentFilterCriteria criteria = StudentFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
+                .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .build();
+        return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
     }
 
     @GetMapping("/students/all")
     @Operation(summary = "Liste complète non-paginée de tous les étudiants (pour export ou vue d'ensemble)")
     public ResponseEntity<?> allStudents(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
+            @RequestParam(required = false) Boolean studyYearMissing,
+            @RequestParam(required = false) UUID excludePromotionId,
+            @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
-        Page<Map<String, Object>> result = dashboardService.getStudentList(
-                promotionId, search, isActive, hasCv, hasStale, includeAnonymized, Pageable.unpaged()
-        );
+        StudentFilterCriteria criteria = StudentFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
+                .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .build();
+        Page<Map<String, Object>> result = studentReportingService.getStudentList(criteria, Pageable.unpaged());
         return ResponseEntity.ok(result.getContent());
     }
 
     @GetMapping("/applications")
-    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale/activeStudentsOnly")
+    @Operation(summary = "Liste paginée des candidatures de tous les étudiants — filtres search/statusId/promotionId/typeContratId/stale/activeStudentsOnly/advisorId")
     public ResponseEntity<?> applications(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) UUID statusId,
@@ -87,21 +137,28 @@ public class DashboardController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getApplicationList(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+        return ResponseEntity.ok(applicationReportingService.getApplicationList(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, advisorId, pageable));
     }
 
     @GetMapping("/applications/grouped-by-student")
     @Operation(summary = "Liste paginée des étudiants avec leurs candidatures")
     public ResponseEntity<?> applicationsGroupedByStudent(
             @RequestParam(required = false) UUID promotionId,
+            @RequestParam(required = false) Integer studyYear,
             @RequestParam(required = false) UUID statusId,
             @RequestParam(required = false) UUID typeContratId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(dashboardService.getApplicationsGroupedByStudent(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, pageable));
+        ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
+                .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
+                .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
+                .build();
+        return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }
 
     @GetMapping("/applications/export")
@@ -112,9 +169,10 @@ public class DashboardController {
             @RequestParam(required = false) UUID typeContratId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean stale,
-            @RequestParam(required = false) Boolean activeStudentsOnly) {
+            @RequestParam(required = false) Boolean activeStudentsOnly,
+            @RequestParam(required = false) UUID advisorId) {
 
-        byte[] csvBytes = dashboardService.exportApplicationsCsv(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly);
+        byte[] csvBytes = applicationReportingService.exportApplicationsCsv(promotionId, statusId, typeContratId, search, stale, activeStudentsOnly, advisorId);
         String filename = "candidatures-export-" + LocalDate.now() + ".csv";
 
         return ResponseEntity.ok()
@@ -126,7 +184,7 @@ public class DashboardController {
     @GetMapping("/students/{studentId}")
     @Operation(summary = "Détail complet d'un étudiant — toutes les candidatures, CV + commentaires, 10 derniers XP")
     public ResponseEntity<?> studentDetail(@PathVariable UUID studentId) {
-        return ResponseEntity.ok(dashboardService.getStudentDetail(studentId));
+        return ResponseEntity.ok(studentReportingService.getStudentDetail(studentId));
     }
 
     @PostMapping("/students/{studentId}/notify")
@@ -143,7 +201,7 @@ public class DashboardController {
         if (bindingResult.hasErrors()) {
             return ValidationHelper.buildValidationResponse(bindingResult, LanguageUtil.resolveLang(httpRequest));
         }
-        dashboardService.notifyStudent(studentId, request != null ? request.getMessage() : null);
+        studentReportingService.notifyStudent(studentId, request != null ? request.getMessage() : null);
         return ResponseEntity.noContent().build();
     }
 }

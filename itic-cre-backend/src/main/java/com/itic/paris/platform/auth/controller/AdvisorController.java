@@ -1,8 +1,15 @@
 package com.itic.paris.platform.auth.controller;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.model.dtos.AdvisorDirectoryDTO;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.auth.service.AdvisorService;
+import com.itic.paris.platform.auth.service.UserProfileService;
+import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.storage.ICloudStorage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -10,12 +17,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -26,6 +46,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdvisorController {
 
     private final UserRepository userRepository;
+    private final AdvisorService advisorService;
+    private final UserProfileService userProfileService;
+    private final ICloudStorage cloudStorage;
 
     @GetMapping
     @Operation(summary = "Lister le staff filtré par rôle (ADVISOR/ADMIN) — recherche optionnelle (nom/prénom/email)")
@@ -35,24 +58,99 @@ public class AdvisorController {
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         log.info("[GET /advisors] Request received with role='{}', search='{}'", role, search);
 
-        RoleEnum targetRole = null;
-        if (role != null && !role.isBlank()) {
-            try {
-                targetRole = RoleEnum.valueOf(role.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.warn("[GET /advisors] Invalid role string specified: '{}'", role);
-            }
-        }
-
-        Page<User> result;
-        if (targetRole != null) {
-            result = userRepository.findByRoleNameAndSearch(targetRole, search, pageable);
-        } else {
-            result = userRepository.findAllStaffBySearch(search, pageable);
-        }
+        RoleEnum targetRole = resolveTargetRole(role);
+        Page<User> result = queryStaff(targetRole, search, pageable);
+        result.forEach(this::resolvePictures);
 
         log.info("[GET /advisors] Query for targetRole={} returned {} elements", targetRole, result.getTotalElements());
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "Lister tout le staff filtré par rôle (ADVISOR/ADMIN) sans pagination — pour les listes déroulantes (ex: filtre conseiller)")
+    public ResponseEntity<List<User>> findAllUnpaged(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search) {
+        RoleEnum targetRole = resolveTargetRole(role);
+        List<User> result = queryStaff(targetRole, search, Pageable.unpaged()).getContent();
+        result.forEach(this::resolvePictures);
+        return ResponseEntity.ok(result);
+    }
+
+    private RoleEnum resolveTargetRole(String role) {
+        if (role == null || role.isBlank()) {
+            return null;
+        }
+        try {
+            return RoleEnum.valueOf(role.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("[GET /advisors] Invalid role string specified: '{}'", role);
+            return null;
+        }
+    }
+
+    private Page<User> queryStaff(RoleEnum targetRole, String search, Pageable pageable) {
+        return targetRole != null
+                ? userRepository.findByRoleNameAndSearch(targetRole, search, pageable)
+                : userRepository.findAllStaffBySearch(search, pageable);
+    }
+
+    private void resolvePictures(User user) {
+        if (user.getProfilePicture() != null) {
+            user.setProfilePicture(cloudStorage.getFile(user.getProfilePicture()));
+        }
+        if (user instanceof Advisor advisor && advisor.getPublicProfilePicture() != null) {
+            advisor.setPublicProfilePicture(cloudStorage.getFile(advisor.getPublicProfilePicture()));
+        }
+    }
+
+    @PutMapping("/{advisorId}/students/{studentId}")
+    @Operation(summary = "Affecter un conseiller à un étudiant (admin)")
+    public ResponseEntity<?> assignStudent(@PathVariable UUID advisorId, @PathVariable UUID studentId) {
+        advisorService.assignStudentToAdvisor(advisorId, studentId);
+        return ResponseEntity.ok().build();
+    }
+
+    public record BulkAssignRequest(List<UUID> studentIds) {}
+
+    @PutMapping("/{advisorId}/students")
+    @Operation(summary = "Affecter un conseiller à plusieurs étudiants en une seule fois — promotion, sélection ou année complète (admin)")
+    public ResponseEntity<?> assignStudents(@PathVariable UUID advisorId, @RequestBody BulkAssignRequest request) {
+        advisorService.assignStudentsToAdvisor(advisorId, request.studentIds());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{advisorId}/students/{studentId}")
+    @Operation(summary = "Retirer un étudiant de son conseiller (admin)")
+    public ResponseEntity<?> removeStudent(@PathVariable UUID advisorId, @PathVariable UUID studentId) {
+        advisorService.removeStudentFromAdvisor(studentId);
+        return ResponseEntity.ok().build();
+    }
+
+    public record BulkRemoveRequest(List<UUID> studentIds) {}
+
+    @PutMapping("/students/remove")
+    @Operation(summary = "Retirer plusieurs étudiants de leur conseiller en une seule fois (admin)")
+    public ResponseEntity<?> removeStudents(@RequestBody BulkRemoveRequest request) {
+        advisorService.removeStudentsFromAdvisor(request.studentIds());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/directory")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Annuaire des conseillers actifs — accessible à tout utilisateur connecté (champs publics uniquement)")
+    public ResponseEntity<List<AdvisorDirectoryDTO>> directory() {
+        return ResponseEntity.ok(advisorService.getActiveAdvisorDirectory());
+    }
+
+    @PostMapping(value = "/{advisorId}/public-picture", consumes = "multipart/form-data")
+    @Operation(summary = "Mettre à jour la photo publique d'un conseiller, affichée aux étudiants (admin)")
+    public ResponseEntity<?> updatePublicPicture(@PathVariable UUID advisorId, @RequestPart("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.FILE_EMPTY);
+        }
+        String publicPictureUrl = userProfileService.updateAdvisorPublicPicture(advisorId, file);
+        return ResponseEntity.ok(Map.of("publicPictureUrl", publicPictureUrl));
     }
 }
 

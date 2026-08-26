@@ -6,29 +6,70 @@
       "delete": "Delete",
       "deleting": "Deleting…"
     },
+    "admin_tag": "(Admin)",
+    "me_option": "Me",
     "offline_banner": {
       "text": "You are currently offline. Viewing cached data."
     },
     "cookie_banner": {
       "title": "Essential Cookies Management",
       "close": "Close",
-      "text": "ITIC-CRE only uses strictly necessary session cookies (secure JWT authentication and language preference). No advertising or third-party tracking cookies are used.",
+      "text": "ITIC Paris CRE only uses strictly necessary session cookies (authentication and language preference). No advertising or third-party tracking cookies are used.",
       "learn_more": "Learn more",
       "accept": "Got it"
-    }
+    },
+    "back": "Back",
+    "prev": "Previous",
+    "next": "Next",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "save": "Save"
   },
   "roles": {
     "student": "Student",
     "admin": "Admin",
     "advisor": "Corporate Relations Officer"
   },
+  "study_years": {
+    "year_1": "1st year",
+    "year_2": "2nd year",
+    "year_3": "3rd year",
+    "year_4": "4th year",
+    "year_5": "5th year",
+    "all_years": "All years",
+    "no_years": "No level"
+  },
+  "student": {
+    "skilltree": {
+      "back_to_tree_tooltip": "Return to knowledge tree",
+      "tree_link": "Tree"
+    }
+  },
   "pwa": {
     "update_available": "A new version of the application is available!",
-    "banner_title": "Install ITIC CRE",
+    "banner_title": "Install ITIC Paris CRE",
     "banner_subtitle": "Quick access & offline mode",
     "banner_button": "Install",
     "ios_title": "Install on iPhone / iPad",
-    "android_title": "Install on Android"
+    "ios_step1": "Tap the",
+    "ios_step1_share": "Share",
+    "ios_step1_suffix": "button at the bottom of Safari.",
+    "ios_step2": "Scroll down the menu and select",
+    "ios_step2_add": "Add to Home Screen",
+    "android_title": "Install on Android",
+    "android_step1": "Open your browser menu",
+    "android_step1_suffix": "(3 dots in top right).",
+    "android_step2": "Tap",
+    "android_step2_or": "or",
+    "android_step2_install": "Install application",
+    "android_step2_add": "Add to Home Screen",
+    "desktop_title": "Install on Computer (PC / Mac)",
+    "desktop_step1": "Click the install icon",
+    "desktop_step1_suffix": "on the right side of your browser address bar.",
+    "desktop_step2": "Or open your browser menu",
+    "desktop_step2_suffix": "(3 dots) and click",
+    "desktop_step2_install": "Install ITIC Paris CRE...",
+    "got_it": "Got it"
   },
   "nav": {
     "how_it_works": "How it works?",
@@ -38,7 +79,7 @@
     "start": "Get Started"
   },
   "hero": {
-    "title": "Welcome to ITIC CRE",
+    "title": "Welcome to ITIC Paris CRE",
     "description": "The platform to track your internship and work-study applications. Progress in your career search with confidence."
   },
   "features": {
@@ -71,10 +112,11 @@
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
       "conseillers": "Corporate Relations",
+      "conseillers_directory": "Advisors",
       "promotions": "Cohorts",
       "audit": "Audit Log",
       "configuration": "Configuration",
-      "parametres": "Profile",
+      "parametres": "Settings",
       "logout": "Logout"
     },
     "home": {
@@ -100,10 +142,15 @@
         "rank_prefix": "You are",
         "rank_suffix": "out of {{total}}"
       },
+      "advisor": {
+        "title": "My advisor",
+        "empty": "No advisor has been assigned yet."
+      },
       "applications": {
         "title": "Recent Applications",
         "empty": "No applications yet",
-        "empty_desc": "Start by adding your first application to track its progress here."
+        "empty_desc": "Start by adding your first application to track its progress here.",
+        "view_all": "View all"
       },
       "tasks": {
         "title": "To do today",
@@ -162,16 +209,26 @@
       "role_admin": "Admin",
       "role_advisor": "Advisor",
       "subtitle": "Global monitoring and support for students in their internship or work-study search.",
+      "subtitle_advisor": "Monitoring and support for your students in their internship or work-study search.",
       "create_advisor": "Create advisor",
       "export_csv": "Export CSV",
+      "view_toggle": {
+        "global": "Global view",
+        "mine": "My portfolio"
+      },
       "stats": {
         "students_label": "Enrolled students",
         "students_sub": "{{active}} active · {{inactive}} inactive",
         "students_sub_with_anonymized": "{{active}} active · {{inactive}} inactive (+{{anonymized}} deleted RGPD)",
         "students_tooltip_title": "Understanding the numbers",
-        "students_tooltip_active": "Active: Student who logged in or acted on the platform in the last 14 days.",
-        "students_tooltip_inactive": "Inactive: Portfolio student with no activity for +14 days.",
-        "students_tooltip_anonymized": "Deleted (RGPD): Anonymized account (identity erased). Past applications remain in activity stats.",
+        "students_tooltip_active_label": "Active",
+        "students_tooltip_active_advisor": "Student in your portfolio who logged in or acted on the platform in the last {{days}} days.",
+        "students_tooltip_active_admin": "Student who logged in or acted on the platform in the last {{days}} days.",
+        "students_tooltip_inactive_label": "Inactive",
+        "students_tooltip_inactive_advisor": "Student in your portfolio with no activity for +{{days}} days.",
+        "students_tooltip_inactive_admin": "Platform student with no activity for +{{days}} days.",
+        "students_tooltip_anonymized_label": "Deleted (GDPR)",
+        "students_tooltip_anonymized": "Anonymized account (identity erased). Past applications remain in activity stats.",
         "students_tooltip_equation": "Total enrolled = Active + Inactive + Deleted RGPD",
         "applications_label": "Total applications",
         "applications_sub": "+{{count}} this week",
@@ -196,16 +253,13 @@
       },
       "students_widget": {
         "title": "Students to follow",
-        "subtitle_one": "{{count}} student · top 5 priority",
-        "subtitle_other": "{{count}} students · top 5 priority",
+        "subtitle_one": "{{count}} student needs attention",
+        "subtitle_other": "{{count}} students need attention",
         "see_all": "See all",
-        "empty": "No students registered.",
         "no_alerts": "All students are up to date — no active alerts.",
         "stale_badge_one": "{{count}} late",
         "stale_badge_other": "{{count}} late",
         "no_cv": "No CV",
-        "ok": "✓ OK",
-        "subtitle": "Students list and follow-up status",
         "stale_badge": "Follow-up required"
       },
       "audit": {
@@ -245,36 +299,44 @@
       "filter_no_cv": "No CV",
       "filter_show_anonymized": "Show deleted accounts (GDPR)",
       "filter_all_promotions": "All cohorts",
+      "filter_all_advisors": "All advisors",
+      "filter_my_students": "My students only",
+      "filter_study_year": "Study year",
+      "filter_study_year_all": "All years",
       "promotion_search_placeholder": "Search a cohort…",
       "promotion_no_results": "No cohort found",
       "table": {
         "student": "Student",
         "promotion": "Cohort",
+        "study_year": "Year",
         "applications": "Applications",
         "grade_xp": "Grade / XP",
         "cv": "CV",
         "status": "Status",
         "actions": "Actions",
+        "advisor": "Advisor",
+        "no_advisor": "No advisor",
+        "gdpr_badge": "Deleted (GDPR)",
         "cv_deposited": "Uploaded",
         "cv_none": "None",
         "active": "Active",
         "inactive": "Inactive",
         "account_disabled": "Account disabled",
         "empty": "No students match your criteria.",
-        "last_activity": "Last active",
-        "stale_one": "{{count}} late",
-        "stale_other": "{{count}} late",
-        "stale": "Follow-up required"
+        "last_activity": "Last active"
       },
       "detail": {
         "total_applications": "Total applications",
         "stale_applications": "Late applications",
-        "last_activity": "Last active: {{date}}"
+        "last_activity": "Last active: {{date}}",
+        "edit_promotion": "Edit",
+        "no_promotion": "None",
+        "toast_promo_updated": "Assignment updated successfully!",
+        "toast_promo_update_error": "Error updating promotion."
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} student",
-        "info_other": "Page {{current}} of {{total}} — {{count}} students",
-        "info": "Showing {{from}} to {{to}} of {{total}} students"
+        "info_other": "Page {{current}} of {{total}} — {{count}} students"
       },
       "actions": {
         "view": "View profile",
@@ -294,7 +356,27 @@
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
       "toast_reactivate_error": "Error reactivating account.",
-      "subtitle": "Manage and track student progress."
+      "subtitle": "Manage and track student progress.",
+      "anonymized_account": "GDPR anonymized account (cannot be reactivated)",
+      "bulk": {
+        "selected_count_one": "{{count}} student selected",
+        "selected_count_other": "{{count}} students selected",
+        "assign_button": "Assign",
+        "pick_advisor": "Choose an advisor…",
+        "cancel": "Cancel",
+        "select_all_matching": "Select all {{count}} students matching the filter",
+        "select_all_error": "Error while selecting students.",
+        "assign_success_one": "{{count}} student assigned successfully!",
+        "assign_success_other": "{{count}} students assigned successfully!",
+        "assign_error": "Error during bulk assignment.",
+        "remove_button": "Remove",
+        "remove_success_one": "Advisor removed for {{count}} student!",
+        "remove_success_other": "Advisor removed for {{count}} students!",
+        "remove_error": "Error during bulk removal."
+      }
+    },
+    "students": {
+      "anonymized_account": "GDPR anonymized account (cannot be reactivated)"
     },
     "candidatures": {
       "title": "Applications",
@@ -308,6 +390,9 @@
       "filter_all_contracts": "All contract types",
       "filter_stale_only": "Overdue only",
       "loading": "Loading applications…",
+      "toast_export_success": "CSV export downloaded successfully",
+      "toast_export_error": "Error downloading CSV export",
+      "export_csv": "Export CSV",
       "empty_title": "No active students with applications",
       "empty_desc": "Adjust your filters to broaden the search.",
       "student_count_one": "{{count}} student",
@@ -323,10 +408,6 @@
         "status": "Status",
         "last_update": "Last update",
         "empty": "No applications match your criteria."
-      },
-      "pagination": {
-        "info_one": "Page {{current}} of {{total}} — {{count}} application",
-        "info_other": "Page {{current}} of {{total}} — {{count}} applications"
       },
       "detail": {
         "student": "Student",
@@ -350,6 +431,9 @@
           "in_progress": "In progress",
           "completed": "Completed"
         },
+        "pagination_prev": "Previous",
+        "pagination_next": "Next",
+        "pagination_info": "Page {{current}} of {{total}}",
         "card": {
           "via_jobboard": "Via the job board",
           "today": "Today",
@@ -358,9 +442,7 @@
           "stale_days_one": "{{count}} day with no update",
           "stale_days_other": "{{count}} days with no update",
           "next_step_button": "Next step",
-          "next_step_xp": "+{{xp}} XP",
-          "stale_days": "Pending for {{days}}d",
-          "days_ago": "{{days}} days ago"
+          "next_step_xp": "+{{xp}} XP"
         },
         "form": {
           "create_title": "Add an application",
@@ -414,9 +496,16 @@
           "xp_preview": "+{{xp}} XP"
         },
         "subtitle": "Track your applications and job opportunities."
-      },
-      "student_count": "{{count}} students",
-      "pagination_info": "Page {{current}} of {{total}}"
+      }
+    },
+    "cv_validation": {
+      "title": "CV Validation"
+    },
+    "student_offres": {
+      "title": "Job Offers"
+    },
+    "audit": {
+      "title": "Audit Logs"
     },
     "offres": {
       "title": "Job offers",
@@ -442,6 +531,43 @@
           "ADZUNA": "Adzuna"
         }
       },
+      "filter_all_sectors": "All sectors",
+      "filter_all_statuses": "All offers",
+      "categories_button": "Sectors & contracts",
+      "categories": {
+        "page_title": "Sectors & contract types",
+        "page_subtitle": "Manage the categories used to classify job offers.",
+        "back_button": "Back to offers",
+        "tab_sectors": "Sectors",
+        "tab_contract_types": "Contract types",
+        "add_button": "Add",
+        "label_placeholder": "Name",
+        "description_placeholder": "Description (optional)",
+        "table_label": "Name",
+        "table_description": "Description",
+        "table_status": "Status",
+        "table_actions": "Actions",
+        "active": "Active",
+        "inactive": "Inactive",
+        "empty": "No items yet.",
+        "count_one": "{{count}} item",
+        "count_other": "{{count}} items",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "delete": "Delete",
+        "confirm_delete_title": "Delete this item?",
+        "confirm_delete_message": "Delete \"{{label}}\"? This action is irreversible and will fail if any job offer still uses it.",
+        "toast_created": "Created successfully.",
+        "toast_updated": "Updated successfully.",
+        "toast_deleted": "Deleted successfully.",
+        "toast_activated": "Activated successfully.",
+        "toast_deactivated": "Deactivated successfully.",
+        "toast_error": "Something went wrong.",
+        "toast_delete_error": "Failed to delete — check that no job offer still uses it."
+      },
       "apply_button": "Mark as applied",
       "already_applied": "Already applied",
       "withdraw_hint": "Withdraw my application — the matching card will also be deleted from my application tracker.",
@@ -454,6 +580,7 @@
         "title": "Offer",
         "location": "Location",
         "contract": "Contract type",
+        "sector": "Sector",
         "applications": "Applications",
         "status": "Status",
         "active": "Active",
@@ -474,8 +601,7 @@
         "info_one": "Page {{current}} of {{total}} — {{count}} offer",
         "info_other": "Page {{current}} of {{total}} — {{count}} offers",
         "prev": "Previous",
-        "next": "Next",
-        "info": "Showing {{from}} to {{to}} of {{total}} offers"
+        "next": "Next"
       },
       "form": {
         "create_title": "Publish an offer",
@@ -487,6 +613,12 @@
         "description_label": "Description",
         "location_label": "Location",
         "contract_label": "Contract type",
+        "sector_label": "Sector",
+        "sector_none": "No sector",
+        "new_sector_button": "New sector",
+        "new_sector_placeholder": "Sector name",
+        "new_sector_add": "Add",
+        "new_sector_error": "Failed to create the sector.",
         "link_label": "External link (apply)",
         "cancel": "Cancel",
         "save": "Save",
@@ -495,12 +627,26 @@
         "length_error": "Must be between {{min}} and {{max}} characters.",
         "save_error": "Failed to save the offer."
       },
+      "detail_modal": {
+        "title": "Job Offer Details",
+        "description_title": "Job Description",
+        "about_company": "About the company",
+        "contract": "Contract type",
+        "sector": "Sector",
+        "location": "Location",
+        "published_at": "Published on {{date}}",
+        "external_link_notice": "This offer links to an external platform to apply.",
+        "external_link_button": "View original job posting",
+        "status_applied": "You have already applied to this offer",
+        "close": "Close"
+      },
       "toast": {
         "created": "Offer published successfully.",
         "updated": "Offer updated.",
         "deactivated": "Offer deactivated.",
         "activated": "Offer reactivated.",
         "deleted": "Offer deleted.",
+        "has_applications": "Cannot delete: applications are linked to this offer. Deactivate it instead.",
         "action_error": "Something went wrong.",
         "applied": "Application sent! It has been added to your tracker.",
         "already_applied": "You already applied to this offer.",
@@ -679,7 +825,8 @@
       "no_articles_short": "No articles",
       "toast_title_too_long": "Title must not exceed 200 characters.",
       "pagination": {
-        "info": "Showing {{from}} to {{to}} of {{total}} articles",
+        "info_one": "Page {{current}} of {{total}} — {{count}} article",
+        "info_other": "Page {{current}} of {{total}} — {{count}} articles",
         "prev": "Previous",
         "next": "Next"
       },
@@ -782,6 +929,8 @@
       "toast_config_error": "Error updating configuration.",
       "toast_config_updated": "Configuration updated successfully!",
       "toast_config_save_error": "Error updating configuration.",
+      "toast_rule_updated": "Configuration updated successfully!",
+      "toast_rule_update_error": "Error updating configuration.",
       "action": {
         "CANDIDATURE_CREATED": "New application created",
         "QUIZ_COMPLETED": "Quiz validated"
@@ -796,11 +945,15 @@
       "toast_app_status_error": "Error updating status.",
       "toast_status_updated": "Status updated successfully!",
       "toast_status_save_error": "Error updating status.",
+      "toast_status_xp_updated": "Status updated successfully!",
+      "toast_status_xp_update_error": "Error updating status.",
       "sec2_cv_title": "XP Earnings per CV Status",
       "cv_status_section_title": "XP Points per CV Status",
       "cv_status_section_desc": "Award XP points when a CV reaches a given status (e.g. CV validated by an advisor).",
       "toast_cv_status_success": "CV status updated successfully!",
       "toast_cv_status_error": "Error updating status.",
+      "toast_cv_xp_updated": "CV status updated successfully!",
+      "toast_cv_xp_update_error": "Error updating CV status.",
       "sec3_title": "Progression Grades",
       "grades_section_title": "Progression Grades",
       "grades_section_desc": "Grades are automatically awarded to students based on their total XP points.",
@@ -889,8 +1042,19 @@
       "label_phone": "Phone",
       "label_job_title": "Position",
       "placeholder_job_title": "Ex: Corporate Relations Officer",
+      "label_public_picture": "Public picture (visible to students)",
+      "hint_public_picture": "Optional — if absent, the advisor's account picture is used instead.",
+      "btn_change_picture": "Change picture",
+      "toast_picture_updated": "Picture updated successfully!",
+      "toast_picture_error": "Error updating picture.",
       "btn_cancel": "Cancel",
       "btn_save": "Save",
+      "btn_create": "Create",
+      "generate_password": "Regenerate",
+      "copy_password": "Copy",
+      "button_cancel": "Cancel",
+      "button_create": "Create",
+      "button_save": "Save",
       "toast_created": "Staff member created successfully!",
       "toast_admin_created": "Administrator created successfully!",
       "toast_advisor_created": "Advisor created successfully!",
@@ -915,8 +1079,13 @@
         "admin_cannot_be_deleted": "An administrator account cannot be physically deleted.",
         "admin_password_reset_forbidden": "Resetting another administrator's password is forbidden.",
         "generic": "An error occurred."
-      },
-      "subtitle": "Manage staff accounts (Corporate Relations Officers & Administrators)."
+      }
+    },
+    "conseillers_directory": {
+      "title": "Advisors",
+      "subtitle": "Find all advisors on the platform and their contact details.",
+      "empty": "No advisor available at the moment.",
+      "role_badge": "Advisor"
     },
     "audit_page": {
       "title": "Audit Log",
@@ -968,59 +1137,6 @@
       },
       "subtitle": "View security and action audit logs."
     },
-    "promotions": {
-      "title": "Promotions",
-      "subtitle_one": "{{count}} promotion total",
-      "subtitle_other": "{{count}} promotions total",
-      "create_button": "Create a promotion",
-      "table": {
-        "name": "Name",
-        "year": "Year",
-        "students": "Students",
-        "actions": "Actions",
-        "student_count_one": "{{count}} student",
-        "student_count_other": "{{count}} students",
-        "empty": "No promotion yet.",
-        "student_count": "{{count}} students"
-      },
-      "actions": {
-        "edit": "Edit",
-        "delete": "Delete",
-        "manage_students": "Manage students"
-      },
-      "modal_create": "Create a promotion",
-      "modal_edit": "Edit promotion",
-      "label_name": "Name",
-      "placeholder_name": "E.g. Promotion 2026",
-      "label_year": "Year",
-      "placeholder_year": "E.g. 2025-2026",
-      "btn_cancel": "Cancel",
-      "btn_save": "Save",
-      "toast_created": "Promotion created successfully!",
-      "toast_updated": "Promotion updated successfully!",
-      "toast_save_error": "Error saving promotion.",
-      "toast_name_exists": "A promotion with this name already exists.",
-      "confirm_delete_title": "Delete promotion",
-      "confirm_delete": "Are you sure you want to delete the promotion \"{{name}}\"?",
-      "toast_deleted": "Promotion deleted successfully!",
-      "toast_delete_error": "Error deleting promotion.",
-      "toast_has_students": "Cannot delete this promotion: remove all students first.",
-      "modal_students": "Students of {{name}}",
-      "no_students": "No students in this promotion.",
-      "btn_remove_student": "Remove",
-      "confirm_remove_student_title": "Remove from promotion",
-      "confirm_remove_student": "Remove \"{{name}}\" from this promotion? The student will not be deleted, only unlinked from the promotion.",
-      "toast_student_removed": "Student removed from promotion successfully!",
-      "toast_student_remove_error": "Error removing student.",
-      "label_add_student": "Add or move a student",
-      "placeholder_add_student": "Search a student by name or email…",
-      "no_search_results": "No student found.",
-      "currently_in": "currently in {{name}}",
-      "btn_add_student": "Add",
-      "toast_student_assigned": "Student assigned to promotion successfully!",
-      "toast_student_assign_error": "Error assigning student.",
-      "subtitle": "Manage promotions and student classes."
-    },
     "parametres": {
       "profile": {
         "title": "Profile",
@@ -1043,7 +1159,8 @@
         "btn_enter_otp": "Enter code",
         "btn_cancel": "Cancel",
         "label_email": "Email address",
-        "modal_otp_title": "Verify new email address",
+        "label_promotion": "Promotion",
+        "modal_otp_title": "Validate new email address",
         "modal_otp_desc": "Enter the 6-digit code sent to your new address.",
         "btn_confirm_otp": "Verify code"
       },
@@ -1069,6 +1186,27 @@
         "modal_deleting": "Deleting...",
         "toast_delete_success": "Your account has been anonymized and deactivated.",
         "toast_delete_error": "Error while deleting your account."
+      },
+      "submenus": {
+        "profile": "Profile Settings",
+        "profile_admin": "Settings",
+        "system": "Application Configuration"
+      },
+      "app_config": {
+        "title": "System Application Configuration",
+        "description": "Adjust global backend application thresholds (follow-up alerts, promotion rules).",
+        "btn_save": "Save",
+        "toast_success": "Configuration updated successfully!",
+        "toast_error": "Failed to update configuration.",
+        "empty": "No configurations to display.",
+        "keys": {
+          "STALE_ALERT_DAYS": "Inactivity threshold (days) before follow-up alert (applications)",
+          "PROMOTION_REMINDER_MONTHS": "Timeframe in months before promotion update reminder",
+          "GDPR_OTP_RETENTION_HOURS": "Email verification OTP code retention period (hours)",
+          "GDPR_AUDIT_LOG_RETENTION_DAYS": "Legal audit and security log retention period (days)",
+          "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Retention period before automatic anonymization of inactive accounts (days)",
+          "INACTIVE_STUDENT_DAYS": "Days without login before a student is considered inactive (statistics)"
+        }
       },
       "preferences": {
         "title": "Preferences",
@@ -1135,6 +1273,79 @@
       "actions": {
         "review": "Review"
       }
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle_one": "{{count}} promotion total",
+      "subtitle_other": "{{count}} promotions total",
+      "create_button": "Create a promotion",
+      "table": {
+        "name": "Promotion name",
+        "year": "Academic year",
+        "years_levels": "Year levels",
+        "students": "Students",
+        "actions": "Actions",
+        "empty": "No promotions found.",
+        "student_count_one": "{{count}} student",
+        "student_count_other": "{{count}} students",
+        "student_count": "{{count}} student(s)"
+      },
+      "actions": {
+        "manage_students": "Manage students",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "empty": "No promotions found.",
+      "no_students": "No students in this selection.",
+      "student_count_one": "{{count}} student",
+      "student_count_other": "{{count}} students",
+      "student_count": "{{count}} student(s)",
+      "modal_create": "Create a promotion",
+      "modal_edit": "Edit promotion",
+      "btn_cancel": "Cancel",
+      "btn_save": "Save",
+      "modal_students": "Students — {{name}}",
+      "has_years_label": "Year levels required",
+      "has_years_desc": "Allows students to select their study year (1st, 2nd year, etc.)",
+      "available_years_label": "Study year level",
+      "label_name": "Promotion",
+      "label_year": "Academic year",
+      "placeholder_name": "Ex: BTS SIO, Bachelor Dev...",
+      "placeholder_year": "Ex: 2025-2026",
+      "label_add_student": "Assign a student to this promotion",
+      "search_student_label": "Search a student",
+      "placeholder_add_student": "Search by first name, last name or email...",
+      "no_search_results": "No matching students found",
+      "currently_in": "Currently in {{name}}",
+      "btn_add_student": "Add",
+      "btn_remove_student": "Remove",
+      "btn_view_students": "Manage students",
+      "tab_all": "All ({{count}})",
+      "tab_unassigned": "No level ({{count}})",
+      "search_in_promo": "Filter students...",
+      "filtered_count": "{{count}} displayed",
+      "status_label": "Status",
+      "change_year_tooltip": "Change study year",
+      "select_year_placeholder": "Level...",
+      "no_years": "No level",
+      "toast_year_updated": "Study year updated successfully!",
+      "toast_year_update_error": "Error updating study year.",
+      "toast_created": "Promotion created successfully.",
+      "toast_updated": "Promotion updated successfully.",
+      "toast_deleted": "Promotion deleted successfully.",
+      "toast_student_assigned": "Student assigned successfully.",
+      "toast_student_removed": "Student removed from promotion.",
+      "toast_student_assign_error": "Error assigning student.",
+      "toast_student_remove_error": "Error removing student.",
+      "confirm_delete_title": "Delete promotion",
+      "confirm_delete": "Delete promotion \"{{name}}\"? This action is irreversible.",
+      "confirm_remove_student_title": "Remove student",
+      "confirm_remove_student": "Remove {{name}} from this promotion?",
+      "toast_name_exists": "A promotion with this name already exists.",
+      "toast_has_students": "Cannot delete this promotion because it contains students.",
+      "toast_save_error": "Error saving promotion.",
+      "toast_delete_error": "Error deleting promotion.",
+      "select_at_least_one_year": "Please select at least one year level."
     }
   },
   "cta": {
@@ -1146,12 +1357,13 @@
       "title": "Login to your space",
       "subtitle": "Access your account securely.",
       "portal_subtitle": "Internship & work-study portal",
-      "hero_title": "Access your ITIC CRE space",
+      "hero_title": "Access your ITIC Paris CRE space",
       "hero_description": "A single entry point to track internships, applications, follow-ups and exchanges with ITIC Paris advisors.",
       "help_title": "Need help?",
       "help_contact": "Contact us:",
+      "help_email": "pole.entreprises@iticparis.com",
       "connexion_title": "Sign in",
-      "connexion_subtitle": "Log in to your ITIC Paris space.",
+      "connexion_subtitle": "Log in to your ITIC Paris CRE space.",
       "activate_account": "Activate my account (OTP Code)",
       "email_not_verified": "Your email address has not been verified.",
       "click_to_activate": "Click here to activate your account.",
@@ -1172,10 +1384,11 @@
       "title": "Create your account",
       "subtitle": "Sign up to access the platform.",
       "portal_subtitle": "Internship & work-study portal",
-      "hero_title": "Join your ITIC CRE space",
+      "hero_title": "Join your ITIC Paris CRE space",
       "hero_description": "Create your account and access all the tools to track your applications, internships and exchanges with your advisors.",
       "help_title": "Need help?",
       "help_contact": "Contact us:",
+      "help_email": "pole.entreprises@iticparis.com",
       "register_title": "Create an account",
       "register_subtitle": "Fill in the form to get started.",
       "first_name_label": "First name",
@@ -1192,6 +1405,9 @@
       "promotion_required": "Cohort is required.",
       "promotion_search_placeholder": "Search a cohort…",
       "promotion_no_results": "No cohort found",
+      "study_year_label": "Study year",
+      "study_year_placeholder": "Select your year",
+      "study_year_required": "Study year is required for this cohort.",
       "creating": "Creating...",
       "error_generic": "An error occurred during registration.",
       "success_created": "Account created! A verification email has been sent.",
@@ -1268,7 +1484,7 @@
       "title": "Terms of Service",
       "last_updated": "Last updated: {{date}}",
       "sec1_title": "1. Purpose of the Service",
-      "sec1_desc": "The ITIC-CRE platform is a professional tool made available to students and academic advisors at ITIC Paris school. Its purpose is CV management, work-study and internship application tracking (CRM), access to partner job offers, and academic support.",
+      "sec1_desc": "The ITIC Paris CRE platform is a professional tool made available to students and academic advisors at ITIC Paris school. Its purpose is CV management, work-study and internship application tracking (CRM), access to partner job offers, and academic support.",
       "sec2_title": "2. Access and Account Creation",
       "sec2_desc": "Access to the platform is strictly reserved for students enrolled at ITIC Paris and authorized academic staff. Each user agrees to provide accurate information and maintain the confidentiality of their login credentials.",
       "sec3_title": "3. User Commitments",
@@ -1282,7 +1498,7 @@
       "last_updated": "Last updated: {{date}}",
       "gdpr_compliance": "Compliant with General Data Protection Regulation (GDPR - EU 2016/679)",
       "sec1_title": "1. Protection of your data",
-      "sec1_desc": "At ITIC Paris, protecting and respecting your privacy is a fundamental priority. This privacy policy aims to inform you in full transparency about the procedures for collecting, processing, storing, and securing your personal data on the ITIC-CRE platform.",
+      "sec1_desc": "At ITIC Paris, protecting and respecting your privacy is a fundamental priority. This privacy policy aims to inform you in full transparency about the procedures for collecting, processing, storing, and securing your personal data on the ITIC Paris CRE platform.",
       "sec2_title": "2. Registered personal information",
       "sec2_desc": "In order to ensure educational tracking and support towards employment, we collect the following data:",
       "sec2_item1_label": "Profile data:",

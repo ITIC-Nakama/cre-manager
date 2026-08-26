@@ -1,5 +1,6 @@
 package com.itic.paris.platform.cv;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -119,7 +121,7 @@ public class CVIntegrationTest {
                 "file",
                 "cv.pdf",
                 "application/pdf",
-                "Mock PDF content".getBytes()
+                "%PDF-1.4 Mock PDF content".getBytes()
         );
 
         // When
@@ -133,6 +135,58 @@ public class CVIntegrationTest {
         assertThat(cv.getStudent().getId()).isEqualTo(testStudent.getId());
         assertThat(cv.getStatut().getId()).isEqualTo(enAttenteStatut.getId());
         assertThat(cv.getXpAwarded()).isFalse();
+    }
+
+    @Test
+    public void testUploadCV_ShouldRejectFileWithSpoofedPdfExtensionAndContentType() {
+        // Content-Type et nom de fichier annoncent un PDF, mais les octets reels n'en sont pas —
+        // exactement le scenario que la verification par signature binaire doit bloquer.
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "cv.pdf",
+                "application/pdf",
+                "<script>alert('xss')</script>".getBytes()
+        );
+
+        assertThrows(AppException.class, () -> cvService.uploadCV(testStudent.getId(), file));
+        assertThat(cvRepository.findByStudentId(testStudent.getId())).isEmpty();
+    }
+
+    @Test
+    public void testUploadCV_ShouldNotDeletePreviousFileWhenNewUploadFails() throws Exception {
+        // Un premier CV valide existe deja
+        MockMultipartFile firstFile = new MockMultipartFile(
+                "file", "cv.pdf", "application/pdf", "%PDF-1.4 first version".getBytes()
+        );
+        cvService.uploadCV(testStudent.getId(), firstFile);
+        String previousPath = cvRepository.findByStudentId(testStudent.getId()).orElseThrow().getFilePath();
+
+        // Le nouvel upload echoue cote stockage cloud
+        when(cloudStorage.uploadFile(any(), anyString())).thenReturn(false);
+        MockMultipartFile secondFile = new MockMultipartFile(
+                "file", "cv.pdf", "application/pdf", "%PDF-1.4 second version".getBytes()
+        );
+
+        assertThrows(AppException.class, () -> cvService.uploadCV(testStudent.getId(), secondFile));
+
+        // L'ancien fichier ne doit jamais avoir ete supprime puisque le nouveau n'a pas pu le remplacer
+        org.mockito.Mockito.verify(cloudStorage, org.mockito.Mockito.never()).deleteFile(previousPath);
+        assertThat(cvRepository.findByStudentId(testStudent.getId()).orElseThrow().getFilePath())
+                .isEqualTo(previousPath);
+    }
+
+    @Test
+    public void testUploadCV_ShouldReturnFriendlyFileNameBasedOnStudentIdentity() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "some-random-scan.pdf",
+                "application/pdf",
+                "%PDF-1.4 Mock PDF content".getBytes()
+        );
+
+        Map<String, Object> response = cvService.uploadCV(testStudent.getId(), file);
+
+        assertThat(response.get("nomFichier")).isEqualTo("CV_Student_Cv.pdf");
     }
 
     @Test
@@ -200,5 +254,41 @@ public class CVIntegrationTest {
         List<Map<String, Object>> comments = cvService.getComments(cv.getId());
         assertThat(comments).hasSize(1);
         assertThat(comments.get(0).get("contenu")).isEqualTo(commentDto.getContenu());
+    }
+
+    @Test
+    public void testGetCVStats_ScopedByAdvisor_OnlyCountsOwnPortfolio() throws Exception {
+        testStudent.setAdvisor(testAdvisor);
+        studentRepository.save(testStudent);
+
+        CV assignedCv = new CV();
+        assignedCv.setStudent(testStudent);
+        assignedCv.setFilePath("cvs/assigned.pdf");
+        assignedCv.setStatut(enAttenteStatut);
+        cvRepository.save(assignedCv);
+
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        Student otherStudent = new Student();
+        otherStudent.setEmail("cv.other.student@itic.fr");
+        otherStudent.setFirstName("Other");
+        otherStudent.setLastName("Student");
+        otherStudent.setPassword("Secret123!");
+        otherStudent.setEmailVerified(true);
+        otherStudent.setRole(studentRole);
+        otherStudent = studentRepository.save(otherStudent);
+
+        CV unassignedCv = new CV();
+        unassignedCv.setStudent(otherStudent);
+        unassignedCv.setFilePath("cvs/unassigned.pdf");
+        unassignedCv.setStatut(enAttenteStatut);
+        cvRepository.save(unassignedCv);
+
+        long scopedTotal = cvService.getCVStats(testAdvisor.getId())
+                .stream().mapToLong(row -> ((Number) row.get("count")).longValue()).sum();
+        long globalTotal = cvService.getCVStats(null)
+                .stream().mapToLong(row -> ((Number) row.get("count")).longValue()).sum();
+
+        assertThat(scopedTotal).isEqualTo(1);
+        assertThat(globalTotal).isGreaterThanOrEqualTo(2);
     }
 }

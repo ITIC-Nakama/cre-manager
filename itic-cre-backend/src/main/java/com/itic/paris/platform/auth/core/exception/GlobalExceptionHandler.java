@@ -6,6 +6,7 @@ import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,20 +55,12 @@ public class GlobalExceptionHandler {
                         buildConstraintViolationErrors(ex)));
     }
 
+    // Filet de securite generique : les cas attendus (ex: label deja pris) sont verifies
+    // en amont dans le service, qui leve un AppException avec un message metier precis.
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<CustomResponseEntity> handleDataIntegrityViolation(DataIntegrityViolationException ex,
                                                                             HttpServletRequest request) {
         String lang = LanguageUtil.resolveLang(request);
-        String property = extractUniqueConstraintField(ex);
-        if ("label".equals(property)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(CustomResponseEntity.of(MessageKey.VALIDATION_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
-                            List.of(Map.of(
-                                    "property", "label",
-                                    "message", MessageKey.CONTRACT_TYPE_LABEL_ALREADY_EXISTS.translate(lang)
-                            ))));
-        }
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CustomResponseEntity.of(MessageKey.REQUEST_PROCESSING_FAILED, lang, HttpStatus.BAD_REQUEST.value(),
                         Map.of("error", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())));
@@ -109,20 +103,6 @@ public class GlobalExceptionHandler {
                 .toList();
     }
 
-    private String extractUniqueConstraintField(DataIntegrityViolationException ex) {
-        Throwable root = ex.getRootCause();
-        String message = root != null ? root.getMessage() : ex.getMessage();
-        if (message == null) {
-            return null;
-        }
-
-        String lower = message.toLowerCase();
-        if (lower.contains("key (label)")) {
-            return "label";
-        }
-        return null;
-    }
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<CustomResponseEntity> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                               HttpServletRequest request) {
@@ -140,12 +120,29 @@ public class GlobalExceptionHandler {
                 .body(CustomResponseEntity.of(MessageKey.FILE_TOO_LARGE, lang, HttpStatus.PAYLOAD_TOO_LARGE.value(), null));
     }
 
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<CustomResponseEntity> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex,
+                                                                               HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(CustomResponseEntity.of(MessageKey.CONCURRENT_UPDATE_CONFLICT, lang,
+                        HttpStatus.CONFLICT.value(), null));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<CustomResponseEntity> handleAccessDenied(AccessDeniedException ex,
                                                                    HttpServletRequest request) {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(CustomResponseEntity.of(MessageKey.ACCESS_DENIED, lang, HttpStatus.FORBIDDEN.value(), null));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<CustomResponseEntity> handleNoResourceFound(NoResourceFoundException ex,
+                                                                        HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(CustomResponseEntity.of(MessageKey.ROUTE_NOT_FOUND, lang, HttpStatus.NOT_FOUND.value(), null));
     }
 
     @ExceptionHandler(Exception.class)

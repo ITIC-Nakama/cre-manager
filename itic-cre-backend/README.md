@@ -38,17 +38,33 @@ Swagger UI disponible sur : `http://localhost:8080/api/v1/swagger-ui.html`
 
 ---
 
+## Variables d'environnement clés
+
+Liste non exhaustive (voir `.env.example` pour la liste complète) :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origines autorisées par le CORS backend |
+| `FRONTEND_URL` | `http://localhost:5173` | URL de base du frontend : sert à construire les liens cliquables dans les emails (ex: bouton "Accéder à mon espace" du rappel conseiller) |
+| `APP_BRAND_NAME` | `ITIC CRE` | Nom affiché dans l'en-tête/pied des emails |
+| `SWAGGER_ENABLED` | `true` | Active/désactive Swagger UI et `/v3/api-docs`. **À mettre à `false` en production** — ces routes sont publiques (`permitAll`) et exposent toute la surface de l'API sans authentification. |
+
+---
+
 ## Structure des modules
 
 ```
 platform/
-├── auth/          # Inscription, login, JWT, rôles, profils, promotions
-├── crm/           # Candidatures étudiant (pipeline Kanban)
+├── auth/          # Inscription, login, JWT, rôles, profils, promotions, affectation conseiller
+├── crm/           # Candidatures étudiant (liste + détail, pas de Kanban)
 ├── cv/            # Upload CV PDF, statuts, commentaires conseiller
-├── dashboard/     # Statistiques agrégées pour les conseillers
-├── gamification/  # XP, grades, skill tree, historique
-├── jobboard/      # Offres d'emploi, candidatures Jobboard → CRM auto-link
+├── dashboard/     # Statistiques agrégées pour les conseillers/admins
+├── gamification/  # XP, grades, historique
+├── gdpr/          # Anonymisation, purge planifiée, export de données
+├── jobboard/      # Offres d'emploi, secteurs, candidatures Jobboard → CRM auto-link
+├── skill/         # Skill tree, articles, quiz
 ├── audit/         # Journal des actions
+├── seeder/        # Données de démarrage (rôles, statuts, config par défaut)
 └── shared/        # Config, exceptions, i18n, stockage, notifications
 ```
 
@@ -121,6 +137,8 @@ CVService.updateStatus()          CVService.addComment()
 | `cv/service/CVService.java` | Publie l'événement **dans** la transaction (strings extraits de la session JPA ouverte) |
 | `shared/notification/NotificationEmailService.java` | Écoute l'événement **après commit**, envoie l'email en mode `@Async` |
 | `resources/templates/email/cv-notification.html` | Template Thymeleaf HTML partagé (type STATUS ou COMMENT) |
+
+Le rappel libre envoyé par un conseiller (`POST /dashboard/students/{id}/notify`) suit le même principe et utilise `resources/templates/email/student-reminder.html`. Son bouton "Accéder à mon espace" pointe vers `${FRONTEND_URL}/student/dashboard` — voir [Variables d'environnement](#variables-denvironnement-clés).
 
 ---
 
@@ -200,9 +218,10 @@ Les promotions sont créées par un administrateur et sélectionnées par l'étu
 - **Permissions de désactivation / réactivation** :
   - **Administrateurs (`ADMIN`)** : peuvent désactiver et réactiver le staff (conseillers, admins) et les étudiants.
   - **Conseillers (`ADVISOR`)** : peuvent désactiver et réactiver **uniquement** des comptes étudiants (`STUDENT`).
-- **Conformité RGPD automatisée & Séparation Opérationnelle** : `GdprPurgeScheduler` et `GdprService` assurent la gestion RGPD :
+- **Conformité RGPD automatisée & Configuration Applicative BDD** : `GdprPurgeScheduler`, `GdprService` et `AppConfigurationService` assurent la gouvernance RGPD :
+  - **Configuration dynamique en BDD (`app_configuration`)** : Les durées de rétention (`GDPR_OTP_RETENTION_HOURS`, `GDPR_AUDIT_LOG_RETENTION_DAYS`, `GDPR_INACTIVE_STUDENT_RETENTION_DAYS`, `STALE_ALERT_DAYS`, `PROMOTION_REMINDER_MONTHS`) sont gérées dynamiquement par les Administrateurs via `GET/PUT /api/admin/app-config` (protégé `@PreAuthorize("hasRole('ADMIN')")`).
+  - **Purge quotidienne (03:00 AM)** : destruction automatique des OTP expirés, des journaux d'audit anciens et anonymisation des comptes étudiants inactifs depuis la durée légale configurée.
   - Anonymisation irréversible des étudiants (effacement nominatif, anonymisation email `@rgpd.deleted`, suppression du CV physique, détachement de la promotion `student.setPromotion(null)`).
   - **Exclusion des vues opérationnelles** : Les comptes anonymisés sont automatiquement exclus des requêtes de listing d'étudiants, des recherches et des compteurs de promotion.
   - **Réactivation et rappels strictement bloqués** : La réactivation (`PATCH /auth/users/{id}/reactivate`) et l'envoi de rappels (`POST /dashboard/students/{id}/notify`) sur des comptes anonymisés renvoient HTTP 403 `ANONYMIZED_USER_CANNOT_BE_REACTIVATED`.
-  - Purge nocturne à minuit : destruction des OTP de plus de 24h et des journaux d'audit de plus de 365 jours.
 

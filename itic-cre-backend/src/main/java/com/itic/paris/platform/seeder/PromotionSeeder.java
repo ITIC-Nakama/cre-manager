@@ -11,6 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -24,26 +25,30 @@ public class PromotionSeeder implements ApplicationRunner {
     @Value("${app.test.seeders.enabled:false}")
     private boolean enabled;
 
-    private static final List<String[]> DEFAULT_PROMOTIONS = List.of(
-            new String[]{"Bachelor RH 2024-2025",   "2024-2025"},
-            new String[]{"Bachelor RH 2025-2026",   "2025-2026"},
-            new String[]{"Master RH 2024-2025",     "2024-2025"},
-            new String[]{"Master RH 2025-2026",     "2025-2026"},
-            new String[]{"Bachelor Dev 2024-2025",  "2024-2025"},
-            new String[]{"Bachelor Dev 2025-2026",  "2025-2026"},
-            new String[]{"Master Dev 2024-2025",    "2024-2025"},
-            new String[]{"Master Dev 2025-2026",    "2025-2026"}
+    private record PromoSeed(String name, String year, boolean hasYears, List<Integer> availableYears) {}
+
+    private static final List<PromoSeed> DEFAULT_PROMOTIONS = List.of(
+            new PromoSeed("Bachelor RH 2024-2025",   "2024-2025", true, List.of(1, 2, 3)),
+            new PromoSeed("Bachelor RH 2025-2026",   "2025-2026", true, List.of(1, 2, 3)),
+            new PromoSeed("Master RH 2024-2025",     "2024-2025", true, List.of(1, 2)),
+            new PromoSeed("Master RH 2025-2026",     "2025-2026", true, List.of(1, 2)),
+            new PromoSeed("Bachelor Dev 2024-2025",  "2024-2025", true, List.of(1, 2, 3)),
+            new PromoSeed("Bachelor Dev 2025-2026",  "2025-2026", true, List.of(1, 2, 3)),
+            new PromoSeed("Master Dev 2024-2025",    "2024-2025", true, List.of(1, 2)),
+            new PromoSeed("Master Dev 2025-2026",    "2025-2026", true, List.of(1, 2))
     );
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         if (!enabled) return;
-        for (String[] entry : DEFAULT_PROMOTIONS) {
-            if (!promotionRepository.existsByNameIgnoreCase(entry[0])) {
+        for (PromoSeed entry : DEFAULT_PROMOTIONS) {
+            if (!promotionRepository.existsByNameIgnoreCase(entry.name())) {
                 Promotion promotion = new Promotion();
-                promotion.setName(entry[0]);
-                promotion.setYear(entry[1]);
+                promotion.setName(entry.name());
+                promotion.setYear(entry.year());
+                promotion.setHasYears(entry.hasYears());
+                promotion.setAvailableYears(new ArrayList<>(entry.availableYears()));
                 promotionRepository.save(promotion);
             }
         }

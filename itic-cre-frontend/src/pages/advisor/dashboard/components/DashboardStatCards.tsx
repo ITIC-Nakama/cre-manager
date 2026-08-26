@@ -1,4 +1,4 @@
-import { Users, Briefcase, AlertCircle, FileText, Loader2, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Users, Briefcase, AlertCircle, FileText, HelpCircle, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { DashboardOverview } from '../../../../types/models/Dashboard';
 
@@ -17,10 +17,12 @@ interface Props {
   overview: DashboardOverview | null | undefined;
   loading: boolean;
   cvsToReview?: number;
+  isAdmin?: boolean;
 }
 
-export default function DashboardStatCards({ overview, loading, cvsToReview }: Props) {
+export default function DashboardStatCards({ overview, loading, cvsToReview, isAdmin = false }: Props) {
   const { t } = useTranslation();
+  const scope = isAdmin ? 'admin' : 'advisor';
 
   const cards: StatCard[] = [
     {
@@ -75,6 +77,22 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm animate-pulse">
+            <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="h-7 w-10 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-3 w-28 rounded bg-slate-100 dark:bg-slate-800" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {cards.map((card) => {
@@ -85,11 +103,7 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow relative overflow-visible"
           >
             <div className={`h-11 w-11 rounded-xl ${card.bg} flex items-center justify-center flex-shrink-0`}>
-              {loading ? (
-                <Loader2 className={`h-5 w-5 ${card.color} animate-spin`} />
-              ) : (
-                <Icon className={`h-5 w-5 ${card.color}`} />
-              )}
+              <Icon className={`h-5 w-5 ${card.color}`} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{card.value}</p>
@@ -107,15 +121,15 @@ export default function DashboardStatCards({ overview, loading, cvsToReview }: P
                       </div>
                       <div className="space-y-2 text-[11px] leading-relaxed text-slate-200">
                         <p>
-                          <strong className="text-emerald-400 font-semibold">Actif :</strong>{' '}
-                          {t('dashboard.advisor.stats.students_tooltip_active')}
+                          <strong className="text-emerald-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_active_label')} :</strong>{' '}
+                          {t(`dashboard.advisor.stats.students_tooltip_active_${scope}`, { days: overview?.inactiveStudentDays ?? 14 })}
                         </p>
                         <p>
-                          <strong className="text-amber-400 font-semibold">Inactif :</strong>{' '}
-                          {t('dashboard.advisor.stats.students_tooltip_inactive')}
+                          <strong className="text-amber-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_inactive_label')} :</strong>{' '}
+                          {t(`dashboard.advisor.stats.students_tooltip_inactive_${scope}`, { days: overview?.inactiveStudentDays ?? 14 })}
                         </p>
                         <p>
-                          <strong className="text-purple-400 font-semibold">Supprimé (RGPD) :</strong>{' '}
+                          <strong className="text-purple-400 font-semibold">{t('dashboard.advisor.stats.students_tooltip_anonymized_label')} :</strong>{' '}
                           {t('dashboard.advisor.stats.students_tooltip_anonymized')}
                         </p>
                       </div>

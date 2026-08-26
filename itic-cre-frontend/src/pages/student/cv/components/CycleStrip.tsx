@@ -38,7 +38,7 @@ export default function CycleStrip({ currentStep }: Props) {
         />
         {/* Ligne de progression */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 h-1 bg-indigo-600 rounded-full transition-all duration-500 ease-out z-0"
+          className="absolute top-1/2 -translate-y-1/2 h-1 bg-[#3B71FF] rounded-full transition-all duration-500 ease-out z-0"
           style={{
             left: `${firstCenter}%`,
             width: `${trackSpan * progressRatio}%`,
@@ -60,9 +60,9 @@ export default function CycleStrip({ currentStep }: Props) {
               <div
                 className={`h-9 w-9 sm:h-12 sm:w-12 shrink-0 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                   isCompleted
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                    ? 'bg-[#3B71FF] border-[#3B71FF] text-white shadow-lg shadow-[#3B71FF]/20'
                     : isActive
-                    ? 'bg-white dark:bg-slate-900 border-indigo-600 text-indigo-600 ring-4 ring-indigo-50 dark:ring-indigo-950/40'
+                    ? 'bg-white dark:bg-slate-900 border-[#3B71FF] text-[#3B71FF] ring-4 ring-[#3B71FF]/20'
                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'
                 }`}
               >

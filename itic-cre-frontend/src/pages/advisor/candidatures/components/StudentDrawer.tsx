@@ -30,6 +30,7 @@ export default function StudentDrawer({ group, onClose }: Props) {
                             firstName={group.firstName}
                             lastName={group.lastName}
                             className="h-10 w-10 flex-shrink-0"
+                            enlargeOnClick
                         />
                         <div className="min-w-0">
                             <p className="font-bold text-slate-900 dark:text-white truncate">

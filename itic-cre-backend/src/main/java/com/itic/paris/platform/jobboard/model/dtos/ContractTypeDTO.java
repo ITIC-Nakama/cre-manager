@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContractTypeDTO {
+public class ContractTypeDTO implements LabeledReferenceDataView {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private UUID id;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ITIC CRE</title>
+    <title>ITIC Paris CRE</title>
 
     <!-- Google Fonts Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,13 +16,67 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ITIC CRE" />
+    <meta name="apple-mobile-web-app-title" content="ITIC Paris CRE" />
     
     <!-- Icône Apple Safari iOS -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     
     <!-- Lien Manifeste PWA Mobile -->
     <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+      /* Empêcher tout flash blanc et tout décalage au chargement initial sur PC et Mobile */
+      html {
+        scrollbar-gutter: stable;
+        background-color: #0f172a !important;
+      }
+      html, body {
+        background-color: #0f172a !important;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+      }
+      /* Écran de démarrage PWA / Safari avec transition d'opacité fluide */
+      #pwa-splash {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        z-index: 9999;
+        background-color: #0f172a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 28px;
+        box-sizing: border-box;
+        transition: opacity 0.35s ease-out;
+        pointer-events: none;
+      }
+      #pwa-splash.splash-fade-out {
+        opacity: 0;
+      }
+      .splash-logo-svg {
+        width: 72px;
+        height: 100px;
+        flex-shrink: 0;
+      }
+      .splash-title-text {
+        font-family: 'Roboto', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: #ffffff;
+        text-transform: uppercase;
+        margin: 0;
+        flex-shrink: 0;
+      }
+    </style>
+
     <script type="module">
       /*
       // Code de gestion/bascule du mode clair/sombre (conservé en commentaire)
@@ -38,7 +92,6 @@
       })();
       */
 
-      
       (function() {
         // Mode sombre forcé par défaut (charte ITIC CRE)
         document.documentElement.classList.add('dark');
@@ -46,6 +99,14 @@
     </script>
   </head>
   <body>
+    <!-- Écran d'accueil PWA & Safari avec transition d'opacité fluide au montage React -->
+    <div id="pwa-splash">
+      <svg class="splash-logo-svg" viewBox="106.148 117.121 107.398 151.312" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#9cc0e4" d="M 106.148438 117.121094 L 106.148438 182.496094 C 106.152344 194.804688 109.367188 206.21875 114.207031 216.457031 L 213.546875 117.121094 Z M 106.148438 117.121094 "/>
+        <path fill="#1f3965" d="M 213.542969 130.644531 L 118.914062 225.273438 C 134.769531 251.828125 159.75 268.433594 159.75 268.433594 L 159.945312 268.433594 C 159.945312 268.433594 213.546875 232.835938 213.546875 182.488281 L 213.527344 182.488281 Z M 213.542969 130.644531 "/>
+      </svg>
+      <span class="splash-title-text">ITIC Paris CRE</span>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

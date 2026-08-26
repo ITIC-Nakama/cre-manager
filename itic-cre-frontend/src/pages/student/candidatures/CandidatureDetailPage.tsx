@@ -90,7 +90,7 @@ export default function CandidatureDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center py-16">
+            <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
             </div>
         );
@@ -112,7 +112,7 @@ export default function CandidatureDetailPage() {
     const isRefused = candidature.status.ordre === 6;
 
     return (
-        <div className="flex flex-col gap-6  max-w-3xl animate-fadeIn">
+        <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn">
             <Link
                 to="/student/candidatures"
                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 w-fit"

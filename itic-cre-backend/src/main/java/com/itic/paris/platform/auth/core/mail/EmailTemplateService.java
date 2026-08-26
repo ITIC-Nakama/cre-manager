@@ -23,6 +23,9 @@ public class EmailTemplateService {
     @Value("${app.brand.name:ITIC CRE}")
     private String brandName;
 
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     public String renderOtpVerificationEmail(String lang, String firstName, String code, long expirationMinutes) {
         return renderOtpVerificationEmail(lang, firstName, code, expirationMinutes, false);
     }
@@ -66,12 +69,24 @@ public class EmailTemplateService {
         return templateEngine.process("email/cv-notification", context);
     }
 
+    public String renderAdvisorAssignedEmail(String lang, String firstName, String advisorName, String advisorJobTitle) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "");
+        context.setVariable("advisorJobTitle", advisorJobTitle != null ? advisorJobTitle.trim() : "");
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/advisor-assigned", context);
+    }
+
     public String renderStudentReminderEmail(String firstName, String advisorName, String message) {
         Context context = new Context();
         context.setVariable("firstName", firstName != null ? firstName.trim() : "");
         context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "Votre conseiller");
         context.setVariable("message", message);
         context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
         return templateEngine.process("email/student-reminder", context);
     }
 

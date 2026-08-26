@@ -29,4 +29,7 @@ public final class SecurityContextHelper {
     public static String currentUserLang() {
         return (String) currentPrincipal().get("lang");
     }
+    public static String currentUserRole() {
+        return (String) currentPrincipal().get("role");
+    }
 }

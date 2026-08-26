@@ -15,11 +15,12 @@ import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
+import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,12 +45,9 @@ public class AuthService {
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
-    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
-    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
-
-    /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
-    @Value("${app.admin.max-active:2}")
-    private long adminMaxActive;
+    private final PromotionRepository promotionRepository;
+    private final NotificationEmailService notificationEmailService;
+    private final UserProfileService userProfileService;
 
     public Object login(UserLoginDto loginDto) {
         User rawUser = userLookupService.findUserByEmail(loginDto.getEmail())
@@ -89,10 +87,14 @@ public class AuthService {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ROLE_NOT_FOUND);
         }
 
-        com.itic.paris.platform.auth.model.Promotion promotion = null;
+        Promotion promotion = null;
         if (userDto.getPromotionId() != null) {
             promotion = promotionRepository.findById(userDto.getPromotionId())
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
+            PromotionService.validateStudyYear(promotion, userDto.getStudyYear());
+            if (!promotion.isHasYears()) {
+                userDto.setStudyYear(null);
+            }
         }
 
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
@@ -116,14 +118,6 @@ public class AuthService {
             throw new AppException(HttpStatus.CONFLICT, MessageKey.EMAIL_ALREADY_IN_USE);
         }
 
-        // Plafond : maximum d'administrateurs actifs simultanément (configurable via ADMIN_MAX_ACTIVE)
-        if (dto.getRole() == RoleEnum.ADMIN) {
-            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
-            if (activeAdmins >= adminMaxActive) {
-                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
-            }
-        }
-
         Role role = roleRepository.findByName(dto.getRole());
         if (role == null) {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.ROLE_NOT_FOUND);
@@ -134,7 +128,10 @@ public class AuthService {
         User user = UserMapper.toStaffEntity(dto, role);
         user.setEmailVerified(true);
         user.setMustChangePassword(true);
-        User saved = userRepository.save(user);
+
+        // Plafond d'admins actifs verifie et applique dans la meme transaction que le save
+        // (voir UserProfileService.saveNewStaffUser) pour eviter une course entre deux creations concurrentes.
+        User saved = userProfileService.saveNewStaffUser(user, dto.getRole());
 
         User actor = currentActor().orElse(null);
         auditLogService.log(AuditAction.STAFF_USER_CREATED, actor, saved.getId(),
@@ -224,7 +221,7 @@ public class AuthService {
         User rawUser = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
-        if (!(user instanceof Student)) {
+        if (!(user instanceof Student) && !(user instanceof Admin)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.PASSWORD_RESET_STUDENTS_ONLY);
         }
         otpService.validateEmailOtp(email, code);
@@ -239,7 +236,7 @@ public class AuthService {
         User rawUser = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
         User user = (User) Hibernate.unproxy(rawUser);
-        if (!(user instanceof Student)) {
+        if (!(user instanceof Student) && !(user instanceof Admin)) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.OTP_NOT_REQUIRED_FOR_ACCOUNT);
         }
         otpService.sendEmailVerificationOtp(user, lang);
@@ -308,6 +305,7 @@ public class AuthService {
             profile.put("xpTotal", student.getXpTotal());
             profile.put("lastActivity", student.getLastActivity());
             profile.put("promotion", sanitizePromotion(student.getPromotion()));
+            profile.put("studyYear", student.getStudyYear());
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());
@@ -324,6 +322,8 @@ public class AuthService {
         dto.put("id", unproxied.getId());
         dto.put("name", unproxied.getName());
         dto.put("year", unproxied.getYear());
+        dto.put("hasYears", unproxied.isHasYears());
+        dto.put("availableYears", unproxied.getAvailableYears());
         return dto;
     }
 

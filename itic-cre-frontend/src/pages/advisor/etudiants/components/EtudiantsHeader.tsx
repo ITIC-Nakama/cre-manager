@@ -25,11 +25,11 @@ export default function EtudiantsHeader({ totalElements, exporting, onExport }: 
             <button
                 onClick={onExport}
                 disabled={exporting}
-                className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm cursor-pointer"
             >
                 {exporting
-                    ? <Loader2 className="h-4 w-4 text-emerald-600 animate-spin" />
-                    : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <FileSpreadsheet className="h-4 w-4" />
                 }
                 {exporting ? t('dashboard.etudiants.exporting') : t('dashboard.etudiants.export_csv')}
             </button>

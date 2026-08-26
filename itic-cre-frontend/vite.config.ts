@@ -5,12 +5,21 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: true,
+    port: 5173,
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      devOptions: {
+        enabled: true,
+        suppressWarnings: true,
+        type: 'module'
+      },
       includeAssets: [
         'favicon.svg',
         'favicon.ico',
@@ -20,8 +29,8 @@ export default defineConfig({
         'maskable-icon-512x512.png'
       ],
       manifest: {
-        name: 'ITIC CRE — Suivi Alternance & Stages',
-        short_name: 'ITIC CRE',
+        name: 'ITIC Paris CRE — Suivi Alternance & Stages',
+        short_name: 'ITIC Paris CRE',
         description: 'Plateforme mobile de suivi des candidatures et accompagnement ITIC Paris.',
         theme_color: '#0f172a',
         background_color: '#0f172a',
@@ -52,6 +61,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Exclure de l'interception SPA Service Worker pour éviter les redirections React :
+        // - L'API backend (/api/)
+        // - Les dashboards de monitoring (/status, /netdata)
+        // - La documentation OpenAPI / Swagger (/swagger-ui, /v3/api-docs)
+        // - Les endpoints Actuator (/actuator)
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/status/,
+          /^\/netdata/,
+          /^\/swagger-ui/,
+          /^\/v3\/api-docs/,
+          /^\/actuator/
+        ],
         runtimeCaching: [
           // 1. Polices Google Fonts (CacheFirst - 1 an)
           {

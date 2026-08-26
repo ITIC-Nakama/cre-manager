@@ -12,6 +12,7 @@ export interface CVStudentInfo {
     firstName: string;
     lastName: string;
     email: string;
+    profilePicture?: string | null;
     promotion: { id: string; nom: string } | null;
 }
 
@@ -37,6 +38,7 @@ export interface CVListParams {
     size?: number;
     statutId?: string;
     search?: string;
+    advisorId?: string;
 }
 
 export interface CVStatCount {

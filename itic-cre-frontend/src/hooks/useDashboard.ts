@@ -1,34 +1,51 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     fetchDashboardOverview,
+    fetchPromotionStudentCounts,
+    fetchPromotionYearCounts,
     fetchStudentList,
-    fetchAllStudents,
+    fetchStudentsNeedingAttention,
     notifyStudent,
     deactivateStudent,
     reactivateStudent,
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../types/models/Dashboard';
 
-export function useDashboardOverview() {
+export function useDashboardOverview(advisorId?: string) {
     return useQuery({
-        queryKey: ['dashboard', 'overview'],
-        queryFn: fetchDashboardOverview,
+        queryKey: ['dashboard', 'overview', advisorId ?? null],
+        queryFn: () => fetchDashboardOverview(advisorId),
     });
 }
 
-export function useStudentList(params: StudentListParams = {}) {
+export function usePromotionStudentCounts() {
+    return useQuery({
+        queryKey: ['dashboard', 'promotions', 'student-counts'],
+        queryFn: fetchPromotionStudentCounts,
+    });
+}
+
+export function usePromotionYearCounts(promotionId?: string, enabled = true) {
+    return useQuery({
+        queryKey: ['dashboard', 'promotions', promotionId, 'year-counts'],
+        queryFn: () => fetchPromotionYearCounts(promotionId!),
+        enabled: enabled && !!promotionId,
+    });
+}
+
+export function useStudentList(params: StudentListParams = {}, enabled = true) {
     return useQuery({
         queryKey: ['dashboard', 'students', params],
         queryFn: () => fetchStudentList(params),
         placeholderData: (prev) => prev,
+        enabled,
     });
 }
 
-export function useAllStudents(enabled = false) {
+export function useStudentsNeedingAttention(advisorId?: string) {
     return useQuery({
-        queryKey: ['dashboard', 'students', 'all'],
-        queryFn: () => fetchAllStudents(),
-        enabled,
+        queryKey: ['dashboard', 'students', 'needing-attention', advisorId ?? null],
+        queryFn: () => fetchStudentsNeedingAttention(advisorId),
     });
 }
 

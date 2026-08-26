@@ -1,6 +1,7 @@
 package com.itic.paris.platform.gdpr;
 
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
+import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
@@ -9,6 +10,7 @@ import com.itic.paris.platform.auth.model.dtos.CustomUserDetails;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.shared.local.MessageKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,5 +169,40 @@ public class GdprIntegrationTest {
 
         // Le comptage de portefeuille étudiant de la promotion l'exclut bien
         assertThat(studentRepository.countByPromotionId(promo.getId())).isEqualTo(0);
+    }
+
+    @Test
+    public void testDeleteMyAccount_AdminUser_ShouldBeForbiddenAndLeaveAccountUntouched() throws Exception {
+        Role adminRole = roleRepository.findByName(RoleEnum.ADMIN);
+
+        Admin testAdmin = new Admin();
+        testAdmin.setEmail("gdpr.admin@itic.fr");
+        testAdmin.setFirstName("Alice");
+        testAdmin.setLastName("Martin");
+        testAdmin.setPassword("Password123!");
+        testAdmin.setEmailVerified(true);
+        testAdmin.setMustChangePassword(false);
+        testAdmin.setActive(true);
+        testAdmin.setRole(adminRole);
+        testAdmin = userRepository.save(testAdmin);
+
+        CustomUserDetails adminDetails = CustomUserDetails.builder()
+                .id(testAdmin.getId())
+                .email(testAdmin.getEmail())
+                .role(testAdmin.getRole())
+                .lang("fr")
+                .mustChangePassword(false)
+                .build();
+        String adminToken = (String) jwtAuthProvider.createToken(adminDetails).get("token");
+
+        mockMvc.perform(delete("/gdpr/delete-account")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.ADMIN_CANNOT_BE_DELETED.getKey()));
+
+        User untouchedAdmin = userRepository.findById(testAdmin.getId()).orElseThrow();
+        assertThat(untouchedAdmin.isActive()).isTrue();
+        assertThat(untouchedAdmin.getEmail()).isEqualTo("gdpr.admin@itic.fr");
+        assertThat(untouchedAdmin.getFirstName()).isEqualTo("Alice");
     }
 }

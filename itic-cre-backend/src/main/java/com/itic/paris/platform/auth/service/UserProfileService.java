@@ -6,17 +6,21 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Advisor;
+import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
+import com.itic.paris.platform.auth.repository.AdvisorRepository;
+import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import com.itic.paris.platform.skill.repository.ArticleRepository;
 import com.itic.paris.platform.skill.repository.SkillCategoryRepository;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -31,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,13 +43,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserProfileService {
 
+    /**
+     * Extensions dérivées exclusivement du Content-Type déclaré (jamais du nom de fichier
+     * fourni par le client — voir TICKET_AUDIT_SECURITE.md #3, path traversal sur l'upload).
+     */
+    private static final Map<String, String> ALLOWED_IMAGE_EXTENSIONS = Map.of(
+            "image/jpeg", ".jpg",
+            "image/png", ".png",
+            "image/webp", ".webp"
+    );
+
     private final UserRepository userRepository;
     private final UserLookupService userLookupService;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
     private final AuditLogService auditLogService;
     private final ICloudStorage cloudStorage;
-    private final com.itic.paris.platform.shared.notification.NotificationEmailService notificationEmailService;
+    private final NotificationEmailService notificationEmailService;
     private final CVCommentaireRepository cvCommentaireRepository;
     private final JobOfferRepository jobOfferRepository;
     private final ArticleRepository articleRepository;
@@ -52,6 +67,8 @@ public class UserProfileService {
     private final CVRepository cvRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final PromotionRepository promotionRepository;
+    private final AdvisorRepository advisorRepository;
 
     public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
@@ -64,6 +81,27 @@ public class UserProfileService {
     /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
     @Value("${app.admin.max-active:2}")
     private long adminMaxActive;
+
+    /**
+     * Verifie le plafond d'admins actifs et persiste le nouveau compte staff dans la meme
+     * transaction, verrou compris (voir findActiveByRoleForUpdate) : le check et le save
+     * doivent rester atomiques, sinon deux creations d'admin concurrentes peuvent toutes
+     * deux passer le plafond avant que l'une des deux ne commite.
+     */
+    @Transactional
+    public User saveNewStaffUser(User user, RoleEnum role) {
+        if (role == RoleEnum.ADMIN) {
+            if (countActiveAdminsLocked() >= adminMaxActive) {
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
+            }
+        }
+        return userRepository.save(user);
+    }
+
+    /** Compte les admins actifs sous verrou (voir findActiveByRoleForUpdate) — a appeler dans une transaction deja ouverte. */
+    private long countActiveAdminsLocked() {
+        return userRepository.findActiveByRoleForUpdate(RoleEnum.ADMIN).size();
+    }
 
     @Transactional
     public User updateUser(UUID id, UserUpdateDto updateDto) {
@@ -110,6 +148,33 @@ public class UserProfileService {
         }
         if (user instanceof Advisor advisor && updateDto.getJobTitle() != null) {
             advisor.setJobTitle(updateDto.getJobTitle());
+        }
+        if (user instanceof Student student) {
+            Promotion previousPromotion = student.getPromotion();
+
+            if (updateDto.getPromotionId() != null) {
+                Promotion newPromotion = promotionRepository.findById(updateDto.getPromotionId())
+                        .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND));
+                student.setPromotion(newPromotion);
+
+                if (previousPromotion == null || !previousPromotion.getId().equals(newPromotion.getId())) {
+                    currentActor().ifPresent(actor -> auditLogService.log(AuditAction.STUDENT_ASSIGNED_TO_PROMOTION, actor,
+                            student.getId(), (previousPromotion != null
+                                    ? "Déplacé de la promotion " + previousPromotion.getName() + " vers " + newPromotion.getName()
+                                    : "Affecté à la promotion " + newPromotion.getName())
+                                    + " : " + student.getFirstName() + " " + student.getLastName()));
+                }
+            }
+
+            Promotion effectivePromotion = student.getPromotion();
+            if (effectivePromotion != null) {
+                Integer effectiveStudyYear = updateDto.getStudyYear() != null
+                        ? updateDto.getStudyYear() : student.getStudyYear();
+                PromotionService.validateStudyYear(effectivePromotion, effectiveStudyYear);
+                student.setStudyYear(effectivePromotion.isHasYears() ? effectiveStudyYear : null);
+            } else if (updateDto.getStudyYear() != null) {
+                student.setStudyYear(null);
+            }
         }
 
         User saved = userRepository.save(user);
@@ -198,8 +263,7 @@ public class UserProfileService {
         }
 
         if (targetRole == RoleEnum.ADMIN) {
-            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
-            if (activeAdmins <= 1) {
+            if (countActiveAdminsLocked() <= 1) {
                 // Toujours garder au moins 1 admin actif, quelle que soit la valeur du plafond
                 throw new AppException(HttpStatus.FORBIDDEN, MessageKey.LAST_ADMIN_PROTECTION);
             }
@@ -290,8 +354,7 @@ public class UserProfileService {
         }
 
         if (targetRole == RoleEnum.ADMIN) {
-            long activeAdmins = userRepository.countByRoleNameAndActiveTrue(RoleEnum.ADMIN);
-            if (activeAdmins >= adminMaxActive) {
+            if (countActiveAdminsLocked() >= adminMaxActive) {
                 throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CAP_REACHED);
             }
         }
@@ -318,10 +381,9 @@ public class UserProfileService {
             cloudStorage.deleteFile(user.getProfilePicture());
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = ".jpg";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String fileExtension = ALLOWED_IMAGE_EXTENSIONS.get(file.getContentType());
+        if (fileExtension == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_INVALID_FILE_TYPE);
         }
 
         // Le dossier configuré est utilisé comme dossier public de base dans notre stockage mixte
@@ -334,6 +396,43 @@ public class UserProfileService {
 
         user.setProfilePicture(path);
         userRepository.save(user);
+
+        return cloudStorage.getFile(path);
+    }
+
+    /**
+     * Photo "publique" dédiée d'un conseiller, distincte de sa photo de compte
+     * (profilePicture) — copie de updateProfilePicture, mais cible AdvisorRepository
+     * et écrit dans publicProfilePicture. Si absente, l'étudiant voit profilePicture
+     * en repli (voir AdvisorService.effectivePicture).
+     */
+    @Transactional
+    public String updateAdvisorPublicPicture(UUID advisorId, MultipartFile file) throws IOException {
+        if (file.getSize() > maxImageSizeMb * 1024L * 1024L) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_FILE_TOO_LARGE);
+        }
+
+        Advisor advisor = advisorRepository.findById(advisorId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.ADVISOR_NOT_FOUND));
+
+        if (advisor.getPublicProfilePicture() != null) {
+            cloudStorage.deleteFile(advisor.getPublicProfilePicture());
+        }
+
+        String fileExtension = ALLOWED_IMAGE_EXTENSIONS.get(file.getContentType());
+        if (fileExtension == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.IMAGE_INVALID_FILE_TYPE);
+        }
+
+        String path = publicFolder + "/avatars/" + advisorId + "-public-" + System.currentTimeMillis() + fileExtension;
+
+        boolean success = cloudStorage.uploadFile(file, path);
+        if (!success) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.REQUEST_PROCESSING_FAILED);
+        }
+
+        advisor.setPublicProfilePicture(path);
+        advisorRepository.save(advisor);
 
         return cloudStorage.getFile(path);
     }

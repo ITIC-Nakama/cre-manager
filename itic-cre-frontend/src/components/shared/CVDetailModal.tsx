@@ -7,6 +7,7 @@ import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
 import UserAvatar from './UserAvatar';
+import { openFileSecurely } from '../../utils/fileUtils';
 
 interface Props {
     cv: CVRow;
@@ -88,9 +89,19 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-indigo-500" />
-                        </div>
+                        {cv.student ? (
+                            <UserAvatar
+                                profilePicture={cv.student.profilePicture}
+                                firstName={cv.student.firstName}
+                                lastName={cv.student.lastName}
+                                className="h-10 w-10"
+                                enlargeOnClick
+                            />
+                        ) : (
+                            <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-indigo-500" />
+                            </div>
+                        )}
                         <div>
                             <p className="text-base font-bold text-slate-900 dark:text-white">
                                 {cv.student
@@ -188,15 +199,13 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{formatDateTime(cv.updatedAt)}</p>
                                 </div>
                             )}
-                            <a
-                                href={cv.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors"
+                            <button
+                                onClick={() => openFileSecurely(cv.url, 'CV.pdf')}
+                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                             >
                                 <FileText className="h-3.5 w-3.5" />
                                 {t('dashboard.cv.detail.view_pdf', 'Voir le CV (PDF)')}
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -228,6 +237,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                                     firstName={c.advisor?.firstName ?? 'C'}
                                                     lastName={c.advisor?.lastName ?? ''}
                                                     className="h-8 w-8 flex-shrink-0"
+                                                    enlargeOnClick
                                                 />
                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
                                                     {c.advisor

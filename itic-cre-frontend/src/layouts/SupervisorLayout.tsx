@@ -1,12 +1,12 @@
 import { Outlet } from 'react-router-dom';
 import { useUserStore } from '../store/UserStore';
 import { Role } from '../types/models/Auth';
-import RequireAuth from './RequireAuth';
+import RequireAuthMiddleware from '../middleware/RequireAuthMiddleware';
 import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User
+  ScrollText, User, Settings
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
@@ -14,6 +14,8 @@ import type { NavItem } from '../components/head/Sidebar';
 export default function SupervisorLayout() {
   const { t } = useTranslation();
   const { user } = useUserStore();
+
+  const isAdmin = user?.role === Role.ADMIN;
 
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
@@ -33,12 +35,18 @@ export default function SupervisorLayout() {
 
   const navItems: NavItem[] = [
     ...commonItems,
-    ...(user?.role === Role.ADMIN ? adminItems : []),
-    { label: t('dashboard.sidebar.profil'), icon: User, to: '/supervisor/parametres' },
+    ...(isAdmin ? adminItems : []),
+    {
+      label: isAdmin
+        ? t('dashboard.sidebar.parametres', 'Paramètres')
+        : t('dashboard.sidebar.profil', 'Profil'),
+      icon: isAdmin ? Settings : User,
+      to: '/supervisor/parametres',
+    },
   ];
 
   return (
-    <RequireAuth allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
+    <RequireAuthMiddleware allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main className="flex-1 overflow-y-auto h-full pt-16 lg:pt-0">
@@ -47,7 +55,7 @@ export default function SupervisorLayout() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequireAuthMiddleware>
   );
 }
 

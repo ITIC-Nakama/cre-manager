@@ -81,6 +81,14 @@ html, body {
   color: #333333;
 }
 
+/* iOS Safari zoome automatiquement au focus sur un champ dont la font-size est < 16px,
+   et ne dézoome pas seul au blur. On force 16px sur mobile pour empêcher ce zoom. */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 html.dark body {
   background-color: var(--itic-dark-bg);
   color: var(--itic-dark-text);
@@ -89,18 +97,31 @@ html.dark body {
 @theme {
   --font-sans: 'Roboto', sans-serif;
 
-  /* Primary: TechSchool Dominant Blue (#3F74FF) */
-  --color-primary:     #3F74FF;
+  /* Primary: TechSchool Dominant Blue (#3B71FF) */
+  --color-primary:     #3B71FF;
   --color-primary-50:  #eef3ff;
   --color-primary-100: #d4e1ff;
   --color-primary-200: #adc4ff;
   --color-primary-300: #78a2ff;
   --color-primary-400: #4d7eff;
-  --color-primary-500: #3F74FF;
-  --color-primary-600: #2a5de5;
-  --color-primary-700: #1d47c2;
+  --color-primary-500: #3B71FF;
+  --color-primary-600: #3B71FF;
+  --color-primary-700: #2a5de5;
   --color-primary-800: #15349a;
   --color-primary-900: #0e2270;
+
+  /* Indigo scale mapped directly to theme blue (#3B71FF) */
+  --color-indigo-50:   #eef3ff;
+  --color-indigo-100:  #d4e1ff;
+  --color-indigo-200:  #adc4ff;
+  --color-indigo-300:  #78a2ff;
+  --color-indigo-400:  #5b8def;
+  --color-indigo-500:  #3B71FF;
+  --color-indigo-600:  #3B71FF;
+  --color-indigo-700:  #2a5de5;
+  --color-indigo-800:  #15349a;
+  --color-indigo-900:  #0e2270;
+  --color-indigo-950:  #0a1435;
 
   /* Secondary (dark surface scale) */
   --color-secondary:     #15171f;
@@ -246,7 +267,7 @@ html.dark body {
 /* ─── Styles Globaux Dark Mode ITIC (Formulaires, Cartes, Modales, Tableaux, Composants) ─── */
 
 /* 1. Cartes & Surfaces de conteneurs */
-.dark .bg-white,
+.dark .bg-white:not([role="switch"]):not([role="switch"] *):not(.switch-knob),
 .dark .bg-slate-800,
 .dark .bg-slate-900,
 .dark .bg-slate-950 {
@@ -285,9 +306,20 @@ html.dark body {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus {
-  border-color: #4D84FF !important;
-  box-shadow: 0 0 0 2px rgba(77, 132, 255, 0.25) !important;
+  border-color: #3B71FF !important;
+  box-shadow: 0 0 0 2px rgba(59, 113, 255, 0.25) !important;
   outline: none !important;
+}
+
+/* Override all indigo rings and focus outlines globally to #3B71FF theme blue */
+[class*="ring-indigo"],
+[class*="focus:ring-indigo"],
+[class*="dark:ring-indigo"] {
+  --tw-ring-color: #3B71FF !important;
+}
+
+*:focus-visible {
+  outline-color: #3B71FF !important;
 }
 
 .dark input::placeholder,
@@ -330,23 +362,25 @@ html.dark body {
   color: #ffffff;
 }
 
-/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B72FF) */
-.dark button.bg-primary,
-.dark button.bg-indigo-600,
-.dark button.bg-blue-600,
-.dark button.bg-\[\#3f74ff\] {
-  background: #3B72FF !important;
-  background: linear-gradient(90deg, #3B72FF 0%, #5B8DEF 100%) !important;
+/* 7. Redéfinition des boutons primaires d'action en Dark Mode (Bleu TechSchool #3B71FF) */
+.dark button.bg-primary:not([role="switch"]),
+.dark button.bg-indigo-600:not([role="switch"]),
+.dark button.bg-blue-600:not([role="switch"]),
+.dark button.bg-\[\#3B71FF\]:not([role="switch"]),
+.dark button.bg-\[\#3f74ff\]:not([role="switch"]) {
+  background: #3B71FF !important;
+  background: linear-gradient(90deg, #3B71FF 0%, #5B8DEF 100%) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   border-radius: 11px !important;
   border: none !important;
 }
 
-.dark button.bg-primary:hover,
-.dark button.bg-indigo-600:hover,
-.dark button.bg-blue-600:hover,
-.dark button.bg-\[\#3f74ff\]:hover {
+.dark button.bg-primary:not([role="switch"]):hover,
+.dark button.bg-indigo-600:not([role="switch"]):hover,
+.dark button.bg-blue-600:not([role="switch"]):hover,
+.dark button.bg-\[\#3B71FF\]:not([role="switch"]):hover,
+.dark button.bg-\[\#3f74ff\]:not([role="switch"]):hover {
   opacity: 0.95 !important;
   box-shadow: none !important;
 }

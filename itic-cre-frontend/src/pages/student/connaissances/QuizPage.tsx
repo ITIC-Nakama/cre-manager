@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import {
   useStudentArticle,
   useStudentArticlesByCategory,
@@ -100,8 +99,15 @@ export default function QuizPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-24">
-        <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+      <div className="flex flex-col gap-6 pb-16 max-w-2xl mx-auto animate-fadeIn">
+        <div className="h-8 w-48 rounded-xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="h-4 w-72 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col gap-4 animate-pulse">
+          <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-11 rounded-xl bg-slate-100 dark:bg-slate-800" />
+          ))}
+        </div>
       </div>
     );
   }

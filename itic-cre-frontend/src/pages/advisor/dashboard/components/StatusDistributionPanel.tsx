@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { type LucideIcon } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 
 interface StatusItem {
   key: string;
@@ -28,8 +27,19 @@ export default function StatusDistributionPanel({ title, icon: Icon, items, tota
       </h2>
 
       {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between animate-pulse">
+              <div className="flex items-center gap-2.5">
+                <div className="h-2.5 w-2.5 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
+                <div className="h-3.5 rounded bg-slate-100 dark:bg-slate-800" style={{ width: `${60 + i * 15}px` }} />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-32 h-2 rounded-full bg-slate-100 dark:bg-slate-800" />
+                <div className="h-3.5 w-6 rounded bg-slate-100 dark:bg-slate-800" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : items.length > 0 ? (
         <div className="space-y-3">

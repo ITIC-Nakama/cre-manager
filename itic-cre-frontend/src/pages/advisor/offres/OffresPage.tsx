@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     useReactTable,
@@ -9,15 +9,18 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags, SlidersHorizontal,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
     useAllJobOffers, useCreateJobOffer, useUpdateJobOffer,
-    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer,
+    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useSectors,
 } from '../../../hooks/useJobOffers';
+import { useContractTypes } from '../../../hooks/useApplications';
+import CustomSelect from '../../../components/basics/CustomSelect';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
+import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import type { JobOffer } from '../../../types/models/JobOffer';
@@ -36,11 +39,17 @@ function formatDate(iso: string) {
 export default function OffresPage() {
     const { t } = useTranslation();
     const location = useLocation();
+    const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [contractTypeFilter, setContractTypeFilter] = useState('');
+    const [sectorFilter, setSectorFilter] = useState('');
+    // Actives par defaut — evite d'afficher d'emblee les offres desactivees accumulees.
+    const [activeFilter, setActiveFilter] = useState('true');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
+    const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,11 +62,36 @@ export default function OffresPage() {
         }
     }, [location]);
 
-    const params = { page, size: PAGE_SIZE, search: debouncedSearch || undefined };
+    const params = {
+        page,
+        size: PAGE_SIZE,
+        search: debouncedSearch || undefined,
+        contractTypeId: contractTypeFilter || undefined,
+        sectorId: sectorFilter || undefined,
+        active: activeFilter === '' ? undefined : activeFilter === 'true',
+    };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
     const offers = data?.content ?? [];
     const totalElements = data?.totalElements ?? 0;
     const totalPages = data?.totalPages ?? 1;
+
+    const { data: contractTypes } = useContractTypes();
+    const contractTypeOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_contracts') },
+        ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
+    ], [contractTypes, t]);
+
+    const { data: sectors } = useSectors();
+    const sectorOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_sectors', 'Tous les secteurs') },
+        ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
+    ], [sectors, t]);
+
+    const activeFilterOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
+        { value: 'true', label: t('dashboard.offres.table.active', 'Active') },
+        { value: 'false', label: t('dashboard.offres.table.inactive', 'Inactive') },
+    ], [t]);
 
     const createMutation = useCreateJobOffer();
     const updateMutation = useUpdateJobOffer();
@@ -96,6 +130,21 @@ export default function OffresPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleContractTypeChange = (value: string) => {
+        setContractTypeFilter(value);
+        setPage(0);
+    };
+
+    const handleSectorChange = (value: string) => {
+        setSectorFilter(value);
+        setPage(0);
+    };
+
+    const handleActiveFilterChange = (value: string) => {
+        setActiveFilter(value);
+        setPage(0);
+    };
+
     const handleSave = async (payload: JobOfferPayload) => {
         if (editingOffer) {
             await updateMutation.mutateAsync({ id: editingOffer.id, payload });
@@ -128,8 +177,12 @@ export default function OffresPage() {
                 try {
                     await deleteMutation.mutateAsync(offer.id);
                     toast.success(t('dashboard.offres.toast.deleted'));
-                } catch {
-                    toast.error(t('dashboard.offres.toast.action_error'));
+                } catch (err: any) {
+                    if (err.response?.data?.messageKey === 'job-offer-has-applications') {
+                        toast.error(t('dashboard.offres.toast.has_applications'));
+                    } else {
+                        toast.error(t('dashboard.offres.toast.action_error'));
+                    }
                 }
             }
         );
@@ -163,6 +216,18 @@ export default function OffresPage() {
             cell: ({ getValue }) => (
                 <TruncatedText text={getValue()} className="max-w-[120px] text-slate-600 dark:text-slate-400 text-sm" />
             ),
+        }),
+        col.accessor((row) => row.sector?.label ?? '', {
+            id: 'sector',
+            header: t('dashboard.offres.table.sector', 'Secteur'),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <TruncatedText text={value} className="max-w-[140px] text-slate-600 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
         }),
         col.accessor('applicationCount', {
             header: t('dashboard.offres.table.applications'),
@@ -212,13 +277,22 @@ export default function OffresPage() {
                         {t('dashboard.offres.subtitle', { count: totalElements })}
                     </p>
                 </div>
-                <button
-                    onClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('dashboard.offres.create_button')}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/supervisor/offres/categories')}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                        <Tags className="h-4 w-4" />
+                        {t('dashboard.offres.categories_button', 'Secteurs & contrats')}
+                    </button>
+                    <button
+                        onClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {t('dashboard.offres.create_button')}
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -233,6 +307,27 @@ export default function OffresPage() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
+                <CustomSelect
+                    value={contractTypeFilter}
+                    options={contractTypeOptions}
+                    onChange={handleContractTypeChange}
+                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={sectorFilter}
+                    options={sectorOptions}
+                    onChange={handleSectorChange}
+                    icon={<Layers className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={activeFilter}
+                    options={activeFilterOptions}
+                    onChange={handleActiveFilterChange}
+                    icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -289,7 +384,7 @@ export default function OffresPage() {
                                                 </a>
                                             )}
                                             <button
-                                                onClick={() => { setEditingOffer(row.original); setIsReadOnly(true); setFormOpen(true); }}
+                                                onClick={() => setViewingOffer(row.original)}
                                                 className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                                                 title={t('dashboard.offres.actions.view_details', "Consulter les détails")}
                                             >
@@ -352,6 +447,20 @@ export default function OffresPage() {
                     </div>
                 )}
             </div>
+
+            {viewingOffer && (
+                <JobOfferDetailModal
+                    offer={viewingOffer}
+                    onClose={() => setViewingOffer(null)}
+                    showAdminActions={true}
+                    onEdit={(offer) => {
+                        setViewingOffer(null);
+                        setEditingOffer(offer);
+                        setIsReadOnly(false);
+                        setFormOpen(true);
+                    }}
+                />
+            )}
 
             {formOpen && (
                 <JobOfferFormModal

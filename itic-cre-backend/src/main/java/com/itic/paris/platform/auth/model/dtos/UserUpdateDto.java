@@ -2,9 +2,13 @@ package com.itic.paris.platform.auth.model.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 public class UserUpdateDto {
@@ -29,4 +33,10 @@ public class UserUpdateDto {
 
     @Size(max = 120)
     private String jobTitle;
+
+    private UUID promotionId;
+
+    @Min(1)
+    @Max(5)
+    private Integer studyYear;
 }

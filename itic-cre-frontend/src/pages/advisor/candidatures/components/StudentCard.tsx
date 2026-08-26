@@ -20,6 +20,7 @@ export default function StudentCard({ group, onClick }: Props) {
                     firstName={group.firstName}
                     lastName={group.lastName}
                     className="h-11 w-11 flex-shrink-0"
+                    enlargeOnClick
                 />
                 <div className="min-w-0 flex-1">
                     <p className="font-semibold text-slate-900 dark:text-white truncate text-sm">

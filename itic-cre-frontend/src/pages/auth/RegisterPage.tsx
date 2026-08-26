@@ -5,13 +5,14 @@ import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import Button from '../../components/basics/Button';
 import CustomSelect from '../../components/basics/CustomSelect';
-import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User, GraduationCap } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Eye, EyeOff, Mail, Lock, User, GraduationCap, Calendar } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useRegister } from '../../hooks/useAuth';
 import { usePromotions } from '../../hooks/usePromotions';
 import { type RegisterDTO, Role } from '../../types/models/Auth';
 import { handleApiError } from '../../utils/errorHelper';
 import { getBrowserLang } from '../../utils/browserSettings';
+import { formatPromotionLabel } from '../../utils/promotionUtils';
 import { toast } from 'sonner';
 
 export default function RegisterPage() {
@@ -24,6 +25,8 @@ export default function RegisterPage() {
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [promotionId, setPromotionId] = useState('');
     const [promotionError, setPromotionError] = useState<string | null>(null);
+    const [studyYear, setStudyYear] = useState('');
+    const [studyYearError, setStudyYearError] = useState<string | null>(null);
 
     const promotionOptions = useMemo(() => [
         {
@@ -32,9 +35,27 @@ export default function RegisterPage() {
         },
         ...(promotions ?? []).map((promotion) => ({
             value: promotion.id,
-            label: promotion.year ? `${promotion.name} (${promotion.year})` : promotion.name,
+            label: formatPromotionLabel(promotion),
         })),
     ], [promotions, loadingPromotions, t]);
+
+    const selectedPromotion = useMemo(() => {
+        return (promotions ?? []).find((p) => p.id === promotionId);
+    }, [promotions, promotionId]);
+
+    const hasYears = selectedPromotion?.hasYears ?? false;
+    const availableYears = selectedPromotion?.availableYears ?? [];
+
+    const studyYearOptions = useMemo(() => [
+        {
+            value: '',
+            label: t('auth.register.study_year_placeholder'),
+        },
+        ...availableYears.map((year) => ({
+            value: String(year),
+            label: t(`study_years.year_${year}`, `${year}e année`),
+        })),
+    ], [availableYears, t]);
 
     const onSubmit = (data: any) => {
         if (!promotionId) {
@@ -42,6 +63,12 @@ export default function RegisterPage() {
             return;
         }
         setPromotionError(null);
+
+        if (hasYears && !studyYear) {
+            setStudyYearError(t('auth.register.study_year_required'));
+            return;
+        }
+        setStudyYearError(null);
 
         const registerDto: RegisterDTO = {
             email: data.email,
@@ -51,6 +78,7 @@ export default function RegisterPage() {
             roleId: Role.STUDENT,
             lang: getBrowserLang(),
             promotionId,
+            studyYear: hasYears && studyYear ? Number(studyYear) : undefined,
             privacyAccepted: Boolean(data.privacyAccepted),
         };
 
@@ -103,9 +131,9 @@ export default function RegisterPage() {
                         <p className="text-white font-semibold text-sm mb-1">{t('auth.register.help_title')}</p>
                         <p className="text-[#9aa0a6] text-sm">
                             {t('auth.register.help_contact')}{' '}
-                            <a href="mailto:pedagogie@iticparis.com"
+                            <a href={`mailto:${t('auth.register.help_email')}`}
                                 className="font-semibold itic-gradient-blue underline underline-offset-2 hover:opacity-80 transition-opacity">
-                                pedagogie@iticparis.com
+                                {t('auth.register.help_email')}
                             </a>
                         </p>
                     </div>
@@ -200,27 +228,55 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {/* Promotion */}
-                        <div className="space-y-2">
-                            <label htmlFor="promotionId" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t('auth.register.promotion_label')} <span className="text-rose-500">*</span>
-                            </label>
-                            <CustomSelect
-                                id="promotionId"
-                                value={promotionId}
-                                options={promotionOptions}
-                                onChange={(value) => {
-                                    setPromotionId(value);
-                                    setPromotionError(null);
-                                }}
-                                icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
-                                className="w-full"
-                                searchable
-                                searchPlaceholder={t('auth.register.promotion_search_placeholder')}
-                                noResultsLabel={t('auth.register.promotion_no_results')}
-                            />
-                            {promotionError && (
-                                <p className="text-red-500 text-xs">{promotionError}</p>
+                        {/* Promotion & Study Year */}
+                        <div className={`grid gap-4 ${hasYears ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                            {/* Promotion */}
+                            <div className="space-y-2">
+                                <label htmlFor="promotionId" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    {t('auth.register.promotion_label')} <span className="text-rose-500">*</span>
+                                </label>
+                                <CustomSelect
+                                    id="promotionId"
+                                    value={promotionId}
+                                    options={promotionOptions}
+                                    onChange={(value) => {
+                                        setPromotionId(value);
+                                        setPromotionError(null);
+                                        setStudyYear('');
+                                        setStudyYearError(null);
+                                    }}
+                                    icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
+                                    className="w-full"
+                                    searchable
+                                    searchPlaceholder={t('auth.register.promotion_search_placeholder')}
+                                    noResultsLabel={t('auth.register.promotion_no_results')}
+                                />
+                                {promotionError && (
+                                    <p className="text-red-500 text-xs">{promotionError}</p>
+                                )}
+                            </div>
+
+                            {/* Study Year (if promotion requires years) */}
+                            {hasYears && (
+                                <div className="space-y-2 animate-fadeIn">
+                                    <label htmlFor="studyYear" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        {t('auth.register.study_year_label')} <span className="text-rose-500">*</span>
+                                    </label>
+                                    <CustomSelect
+                                        id="studyYear"
+                                        value={studyYear}
+                                        options={studyYearOptions}
+                                        onChange={(value) => {
+                                            setStudyYear(value);
+                                            setStudyYearError(null);
+                                        }}
+                                        icon={<Calendar className="h-4 w-4 text-slate-400" />}
+                                        className="w-full"
+                                    />
+                                    {studyYearError && (
+                                        <p className="text-red-500 text-xs">{studyYearError}</p>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -296,9 +352,7 @@ export default function RegisterPage() {
                                     type="checkbox"
                                     disabled={isPending}
                                     className="h-4 w-4 shrink-0 rounded border-slate-300 text-[#3f74ff] focus:ring-[#3f74ff] dark:border-slate-600 dark:bg-slate-700 cursor-pointer"
-                                    {...register('privacyAccepted', {
-                                        required: t('auth.register.privacy_required'),
-                                    })}
+                                    {...register('privacyAccepted', { required: t('auth.register.privacy_required') })}
                                 />
                                 <span className="text-xs text-slate-600 dark:text-slate-400 leading-normal">
                                     {t('auth.register.privacy_label')}{' '}
@@ -311,20 +365,14 @@ export default function RegisterPage() {
                                     </Link>.
                                 </span>
                             </label>
-                            {errors.privacyAccepted && (
-                                <p className="text-red-500 text-xs pl-7">{errors.privacyAccepted.message as string}</p>
-                            )}
+                            {errors.privacyAccepted && <p className="text-red-500 text-xs pl-7">{errors.privacyAccepted.message as string}</p>}
                         </div>
 
                         {/* Submit */}
                         <Button
                             type="submit"
                             disabled={isPending}
-                            className="w-full flex items-center justify-center gap-2
-                                btn-itic-primary py-3 rounded-xl
-                                focus:outline-none focus:ring-2 focus:ring-[#d95e3e]/40
-                                transition-all duration-200
-                                disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
+                            className="w-full flex items-center justify-center gap-2 btn-itic-primary py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d95e3e]/40 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer mt-2"
                         >
                             <span className="text-white font-bold">{isPending ? t('auth.register.creating') : t('auth.register.submit_button')}</span>
                             {!isPending && <ArrowRight className="h-4 w-4 text-white" />}
@@ -339,11 +387,9 @@ export default function RegisterPage() {
                                 </Link>
                             </p>
                         </div>
-
                     </form>
                 </div>
             </div>
-
         </div>
     );
 }
