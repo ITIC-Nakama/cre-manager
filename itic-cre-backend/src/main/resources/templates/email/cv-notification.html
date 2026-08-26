@@ -82,9 +82,21 @@
                                 </table>
                             </th:block>
 
-                            <p style="margin:8px 0 0 0;font-size:14px;color:#9aa0a6;line-height:1.6;">
+                            <p style="margin:8px 0 20px 0;font-size:14px;color:#9aa0a6;line-height:1.6;">
                                 Connectez-vous à votre espace étudiant pour retrouver tous les détails.
                             </p>
+
+                            <!-- CTA Button -->
+                            <table cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="background-color:#E2762F;border-radius:11px;" bgcolor="#E2762F">
+                                        <a th:href="${frontendUrl} + '/student/cv'" target="_blank"
+                                           style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
+                                            Voir mon CV →
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
 

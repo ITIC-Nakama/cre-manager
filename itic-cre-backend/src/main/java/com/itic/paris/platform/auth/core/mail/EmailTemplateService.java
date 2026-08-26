@@ -56,6 +56,7 @@ public class EmailTemplateService {
         context.setVariable("couleur", couleur != null ? couleur : "#1A1A2E");
         context.setVariable("subject", "Mise à jour de votre CV");
         context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
         return templateEngine.process("email/cv-notification", context);
     }
 
@@ -66,6 +67,7 @@ public class EmailTemplateService {
         context.setVariable("comment", comment);
         context.setVariable("subject", "Nouveau commentaire sur votre CV");
         context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
         return templateEngine.process("email/cv-notification", context);
     }
 
@@ -98,6 +100,7 @@ public class EmailTemplateService {
         context.setVariable("password", password);
         context.setVariable("isNewAccount", isNewAccount);
         context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
         return templateEngine.process("email/account-credentials", context);
     }
 
