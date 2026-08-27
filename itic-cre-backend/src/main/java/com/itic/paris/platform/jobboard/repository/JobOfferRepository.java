@@ -26,8 +26,12 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
 
     long countBySourceAndActiveTrue(String source);
 
-    /** Désactive les offres externes dont la date d'expiration est dépassée. Retourne le nombre de lignes. */
-    @Modifying
+    /**
+     * Désactive les offres externes dont la date d'expiration est dépassée. Retourne le nombre de lignes.
+     * clearAutomatically : cette mise à jour en masse contourne le contexte de persistance JPA — sans
+     * ça, une entité JobOffer déjà chargée dans la même transaction resterait vue comme active=true.
+     */
+    @Modifying(clearAutomatically = true)
     @Transactional
     @Query("UPDATE JobOffer j SET j.active = false WHERE j.expiresAt IS NOT NULL AND j.expiresAt < :now "
             + "AND j.active = true AND j.source <> 'MANUAL'")

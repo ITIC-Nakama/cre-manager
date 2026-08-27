@@ -15,6 +15,7 @@ import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobApplication;
+import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.model.Sector;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
@@ -189,6 +190,30 @@ public class JobOfferIntegrationTest {
         var applicationDTO = jobApplicationService.apply(offer.getId());
         assertThat(applicationDTO.getId()).isNotNull();
         assertThat(applicationDTO.getJobOfferTitle()).isEqualTo("Chef de Projet");
+    }
+
+    @Test
+    public void testApplyToExternalOfferIsRejected() {
+        JobOffer externalOffer = new JobOffer();
+        externalOffer.setTitle("Offre externe France Travail");
+        externalOffer.setCompany("Entreprise Externe");
+        externalOffer.setDescription("Offre agrégée depuis une source externe");
+        externalOffer.setContractType(cdiContract);
+        externalOffer.setSource("FRANCE_TRAVAIL");
+        externalOffer.setSourceId("ft:test-reject-apply");
+        externalOffer.setExternalLink("https://example.com/offre");
+        externalOffer = jobOfferRepository.save(externalOffer);
+
+        authenticate(student);
+
+        UUID externalOfferId = externalOffer.getId();
+        assertThatThrownBy(() -> jobApplicationService.apply(externalOfferId))
+                .isInstanceOf(AppException.class)
+                .extracting(e -> ((AppException) e).getMessageKey())
+                .isEqualTo(MessageKey.EXTERNAL_OFFER_CANNOT_BE_APPLIED);
+
+        assertThat(applicationRepository.findAll())
+                .noneMatch(a -> "Entreprise Externe".equals(a.getEntreprise()));
     }
 
     @Test

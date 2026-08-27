@@ -73,6 +73,7 @@ public enum MessageKey {
     JOB_OFFER_NOT_FOUND("job-offer-not-found", "Offre d'emploi introuvable", "Job offer not found"),
     JOB_APPLICATION_NOT_FOUND("job-application-not-found", "Candidature introuvable", "Job application not found"),
     ALREADY_APPLIED("already-applied", "Vous avez déjà postuler à cette offre", "You have already applied to this job offer"),
+    EXTERNAL_OFFER_CANNOT_BE_APPLIED("external-offer-cannot-be-applied", "Cette offre provient d'un site externe : postulez directement depuis son lien", "This offer comes from an external site: apply directly via its link"),
     ADVISOR_NOT_FOUND("advisor-not-found", "Conseiller introuvable", "Advisor not found"),
     STUDENT_NOT_FOUND("student-not-found", "Étudiant introuvable", "Student not found"),
     NOT_YOUR_APPLICATION("not-your-application", "Vous ne pouvez retirer que vos propres candidatures", "You can only withdraw your own applications"),
