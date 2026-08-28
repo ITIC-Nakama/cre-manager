@@ -55,7 +55,7 @@ export default function JobOfferDetailModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
