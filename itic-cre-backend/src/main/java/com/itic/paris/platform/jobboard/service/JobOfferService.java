@@ -173,6 +173,31 @@ public class JobOfferService {
         jobOfferRepository.delete(jobOffer);
     }
 
+    /**
+     * Purge en masse (admin) : MANUAL, EXTERNAL (toutes sources externes confondues) ou ALL.
+     * Comme pour delete(), les candidatures CRM liées (Application) ne sont pas supprimées —
+     * source_job_offer_id est ON DELETE SET NULL et leurs champs utiles sont déjà copiés ; seuls
+     * les clics "postuler" du jobboard (JobApplication) sont purgés avec les offres.
+     */
+    @Transactional
+    public void wipe(String scope) {
+        switch (scope) {
+            case "MANUAL" -> {
+                jobApplicationRepository.deleteByJobOfferSource("MANUAL");
+                jobOfferRepository.deleteBySource("MANUAL");
+            }
+            case "EXTERNAL" -> {
+                jobApplicationRepository.deleteByJobOfferSourceNot("MANUAL");
+                jobOfferRepository.deleteBySourceNot("MANUAL");
+            }
+            case "ALL" -> {
+                jobApplicationRepository.deleteAllApplications();
+                jobOfferRepository.deleteAllOffers();
+            }
+            default -> throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_WIPE_INVALID_SCOPE);
+        }
+    }
+
     private JobOfferDTO mapToDTO(JobOffer jobOffer) {
         int applicationCount = (int) jobApplicationRepository.countByJobOfferId(jobOffer.getId());
 

@@ -50,6 +50,18 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
     @Query("DELETE FROM JobOffer j WHERE j.source = :source")
     int deleteBySource(@Param("source") String source);
 
+    /** Purge en masse (admin) : toutes les offres externes, quelle que soit la source. */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobOffer j WHERE j.source <> :source")
+    int deleteBySourceNot(@Param("source") String source);
+
+    /** Purge en masse (admin) : absolument toutes les offres, manuelles et externes. */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobOffer j")
+    int deleteAllOffers();
+
     /**
      * Supprime définitivement les offres externes expirées depuis plus longtemps que la
      * fenêtre de rétention (délai après expiration, éditable par un admin). Exclu : les offres

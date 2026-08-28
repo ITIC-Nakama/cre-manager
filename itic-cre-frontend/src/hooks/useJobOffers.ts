@@ -9,6 +9,7 @@ import {
     deactivateJobOffer,
     activateJobOffer,
     deleteJobOffer,
+    wipeJobOffers,
     applyToJobOffer,
     fetchMyJobApplications,
     withdrawJobApplication,
@@ -95,6 +96,17 @@ export function useDeleteJobOffer() {
     return useMutation({
         mutationFn: (id: string) => deleteJobOffer(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['job-offers'] }),
+    });
+}
+
+export function useWipeJobOffers() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (scope: 'MANUAL' | 'EXTERNAL' | 'ALL') => wipeJobOffers(scope),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['job-offers'] });
+            queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] });
+        },
     });
 }
 

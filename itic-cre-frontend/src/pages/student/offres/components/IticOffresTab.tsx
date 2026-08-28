@@ -115,7 +115,7 @@ export default function IticOffresTab() {
                     />
                 </div>
                 <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.location')}
                         </label>
@@ -130,7 +130,7 @@ export default function IticOffresTab() {
                             />
                         </div>
                     </div>
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.contract')}
                         </label>
@@ -142,7 +142,7 @@ export default function IticOffresTab() {
                             className="w-full"
                         />
                     </div>
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.sector', 'Secteur')}
                         </label>

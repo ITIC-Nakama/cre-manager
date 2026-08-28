@@ -54,6 +54,11 @@ export function deleteJobOffer(id: string): Promise<void> {
     return apiClient.delete(`/jobboard/offers/${id}`).then(() => undefined);
 }
 
+// Admin — purge en masse (MANUAL, EXTERNAL ou ALL)
+export function wipeJobOffers(scope: 'MANUAL' | 'EXTERNAL' | 'ALL'): Promise<void> {
+    return apiClient.delete('/jobboard/offers/wipe', { params: { scope } }).then(() => undefined);
+}
+
 export function applyToJobOffer(jobOfferId: string): Promise<JobApplicationJobboard> {
     return apiClient.post(`/jobboard/applications/${jobOfferId}/apply`).then((response) => unwrap<JobApplicationJobboard>(response));
 }

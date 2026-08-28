@@ -366,6 +366,101 @@ public class JobOfferIntegrationTest {
     }
 
     @Test
+    public void testWipeManualScopeDeletesOnlyManualOffers() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Offre manuelle a wiper");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre manuelle");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO manualOffer = jobOfferService.create(request);
+
+        JobOffer externalOffer = new JobOffer();
+        externalOffer.setTitle("Offre externe conservee");
+        externalOffer.setCompany("Entreprise externe");
+        externalOffer.setDescription("Description");
+        externalOffer.setContractType(cdiContract);
+        externalOffer.setSource("ADZUNA");
+        externalOffer.setSourceId("adzuna:wipe-test-1");
+        externalOffer = jobOfferRepository.saveAndFlush(externalOffer);
+
+        jobOfferService.wipe("MANUAL");
+
+        assertThat(jobOfferRepository.findById(manualOffer.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(externalOffer.getId())).isPresent();
+    }
+
+    @Test
+    public void testWipeExternalScopeDeletesAllNonManualSourcesButKeepsManual() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Offre manuelle conservee");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre manuelle");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO manualOffer = jobOfferService.create(request);
+
+        JobOffer adzunaOffer = new JobOffer();
+        adzunaOffer.setTitle("Offre Adzuna a wiper");
+        adzunaOffer.setCompany("Entreprise externe");
+        adzunaOffer.setDescription("Description");
+        adzunaOffer.setContractType(cdiContract);
+        adzunaOffer.setSource("ADZUNA");
+        adzunaOffer.setSourceId("adzuna:wipe-test-2");
+        adzunaOffer = jobOfferRepository.saveAndFlush(adzunaOffer);
+
+        JobOffer ftOffer = new JobOffer();
+        ftOffer.setTitle("Offre France Travail a wiper");
+        ftOffer.setCompany("Entreprise externe 2");
+        ftOffer.setDescription("Description");
+        ftOffer.setContractType(cdiContract);
+        ftOffer.setSource("FRANCE_TRAVAIL");
+        ftOffer.setSourceId("ft:wipe-test-2");
+        ftOffer = jobOfferRepository.saveAndFlush(ftOffer);
+
+        jobOfferService.wipe("EXTERNAL");
+
+        assertThat(jobOfferRepository.findById(manualOffer.getId())).isPresent();
+        assertThat(jobOfferRepository.findById(adzunaOffer.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(ftOffer.getId())).isEmpty();
+    }
+
+    @Test
+    public void testWipeAllScopeDeletesEverythingIncludingApplicationClicks() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Offre manuelle a tout wiper");
+        request.setCompany("ITIC Tech");
+        request.setDescription("Offre manuelle");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO manualOffer = jobOfferService.create(request);
+
+        JobOffer externalOffer = new JobOffer();
+        externalOffer.setTitle("Offre externe a tout wiper");
+        externalOffer.setCompany("Entreprise externe");
+        externalOffer.setDescription("Description");
+        externalOffer.setContractType(cdiContract);
+        externalOffer.setSource("ADZUNA");
+        externalOffer.setSourceId("adzuna:wipe-test-3");
+        externalOffer = jobOfferRepository.saveAndFlush(externalOffer);
+
+        JobApplication click = new JobApplication();
+        click.setJobOffer(externalOffer);
+        click.setStudent(student);
+        jobApplicationRepository.save(click);
+
+        jobOfferService.wipe("ALL");
+
+        assertThat(jobOfferRepository.findById(manualOffer.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(externalOffer.getId())).isEmpty();
+        assertThat(jobApplicationRepository.countByJobOfferId(externalOffer.getId())).isZero();
+    }
+
+    @Test
+    public void testWipeWithInvalidScopeThrows() {
+        assertThatThrownBy(() -> jobOfferService.wipe("NOT_A_REAL_SCOPE"))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("messageKey", MessageKey.JOB_OFFER_WIPE_INVALID_SCOPE);
+    }
+
+    @Test
     public void testDeleteJobOfferCascadesJobboardApplicationClicks() {
         CreateJobOfferRequest request = new CreateJobOfferRequest();
         request.setTitle("Développeur avec clic postuler");

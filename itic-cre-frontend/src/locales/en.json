@@ -536,8 +536,6 @@
       "location_placeholder": "City, department...",
       "filter_all_contracts": "All contract types",
       "filters_button": "Filters",
-      "filters_button_active_one": "Filters ({{count}})",
-      "filters_button_active_other": "Filters ({{count}})",
       "filters_reset": "Reset filters",
       "tabs": {
         "itic": "ITIC offers",
@@ -566,6 +564,19 @@
         "adzuna": "Adzuna"
       },
       "external_sync_button": "External offers",
+      "wipe_button": "Delete all",
+      "wipe_dialog": {
+        "title": "Bulk-delete job offers",
+        "message": "This action is irreversible. Choose what to delete:",
+        "manual_label": "ITIC offers (manual)",
+        "manual_description": "Deletes only offers manually created by advisors.",
+        "external_label": "External offers",
+        "external_description": "Deletes all synced offers (France Travail, Adzuna, La Bonne Alternance).",
+        "all_label": "All",
+        "all_description": "Deletes absolutely every offer, manual and external.",
+        "confirm": "Delete permanently",
+        "toast_success": "Offers deleted successfully."
+      },
       "categories_button": "Sectors & contracts",
       "categories": {
         "page_title": "Sectors & contract types",

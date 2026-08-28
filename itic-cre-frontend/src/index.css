@@ -442,6 +442,14 @@ html.dark body {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Opacity-only (pas de transform) : un ancestor avec un transform actif devient le
+   containing block des descendants position:fixed, ce qui casse leur centrage plein
+   ecran (confirme : un modal fixed sous un ancestor .animate-fadeIn suivait la hauteur
+   du contenu au lieu du viewport). */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-24px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -453,6 +461,9 @@ html.dark body {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fadeIn {
+  animation: fadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;

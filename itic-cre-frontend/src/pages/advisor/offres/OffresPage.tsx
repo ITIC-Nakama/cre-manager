@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
     useAllJobOffers, useCreateJobOffer, useUpdateJobOffer,
-    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useSectors,
+    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors,
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
 import CustomSelect from '../../../components/basics/CustomSelect';
@@ -24,6 +24,7 @@ import FiltersPopover from '../../../components/basics/FiltersPopover';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import WipeOffersDialog from '../../../components/shared/WipeOffersDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import ExternalSyncPanel from './components/ExternalSyncPanel';
 import { useUserStore } from '../../../store/UserStore';
@@ -63,6 +64,7 @@ export default function OffresPage() {
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [showExternalSync, setShowExternalSync] = useState(false);
+    const [wipeDialogOpen, setWipeDialogOpen] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -124,6 +126,7 @@ export default function OffresPage() {
     const deactivateMutation = useDeactivateJobOffer();
     const activateMutation = useActivateJobOffer();
     const deleteMutation = useDeleteJobOffer();
+    const wipeMutation = useWipeJobOffers();
 
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -235,6 +238,16 @@ export default function OffresPage() {
                 }
             }
         );
+    };
+
+    const handleWipeConfirm = async (scope: 'MANUAL' | 'EXTERNAL' | 'ALL') => {
+        try {
+            await wipeMutation.mutateAsync(scope);
+            toast.success(t('dashboard.offres.wipe_dialog.toast_success', 'Offres supprimées avec succès.'));
+            setWipeDialogOpen(false);
+        } catch {
+            toast.error(t('dashboard.offres.toast.action_error'));
+        }
     };
 
     const columns = useMemo(() => [
@@ -354,6 +367,15 @@ export default function OffresPage() {
                             {showExternalSync ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
                     )}
+                    {isAdmin && (
+                        <button
+                            onClick={() => setWipeDialogOpen(true)}
+                            title={t('dashboard.offres.wipe_button', 'Tout supprimer')}
+                            className="inline-flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 px-3 py-2 text-sm font-semibold transition-colors cursor-pointer"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    )}
                     <button
                         onClick={() => navigate('/supervisor/offres/categories')}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
@@ -394,7 +416,7 @@ export default function OffresPage() {
                     className="min-w-48"
                 />
                 <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.location')}
                         </label>
@@ -409,7 +431,7 @@ export default function OffresPage() {
                             />
                         </div>
                     </div>
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.contract')}
                         </label>
@@ -422,7 +444,7 @@ export default function OffresPage() {
                         />
                     </div>
                     {isInternalSource && (
-                        <div>
+                        <div className="py-3 first:pt-3 last:pb-3">
                             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                                 {t('dashboard.offres.table.sector', 'Secteur')}
                             </label>
@@ -435,7 +457,7 @@ export default function OffresPage() {
                             />
                         </div>
                     )}
-                    <div>
+                    <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.offres.table.status')}
                         </label>
@@ -600,6 +622,13 @@ export default function OffresPage() {
                 loading={confirmLoading}
                 onConfirm={handleConfirm}
                 onClose={closeConfirm}
+            />
+
+            <WipeOffersDialog
+                isOpen={wipeDialogOpen}
+                loading={wipeMutation.isPending}
+                onConfirm={handleWipeConfirm}
+                onClose={() => setWipeDialogOpen(false)}
             />
         </div>
     );

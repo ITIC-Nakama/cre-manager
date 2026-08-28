@@ -37,6 +37,18 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Query("DELETE FROM JobApplication ja WHERE ja.jobOffer.source = :source")
     int deleteByJobOfferSource(@Param("source") String source);
 
+    /** Purge en masse (admin) : les clics "postuler" liés à toutes les offres externes. */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobApplication ja WHERE ja.jobOffer.source <> :source")
+    int deleteByJobOfferSourceNot(@Param("source") String source);
+
+    /** Purge en masse (admin) : absolument tous les clics "postuler". */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobApplication ja")
+    int deleteAllApplications();
+
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query("DELETE FROM JobApplication ja WHERE ja.jobOffer IN "

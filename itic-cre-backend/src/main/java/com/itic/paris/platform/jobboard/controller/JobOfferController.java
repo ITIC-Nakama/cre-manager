@@ -131,4 +131,12 @@ public class JobOfferController {
         jobOfferService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/wipe")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Supprimer en masse toutes les offres selon la portée (MANUAL, EXTERNAL ou ALL)")
+    public ResponseEntity<Void> wipe(@RequestParam String scope) {
+        jobOfferService.wipe(scope);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -536,8 +536,6 @@
       "location_placeholder": "Ville, département...",
       "filter_all_contracts": "Tous les types de contrat",
       "filters_button": "Filtres",
-      "filters_button_active_one": "Filtres ({{count}})",
-      "filters_button_active_other": "Filtres ({{count}})",
       "filters_reset": "Réinitialiser les filtres",
       "tabs": {
         "itic": "Offres ITIC",
@@ -566,6 +564,19 @@
         "adzuna": "Adzuna"
       },
       "external_sync_button": "Offres externes",
+      "wipe_button": "Tout supprimer",
+      "wipe_dialog": {
+        "title": "Supprimer des offres en masse",
+        "message": "Action irréversible. Choisissez ce qui doit être supprimé :",
+        "manual_label": "Offres ITIC (manuelles)",
+        "manual_description": "Supprime uniquement les offres créées manuellement par les conseillers.",
+        "external_label": "Offres externes",
+        "external_description": "Supprime toutes les offres synchronisées (France Travail, Adzuna, La Bonne Alternance).",
+        "all_label": "Tout",
+        "all_description": "Supprime absolument toutes les offres, manuelles et externes.",
+        "confirm": "Supprimer définitivement",
+        "toast_success": "Offres supprimées avec succès."
+      },
       "categories_button": "Secteurs & contrats",
       "categories": {
         "page_title": "Secteurs & types de contrat",
