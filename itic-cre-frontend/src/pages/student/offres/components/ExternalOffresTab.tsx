@@ -9,6 +9,7 @@ import { useActiveJobOffers } from '../../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useJobOfferApplyActions } from '../../../../hooks/useJobOfferApplyActions';
 import CustomSelect from '../../../../components/basics/CustomSelect';
+import FiltersPopover from '../../../../components/basics/FiltersPopover';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import JobOfferDetailModal from '../../../../components/shared/JobOfferDetailModal';
 import type { JobOffer } from '../../../../types/models/JobOffer';
@@ -114,6 +115,17 @@ export default function ExternalOffresTab() {
         setPage(0);
     };
 
+    const activeFilterCount = [locationFilter, contractTypeFilter, sourceFilter].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setLocationFilter('');
+        setDebouncedLocation('');
+        setContractTypeFilter('');
+        setSourceFilter('');
+        setPage(0);
+        if (locationTimer.current) clearTimeout(locationTimer.current);
+    };
+
     return (
         <div className="flex flex-col gap-6">
 
@@ -133,30 +145,47 @@ export default function ExternalOffresTab() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
-                <div className="relative flex-1 min-w-40 max-w-56">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        value={locationFilter}
-                        onChange={(e) => handleLocationChange(e.target.value)}
-                        placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
-                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <CustomSelect
-                    value={contractTypeFilter}
-                    options={contractTypeOptions}
-                    onChange={handleContractTypeChange}
-                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <CustomSelect
-                    value={sourceFilter}
-                    options={sourceOptions}
-                    onChange={handleSourceChange}
-                    icon={<Globe className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
+                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.location')}
+                        </label>
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                value={locationFilter}
+                                onChange={(e) => handleLocationChange(e.target.value)}
+                                placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
+                                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.contract')}
+                        </label>
+                        <CustomSelect
+                            value={contractTypeFilter}
+                            options={contractTypeOptions}
+                            onChange={handleContractTypeChange}
+                            icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.source', 'Source')}
+                        </label>
+                        <CustomSelect
+                            value={sourceFilter}
+                            options={sourceOptions}
+                            onChange={handleSourceChange}
+                            icon={<Globe className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                </FiltersPopover>
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -281,15 +310,17 @@ export default function ExternalOffresTab() {
                         <button
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
                             disabled={page === 0}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronLeft className="h-4 w-4" />
+                            <span>{t('common.prev')}</span>
                         </button>
                         <button
                             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                             disabled={page >= totalPages - 1}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
+                            <span>{t('common.next')}</span>
                             <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>

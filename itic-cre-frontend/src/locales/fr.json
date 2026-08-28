@@ -451,8 +451,6 @@
           "in_progress": "En cours",
           "completed": "Terminées"
         },
-        "pagination_prev": "Précédent",
-        "pagination_next": "Suivant",
         "pagination_info": "Page {{current}} sur {{total}}",
         "card": {
           "via_jobboard": "Via le jobboard",
@@ -537,6 +535,10 @@
       "search_placeholder": "Rechercher (intitulé, entreprise)…",
       "location_placeholder": "Ville, département...",
       "filter_all_contracts": "Tous les types de contrat",
+      "filters_button": "Filtres",
+      "filters_button_active_one": "Filtres ({{count}})",
+      "filters_button_active_other": "Filtres ({{count}})",
+      "filters_reset": "Réinitialiser les filtres",
       "tabs": {
         "itic": "Offres ITIC",
         "external": "Marché externe"
@@ -611,6 +613,7 @@
         "location": "Lieu",
         "contract": "Type de contrat",
         "sector": "Secteur",
+        "source": "Source",
         "applications": "Candidatures",
         "status": "Statut",
         "active": "Active",

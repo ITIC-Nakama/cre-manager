@@ -8,6 +8,7 @@ import { useActiveJobOffers, useSectors } from '../../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useJobOfferApplyActions } from '../../../../hooks/useJobOfferApplyActions';
 import CustomSelect from '../../../../components/basics/CustomSelect';
+import FiltersPopover from '../../../../components/basics/FiltersPopover';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import JobOfferDetailModal from '../../../../components/shared/JobOfferDetailModal';
 import type { JobOffer } from '../../../../types/models/JobOffer';
@@ -87,6 +88,17 @@ export default function IticOffresTab() {
         setPage(0);
     };
 
+    const activeFilterCount = [locationFilter, contractTypeFilter, sectorFilter].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setLocationFilter('');
+        setDebouncedLocation('');
+        setContractTypeFilter('');
+        setSectorFilter('');
+        setPage(0);
+        if (locationTimer.current) clearTimeout(locationTimer.current);
+    };
+
     return (
         <div className="flex flex-col gap-6">
 
@@ -102,30 +114,47 @@ export default function IticOffresTab() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
-                <div className="relative flex-1 min-w-40 max-w-56">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        value={locationFilter}
-                        onChange={(e) => handleLocationChange(e.target.value)}
-                        placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
-                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <CustomSelect
-                    value={contractTypeFilter}
-                    options={contractTypeOptions}
-                    onChange={handleContractTypeChange}
-                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <CustomSelect
-                    value={sectorFilter}
-                    options={sectorOptions}
-                    onChange={handleSectorChange}
-                    icon={<Layers className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
+                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.location')}
+                        </label>
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                value={locationFilter}
+                                onChange={(e) => handleLocationChange(e.target.value)}
+                                placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
+                                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.contract')}
+                        </label>
+                        <CustomSelect
+                            value={contractTypeFilter}
+                            options={contractTypeOptions}
+                            onChange={handleContractTypeChange}
+                            icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.sector', 'Secteur')}
+                        </label>
+                        <CustomSelect
+                            value={sectorFilter}
+                            options={sectorOptions}
+                            onChange={handleSectorChange}
+                            icon={<Layers className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                </FiltersPopover>
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -165,7 +194,7 @@ export default function IticOffresTab() {
                                             <Building2 className="h-5 w-5" />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-indigo-600 dark:text-indigo-400 text-base line-clamp-1 leading-snug">
+                                            <p className="font-bold text-indigo-600 dark:text-white text-base line-clamp-1 leading-snug">
                                                 {offer.title}
                                             </p>
                                             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">
@@ -254,15 +283,17 @@ export default function IticOffresTab() {
                                 <button
                                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                                     disabled={page === 0}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
+                                    <span>{t('common.prev')}</span>
                                 </button>
                                 <button
                                     onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                                     disabled={page >= totalPages - 1}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                                 >
+                                    <span>{t('common.next')}</span>
                                     <ChevronRight className="h-4 w-4" />
                                 </button>
                             </div>

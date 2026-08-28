@@ -451,8 +451,6 @@
           "in_progress": "In progress",
           "completed": "Completed"
         },
-        "pagination_prev": "Previous",
-        "pagination_next": "Next",
         "pagination_info": "Page {{current}} of {{total}}",
         "card": {
           "via_jobboard": "Via the job board",
@@ -537,6 +535,10 @@
       "search_placeholder": "Search (title, company)…",
       "location_placeholder": "City, department...",
       "filter_all_contracts": "All contract types",
+      "filters_button": "Filters",
+      "filters_button_active_one": "Filters ({{count}})",
+      "filters_button_active_other": "Filters ({{count}})",
+      "filters_reset": "Reset filters",
       "tabs": {
         "itic": "ITIC offers",
         "external": "External market"
@@ -611,6 +613,7 @@
         "location": "Location",
         "contract": "Contract type",
         "sector": "Sector",
+        "source": "Source",
         "applications": "Applications",
         "status": "Status",
         "active": "Active",

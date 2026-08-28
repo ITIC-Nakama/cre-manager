@@ -119,6 +119,7 @@ export default function CustomSelect({
       {isOpen && panelRect && createPortal(
         <div
           ref={panelRef}
+          data-custom-select-portal
           style={{
             position: 'fixed',
             right: window.innerWidth - panelRect.left - panelRect.width,

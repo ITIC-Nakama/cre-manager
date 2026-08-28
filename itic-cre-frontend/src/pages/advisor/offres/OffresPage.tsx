@@ -20,6 +20,7 @@ import {
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
 import CustomSelect from '../../../components/basics/CustomSelect';
+import FiltersPopover from '../../../components/basics/FiltersPopover';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
@@ -74,12 +75,14 @@ export default function OffresPage() {
         }
     }, [location]);
 
+    const isInternalSource = sourceFilter === 'MANUAL';
+
     const params = {
         page,
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
-        sectorId: sectorFilter || undefined,
+        sectorId: isInternalSource ? (sectorFilter || undefined) : undefined,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
@@ -171,12 +174,27 @@ export default function OffresPage() {
 
     const handleSourceChange = (value: string) => {
         setSourceFilter(value);
+        if (value !== 'MANUAL') {
+            setSectorFilter('');
+        }
         setPage(0);
     };
 
     const handleActiveFilterChange = (value: string) => {
         setActiveFilter(value);
         setPage(0);
+    };
+
+    const activeFilterCount = [locationFilter, contractTypeFilter, isInternalSource ? sectorFilter : '', activeFilter !== 'true' ? activeFilter || 'all' : ''].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setLocationFilter('');
+        setDebouncedLocation('');
+        setContractTypeFilter('');
+        setSectorFilter('');
+        setActiveFilter('true');
+        setPage(0);
+        if (locationTimer.current) clearTimeout(locationTimer.current);
     };
 
     const handleSave = async (payload: JobOfferPayload) => {
@@ -367,37 +385,6 @@ export default function OffresPage() {
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
-                <div className="relative flex-1 min-w-40 max-w-56">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        value={locationFilter}
-                        onChange={(e) => handleLocationChange(e.target.value)}
-                        placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
-                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <CustomSelect
-                    value={contractTypeFilter}
-                    options={contractTypeOptions}
-                    onChange={handleContractTypeChange}
-                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <CustomSelect
-                    value={sectorFilter}
-                    options={sectorOptions}
-                    onChange={handleSectorChange}
-                    icon={<Layers className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <CustomSelect
-                    value={activeFilter}
-                    options={activeFilterOptions}
-                    onChange={handleActiveFilterChange}
-                    icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
                 <CustomSelect
                     value={sourceFilter}
                     options={sourceOptions}
@@ -405,6 +392,61 @@ export default function OffresPage() {
                     icon={<Globe className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
+                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.location')}
+                        </label>
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                value={locationFilter}
+                                onChange={(e) => handleLocationChange(e.target.value)}
+                                placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
+                                className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.contract')}
+                        </label>
+                        <CustomSelect
+                            value={contractTypeFilter}
+                            options={contractTypeOptions}
+                            onChange={handleContractTypeChange}
+                            icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                    {isInternalSource && (
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                                {t('dashboard.offres.table.sector', 'Secteur')}
+                            </label>
+                            <CustomSelect
+                                value={sectorFilter}
+                                options={sectorOptions}
+                                onChange={handleSectorChange}
+                                icon={<Layers className="h-4 w-4 text-slate-400" />}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.offres.table.status')}
+                        </label>
+                        <CustomSelect
+                            value={activeFilter}
+                            options={activeFilterOptions}
+                            onChange={handleActiveFilterChange}
+                            icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+                </FiltersPopover>
                 {isFetching && !isLoading && (
                     <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
                 )}
@@ -509,15 +551,17 @@ export default function OffresPage() {
                             <button
                                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                                 disabled={page === 0}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                             >
                                 <ChevronLeft className="h-4 w-4" />
+                                <span>{t('common.prev')}</span>
                             </button>
                             <button
                                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                                 disabled={page >= totalPages - 1}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                             >
+                                <span>{t('common.next')}</span>
                                 <ChevronRight className="h-4 w-4" />
                             </button>
                         </div>
