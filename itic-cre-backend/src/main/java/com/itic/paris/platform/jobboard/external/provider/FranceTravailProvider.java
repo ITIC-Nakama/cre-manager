@@ -37,7 +37,13 @@ public class FranceTravailProvider extends AbstractJobProvider {
     private static final String SEARCH_URL =
             "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search";
 
-    /** Natures de contrat : null = CDI/CDD, E2 = alternance, FS = stage. */
+    /**
+     * Natures de contrat (referentiel /v2/referentiel/naturesContrats) : null = tout-venant
+     * (CDI/CDD...), E2 = contrat d'apprentissage, FS = contrat de professionnalisation — les deux
+     * derniers sont de l'alternance. France Travail n'a pas de code "stage" : un stage n'est pas
+     * un emploi au sens du droit du travail francais (convention de stage, pas de contrat de
+     * travail), donc cette source n'en propose jamais.
+     */
     private static final List<String> NATURES_CONTRAT = java.util.Arrays.asList(null, "E2", "FS");
 
     /** Taille de page maximale acceptée par l'API (range=0-149 = 150 résultats). */
@@ -93,6 +99,10 @@ public class FranceTravailProvider extends AbstractJobProvider {
         List<String> romeLoop = romeCodes.isEmpty() ? java.util.Collections.singletonList(null) : romeCodes;
 
         int maxOffers = currentMaxOffers();
+        // Reparti equitablement entre les natures de contrat (CDI/CDD, alternance, stage) : sans
+        // repartition, la nature la plus abondante (CDI/CDD, sans filtre natureContrat) epuise a
+        // elle seule tout le quota avant que alternance/stage ne soient jamais interrogees.
+        int perNatureQuota = Math.max(1, maxOffers / NATURES_CONTRAT.size());
         List<ExternalJobOfferDTO> offers = new ArrayList<>();
         Set<String> seenIds = new LinkedHashSet<>();
 
@@ -101,11 +111,13 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 if (offers.size() >= maxOffers) {
                     return offers;
                 }
-                // Pagination reelle : continue tant qu'une page pleine revient, jusqu'a maxOffers
-                // ou la limite d'acces de l'API (1150 resultats par recherche).
+                int addedForThisNature = 0;
+                // Pagination reelle : continue tant qu'une page pleine revient, jusqu'au quota de
+                // cette nature, au total global maxOffers, ou la limite d'acces de l'API (1150
+                // resultats par recherche).
                 for (int rangeStart = 0; rangeStart <= MAX_RANGE_START; rangeStart += PAGE_SIZE) {
-                    if (offers.size() >= maxOffers) {
-                        return offers;
+                    if (offers.size() >= maxOffers || addedForThisNature >= perNatureQuota) {
+                        break;
                     }
                     try {
                         JsonNode resultats = search(accessToken, rome, nature, departementParam, rangeStart);
@@ -117,7 +129,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
                             if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers)
                                     && seenIds.add(dto.sourceId())) {
                                 offers.add(dto);
-                                if (offers.size() >= maxOffers) {
+                                addedForThisNature++;
+                                if (offers.size() >= maxOffers || addedForThisNature >= perNatureQuota) {
                                     break;
                                 }
                             }
