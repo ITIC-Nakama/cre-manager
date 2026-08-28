@@ -110,7 +110,9 @@ jobs:
           ENV_DATA: ${{ secrets.BACKEND_ENV_CONTENT }}
         run: |
           set -e
-          BACKUP_ROOT="$HOME/itic-cre-backups"
+          # Chemin absolu plutot que "$HOME/..." : $HOME n'est pas garanti stable/defini
+          # de la meme facon selon comment le runner self-hosted invoque ce shell.
+          BACKUP_ROOT="/home/github-runner/itic-cre-backups"
           TS=$(date +%Y%m%d-%H%M%S)
           mkdir -p "$BACKUP_ROOT"
 
@@ -118,8 +120,12 @@ jobs:
           # Le chemin du jar actuellement utilisé par systemd est découvert dynamiquement
           # (pas supposé) pour rester correct même si l'unit file change un jour.
           CURRENT_JAR=$(systemctl show itic-backend.service -p ExecStart --value 2>/dev/null | grep -oE '/[^ ]+\.jar' | head -1 || true)
+          BACKUP_JAR="$BACKUP_ROOT/app-${TS}.jar.bak"
           if [ -n "$CURRENT_JAR" ] && [ -f "$CURRENT_JAR" ]; then
-            cp "$CURRENT_JAR" "$BACKUP_ROOT/app-${TS}.jar.bak"
+            cp "$CURRENT_JAR" "$BACKUP_JAR"
+            echo "Sauvegarde du jar actuel : $CURRENT_JAR -> $BACKUP_JAR"
+          else
+            echo "::warning::Aucun jar actuellement en service detecte (premier deploiement ?) — pas de sauvegarde possible, un rollback ne restaurera rien."
           fi
           if [ -d /var/www/html ] && [ "$(ls -A /var/www/html 2>/dev/null)" ]; then
             sudo rm -rf "$BACKUP_ROOT/frontend-previous"
@@ -154,10 +160,26 @@ jobs:
           done
 
           if [ "$SUCCESS" != "true" ]; then
-            echo "::error::Health-check echoue apres deploiement — rollback automatique vers la version precedente"
-            if [ -n "$CURRENT_JAR" ] && [ -f "$BACKUP_ROOT/app-${TS}.jar.bak" ]; then
-              sudo cp "$BACKUP_ROOT/app-${TS}.jar.bak" "$CURRENT_JAR"
+            echo "::error::Health-check echoue apres deploiement — tentative de rollback vers la version precedente"
+            if [ -n "$CURRENT_JAR" ] && [ -f "$BACKUP_JAR" ]; then
+              sudo cp "$BACKUP_JAR" "$CURRENT_JAR"
               sudo systemctl restart itic-backend.service
+
+              ROLLBACK_OK=false
+              for i in $(seq 1 10); do
+                if curl -sfL -o /dev/null "http://localhost:8080/api/v1/health"; then
+                  ROLLBACK_OK=true
+                  break
+                fi
+                sleep 4
+              done
+              if [ "$ROLLBACK_OK" = "true" ]; then
+                echo "::error::Rollback effectue avec succes — le service tourne a nouveau sur la version precedente ($BACKUP_JAR)."
+              else
+                echo "::error::Rollback tente mais le service ne repond toujours pas apres restauration — intervention manuelle necessaire."
+              fi
+            else
+              echo "::error::Aucune sauvegarde disponible ($BACKUP_JAR introuvable) — rien n'a ete restaure, le service reste sur la version qui vient d'echouer. Intervention manuelle necessaire."
             fi
             if [ -d "$BACKUP_ROOT/frontend-previous" ]; then
               sudo rsync -a --delete "$BACKUP_ROOT/frontend-previous/" /var/www/html/
