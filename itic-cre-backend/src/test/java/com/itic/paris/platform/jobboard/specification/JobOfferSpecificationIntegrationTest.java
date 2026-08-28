@@ -71,7 +71,7 @@ class JobOfferSpecificationIntegrationTest {
     @DisplayName("Should filter active job offers by search term")
     void testActiveWithSearch() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.activeWithFilters("Java", null),
+                JobOfferSpecification.activeWithFilters("Java", null, null, null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -80,22 +80,10 @@ class JobOfferSpecificationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should retrieve all offers including inactive when using withSearch")
-    void testWithSearchAll() {
-        Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearch("Générale"),
-                PageRequest.of(0, 10)
-        );
-
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getCompany()).isEqualTo("Société Générale");
-    }
-
-    @Test
     @DisplayName("Should filter all offers (active and inactive) by contract type only")
-    void testWithSearchAndContractTypeFilterByContractTypeOnly() {
+    void testAllFiltersByContractTypeOnly() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndContractType(null, cdi.getId()),
+                JobOfferSpecification.withAllFilters(null, cdi.getId(), null, null, null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -107,9 +95,9 @@ class JobOfferSpecificationIntegrationTest {
 
     @Test
     @DisplayName("Should combine search and contract type filters")
-    void testWithSearchAndContractTypeCombined() {
+    void testAllFiltersSearchAndContractTypeCombined() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndContractType("Java", cdi.getId()),
+                JobOfferSpecification.withAllFilters("Java", cdi.getId(), null, null, null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -119,9 +107,9 @@ class JobOfferSpecificationIntegrationTest {
 
     @Test
     @DisplayName("Should exclude offers of a different contract type")
-    void testWithSearchAndContractTypeExcludesOtherContractType() {
+    void testAllFiltersExcludesOtherContractType() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndContractType(null, cdd.getId()),
+                JobOfferSpecification.withAllFilters(null, cdd.getId(), null, null, null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -131,9 +119,9 @@ class JobOfferSpecificationIntegrationTest {
 
     @Test
     @DisplayName("Should filter to only active offers when active=true")
-    void testWithSearchAndFiltersActiveTrue() {
+    void testAllFiltersActiveTrue() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndFilters(null, null, null, true),
+                JobOfferSpecification.withAllFilters(null, null, null, null, true, null),
                 PageRequest.of(0, 10)
         );
 
@@ -145,9 +133,9 @@ class JobOfferSpecificationIntegrationTest {
 
     @Test
     @DisplayName("Should filter to only inactive offers when active=false")
-    void testWithSearchAndFiltersActiveFalse() {
+    void testAllFiltersActiveFalse() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndFilters(null, null, null, false),
+                JobOfferSpecification.withAllFilters(null, null, null, null, false, null),
                 PageRequest.of(0, 10)
         );
 
@@ -157,9 +145,9 @@ class JobOfferSpecificationIntegrationTest {
 
     @Test
     @DisplayName("Should return all offers regardless of active state when active param is null")
-    void testWithSearchAndFiltersActiveNullReturnsAll() {
+    void testAllFiltersActiveNullReturnsAll() {
         Page<JobOffer> result = jobOfferRepository.findAll(
-                JobOfferSpecification.withSearchAndFilters(null, null, null, null),
+                JobOfferSpecification.withAllFilters(null, null, null, null, null, null),
                 PageRequest.of(0, 10)
         );
 

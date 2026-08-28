@@ -5,6 +5,7 @@ import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
+import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.SyncLogDTO;
 import com.itic.paris.platform.jobboard.external.model.ExternalSourceConfig;
@@ -13,7 +14,9 @@ import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfig
 import com.itic.paris.platform.jobboard.external.repository.SyncLogRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
+import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +45,10 @@ public class ExternalJobSyncService {
 
     private final List<AbstractJobProvider> providers;
     private final JobOfferRepository jobOfferRepository;
+    private final JobApplicationRepository jobApplicationRepository;
     private final SyncLogRepository syncLogRepository;
     private final ExternalSourceConfigRepository sourceConfigRepository;
+    private final AppConfigurationService appConfigurationService;
     private final ObjectMapper objectMapper;
 
     private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
@@ -102,9 +108,17 @@ public class ExternalJobSyncService {
             int expired = jobOfferRepository.deactivateExpiredExternalOffers(Instant.now());
             log.info("[JOBOARD SYNC] {} offres expirées désactivées", expired);
 
+            // Suppression définitive des offres expirées depuis trop longtemps (fenêtre éditable par un admin).
+            // job_applications d'abord (FK NOT NULL, sans ON DELETE possible), puis les offres elles-mêmes.
+            Instant deleteCutoff = Instant.now().minus(appConfigurationService.getJobboardOfferDeleteAfterDays(), ChronoUnit.DAYS);
+            jobApplicationRepository.deleteByInactiveExternalJobOfferOlderThan(deleteCutoff);
+            int deleted = jobOfferRepository.deleteInactiveExternalOffersOlderThan(deleteCutoff);
+            log.info("[JOBOARD SYNC] {} offres expirées de longue date supprimées définitivement", deleted);
+
             syncLog.setInsertedCount(inserted);
             syncLog.setSkippedCount(skipped);
             syncLog.setExpiredCount(expired);
+            syncLog.setDeletedCount(deleted);
         } catch (Exception e) {
             syncLog.setStatus(SyncLog.STATUS_FAILED);
             log.error("[JOBOARD SYNC] Échec global de la synchronisation", e);
@@ -178,31 +192,69 @@ public class ExternalJobSyncService {
 
     public ExternalJobboardStatsDTO getStats() {
         List<ExternalSourceStatsDTO> sources = providers.stream()
-                .map(p -> new ExternalSourceStatsDTO(
-                        p.getSource(),
-                        p.getLabel(),
-                        p.isEnabled(),
-                        jobOfferRepository.countBySourceAndActiveTrue(p.getSource())))
+                .map(p -> {
+                    ExternalSourceConfig config = sourceConfigRepository.findById(p.getSource()).orElse(null);
+                    return new ExternalSourceStatsDTO(
+                            p.getSource(),
+                            p.getLabel(),
+                            p.isEnabled(),
+                            jobOfferRepository.countBySourceAndActiveTrue(p.getSource()),
+                            config != null ? config.getRomeCodes() : null,
+                            config != null ? config.getDepartments() : null,
+                            config != null ? config.getKeywords() : null,
+                            config != null ? config.getCategory() : null,
+                            config != null ? config.getExcludedEmployers() : null);
+                })
                 .toList();
 
         SyncLogDTO lastSync = syncLogRepository.findTopByOrderByFinishedAtDesc()
                 .map(l -> new SyncLogDTO(l.getStartedAt(), l.getFinishedAt(), l.getStatus(),
-                        l.getInsertedCount(), l.getSkippedCount(), l.getExpiredCount()))
+                        l.getInsertedCount(), l.getSkippedCount(), l.getExpiredCount(), l.getDeletedCount()))
                 .orElse(null);
 
         return new ExternalJobboardStatsDTO(isSyncInProgress(), lastSync, sources);
     }
 
+    /**
+     * Désactiver une source supprime aussi ses offres déjà en base : un provider en pause
+     * ne doit pas laisser traîner des offres qu'il n'assume plus (impossibles à re-vérifier
+     * comme actives/expirées tant que la source reste éteinte). La réactivation ne les restaure
+     * pas : la prochaine sync les réinsère fraîches.
+     */
     public ExternalJobboardStatsDTO toggleSource(String source) {
+        ExternalSourceConfig config = requireKnownSource(source);
+        boolean nowEnabled = !config.getEnabled();
+        config.setEnabled(nowEnabled);
+        sourceConfigRepository.save(config);
+
+        if (!nowEnabled) {
+            jobApplicationRepository.deleteByJobOfferSource(source);
+            int deleted = jobOfferRepository.deleteBySource(source);
+            log.info("[JOBOARD SYNC] Source {} désactivée, {} offres supprimées", source, deleted);
+        } else {
+            log.info("[JOBOARD SYNC] Source {} activée", source);
+        }
+        return getStats();
+    }
+
+    public ExternalJobboardStatsDTO updateCriteria(String source, ExternalSourceCriteriaDTO criteria) {
+        ExternalSourceConfig config = requireKnownSource(source);
+        config.setRomeCodes(criteria.romeCodes());
+        config.setDepartments(criteria.departments());
+        config.setKeywords(criteria.keywords());
+        config.setCategory(criteria.category());
+        config.setExcludedEmployers(criteria.excludedEmployers());
+        sourceConfigRepository.save(config);
+        log.info("[JOBOARD SYNC] Critères mis à jour pour la source {}", source);
+        return getStats();
+    }
+
+    private ExternalSourceConfig requireKnownSource(String source) {
         boolean known = providers.stream().anyMatch(p -> p.getSource().equals(source));
         if (!known) {
             throw new AppException(HttpStatus.NOT_FOUND, MessageKey.EXTERNAL_SOURCE_NOT_FOUND);
         }
-        ExternalSourceConfig config = sourceConfigRepository.findById(source)
-                .orElse(new ExternalSourceConfig(source, true));
-        config.setEnabled(!config.getEnabled());
-        sourceConfigRepository.save(config);
-        log.info("[JOBOARD SYNC] Source {} -> {}", source, config.getEnabled() ? "activée" : "désactivée");
-        return getStats();
+        return sourceConfigRepository.findById(source)
+                .orElseGet(() -> new ExternalSourceConfig(source, true));
     }
 }

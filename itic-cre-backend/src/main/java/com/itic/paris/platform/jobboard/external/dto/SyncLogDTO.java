@@ -8,6 +8,7 @@ public record SyncLogDTO(
         String status,
         Integer insertedCount,
         Integer skippedCount,
-        Integer expiredCount
+        Integer expiredCount,
+        Integer deletedCount
 ) {
 }

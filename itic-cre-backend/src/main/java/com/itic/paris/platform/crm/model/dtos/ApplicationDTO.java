@@ -21,6 +21,19 @@ public class ApplicationDTO {
     private String poste;
     private ContractTypeDTO typeContrat;
     private String lienOffre;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Job offer description, copied at creation time (jobboard applications only, null otherwise)")
+    private String offreDescription;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Job offer location, copied at creation time (jobboard applications only, null otherwise)")
+    private String offreLocation;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Job offer company logo URL, copied at creation time (jobboard applications only, null otherwise)")
+    private String offreCompanyLogoUrl;
+
     private String contact;
     private String notes;
     private ApplicationStatusDTO status;

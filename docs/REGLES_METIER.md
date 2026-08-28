@@ -125,13 +125,130 @@ Ces libellés sont traduits dynamiquement par le backend selon la langue spécif
 
 ## 3. Jobboard — Offres d'emploi
 
-- Création/édition/désactivation réservée à `ADVISOR`/`ADMIN`.
-- Un étudiant **ne peut postuler qu'une seule fois** à une offre donnée (`409 already-applied` sinon).
-- Postuler via le jobboard crée **automatiquement** une candidature CRM au statut "Postulé", avec la note `"Candidature créée automatiquement via le Jobboard"`.
-- XP attribuée à la candidature jobboard : le `gainXP` du statut "Postulé" s'il est **> 0**, sinon repli sur la config générique `CANDIDATURE_CREATED` (jamais les deux à la fois).
-- **Secteurs** (`Sector`) : CRUD réservé `ADVISOR`/`ADMIN`, label unique (409 `sector-label-already-exists`), flag `active` bascule sans suppression. Un étudiant ne voit que la liste des secteurs actifs (`GET /jobboard/sectors/active/list`).
-- **Suppression d'une offre** (`JobOfferService.delete()`) : bloquée (409 `job-offer-has-applications`) si au moins une candidature CRM réelle (`Application.sourceJobOffer`) est liée — protège les notes/statut/XP de l'étudiant. Si seuls des clics "postuler" jobboard existent sans candidature CRM associée (cas rare, `apply()` crée aujourd'hui toujours les deux ensemble), la suppression réussit et nettoie ces clics avec l'offre. `deactivate`/`activate` restent l'alternative sans risque pour retirer une offre du jobboard sans toucher aux candidatures.
-- **Filtre actif/inactif** (page admin Offres) : `GET /jobboard/offers` accepte un paramètre `active` optionnel (`true`/`false`/absent = toutes) ; l'interface présélectionne "Actives" par défaut.
+### Sources d'offres
+Une offre (`JobOffer.source`) vient soit de `MANUAL` (créée par un `ADVISOR`/`ADMIN` depuis
+l'interface ITIC), soit d'une des 3 sources externes agrégées automatiquement : `FRANCE_TRAVAIL`,
+`ADZUNA`, `BONNE_ALTERNANCE`. Toutes les offres — quelle que soit leur source — vivent dans la même
+table et sont traitées de façon identique pour la recherche, le filtrage et la candidature ; seule
+la synchronisation et l'expiration diffèrent par source (voir plus bas).
+
+### Critères de recherche des sources externes — 100% configurables en base, jamais codés en dur
+Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`, `departments`,
+`keywords`, `category`, `excludedEmployers`), éditable par un `ADMIN` depuis Offres → Offres
+externes, **sans redéploiement**.
+
+- `romeCodes`/`departments` : pertinents pour `FRANCE_TRAVAIL` et `BONNE_ALTERNANCE` (les deux
+  exposent la taxonomie ROME officielle).
+- `keywords`/`category` : pertinents pour `ADZUNA` (pas de taxonomie ROME côté Adzuna).
+- `excludedEmployers` : les 3 sources — liste d'employeurs à exclure (comparaison insensible à la
+  casse, sous-chaîne), pour filtrer les officines qui postent de fausses offres pour recruter des
+  inscrits payants (ex : `ISCOD`, `CFA ITIS`).
+- **Règle absolue** : un critère non configuré (`null`/vide en base) signifie **aucune
+  restriction** sur ce critère, jamais un repli silencieux sur une valeur par défaut codée en dur.
+  Vérifié en direct contre les APIs réelles : omettre `codeROME` chez France Travail renvoie bien
+  toutes professions confondues, pas un sous-ensemble caché.
+
+### Synchronisation
+- Déclenchée automatiquement (`jobboard.sync.cron`, tous les jours à 2h par défaut) ou
+  manuellement (`POST /jobboard/admin/external/sync`, `ADMIN` uniquement, réponse `202 Accepted` —
+  asynchrone).
+- **Pagination réelle** par provider, jusqu'à `JOBBOARD_SYNC_MAX_PER_PROVIDER` offres par source et
+  par synchronisation (config BDD, §11) :
+  - `FRANCE_TRAVAIL` : boucle codeROME × nature de contrat × pages de 150 (`range=X-Y`), plafonné à
+    1150 résultats par recherche (limite documentée de l'API).
+  - `ADZUNA` : boucle mot-clé × pages de 50 (`/search/{page}`), plafonné à 1000 résultats par
+    recherche (20 pages).
+  - `BONNE_ALTERNANCE` : **aucune pagination possible** côté API — un seul appel par
+    synchronisation, plafond réel de l'ordre de 40 à 150 résultats selon les critères. Limitation
+    confirmée de l'API elle-même, pas un choix d'implémentation.
+- **Dédoublonnage** : pré-check applicatif (`existsBySourceId`) avant insertion, doublé d'une
+  contrainte SQL unique partielle (`WHERE source_id IS NOT NULL`) comme filet de sécurité contre
+  les écritures concurrentes.
+- **Tri des résultats** : France Travail et Adzuna renvoient les offres les plus récentes en
+  premier par défaut (vérifié en direct) — la pagination privilégie donc les offres fraîches avant
+  d'atteindre le plafond. La Bonne Alternance ne propose aucun paramètre de tri.
+
+### Expiration des offres externes
+- `FRANCE_TRAVAIL`/`ADZUNA` : ces APIs ne fournissent qu'une date de dernière mise à jour
+  (`dateActualisation`/`created`), jamais de vraie date d'expiration. `expiresAt` est donc
+  **calculé** : date de mise à jour + `JOBBOARD_OFFER_EXPIRATION_DAYS` (30 jours par défaut,
+  config BDD).
+- `BONNE_ALTERNANCE` : cette API fournit une **vraie date d'expiration** directement
+  (`offer.publication.expiration`) — utilisée telle quelle, aucun calcul.
+- `deactivateExpiredExternalOffers()` (tourne à chaque synchronisation) désactive
+  (`active=false`) toute offre externe dont `expiresAt` est dépassée. Les offres `MANUAL` ne sont
+  jamais concernées (`expiresAt` n'a de sens que pour l'externe).
+- `deleteInactiveExternalOffersOlderThan()` (même déclenchement) supprime **définitivement** les
+  offres externes inactives depuis plus de `JOBBOARD_OFFER_DELETE_AFTER_DAYS` (30 jours par défaut)
+  après leur expiration — empêche l'accumulation indéfinie d'offres mortes en base.
+
+### Désactiver une source (admin)
+`PUT /jobboard/admin/external/sources/{source}/toggle` — désactiver une source supprime
+**immédiatement toutes ses offres déjà en base** (pas seulement les futures synchronisations) : un
+provider en pause ne doit pas laisser traîner des offres qu'il n'assume plus. Réactiver ne restaure
+rien ; la prochaine synchronisation réinsère les offres fraîches. Les clics "postuler" liés
+(`JobApplication`, clé étrangère `NOT NULL`) sont purgés explicitement avant les offres elles-mêmes ;
+les candidatures CRM liées survivent, juste détachées (voir "Découplage offre/candidature"
+ci-dessous).
+
+### Postuler à une offre (ITIC ou externe, même règle pour les deux)
+- Un étudiant **ne peut postuler qu'une seule fois** à une offre donnée (`409 already-applied`
+  sinon).
+- Postuler crée **automatiquement** une candidature CRM au statut "Postulé", avec la note
+  `"Candidature créée automatiquement via le Jobboard"` — que l'offre soit `MANUAL` ou externe,
+  aucune distinction de traitement.
+- **Instantané de l'offre copié à la création** : `entreprise`, `poste`, `typeContrat`,
+  `lienOffre`, et depuis cette session `offreDescription`, `offreLocation`,
+  `offreCompanyLogoUrl` — la candidature reste complète et affichable même si l'offre source est
+  supprimée ou expire ensuite. `viaJobboard` (booléen persistant, indépendant de la référence
+  technique) trace définitivement l'origine "jobboard" de la candidature.
+- **Seuil hebdomadaire anti-farming d'XP** (`APPLICATION_XP_WEEKLY_LIMIT`, 5 par défaut, config
+  BDD, source-agnostique — ITIC et externe comptent ensemble) : au-delà de N candidatures créditées
+  en XP sur une fenêtre glissante de 7 jours, la candidature suivante est **quand même créée
+  normalement** (trackée dans le CRM), juste sans crédit XP supplémentaire. Le plafond limite
+  uniquement l'XP, jamais la création de la candidature.
+- XP attribuée (quand le seuil le permet) : le `gainXP` du statut "Postulé" s'il est **> 0**, sinon
+  repli sur la config générique `CANDIDATURE_CREATED` (jamais les deux à la fois).
+
+### Découplage offre/candidature (V14/V15 — supprimer une offre ne bloque plus jamais)
+- `Application.sourceJobOffer` reste une vraie clé étrangère (seul usage restant : retrouver la
+  candidature à supprimer lors d'un retrait côté jobboard), mais en `ON DELETE SET NULL` :
+  supprimer l'offre détache juste la référence, ne bloque jamais et ne supprime jamais la
+  candidature. Ce champ n'est plus exposé au frontend — l'affichage de l'offre depuis une
+  candidature se fait uniquement via l'instantané copié (ci-dessus), jamais par un appel live vers
+  l'offre source.
+- `Application.viaJobboard` est un booléen **persisté à la création**, indépendant de
+  `sourceJobOffer` — reste `true` pour toujours, même après suppression de l'offre d'origine.
+- **Suppression d'une offre** (`JobOfferService.delete()`) : **toujours acceptée**, quel que soit
+  le nombre de candidatures liées. Les clics "postuler" (`JobApplication`, FK `NOT NULL`) sont
+  supprimés avec l'offre ; les candidatures CRM survivent intactes, juste détachées.
+- **Retrait côté jobboard** (`JobApplicationService.withdraw()`) : part toujours du clic "postuler"
+  (`JobApplication`), jamais de l'offre elle-même — et ce clic est supprimé atomiquement avec
+  l'offre lors de sa suppression. Il ne peut donc jamais exister d'état où l'offre est supprimée
+  mais le retrait resterait possible dessus ; un retrait tenté sur un clic déjà disparu échoue
+  proprement en `404`. L'étudiant garde de toute façon un chemin de secours indépendant : supprimer
+  directement sa candidature depuis son suivi CRM, peu importe son origine.
+- `deactivate`/`activate` restent l'alternative pour retirer une offre du jobboard sans la
+  supprimer.
+
+### Employeurs exclus, localisation, visibilité
+- **Employeurs exclus** (`excludedEmployers`) : filtrés au moment de la synchronisation, avant même
+  l'insertion en base — comparaison insensible à la casse, sous-chaîne.
+- **Filtre localisation** : `GET /jobboard/offers` (étudiant) et `GET /jobboard/offers/all`
+  (advisor/admin) acceptent un paramètre `location` optionnel (recherche insensible à la casse,
+  sous-chaîne sur `location`), disponible côté étudiant comme côté advisor/admin.
+- **Visibilité des offres externes** : un advisor peut voir/filtrer par source depuis Offres
+  (`source=EXTERNAL` ou une source précise), au même titre qu'un admin. Seule la configuration de
+  la synchronisation (activer/désactiver une source, éditer les critères) reste réservée à
+  `ADMIN`.
+
+### Secteurs & filtre actif
+- **Secteurs** (`Sector`) : CRUD réservé `ADVISOR`/`ADMIN`, label unique (409
+  `sector-label-already-exists`), flag `active` bascule sans suppression. Un étudiant ne voit que
+  la liste des secteurs actifs (`GET /jobboard/sectors/active/list`).
+- **Filtre actif/inactif** (page admin Offres) : `GET /jobboard/offers/all` accepte un paramètre
+  `active` optionnel (`true`/`false`/absent = toutes) ; l'interface présélectionne "Actives" par
+  défaut.
 
 ---
 
@@ -245,7 +362,11 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
   3. **`GDPR_OTP_RETENTION_HOURS`** (par défaut : `24` heures) : Durée de rétention des codes de vérification OTP d'inscription.
   4. **`GDPR_AUDIT_LOG_RETENTION_DAYS`** (par défaut : `365` jours) : Conservation légale des journaux d'audit et de sécurité.
   5. **`GDPR_INACTIVE_STUDENT_RETENTION_DAYS`** (par défaut : `1095` jours) : Seuil de rétention des comptes inactifs avant purge/anonymisation.
-- **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`) sans redémarrer le serveur.
+  6. **`JOBBOARD_SYNC_MAX_PER_PROVIDER`** (par défaut : `300`) : Nombre maximum d'offres récupérées par source externe à chaque synchronisation.
+  7. **`JOBBOARD_OFFER_EXPIRATION_DAYS`** (par défaut : `30` jours) : Fenêtre d'expiration calculée pour France Travail/Adzuna (date de dernière mise à jour + ce délai) — sans effet sur La Bonne Alternance, qui fournit sa propre date d'expiration réelle.
+  8. **`JOBBOARD_OFFER_DELETE_AFTER_DAYS`** (par défaut : `30` jours) : Délai après expiration avant suppression définitive d'une offre externe en base.
+  9. **`APPLICATION_XP_WEEKLY_LIMIT`** (par défaut : `5`) : Nombre maximum de candidatures "postuler" (ITIC ou externe) créditées en XP par étudiant sur une fenêtre glissante de 7 jours.
+- **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`, `ExternalJobSyncService`) sans redémarrer le serveur.
 
 ---
 

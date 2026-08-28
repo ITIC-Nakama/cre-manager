@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
-import { Search, Loader2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { Search, Loader2, ShieldCheck, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { useAuditLogs } from '../../hooks/useAudit';
 import { AUDIT_ACTIONS, auditActionColor } from '../../utils/auditActionColors';
@@ -187,16 +187,16 @@ export default function AuditLogsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
-                {t('dashboard.audit_page.pagination.prev')}
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
-                {t('dashboard.audit_page.pagination.next')}
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>

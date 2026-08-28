@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ExternalLink } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import { formatDateTime } from '../types';
@@ -63,6 +63,34 @@ export default function ApplicationDetail({ app, onBack }: Props) {
                         <ExternalLink className="h-3.5 w-3.5" />
                         {t('dashboard.candidatures.detail.view_offer')}
                     </a>
+                )}
+
+                {(app.offreDescription || app.offreLocation) && (
+                    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2.5">
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            {app.offreCompanyLogoUrl ? (
+                                <img
+                                    src={app.offreCompanyLogoUrl}
+                                    alt={app.entreprise}
+                                    className="h-5 w-5 rounded object-contain border border-slate-200 dark:border-slate-800 bg-white"
+                                />
+                            ) : (
+                                <Briefcase className="h-4 w-4 text-indigo-500" />
+                            )}
+                            <h3>{t('dashboard.candidatures.detail.offer_snapshot', "Détails de l'offre")}</h3>
+                            {app.offreLocation && (
+                                <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium normal-case text-slate-500 dark:text-slate-400">
+                                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                                    {app.offreLocation}
+                                </span>
+                            )}
+                        </div>
+                        {app.offreDescription && (
+                            <p className="text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300 break-words">
+                                {app.offreDescription}
+                            </p>
+                        )}
+                    </div>
                 )}
 
                 {app.notes && (

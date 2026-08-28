@@ -51,6 +51,10 @@ public class SyncLog {
     @Column(name = "expired_count", nullable = false)
     private Integer expiredCount = 0;
 
+    /** Offres externes expirées depuis trop longtemps, supprimées définitivement lors de cette sync. */
+    @Column(name = "deleted_count", nullable = false)
+    private Integer deletedCount = 0;
+
     /** Détail par source au format JSON (insérées/ignorées/erreur par provider). */
     @Column(columnDefinition = "TEXT")
     private String details;

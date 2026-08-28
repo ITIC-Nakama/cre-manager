@@ -40,12 +40,6 @@ public class JobApplicationService {
         JobOffer jobOffer = jobOfferRepository.findById(jobOfferId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
 
-        // Les offres externes (France Travail, La Bonne Alternance, Adzuna...) ne sont pas gérées par
-        // ITIC : le frontend ne propose qu'un lien externe pour elles, jamais de bouton "Postuler".
-        if (!"MANUAL".equals(jobOffer.getSource())) {
-            throw new AppException(HttpStatus.CONFLICT, MessageKey.EXTERNAL_OFFER_CANNOT_BE_APPLIED);
-        }
-
         JobApplication application = new JobApplication();
         application.setJobOffer(jobOffer);
         application.setStudent(student);

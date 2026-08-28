@@ -180,9 +180,13 @@ registerStudent()  [@Transactional]
 
 ## Jobboard → CRM auto-link
 
-Quand un étudiant postule à une offre via le Jobboard (`POST /jobboard/applications/{jobOfferId}/apply`), une entrée CRM est automatiquement créée au statut "Postulé" avec les XP associés.
+Quand un étudiant postule à une offre via le Jobboard (`POST /jobboard/applications/{jobOfferId}/apply`) — offre ITIC (`MANUAL`) ou externe (France Travail/Adzuna/La Bonne Alternance), même traitement pour les deux — une entrée CRM est automatiquement créée au statut "Postulé", avec un **instantané complet de l'offre** copié (entreprise, poste, type de contrat, lien, description, localisation, logo) : la candidature reste affichable et exploitable même si l'offre source est ensuite modifiée, expire ou est supprimée.
+
+L'XP n'est créditée que si l'étudiant n'a pas déjà atteint le seuil hebdomadaire anti-farming configurable (`APPLICATION_XP_WEEKLY_LIMIT`, source-agnostique) — au-delà, la candidature est quand même créée normalement, juste sans XP supplémentaire.
 
 Les deux opérations (JobApplication + Application CRM) sont englobées dans une seule `@Transactional` sur `JobApplicationService.apply()` : si l'une échoue, les deux sont annulées.
+
+Détail complet du fonctionnement de l'agrégation externe (synchronisation, critères configurables, expiration, nettoyage automatique) : [docs/REGLES_METIER.md §3](../docs/REGLES_METIER.md#3-jobboard--offres-demploi).
 
 ---
 

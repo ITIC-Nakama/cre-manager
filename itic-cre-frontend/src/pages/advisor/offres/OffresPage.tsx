@@ -9,7 +9,8 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, Loader2, Briefcase, Plus, Pencil, Trash2, Building2,
-    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags, SlidersHorizontal,
+    Power, PowerOff, Users, ExternalLink, Eye, FileSignature, Layers, Tags, SlidersHorizontal, Globe, ChevronDown, ChevronUp,
+    ChevronLeft, ChevronRight, MapPin,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -23,6 +24,9 @@ import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import TruncatedText from '../../../components/shared/TruncatedText';
+import ExternalSyncPanel from './components/ExternalSyncPanel';
+import { useUserStore } from '../../../store/UserStore';
+import { Role } from '../../../types/models/Auth';
 import type { JobOffer } from '../../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../../types/models/JobOffer';
 
@@ -40,18 +44,26 @@ export default function OffresPage() {
     const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
+    const currentUser = useUserStore((state) => state.user);
+    const isAdmin = currentUser?.role === Role.ADMIN;
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [debouncedLocation, setDebouncedLocation] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
     const [sectorFilter, setSectorFilter] = useState('');
+    // MANUAL par defaut — matche le comportement historique (avant l'ajout des offres externes).
+    const [sourceFilter, setSourceFilter] = useState('MANUAL');
     // Actives par defaut — evite d'afficher d'emblee les offres desactivees accumulees.
     const [activeFilter, setActiveFilter] = useState('true');
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
+    const [showExternalSync, setShowExternalSync] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (location.state?.openCreateModal || new URLSearchParams(location.search).get('create') === 'true') {
@@ -69,6 +81,8 @@ export default function OffresPage() {
         contractTypeId: contractTypeFilter || undefined,
         sectorId: sectorFilter || undefined,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
+        source: sourceFilter || undefined,
+        location: debouncedLocation || undefined,
     };
     const { data, isLoading, isFetching } = useAllJobOffers(params);
     const offers = data?.content ?? [];
@@ -91,6 +105,14 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
         { value: 'true', label: t('dashboard.offres.table.active', 'Active') },
         { value: 'false', label: t('dashboard.offres.table.inactive', 'Inactive') },
+    ], [t]);
+
+    const sourceOptions = useMemo(() => [
+        { value: 'MANUAL', label: t('dashboard.offres.source_options.manual', 'Offres ITIC (manuelles)') },
+        { value: 'EXTERNAL', label: t('dashboard.offres.source_options.external', 'Offres externes (toutes)') },
+        { value: 'FRANCE_TRAVAIL', label: t('dashboard.offres.source_options.france_travail', 'France Travail') },
+        { value: 'BONNE_ALTERNANCE', label: t('dashboard.offres.source_options.bonne_alternance', 'La Bonne Alternance') },
+        { value: 'ADZUNA', label: t('dashboard.offres.source_options.adzuna', 'Adzuna') },
     ], [t]);
 
     const createMutation = useCreateJobOffer();
@@ -130,6 +152,13 @@ export default function OffresPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleLocationChange = (value: string) => {
+        setLocationFilter(value);
+        setPage(0);
+        if (locationTimer.current) clearTimeout(locationTimer.current);
+        locationTimer.current = setTimeout(() => setDebouncedLocation(value), 400);
+    };
+
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
         setPage(0);
@@ -137,6 +166,11 @@ export default function OffresPage() {
 
     const handleSectorChange = (value: string) => {
         setSectorFilter(value);
+        setPage(0);
+    };
+
+    const handleSourceChange = (value: string) => {
+        setSourceFilter(value);
         setPage(0);
     };
 
@@ -177,12 +211,8 @@ export default function OffresPage() {
                 try {
                     await deleteMutation.mutateAsync(offer.id);
                     toast.success(t('dashboard.offres.toast.deleted'));
-                } catch (err: any) {
-                    if (err.response?.data?.messageKey === 'job-offer-has-applications') {
-                        toast.error(t('dashboard.offres.toast.has_applications'));
-                    } else {
-                        toast.error(t('dashboard.offres.toast.action_error'));
-                    }
+                } catch {
+                    toast.error(t('dashboard.offres.toast.action_error'));
                 }
             }
         );
@@ -192,9 +222,22 @@ export default function OffresPage() {
         col.accessor('title', {
             header: t('dashboard.offres.table.title'),
             cell: ({ row }) => (
-                <div className="max-w-[220px]">
-                    <TruncatedText text={row.original.title} className="font-semibold text-slate-900 dark:text-white" />
-                    <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
+                <div className="flex items-center gap-2.5 max-w-[260px]">
+                    {row.original.companyLogoUrl ? (
+                        <img
+                            src={row.original.companyLogoUrl}
+                            alt={row.original.company}
+                            className="h-8 w-8 rounded-lg object-contain border border-slate-200 dark:border-slate-800 bg-white shrink-0"
+                        />
+                    ) : (
+                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                            <Building2 className="h-4 w-4 text-slate-400" />
+                        </div>
+                    )}
+                    <div className="min-w-0">
+                        <TruncatedText text={row.original.title} className="font-semibold text-slate-900 dark:text-white" />
+                        <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
+                    </div>
                 </div>
             ),
         }),
@@ -278,6 +321,20 @@ export default function OffresPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {isAdmin && (
+                        <button
+                            onClick={() => setShowExternalSync((v) => !v)}
+                            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                                showExternalSync
+                                    ? 'border-[#E2762F] bg-[#E2762F] text-white shadow-sm'
+                                    : 'border-[#E2762F]/40 dark:border-[#E2762F]/50 bg-[#E2762F]/10 dark:bg-[#E2762F]/10 text-[#E2762F] hover:bg-[#E2762F]/20 dark:hover:bg-[#E2762F]/20'
+                            }`}
+                        >
+                            <Globe className="h-4 w-4" />
+                            {t('dashboard.offres.external_sync_button', 'Offres externes')}
+                            {showExternalSync ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </button>
+                    )}
                     <button
                         onClick={() => navigate('/supervisor/offres/categories')}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
@@ -295,6 +352,9 @@ export default function OffresPage() {
                 </div>
             </div>
 
+            {/* External sync panel (admin only, collapsible) */}
+            {isAdmin && showExternalSync && <ExternalSyncPanel />}
+
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-48 max-w-72">
@@ -304,6 +364,16 @@ export default function OffresPage() {
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder={t('dashboard.offres.search_placeholder')}
+                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+                <div className="relative flex-1 min-w-40 max-w-56">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                        type="text"
+                        value={locationFilter}
+                        onChange={(e) => handleLocationChange(e.target.value)}
+                        placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
@@ -326,6 +396,13 @@ export default function OffresPage() {
                     options={activeFilterOptions}
                     onChange={handleActiveFilterChange}
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
+                <CustomSelect
+                    value={sourceFilter}
+                    options={sourceOptions}
+                    onChange={handleSourceChange}
+                    icon={<Globe className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
                 {isFetching && !isLoading && (
@@ -432,16 +509,16 @@ export default function OffresPage() {
                             <button
                                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                                 disabled={page === 0}
-                                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                             >
-                                {t('dashboard.offres.pagination.prev')}
+                                <ChevronLeft className="h-4 w-4" />
                             </button>
                             <button
                                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                                 disabled={page >= totalPages - 1}
-                                className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                             >
-                                {t('dashboard.offres.pagination.next')}
+                                <ChevronRight className="h-4 w-4" />
                             </button>
                         </div>
                     </div>

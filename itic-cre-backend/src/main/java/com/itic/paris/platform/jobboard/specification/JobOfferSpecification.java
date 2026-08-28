@@ -12,20 +12,12 @@ import java.util.UUID;
 
 public class JobOfferSpecification {
 
-    public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId) {
-        return activeWithFilters(search, contractTypeId, null);
-    }
-
-    public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId, UUID sectorId) {
-        return activeWithFilters(search, contractTypeId, sectorId, null);
-    }
-
     /**
      * Offres actives filtrées. Le paramètre source pilote le périmètre :
      * null ou "MANUAL" → offres ITIC uniquement ; "EXTERNAL" → toutes les offres
      * externes ; sinon filtre exact sur la source (FRANCE_TRAVAIL, ...).
      */
-    public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId, UUID sectorId, String source) {
+    public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId, UUID sectorId, String source, String location) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("active")));
@@ -33,32 +25,8 @@ public class JobOfferSpecification {
             addContractTypePredicate(predicates, root, cb, contractTypeId);
             addSectorPredicate(predicates, root, cb, sectorId);
             addSearchPredicate(predicates, root, cb, search);
+            addLocationPredicate(predicates, root, cb, location);
             return cb.and(predicates.toArray(new Predicate[0]));
-        };
-    }
-
-    public static Specification<JobOffer> withSearch(String search) {
-        return withSearchAndContractType(search, null);
-    }
-
-    public static Specification<JobOffer> withSearchAndContractType(String search, UUID contractTypeId) {
-        return withSearchAndFilters(search, contractTypeId, null);
-    }
-
-    public static Specification<JobOffer> withSearchAndFilters(String search, UUID contractTypeId, UUID sectorId) {
-        return withSearchAndFilters(search, contractTypeId, sectorId, null);
-    }
-
-    public static Specification<JobOffer> withSearchAndFilters(String search, UUID contractTypeId, UUID sectorId, Boolean active) {
-        return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            addContractTypePredicate(predicates, root, cb, contractTypeId);
-            addSectorPredicate(predicates, root, cb, sectorId);
-            addSearchPredicate(predicates, root, cb, search);
-            if (active != null) {
-                predicates.add(cb.equal(root.get("active"), active));
-            }
-            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
@@ -67,13 +35,14 @@ public class JobOfferSpecification {
      * Même sémantique que pour les offres actives : null ou "MANUAL" → offres ITIC
      * uniquement ; "EXTERNAL" → toutes les offres externes ; sinon source exacte.
      */
-    public static Specification<JobOffer> withAllFilters(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active) {
+    public static Specification<JobOffer> withAllFilters(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(sourcePredicate(root, cb, source));
             addContractTypePredicate(predicates, root, cb, contractTypeId);
             addSectorPredicate(predicates, root, cb, sectorId);
             addSearchPredicate(predicates, root, cb, search);
+            addLocationPredicate(predicates, root, cb, location);
             if (active != null) {
                 predicates.add(cb.equal(root.get("active"), active));
             }
@@ -102,6 +71,13 @@ public class JobOfferSpecification {
                                             CriteriaBuilder cb, UUID sectorId) {
         if (sectorId != null) {
             predicates.add(cb.equal(root.get("sector").get("id"), sectorId));
+        }
+    }
+
+    private static void addLocationPredicate(List<Predicate> predicates, Root<JobOffer> root,
+                                              CriteriaBuilder cb, String location) {
+        if (location != null && !location.trim().isEmpty()) {
+            predicates.add(cb.like(cb.lower(root.get("location")), "%" + location.trim().toLowerCase() + "%"));
         }
     }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sliders, Save, Loader2, Info, Clock, Calendar, KeyRound, History, UserX } from 'lucide-react';
+import { Sliders, Save, Loader2, Info, Clock, Calendar, KeyRound, History, UserX, Globe, CalendarClock, Trash2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppConfigurations, useUpdateAppConfiguration } from '../../../hooks/useAppConfig';
 import type { AppConfiguration } from '../../../types/models/AppConfig';
@@ -41,6 +41,10 @@ export default function AppConfigCard() {
     if (key === 'GDPR_OTP_RETENTION_HOURS') return <KeyRound className="h-4 w-4 text-emerald-500" />;
     if (key === 'GDPR_AUDIT_LOG_RETENTION_DAYS') return <History className="h-4 w-4 text-[#3B71FF]" />;
     if (key === 'GDPR_INACTIVE_STUDENT_RETENTION_DAYS') return <UserX className="h-4 w-4 text-rose-500" />;
+    if (key === 'JOBBOARD_SYNC_MAX_PER_PROVIDER') return <Globe className="h-4 w-4 text-[#E2762F]" />;
+    if (key === 'JOBBOARD_OFFER_EXPIRATION_DAYS') return <CalendarClock className="h-4 w-4 text-[#E2762F]" />;
+    if (key === 'JOBBOARD_OFFER_DELETE_AFTER_DAYS') return <Trash2 className="h-4 w-4 text-rose-500" />;
+    if (key === 'APPLICATION_XP_WEEKLY_LIMIT') return <Zap className="h-4 w-4 text-amber-500" />;
     return <Sliders className="h-4 w-4 text-[#3B71FF]" />;
   };
 

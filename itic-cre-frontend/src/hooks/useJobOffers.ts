@@ -15,8 +15,9 @@ import {
     fetchExternalJobboardStats,
     triggerExternalJobboardSync,
     toggleExternalJobboardSource,
+    updateExternalSourceCriteria,
 } from '../api-s/requests/JobOfferRequest';
-import type { JobOfferListParams, JobOfferPayload } from '../types/models/JobOffer';
+import type { JobOfferListParams, JobOfferPayload, ExternalSourceCriteriaPayload } from '../types/models/JobOffer';
 
 export function useAllJobOffers(params: JobOfferListParams = {}) {
     return useQuery({
@@ -144,6 +145,15 @@ export function useToggleExternalJobboardSource() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (source: string) => toggleExternalJobboardSource(source),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
+export function useUpdateExternalSourceCriteria() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ source, criteria }: { source: string; criteria: ExternalSourceCriteriaPayload }) =>
+            updateExternalSourceCriteria(source, criteria),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
     });
 }

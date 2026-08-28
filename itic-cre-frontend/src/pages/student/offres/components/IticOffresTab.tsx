@@ -4,9 +4,9 @@ import {
     CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, UserMinus, ArrowUpRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-import { useActiveJobOffers, useMyJobApplications, useApplyToJobOffer, useWithdrawJobApplication, useSectors } from '../../../../hooks/useJobOffers';
+import { useActiveJobOffers, useSectors } from '../../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../../hooks/useApplications';
+import { useJobOfferApplyActions } from '../../../../hooks/useJobOfferApplyActions';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import JobOfferDetailModal from '../../../../components/shared/JobOfferDetailModal';
@@ -21,21 +21,23 @@ export default function IticOffresTab() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
     const [sectorFilter, setSectorFilter] = useState('');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [debouncedLocation, setDebouncedLocation] = useState('');
     const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { data: contractTypes } = useContractTypes();
     const { data: sectors } = useSectors();
-    const { data: myApplications } = useMyJobApplications();
-    const applyMutation = useApplyToJobOffer();
-    const withdrawMutation = useWithdrawJobApplication();
-    const [withdrawTarget, setWithdrawTarget] = useState<{ applicationId: string; title: string } | null>(null);
-
-    const appliedApplicationByOfferId = useMemo(() => {
-        const map = new Map<string, string>();
-        (myApplications?.content ?? []).forEach((a) => map.set(a.jobOfferId, a.id));
-        return map;
-    }, [myApplications]);
+    const {
+        appliedApplicationByOfferId,
+        applyMutation,
+        withdrawMutation,
+        withdrawTarget,
+        setWithdrawTarget,
+        handleApply,
+        handleWithdrawConfirm,
+    } = useJobOfferApplyActions();
 
     const params = {
         page,
@@ -43,6 +45,7 @@ export default function IticOffresTab() {
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
         sectorId: sectorFilter || undefined,
+        location: debouncedLocation || undefined,
     };
 
     const { data, isLoading, isFetching } = useActiveJobOffers(params);
@@ -67,6 +70,13 @@ export default function IticOffresTab() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleLocationChange = (value: string) => {
+        setLocationFilter(value);
+        setPage(0);
+        if (locationTimer.current) clearTimeout(locationTimer.current);
+        locationTimer.current = setTimeout(() => setDebouncedLocation(value), 400);
+    };
+
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
         setPage(0);
@@ -75,30 +85,6 @@ export default function IticOffresTab() {
     const handleSectorChange = (value: string) => {
         setSectorFilter(value);
         setPage(0);
-    };
-
-    const handleApply = async (offerId: string) => {
-        try {
-            await applyMutation.mutateAsync(offerId);
-            toast.success(t('dashboard.offres.toast.applied'));
-        } catch (err: any) {
-            if (err?.response?.status === 409) {
-                toast.error(t('dashboard.offres.toast.already_applied'));
-            } else {
-                toast.error(t('dashboard.offres.toast.apply_error'));
-            }
-        }
-    };
-
-    const handleWithdrawConfirm = async () => {
-        if (!withdrawTarget) return;
-        try {
-            await withdrawMutation.mutateAsync(withdrawTarget.applicationId);
-            toast.success(t('dashboard.offres.toast.withdrawn'));
-            setWithdrawTarget(null);
-        } catch {
-            toast.error(t('dashboard.offres.toast.withdraw_error'));
-        }
     };
 
     return (
@@ -113,6 +99,16 @@ export default function IticOffresTab() {
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder={t('dashboard.offres.search_placeholder')}
+                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+                <div className="relative flex-1 min-w-40 max-w-56">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                        type="text"
+                        value={locationFilter}
+                        onChange={(e) => handleLocationChange(e.target.value)}
+                        placeholder={t('dashboard.offres.location_placeholder', 'Ville, département...')}
                         className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>

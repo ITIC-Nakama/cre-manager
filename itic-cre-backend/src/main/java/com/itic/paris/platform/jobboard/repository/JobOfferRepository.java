@@ -36,4 +36,29 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
     @Query("UPDATE JobOffer j SET j.active = false WHERE j.expiresAt IS NOT NULL AND j.expiresAt < :now "
             + "AND j.active = true AND j.source <> 'MANUAL'")
     int deactivateExpiredExternalOffers(@Param("now") Instant now);
+
+    /**
+     * Supprime toutes les offres d'une source externe (déclenché quand un admin désactive
+     * cette source). Un provider en pause ne doit pas laisser d'offres périmées visibles ;
+     * les réactiver plus tard déclenche une resynchronisation qui les réinsère normalement.
+     * Appelant : purger d'abord {@code JobApplicationRepository.deleteByJobOfferSource} (FK
+     * NOT NULL, pas de ON DELETE possible) ; les candidatures CRM (Application) n'ont pas
+     * besoin de purge équivalente, leur FK est ON DELETE SET NULL.
+     */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobOffer j WHERE j.source = :source")
+    int deleteBySource(@Param("source") String source);
+
+    /**
+     * Supprime définitivement les offres externes expirées depuis plus longtemps que la
+     * fenêtre de rétention (délai après expiration, éditable par un admin). Exclu : les offres
+     * MANUAL (jamais concernées). Appelant : purger d'abord
+     * {@code JobApplicationRepository.deleteByInactiveExternalJobOfferOlderThan}.
+     */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobOffer j WHERE j.active = false AND j.source <> 'MANUAL' "
+            + "AND j.expiresAt IS NOT NULL AND j.expiresAt < :cutoff")
+    int deleteInactiveExternalOffersOlderThan(@Param("cutoff") Instant cutoff);
 }

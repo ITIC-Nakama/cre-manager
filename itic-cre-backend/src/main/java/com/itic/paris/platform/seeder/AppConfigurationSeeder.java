@@ -69,6 +69,30 @@ public class AppConfigurationSeeder implements ApplicationRunner {
                 "14",
                 "Nombre de jours sans connexion avant qu'un étudiant soit considéré comme inactif dans les statistiques"
         );
+
+        seedIfMissing(
+                AppConfigurationKey.JOBBOARD_SYNC_MAX_PER_PROVIDER,
+                "300",
+                "Nombre maximum d'offres récupérées par source externe (France Travail, Adzuna, La Bonne Alternance) à chaque synchronisation"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.JOBBOARD_OFFER_EXPIRATION_DAYS,
+                "30",
+                "Nombre de jours après la dernière mise à jour connue d'une offre externe (France Travail, Adzuna) avant de la considérer expirée"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.JOBBOARD_OFFER_DELETE_AFTER_DAYS,
+                "30",
+                "Nombre de jours après expiration avant suppression définitive d'une offre externe en base"
+        );
+
+        seedIfMissing(
+                AppConfigurationKey.APPLICATION_XP_WEEKLY_LIMIT,
+                "5",
+                "Nombre maximum de candidatures \"postuler\" (ITIC ou externe) créditées en XP par étudiant sur 7 jours glissants"
+        );
     }
 
     private void seedIfMissing(AppConfigurationKey key, String defaultValue, String description) {

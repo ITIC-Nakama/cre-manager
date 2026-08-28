@@ -25,7 +25,12 @@ import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import com.itic.paris.platform.jobboard.repository.SectorRepository;
 import com.itic.paris.platform.jobboard.service.JobApplicationService;
 import com.itic.paris.platform.jobboard.service.JobOfferService;
+import com.itic.paris.platform.jobboard.model.dtos.JobApplicationDTO;
+import com.itic.paris.platform.shared.config.AppConfiguration;
+import com.itic.paris.platform.shared.config.AppConfigurationKey;
+import com.itic.paris.platform.shared.config.AppConfigurationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +55,9 @@ public class JobOfferIntegrationTest {
 
     @Autowired
     private JobOfferService jobOfferService;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private JobApplicationService jobApplicationService;
@@ -80,6 +88,9 @@ public class JobOfferIntegrationTest {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
 
     private Advisor advisor;
     private Student student;
@@ -192,28 +203,83 @@ public class JobOfferIntegrationTest {
         assertThat(applicationDTO.getJobOfferTitle()).isEqualTo("Chef de Projet");
     }
 
+    /** Postuler à une offre externe crée une candidature CRM avec un instantané de l'offre. */
     @Test
-    public void testApplyToExternalOfferIsRejected() {
+    public void testApplyToExternalOfferSucceedsAndCopiesSnapshot() {
         JobOffer externalOffer = new JobOffer();
         externalOffer.setTitle("Offre externe France Travail");
         externalOffer.setCompany("Entreprise Externe");
         externalOffer.setDescription("Offre agrégée depuis une source externe");
+        externalOffer.setLocation("Paris (75)");
+        externalOffer.setCompanyLogoUrl("https://example.com/logo.png");
         externalOffer.setContractType(cdiContract);
         externalOffer.setSource("FRANCE_TRAVAIL");
-        externalOffer.setSourceId("ft:test-reject-apply");
+        externalOffer.setSourceId("ft:test-apply-external");
         externalOffer.setExternalLink("https://example.com/offre");
         externalOffer = jobOfferRepository.save(externalOffer);
 
         authenticate(student);
 
-        UUID externalOfferId = externalOffer.getId();
-        assertThatThrownBy(() -> jobApplicationService.apply(externalOfferId))
-                .isInstanceOf(AppException.class)
-                .extracting(e -> ((AppException) e).getMessageKey())
-                .isEqualTo(MessageKey.EXTERNAL_OFFER_CANNOT_BE_APPLIED);
+        JobApplicationDTO applicationDTO = jobApplicationService.apply(externalOffer.getId());
+        assertThat(applicationDTO.getId()).isNotNull();
+
+        Application crmApplication = applicationRepository.findAll().stream()
+                .filter(a -> "Entreprise Externe".equals(a.getEntreprise()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Candidature CRM non créée pour l'offre externe"));
+
+        assertThat(crmApplication.isViaJobboard()).isTrue();
+        assertThat(crmApplication.getOffreLocation()).isEqualTo("Paris (75)");
+        assertThat(crmApplication.getOffreDescription()).isEqualTo("Offre agrégée depuis une source externe");
+        assertThat(crmApplication.getOffreCompanyLogoUrl()).isEqualTo("https://example.com/logo.png");
+    }
+
+    /**
+     * Seuil hebdomadaire anti-farming (source-agnostique) : chaque candidature jobboard est
+     * toujours créée normalement, mais seules les premières (jusqu'au seuil configuré) créditent
+     * de l'XP — au-delà, la candidature existe sans XP supplémentaire.
+     */
+    @Test
+    public void testApplicationXpWeeklyLimitCapsXpButStillCreatesCandidatures() {
+        AppConfiguration config = appConfigurationRepository.findByKey(AppConfigurationKey.APPLICATION_XP_WEEKLY_LIMIT)
+                .orElseGet(AppConfiguration::new);
+        config.setKey(AppConfigurationKey.APPLICATION_XP_WEEKLY_LIMIT);
+        config.setValue("2");
+        appConfigurationRepository.save(config);
+
+        authenticate(advisor);
+        JobOffer offer1 = jobOfferRepository.save(newSimpleOffer("Offre XP 1"));
+        JobOffer offer2 = jobOfferRepository.save(newSimpleOffer("Offre XP 2"));
+        JobOffer offer3 = jobOfferRepository.save(newSimpleOffer("Offre XP 3"));
+
+        authenticate(student);
+        int xp0 = studentRepository.findById(student.getId()).orElseThrow().getXpTotal();
+
+        jobApplicationService.apply(offer1.getId());
+        int xp1 = studentRepository.findById(student.getId()).orElseThrow().getXpTotal();
+
+        jobApplicationService.apply(offer2.getId());
+        int xp2 = studentRepository.findById(student.getId()).orElseThrow().getXpTotal();
+
+        jobApplicationService.apply(offer3.getId());
+        int xp3 = studentRepository.findById(student.getId()).orElseThrow().getXpTotal();
+
+        assertThat(xp1).isGreaterThan(xp0);
+        assertThat(xp2).isGreaterThan(xp1);
+        assertThat(xp3).isEqualTo(xp2); // seuil=2 atteint : la 3e candidature ne crédite plus d'XP
 
         assertThat(applicationRepository.findAll())
-                .noneMatch(a -> "Entreprise Externe".equals(a.getEntreprise()));
+                .filteredOn(a -> a.getPoste() != null && a.getPoste().startsWith("Offre XP"))
+                .hasSize(3); // les 3 candidatures existent bien, y compris celle sans XP
+    }
+
+    private JobOffer newSimpleOffer(String title) {
+        JobOffer offer = new JobOffer();
+        offer.setTitle(title);
+        offer.setCompany("ITIC Tech");
+        offer.setDescription("Description de test pour " + title);
+        offer.setContractType(cdiContract);
+        return offer;
     }
 
     @Test
@@ -323,8 +389,14 @@ public class JobOfferIntegrationTest {
         assertThat(jobApplicationRepository.countByJobOfferId(offer.getId())).isZero();
     }
 
+    /**
+     * Une candidature CRM copie deja ses champs utiles a la creation (entreprise/poste/...) et
+     * viaJobboard est un fait persistant independant de l'offre source (V14) — supprimer l'offre
+     * ne doit donc plus jamais etre bloque : la reference source_job_offer_id est juste detachee
+     * (ON DELETE SET NULL), la candidature et son historique survivent intacts.
+     */
     @Test
-    public void testDeleteJobOfferWithCrmApplicationThrowsAndKeepsOffer() {
+    public void testDeleteJobOfferWithCrmApplicationSucceedsAndDetachesReference() {
         CreateJobOfferRequest request = new CreateJobOfferRequest();
         request.setTitle("Développeur avec candidature CRM");
         request.setCompany("ITIC Tech");
@@ -342,14 +414,29 @@ public class JobOfferIntegrationTest {
         application.setStatus(status);
         application.setDateCreation(Instant.now());
         application.setDateModification(Instant.now());
+        application.setViaJobboard(true);
         application.setSourceJobOffer(jobOfferRepository.findById(offer.getId()).orElseThrow());
-        applicationRepository.save(application);
+        application = applicationRepository.saveAndFlush(application);
+        UUID applicationId = application.getId();
 
-        assertThatThrownBy(() -> jobOfferService.delete(offer.getId()))
-                .isInstanceOf(AppException.class)
-                .satisfies(ex -> assertThat(((AppException) ex).getMessageKey())
-                        .isEqualTo(MessageKey.JOB_OFFER_HAS_APPLICATIONS));
+        // Detache tout du contexte de persistance avant la suppression : sans ca, l'entite
+        // Application encore managee (et sa reference chargee vers jobOffer) perturbe le flush
+        // de Hibernate au moment ou jobOffer est supprime dans la meme session.
+        entityManager.clear();
 
-        assertThat(jobOfferRepository.findById(offer.getId())).isPresent();
+        jobOfferService.delete(offer.getId());
+
+        // ON DELETE SET NULL est applique par la base au moment du DELETE SQL, en dehors de la
+        // connaissance de Hibernate — sans clear(), le contexte de persistance re-servirait
+        // une instance Application encore en memoire avec son ancienne reference non-nulle.
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(jobOfferRepository.findById(offer.getId())).isEmpty();
+
+        Application survivingApplication = applicationRepository.findById(applicationId).orElseThrow();
+        assertThat(survivingApplication.getEntreprise()).isEqualTo("ITIC Tech");
+        assertThat(survivingApplication.isViaJobboard()).isTrue();
+        assertThat(survivingApplication.getSourceJobOffer()).isNull();
     }
 }

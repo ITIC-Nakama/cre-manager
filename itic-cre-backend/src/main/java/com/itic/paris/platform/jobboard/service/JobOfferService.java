@@ -2,7 +2,6 @@ package com.itic.paris.platform.jobboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
-import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -34,7 +33,6 @@ public class JobOfferService {
     private final ContractTypeRepository contractTypeRepository;
     private final SectorRepository sectorRepository;
     private final JobApplicationRepository jobApplicationRepository;
-    private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
@@ -82,8 +80,12 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, UUID sectorId, String source, Pageable pageable) {
+        return getActiveOffers(search, contractTypeId, sectorId, source, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, UUID sectorId, String source, String location, Pageable pageable) {
         return jobOfferRepository.findAll(
-                        JobOfferSpecification.activeWithFilters(search, contractTypeId, sectorId, source), pageable)
+                        JobOfferSpecification.activeWithFilters(search, contractTypeId, sectorId, source, location), pageable)
                 .map(this::mapToDTO);
     }
 
@@ -150,8 +152,12 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, sectorId, source, active, null, pageable);
+    }
+
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location, Pageable pageable) {
         Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active), pageable);
+                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location), pageable);
         return page.map(this::mapToDTO);
     }
 
@@ -160,12 +166,9 @@ public class JobOfferService {
         JobOffer jobOffer = jobOfferRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
 
-        if (applicationRepository.countBySourceJobOfferId(id) > 0) {
-            throw new AppException(HttpStatus.CONFLICT, MessageKey.JOB_OFFER_HAS_APPLICATIONS);
-        }
-
-        // Les clics "postuler" du jobboard n'ont pas de valeur de suivi (pas de notes/statut/XP,
-        // contrairement a la candidature CRM verifiee ci-dessus) — on peut les supprimer avec l'offre.
+        // source_job_offer_id est ON DELETE SET NULL : les candidatures CRM liées sont juste
+        // détachées, pas supprimées (leurs champs utiles sont déjà copiés). Les clics "postuler"
+        // du jobboard (job_applications) n'ont pas de valeur de suivi, on les supprime avec l'offre.
         jobApplicationRepository.deleteByJobOfferId(id);
         jobOfferRepository.delete(jobOffer);
     }

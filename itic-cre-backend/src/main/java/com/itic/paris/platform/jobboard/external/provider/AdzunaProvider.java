@@ -5,6 +5,7 @@ import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,26 +29,26 @@ public class AdzunaProvider extends AbstractJobProvider {
 
     public static final String SOURCE = "ADZUNA";
 
-    private static final String SEARCH_URL = "https://api.adzuna.com/v1/api/jobs/fr/search/1";
+    private static final String SEARCH_URL = "https://api.adzuna.com/v1/api/jobs/fr/search/";
 
-    /** Requêtes orientées profils junior / alternance. */
-    private static final List<String> QUERIES = List.of("developpeur junior", "alternance informatique");
+    /** Taille de page maximale acceptée par l'API. */
+    private static final int PAGE_SIZE = 50;
+    /** Adzuna ne permet pas d'accéder au-delà des 1000 premiers résultats d'une même recherche. */
+    private static final int MAX_PAGE = 20;
 
     private final RestClient restClient;
     private final String appId;
     private final String apiKey;
-    private final int maxOffers;
 
     public AdzunaProvider(ExternalSourceConfigRepository sourceConfigRepository,
                           ContractTypeRepository contractTypeRepository,
+                          AppConfigurationService appConfigurationService,
                           @Value("${jobboard.adzuna.enabled:true}") boolean enabled,
                           @Value("${jobboard.adzuna.app-id:}") String appId,
-                          @Value("${jobboard.adzuna.api-key:}") String apiKey,
-                          @Value("${jobboard.sync.max-per-provider:300}") int maxOffers) {
-        super(sourceConfigRepository, contractTypeRepository, enabled);
+                          @Value("${jobboard.adzuna.api-key:}") String apiKey) {
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
         this.appId = appId;
         this.apiKey = apiKey;
-        this.maxOffers = maxOffers;
         this.restClient = buildRestClient();
     }
 
@@ -68,43 +69,69 @@ public class AdzunaProvider extends AbstractJobProvider {
 
     @Override
     public List<ExternalJobOfferDTO> fetchOffers() {
+        var config = currentConfig();
+        List<String> queries = resolveCsvCriteria(config.getKeywords());
+        String category = config.getCategory() != null ? config.getCategory() : null;
+        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+
+        int maxOffers = currentMaxOffers();
         List<ExternalJobOfferDTO> offers = new ArrayList<>();
         Set<String> seenIds = new LinkedHashSet<>();
 
-        for (String query : QUERIES) {
+        // Aucun mot-clé configuré = aucune restriction de filière — une seule recherche
+        // (eventuellement filtree par categorie) plutot que de boucler sur des requetes vides.
+        List<String> queryLoop = queries.isEmpty() ? java.util.Collections.singletonList(null) : queries;
+
+        for (String query : queryLoop) {
             if (offers.size() >= maxOffers) {
                 break;
             }
-            try {
-                JsonNode results = search(query);
-                if (results == null || !results.isArray()) {
-                    continue;
+            // Pagination reelle : continue tant qu'une page pleine revient, jusqu'a maxOffers
+            // ou la limite d'acces de l'API (1000 resultats par recherche).
+            for (int page = 1; page <= MAX_PAGE; page++) {
+                if (offers.size() >= maxOffers) {
+                    break;
                 }
-                for (JsonNode job : results) {
-                    ExternalJobOfferDTO dto = mapJob(job);
-                    if (dto != null && seenIds.add(dto.sourceId())) {
-                        offers.add(dto);
-                        if (offers.size() >= maxOffers) {
-                            break;
+                try {
+                    JsonNode results = search(query, category, page);
+                    if (results == null || !results.isArray() || results.isEmpty()) {
+                        break;
+                    }
+                    for (JsonNode job : results) {
+                        ExternalJobOfferDTO dto = mapJob(job);
+                        if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers)
+                                && seenIds.add(dto.sourceId())) {
+                            offers.add(dto);
+                            if (offers.size() >= maxOffers) {
+                                break;
+                            }
                         }
                     }
+                    if (results.size() < PAGE_SIZE) {
+                        break; // derniere page
+                    }
+                } catch (Exception e) {
+                    log.warn("[Adzuna] Erreur recherche '{}' page={}: {}", query, page, e.getMessage());
+                    break;
                 }
-            } catch (Exception e) {
-                log.warn("[Adzuna] Erreur recherche '{}': {}", query, e.getMessage());
             }
         }
         return offers;
     }
 
-    private JsonNode search(String query) {
-        String uri = UriComponentsBuilder.fromUriString(SEARCH_URL)
+    private JsonNode search(String query, String category, int page) {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL + page)
                 .queryParam("app_id", appId)
                 .queryParam("app_key", apiKey)
-                .queryParam("what", query)
-                .queryParam("results_per_page", 50)
-                .queryParam("sort_by", "date")
-                .build()
-                .toUriString();
+                .queryParam("results_per_page", PAGE_SIZE)
+                .queryParam("sort_by", "date");
+        if (query != null) {
+            uriBuilder.queryParam("what", query);
+        }
+        if (category != null && !category.isBlank()) {
+            uriBuilder.queryParam("category", category.trim());
+        }
+        String uri = uriBuilder.build().toUriString();
 
         JsonNode response = restClient.get().uri(uri).retrieve().body(JsonNode.class);
         return response != null ? response.get("results") : null;
@@ -128,12 +155,12 @@ public class AdzunaProvider extends AbstractJobProvider {
             default -> null;
         };
 
-        // Pas de date d'expiration fournie : created + 30 jours
+        // Pas de date d'expiration fournie : created + fenêtre d'expiration configurable
         Instant expiresAt = null;
         String created = textOrNull(job.get("created"));
         if (created != null) {
             try {
-                expiresAt = Instant.parse(created).plus(30, ChronoUnit.DAYS);
+                expiresAt = Instant.parse(created).plus(currentOfferExpirationDays(), ChronoUnit.DAYS);
             } catch (Exception e) {
                 log.debug("[Adzuna] Date 'created' non parsable: {}", created);
             }

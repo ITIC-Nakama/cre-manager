@@ -12,7 +12,6 @@ import DashboardStatCards from './components/DashboardStatCards';
 import StatusDistributionPanel from './components/StatusDistributionPanel';
 import StudentTable from './components/StudentTable';
 import AuditLogPanel from './components/AuditLogPanel';
-import JobboardExternalPanel from './components/JobboardExternalPanel';
 
 export default function AdvisorDashboard() {
   const { t } = useTranslation();
@@ -163,9 +162,6 @@ export default function AdvisorDashboard() {
 
       {/* Student List Widget (Requires Attention) */}
       <StudentTable students={students} loading={loadingStudents} onNotify={handleNotifyStudent} />
-
-      {/* Admin External Jobboard */}
-      {isAdmin && <JobboardExternalPanel />}
 
       {/* Admin Audit Trail */}
       {isAdmin && <AuditLogPanel />}

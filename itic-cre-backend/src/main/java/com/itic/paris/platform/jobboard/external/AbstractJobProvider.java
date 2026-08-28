@@ -4,11 +4,13 @@ import com.itic.paris.platform.jobboard.external.model.ExternalSourceConfig;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,15 +30,18 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
 
     protected final ExternalSourceConfigRepository sourceConfigRepository;
     protected final ContractTypeRepository contractTypeRepository;
+    protected final AppConfigurationService appConfigurationService;
 
     /** Flag d'activation issu de la configuration (jobboard.<source>.enabled). */
     private final boolean enabledByConfig;
 
     protected AbstractJobProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                   ContractTypeRepository contractTypeRepository,
+                                  AppConfigurationService appConfigurationService,
                                   boolean enabledByConfig) {
         this.sourceConfigRepository = sourceConfigRepository;
         this.contractTypeRepository = contractTypeRepository;
+        this.appConfigurationService = appConfigurationService;
         this.enabledByConfig = enabledByConfig;
     }
 
@@ -48,6 +53,50 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
         return sourceConfigRepository.findById(getSource())
                 .map(ExternalSourceConfig::getEnabled)
                 .orElse(true);
+    }
+
+    /** Config persistée éditable par un admin, ou une config vide (aucune restriction) si jamais configurée. */
+    protected ExternalSourceConfig currentConfig() {
+        return sourceConfigRepository.findById(getSource())
+                .orElseGet(() -> new ExternalSourceConfig(getSource(), true));
+    }
+
+    /**
+     * Résout une liste de critères éditable par l'admin (codes ROME, départements, mots-clés...).
+     * Non configuré (null ou vide en base) → aucune restriction sur ce critère. Pas de repli sur
+     * une valeur par défaut codée en dur : le silence d'un admin ne doit jamais présupposer une
+     * filière ("informatique uniquement" ou autre) qu'il n'a pas choisie.
+     */
+    protected List<String> resolveCsvCriteria(String dbValue) {
+        if (dbValue == null || dbValue.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(dbValue.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    /** Nombre maximum d'offres à récupérer par synchronisation, éditable par un admin (Paramètres). */
+    protected int currentMaxOffers() {
+        return appConfigurationService.getJobboardSyncMaxPerProvider();
+    }
+
+    /** Fenêtre d'expiration (en jours) d'une offre depuis sa dernière date connue, éditable par un admin. */
+    protected int currentOfferExpirationDays() {
+        return appConfigurationService.getJobboardOfferExpirationDays();
+    }
+
+    /**
+     * Vérifie si un employeur fait partie de la liste d'exclusion éditable par l'admin
+     * (comparaison insensible à la casse, sous-chaîne — "iscod" exclut "ISCOD Formation").
+     */
+    protected boolean isEmployerExcluded(String company, List<String> excludedEmployers) {
+        if (company == null || excludedEmployers.isEmpty()) {
+            return false;
+        }
+        String lower = company.toLowerCase(Locale.ROOT);
+        return excludedEmployers.stream().anyMatch(excluded -> lower.contains(excluded.toLowerCase(Locale.ROOT)));
     }
 
     /** Construit un RestClient avec des timeouts bornés pour ne jamais bloquer la sync. */

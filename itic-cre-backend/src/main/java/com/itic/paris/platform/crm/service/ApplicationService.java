@@ -221,24 +221,39 @@ public class ApplicationService {
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR,
                         MessageKey.APPLICATION_STATUS_NOT_FOUND));
 
+        // Seuil hebdomadaire anti-farming, source-agnostique (ITIC ou externe) : calculé avant
+        // la création pour ne pas compter la candidature en cours dans sa propre éligibilité.
+        Instant weekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        long recentXpEligibleCount = applicationRepository
+                .countByStudentIdAndViaJobboardTrueAndDateCreationAfter(student.getId(), weekAgo);
+        boolean xpEligible = recentXpEligibleCount < appConfigurationService.getApplicationXpWeeklyLimit();
+
         Application application = new Application();
         application.setStudent(student);
         application.setEntreprise(jobOffer.getCompany());
         application.setPoste(jobOffer.getTitle());
         application.setTypeContrat(jobOffer.getContractType());
         application.setLienOffre(jobOffer.getExternalLink());
+        application.setOffreDescription(jobOffer.getDescription());
+        application.setOffreLocation(jobOffer.getLocation());
+        application.setOffreCompanyLogoUrl(jobOffer.getCompanyLogoUrl());
         application.setNotes("Candidature créée automatiquement via le Jobboard");
         application.setStatus(postuleStatus);
+        application.setViaJobboard(true);
         application.setSourceJobOffer(jobOffer);
 
         Application saved = applicationRepository.save(application);
         recordHistory(saved, null, postuleStatus);
 
-        int xp = postuleStatus.getGainXP() > 0
-                ? postuleStatus.getGainXP()
-                : gamificationService.getConfiguredXP(ActionXP.CANDIDATURE_CREATED);
-        gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED, xp,
-                "Candidature Jobboard : " + jobOffer.getCompany());
+        // La candidature est toujours créée et trackée normalement même hors seuil ; seul le
+        // crédit XP est conditionné (calculé plus haut, avant la création de cette candidature).
+        if (xpEligible) {
+            int xp = postuleStatus.getGainXP() > 0
+                    ? postuleStatus.getGainXP()
+                    : gamificationService.getConfiguredXP(ActionXP.CANDIDATURE_CREATED);
+            gamificationService.awardXP(student, ActionXP.CANDIDATURE_CREATED, xp,
+                    "Candidature Jobboard : " + jobOffer.getCompany());
+        }
 
         updateLastActivity(student);
     }
@@ -307,12 +322,12 @@ public class ApplicationService {
                 && a.getDateModification().isBefore(Instant.now().minus(staleAlertDays, ChronoUnit.DAYS));
 
         List<UUID> reachedStatusIds = historyRepository.findDistinctNewStatusIdByApplicationId(a.getId());
-        boolean viaJobboard = a.getSourceJobOffer() != null;
 
         return new ApplicationDTO(
                 a.getId(), a.getEntreprise(), a.getPoste(), contractTypeDTO,
-                a.getLienOffre(), a.getContact(), a.getNotes(),
-                statusDTO, stale, viaJobboard, reachedStatusIds, xpAwarded,
+                a.getLienOffre(), a.getOffreDescription(), a.getOffreLocation(), a.getOffreCompanyLogoUrl(),
+                a.getContact(), a.getNotes(),
+                statusDTO, stale, a.isViaJobboard(), reachedStatusIds, xpAwarded,
                 a.getDateCreation(), a.getDateModification());
     }
 }

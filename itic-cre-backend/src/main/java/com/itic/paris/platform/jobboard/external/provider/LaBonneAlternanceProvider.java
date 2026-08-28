@@ -5,12 +5,14 @@ import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,26 +30,23 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
     public static final String SOURCE = "BONNE_ALTERNANCE";
 
     private static final String SEARCH_URL = "https://api.apprentissage.beta.gouv.fr/api/job/v1/search";
-    private static final String ROMES = "M1805,M1810,M1802,M1801,M1806";
 
     private final RestClient restClient;
     private final FranceTravailProvider franceTravailProvider;
     private final String apiKey;
     private final String partnersToExclude;
-    private final int maxOffers;
 
     public LaBonneAlternanceProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                      ContractTypeRepository contractTypeRepository,
+                                     AppConfigurationService appConfigurationService,
                                      FranceTravailProvider franceTravailProvider,
                                      @Value("${jobboard.bonnealternance.enabled:true}") boolean enabled,
                                      @Value("${jobboard.bonnealternance.api-key:}") String apiKey,
-                                     @Value("${jobboard.bonnealternance.partners-to-exclude:Indeed}") String partnersToExclude,
-                                     @Value("${jobboard.sync.max-per-provider:300}") int maxOffers) {
-        super(sourceConfigRepository, contractTypeRepository, enabled);
+                                     @Value("${jobboard.bonnealternance.partners-to-exclude:Indeed}") String partnersToExclude) {
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
         this.franceTravailProvider = franceTravailProvider;
         this.apiKey = apiKey;
         this.partnersToExclude = partnersToExclude;
-        this.maxOffers = maxOffers;
         this.restClient = buildRestClient();
     }
 
@@ -74,12 +73,22 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
             exclusions = exclusions + ",France Travail";
         }
 
-        String uri = UriComponentsBuilder.fromUriString(SEARCH_URL)
+        var config = currentConfig();
+        List<String> romes = resolveCsvCriteria(config.getRomeCodes());
+        List<String> departments = resolveCsvCriteria(config.getDepartments());
+        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
                 .queryParam("caller", "ITIC")
-                .queryParam("romes", ROMES)
-                .queryParam("partners_to_exclude", exclusions)
-                .build()
-                .toUriString();
+                .queryParam("partners_to_exclude", exclusions);
+        // Aucun code ROME configuré = aucune restriction de filière (le parametre est optionnel).
+        if (!romes.isEmpty()) {
+            uriBuilder.queryParam("romes", String.join(",", romes));
+        }
+        if (!departments.isEmpty()) {
+            uriBuilder.queryParam("departments", String.join(",", departments));
+        }
+        String uri = uriBuilder.build().toUriString();
 
         JsonNode response = restClient.get()
                 .uri(uri)
@@ -93,13 +102,14 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
             return offers;
         }
 
+        int maxOffers = currentMaxOffers();
         Set<String> seenIds = new LinkedHashSet<>();
         for (JsonNode job : jobs) {
             if (offers.size() >= maxOffers) {
                 break;
             }
             ExternalJobOfferDTO dto = mapJob(job);
-            if (dto != null && seenIds.add(dto.sourceId())) {
+            if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers) && seenIds.add(dto.sourceId())) {
                 offers.add(dto);
             }
         }
@@ -124,6 +134,19 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
             contractTypeLabel = textOrNull(contractTypes.get(0));
         }
 
+        // Contrairement à France Travail/Adzuna (qui ne donnent qu'une date de dernière mise à
+        // jour, d'où une fenêtre d'expiration calculée), La Bonne Alternance fournit directement
+        // la date d'expiration réelle de l'offre — aucun calcul à faire.
+        Instant expiresAt = null;
+        String expiration = textOrNull(job.path("offer").path("publication").get("expiration"));
+        if (expiration != null) {
+            try {
+                expiresAt = Instant.parse(expiration);
+            } catch (Exception e) {
+                log.debug("[LBA] Date 'offer.publication.expiration' non parsable: {}", expiration);
+            }
+        }
+
         return new ExternalJobOfferDTO(
                 "lba:" + rawId,
                 truncate(title, 200),
@@ -133,7 +156,7 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
                 contractTypeLabel,
                 truncate(externalLink, 2048),
                 null,
-                null
+                expiresAt
         );
     }
 }

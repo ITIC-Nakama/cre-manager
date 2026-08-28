@@ -9,10 +9,16 @@ import com.itic.paris.platform.auth.model.dtos.CustomUserDetails;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
+import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +68,25 @@ class JobboardExternalSyncIntegrationTest {
     private JobOfferRepository jobOfferRepository;
 
     @Autowired
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
     private ContractTypeRepository contractTypeRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private String adminToken;
     private String advisorToken;
     private String studentToken;
     private ContractType cdiContract;
+    private Student savedStudent;
 
     @BeforeEach
     void setUp() {
@@ -103,6 +122,7 @@ class JobboardExternalSyncIntegrationTest {
         student.setRole(studentRole);
         student = (Student) userRepository.save(student);
         studentToken = tokenFor(student.getId().toString(), student.getEmail(), studentRole);
+        savedStudent = student;
 
         cdiContract = contractTypeRepository.findAll().stream().findFirst().orElseGet(() -> {
             ContractType ct = new ContractType();
@@ -205,6 +225,101 @@ class JobboardExternalSyncIntegrationTest {
         assertThat(jobOfferRepository.findById(expiredExternal.getId()).orElseThrow().getActive()).isFalse();
         assertThat(jobOfferRepository.findById(futureExternal.getId()).orElseThrow().getActive()).isTrue();
         assertThat(jobOfferRepository.findById(manualWithPastDate.getId()).orElseThrow().getActive()).isTrue();
+    }
+
+    /**
+     * Une offre externe peut avoir une vraie candidature CRM liée (un étudiant a postulé) :
+     * deleteInactiveExternalOffersOlderThan() doit quand même la supprimer — source_job_offer_id
+     * est ON DELETE SET NULL, la candidature survit juste détachée, rien ne bloque le nettoyage.
+     */
+    @Test
+    void deleteInactiveExternalOffersOlderThanDeletesOffersWithLinkedApplications() {
+        var status = applicationStatusRepository.findAll().stream().findFirst().orElseThrow();
+        Instant longExpired = Instant.now().minus(400, ChronoUnit.DAYS);
+
+        JobOffer orphan = newExternalOffer("ADZUNA", "adzuna:cleanup-orphan");
+        orphan.setActive(false);
+        orphan.setExpiresAt(longExpired);
+        orphan = jobOfferRepository.saveAndFlush(orphan);
+
+        JobOffer linked = newExternalOffer("ADZUNA", "adzuna:cleanup-linked");
+        linked.setActive(false);
+        linked.setExpiresAt(longExpired);
+        linked = jobOfferRepository.saveAndFlush(linked);
+
+        Application application = new Application();
+        application.setStudent(savedStudent);
+        application.setEntreprise("Entreprise externe");
+        application.setPoste("Poste de test");
+        application.setStatus(status);
+        application.setViaJobboard(true);
+        application.setSourceJobOffer(linked);
+        application = applicationRepository.saveAndFlush(application);
+        UUID applicationId = application.getId();
+
+        entityManager.clear();
+
+        Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        jobApplicationRepository.deleteByInactiveExternalJobOfferOlderThan(cutoff);
+        int deleted = jobOfferRepository.deleteInactiveExternalOffersOlderThan(cutoff);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(deleted).isEqualTo(2);
+        assertThat(jobOfferRepository.findById(orphan.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(linked.getId())).isEmpty();
+
+        Application survivingApplication = applicationRepository.findById(applicationId).orElseThrow();
+        assertThat(survivingApplication.getEntreprise()).isEqualTo("Entreprise externe");
+        assertThat(survivingApplication.isViaJobboard()).isTrue();
+        assertThat(survivingApplication.getSourceJobOffer()).isNull();
+    }
+
+    /**
+     * Même garantie pour deleteBySource() (déclenché quand un admin désactive une source) :
+     * une candidature liée ne bloque pas la suppression, et le clic "postuler" (JobApplication,
+     * FK NOT NULL sans ON DELETE possible) est purgé explicitement avant l'offre elle-même.
+     */
+    @Test
+    void deleteBySourceDeletesOffersWithLinkedApplicationsAndClicks() {
+        var status = applicationStatusRepository.findAll().stream().findFirst().orElseThrow();
+
+        JobOffer orphan = newExternalOffer("BONNE_ALTERNANCE", "lba:disable-orphan");
+        orphan = jobOfferRepository.saveAndFlush(orphan);
+
+        JobOffer linked = newExternalOffer("BONNE_ALTERNANCE", "lba:disable-linked");
+        linked = jobOfferRepository.saveAndFlush(linked);
+
+        JobApplication click = new JobApplication();
+        click.setJobOffer(linked);
+        click.setStudent(savedStudent);
+        jobApplicationRepository.saveAndFlush(click);
+
+        Application application = new Application();
+        application.setStudent(savedStudent);
+        application.setEntreprise("Entreprise externe");
+        application.setPoste("Poste de test");
+        application.setStatus(status);
+        application.setViaJobboard(true);
+        application.setSourceJobOffer(linked);
+        application = applicationRepository.saveAndFlush(application);
+        UUID applicationId = application.getId();
+
+        entityManager.clear();
+
+        jobApplicationRepository.deleteByJobOfferSource("BONNE_ALTERNANCE");
+        int deleted = jobOfferRepository.deleteBySource("BONNE_ALTERNANCE");
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(deleted).isEqualTo(2);
+        assertThat(jobOfferRepository.findById(orphan.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(linked.getId())).isEmpty();
+        assertThat(jobApplicationRepository.findById(click.getId())).isEmpty();
+
+        Application survivingApplication = applicationRepository.findById(applicationId).orElseThrow();
+        assertThat(survivingApplication.isViaJobboard()).isTrue();
+        assertThat(survivingApplication.getSourceJobOffer()).isNull();
     }
 
     @Test

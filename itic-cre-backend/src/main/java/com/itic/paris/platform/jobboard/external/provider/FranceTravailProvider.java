@@ -5,6 +5,7 @@ import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
+import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -36,27 +37,27 @@ public class FranceTravailProvider extends AbstractJobProvider {
     private static final String SEARCH_URL =
             "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search";
 
-    /** Codes ROME ciblés (informatique). */
-    private static final List<String> ROME_CODES = List.of("M1805", "M1810", "M1802", "M1801", "M1806");
-
     /** Natures de contrat : null = CDI/CDD, E2 = alternance, FS = stage. */
     private static final List<String> NATURES_CONTRAT = java.util.Arrays.asList(null, "E2", "FS");
+
+    /** Taille de page maximale acceptée par l'API (range=0-149 = 150 résultats). */
+    private static final int PAGE_SIZE = 150;
+    /** L'API ne permet pas d'accéder au-delà des 1150 premiers résultats d'une même recherche. */
+    private static final int MAX_RANGE_START = 1000;
 
     private final RestClient restClient;
     private final String clientId;
     private final String clientSecret;
-    private final int maxOffers;
 
     public FranceTravailProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                  ContractTypeRepository contractTypeRepository,
+                                 AppConfigurationService appConfigurationService,
                                  @Value("${jobboard.francetravail.enabled:true}") boolean enabled,
                                  @Value("${jobboard.francetravail.client-id:}") String clientId,
-                                 @Value("${jobboard.francetravail.client-secret:}") String clientSecret,
-                                 @Value("${jobboard.sync.max-per-provider:300}") int maxOffers) {
-        super(sourceConfigRepository, contractTypeRepository, enabled);
+                                 @Value("${jobboard.francetravail.client-secret:}") String clientSecret) {
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-        this.maxOffers = maxOffers;
         this.restClient = buildRestClient();
     }
 
@@ -82,30 +83,52 @@ public class FranceTravailProvider extends AbstractJobProvider {
             throw new IllegalStateException("Impossible d'obtenir un token France Travail");
         }
 
+        var config = currentConfig();
+        List<String> romeCodes = resolveCsvCriteria(config.getRomeCodes());
+        List<String> departments = resolveCsvCriteria(config.getDepartments());
+        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+        String departementParam = departments.isEmpty() ? null : String.join(",", departments);
+        // Aucun code ROME configuré = aucune restriction de filière (verifie : codeROME est optionnel
+        // sur cette API, l'omettre renvoie toutes professions confondues pour les autres criteres donnes).
+        List<String> romeLoop = romeCodes.isEmpty() ? java.util.Collections.singletonList(null) : romeCodes;
+
+        int maxOffers = currentMaxOffers();
         List<ExternalJobOfferDTO> offers = new ArrayList<>();
         Set<String> seenIds = new LinkedHashSet<>();
 
-        for (String rome : ROME_CODES) {
+        for (String rome : romeLoop) {
             for (String nature : NATURES_CONTRAT) {
                 if (offers.size() >= maxOffers) {
                     return offers;
                 }
-                try {
-                    JsonNode resultats = search(accessToken, rome, nature);
-                    if (resultats == null || !resultats.isArray()) {
-                        continue;
+                // Pagination reelle : continue tant qu'une page pleine revient, jusqu'a maxOffers
+                // ou la limite d'acces de l'API (1150 resultats par recherche).
+                for (int rangeStart = 0; rangeStart <= MAX_RANGE_START; rangeStart += PAGE_SIZE) {
+                    if (offers.size() >= maxOffers) {
+                        return offers;
                     }
-                    for (JsonNode offre : resultats) {
-                        ExternalJobOfferDTO dto = mapOffer(offre);
-                        if (dto != null && seenIds.add(dto.sourceId())) {
-                            offers.add(dto);
-                            if (offers.size() >= maxOffers) {
-                                break;
+                    try {
+                        JsonNode resultats = search(accessToken, rome, nature, departementParam, rangeStart);
+                        if (resultats == null || !resultats.isArray() || resultats.isEmpty()) {
+                            break;
+                        }
+                        for (JsonNode offre : resultats) {
+                            ExternalJobOfferDTO dto = mapOffer(offre);
+                            if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers)
+                                    && seenIds.add(dto.sourceId())) {
+                                offers.add(dto);
+                                if (offers.size() >= maxOffers) {
+                                    break;
+                                }
                             }
                         }
+                        if (resultats.size() < PAGE_SIZE) {
+                            break; // derniere page
+                        }
+                    } catch (Exception e) {
+                        log.warn("[FT] Erreur recherche ROME={} nature={} range={}: {}", rome, nature, rangeStart, e.getMessage());
+                        break;
                     }
-                } catch (Exception e) {
-                    log.warn("[FT] Erreur recherche ROME={} nature={}: {}", rome, nature, e.getMessage());
                 }
             }
         }
@@ -135,12 +158,17 @@ public class FranceTravailProvider extends AbstractJobProvider {
         }
     }
 
-    private JsonNode search(String accessToken, String rome, String natureContrat) {
+    private JsonNode search(String accessToken, String rome, String natureContrat, String departement, int rangeStart) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
-                .queryParam("codeROME", rome)
-                .queryParam("range", "0-149");
+                .queryParam("range", rangeStart + "-" + (rangeStart + PAGE_SIZE - 1));
+        if (rome != null) {
+            uriBuilder.queryParam("codeROME", rome);
+        }
         if (natureContrat != null) {
             uriBuilder.queryParam("natureContrat", natureContrat);
+        }
+        if (departement != null) {
+            uriBuilder.queryParam("departement", departement);
         }
         JsonNode response = restClient.get()
                 .uri(uriBuilder.build().toUri())
@@ -169,12 +197,12 @@ public class FranceTravailProvider extends AbstractJobProvider {
         JsonNode origine = offre.get("origineOffre");
         String externalLink = origine != null ? textOrNull(origine.get("urlOrigine")) : null;
 
-        // dateActualisation + 30 jours comme date d'expiration
+        // dateActualisation + fenêtre d'expiration configurable comme date d'expiration
         Instant expiresAt = null;
         String dateActualisation = textOrNull(offre.get("dateActualisation"));
         if (dateActualisation != null) {
             try {
-                expiresAt = Instant.parse(dateActualisation).plus(30, ChronoUnit.DAYS);
+                expiresAt = Instant.parse(dateActualisation).plus(currentOfferExpirationDays(), ChronoUnit.DAYS);
             } catch (Exception e) {
                 log.debug("[FT] dateActualisation non parsable: {}", dateActualisation);
             }

@@ -163,13 +163,15 @@ jobs:
               sudo rsync -a --delete "$BACKUP_ROOT/frontend-previous/" /var/www/html/
               sudo systemctl restart nginx
             fi
-            rm -f itic-cre-backend/.env
             exit 1
           fi
 
-          # --- 4. Nettoyage du secret sur disque une fois l'appli démarrée avec succès ---
-          # (l'appli ne relit .env qu'au démarrage, donc c'est sûr de le retirer maintenant)
-          shred -u itic-cre-backend/.env 2>/dev/null || rm -f itic-cre-backend/.env
+          # --- 4. .env est conservé sur disque (chmod 600, proprietaire github-runner) ---
+          # Le service a "Restart=always" et systemd relit EnvironmentFile= a CHAQUE
+          # redemarrage, pas seulement au premier lancement. Le supprimer ici cassait
+          # le redemarrage automatique en cas de crash ulterieur (ex: OOM) : systemd
+          # echouait alors a relire un fichier .env qui n'existait plus, en boucle
+          # infinie, sans que rien ne puisse s'auto-reparer.
 
       # Notifications Discord
       - name: Notify Discord on Success

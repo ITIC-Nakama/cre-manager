@@ -62,6 +62,7 @@ export interface JobOfferListParams {
     sectorId?: string;
     active?: boolean;
     source?: string;
+    location?: string;
 }
 
 export interface JobOfferPayload {
@@ -81,6 +82,7 @@ export interface ExternalSyncRun {
     insertedCount: number;
     skippedCount: number;
     expiredCount: number;
+    deletedCount: number;
 }
 
 export interface ExternalSourceStat {
@@ -88,6 +90,24 @@ export interface ExternalSourceStat {
     label: string;
     enabled: boolean;
     activeOffers: number;
+    /** Pertinent pour FRANCE_TRAVAIL / BONNE_ALTERNANCE (taxonomie ROME). null = jamais configuré. */
+    romeCodes: string | null;
+    /** Pertinent pour FRANCE_TRAVAIL / BONNE_ALTERNANCE. */
+    departments: string | null;
+    /** Pertinent pour ADZUNA (pas de ROME côté Adzuna). */
+    keywords: string | null;
+    /** Pertinent pour ADZUNA. */
+    category: string | null;
+    /** Employeurs exclus (CSV) : filtre les officines de formation qui postent de fausses offres. */
+    excludedEmployers: string | null;
+}
+
+export interface ExternalSourceCriteriaPayload {
+    romeCodes: string;
+    departments: string;
+    keywords: string;
+    category: string;
+    excludedEmployers: string;
 }
 
 export interface ExternalJobboardStats {
