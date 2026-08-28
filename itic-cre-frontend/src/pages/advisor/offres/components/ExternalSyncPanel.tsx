@@ -297,6 +297,18 @@ export default function ExternalSyncPanel() {
                                                         className="w-full rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                                                     />
                                                 </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                                                        {t('dashboard.admin.jobboard_external.field_location', 'Localisation')}
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={form.departments}
+                                                        onChange={(e) => handleFieldChange(source.source, 'departments', e.target.value)}
+                                                        placeholder={t('dashboard.admin.jobboard_external.field_location_placeholder', 'Ex: Paris, Lyon — vide = toute la France')}
+                                                        className="w-full rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                                                    />
+                                                </div>
                                             </>
                                         )}
                                         <div>

@@ -72,6 +72,9 @@ public class AdzunaProvider extends AbstractJobProvider {
         var config = currentConfig();
         List<String> queries = resolveCsvCriteria(config.getKeywords());
         String category = config.getCategory() != null ? config.getCategory() : null;
+        // Adzuna n'a pas de taxonomie ROME : le champ "departments" est reutilise ici comme
+        // localisation libre (ex: "Paris", "Lyon"), au format attendu par le parametre "where".
+        String location = config.getDepartments() != null ? config.getDepartments().trim() : null;
         List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
 
         int maxOffers = currentMaxOffers();
@@ -93,7 +96,7 @@ public class AdzunaProvider extends AbstractJobProvider {
                     break;
                 }
                 try {
-                    JsonNode results = search(query, category, page);
+                    JsonNode results = search(query, category, location, page);
                     if (results == null || !results.isArray() || results.isEmpty()) {
                         break;
                     }
@@ -119,7 +122,7 @@ public class AdzunaProvider extends AbstractJobProvider {
         return offers;
     }
 
-    private JsonNode search(String query, String category, int page) {
+    private JsonNode search(String query, String category, String location, int page) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL + page)
                 .queryParam("app_id", appId)
                 .queryParam("app_key", apiKey)
@@ -130,6 +133,9 @@ public class AdzunaProvider extends AbstractJobProvider {
         }
         if (category != null && !category.isBlank()) {
             uriBuilder.queryParam("category", category.trim());
+        }
+        if (location != null && !location.isBlank()) {
+            uriBuilder.queryParam("where", location);
         }
         String uri = uriBuilder.build().toUriString();
 

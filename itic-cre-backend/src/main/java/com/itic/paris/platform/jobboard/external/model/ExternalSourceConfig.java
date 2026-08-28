@@ -13,9 +13,11 @@ import lombok.NoArgsConstructor;
  * (édités par un admin, pas de redéploiement nécessaire). Survit aux redémarrages,
  * contrairement aux valeurs par défaut de application.properties.
  *
- * Champs interprétés différemment selon la source : romeCodes/departments pour
- * FRANCE_TRAVAIL et BONNE_ALTERNANCE (les deux exposent la taxonomie ROME) ;
- * keywords/category pour ADZUNA (pas de ROME côté Adzuna). Vide = pas de restriction
+ * Champs interprétés différemment selon la source : romeCodes/departments (codes
+ * numériques, ex "75,92,93") pour FRANCE_TRAVAIL et BONNE_ALTERNANCE (les deux exposent
+ * la taxonomie ROME) ; keywords/category pour ADZUNA (pas de ROME côté Adzuna), qui
+ * réutilise aussi "departments" mais comme localisation libre (ex "Paris", "Lyon"),
+ * au format attendu par le paramètre "where" de l'API Adzuna. Vide = pas de restriction
  * sur ce critère.
  */
 @Data

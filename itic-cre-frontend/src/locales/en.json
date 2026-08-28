@@ -209,6 +209,8 @@
         "field_keywords_placeholder": "Empty = no restriction",
         "field_category": "Category",
         "field_category_placeholder": "E.g. it-jobs — empty = all categories",
+        "field_location": "Location",
+        "field_location_placeholder": "E.g. Paris, London — empty = whole country",
         "field_excluded_employers": "Excluded employers",
         "field_excluded_employers_placeholder": "E.g. ISCOD,CFA ITIS — empty = no exclusion",
         "save_criteria": "Save",

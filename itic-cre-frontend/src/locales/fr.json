@@ -209,6 +209,8 @@
         "field_keywords_placeholder": "Vide = aucune restriction",
         "field_category": "Catégorie",
         "field_category_placeholder": "Ex: it-jobs — vide = toutes catégories",
+        "field_location": "Localisation",
+        "field_location_placeholder": "Ex: Paris, Lyon — vide = toute la France",
         "field_excluded_employers": "Employeurs exclus",
         "field_excluded_employers_placeholder": "Ex: ISCOD,CFA ITIS — vide = aucune exclusion",
         "save_criteria": "Enregistrer",
