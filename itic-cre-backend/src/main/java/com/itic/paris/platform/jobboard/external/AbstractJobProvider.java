@@ -109,7 +109,8 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
 
     /**
      * Résout le type de contrat ITIC à partir du libellé fourni par la source.
-     * Fallback sur CDI, puis sur le premier type actif disponible.
+     * Renvoie null si le libellé ne correspond à aucune catégorie reconnue — l'appelant
+     * doit alors ignorer l'offre plutôt que de deviner un type de contrat erroné.
      */
     public ContractType resolveContractType(String contractTypeLabel) {
         List<ContractType> types = contractTypeRepository.findAll().stream()
@@ -118,22 +119,17 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
 
         String l = contractTypeLabel == null ? "" : contractTypeLabel.toLowerCase(Locale.ROOT);
 
-        ContractType match;
         if (l.contains("apprenti") || l.contains("professionnalisation") || l.contains("alternance")) {
-            match = findByLabel(types, "alternance");
+            return findByLabel(types, "alternance");
         } else if (l.contains("stage") || l.contains("internship")) {
-            match = findByLabel(types, "stage");
+            return findByLabel(types, "stage");
+        } else if (l.contains("cdi") || l.contains("permanent") || l.contains("indéterminée") || l.contains("indeterminee")) {
+            return findByLabel(types, "cdi");
         } else if (l.contains("cdd") || l.contains("contract") || l.contains("temporary")
-                || l.contains("intérim") || l.contains("interim")) {
-            match = findByLabel(types, "cdd");
-        } else {
-            match = findByLabel(types, "cdi");
+                || l.contains("intérim") || l.contains("interim") || l.contains("déterminée") || l.contains("determinee")) {
+            return findByLabel(types, "cdd");
         }
-
-        if (match == null) {
-            match = types.stream().findFirst().orElse(null);
-        }
-        return match;
+        return null;
     }
 
     private ContractType findByLabel(List<ContractType> types, String label) {

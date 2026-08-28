@@ -214,7 +214,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 truncate(company != null ? company : "Entreprise confidentielle", 100),
                 offre.path("description").asText(""),
                 truncate(location, 500),
-                textOrNull(offre.get("typeContrat")),
+                textOrNull(offre.get("typeContratLibelle")),
                 truncate(externalLink, 2048),
                 truncate(logoUrl, 2048),
                 expiresAt

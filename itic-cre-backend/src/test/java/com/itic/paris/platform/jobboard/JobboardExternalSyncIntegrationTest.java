@@ -12,6 +12,7 @@ import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.JobOffer;
@@ -72,6 +73,9 @@ class JobboardExternalSyncIntegrationTest {
 
     @Autowired
     private ContractTypeRepository contractTypeRepository;
+
+    @Autowired
+    private FranceTravailProvider franceTravailProvider;
 
     @Autowired
     private ApplicationRepository applicationRepository;
@@ -320,6 +324,22 @@ class JobboardExternalSyncIntegrationTest {
         Application survivingApplication = applicationRepository.findById(applicationId).orElseThrow();
         assertThat(survivingApplication.isViaJobboard()).isTrue();
         assertThat(survivingApplication.getSourceJobOffer()).isNull();
+    }
+
+    /**
+     * resolveContractType() est mutualisé entre les 3 providers externes (AbstractJobProvider) :
+     * seul un libellé contenant un mot-clé reconnu résout vers un ContractType ; sans correspondance,
+     * la méthode renvoie null et persistOffers() ignore l'offre plutôt que de deviner un type erroné.
+     */
+    @Test
+    void resolveContractTypeMatchesKnownKeywordsAndReturnsNullOtherwise() {
+        assertThat(franceTravailProvider.resolveContractType("CDI").getLabel()).isEqualTo("CDI");
+        assertThat(franceTravailProvider.resolveContractType("CDD - 6 Mois").getLabel()).isEqualTo("CDD");
+        assertThat(franceTravailProvider.resolveContractType("Intérim - 26 Jour(s)").getLabel()).isEqualTo("CDD");
+        assertThat(franceTravailProvider.resolveContractType("Contrat d'apprentissage").getLabel()).isEqualTo("Alternance");
+        assertThat(franceTravailProvider.resolveContractType("Convention de stage").getLabel()).isEqualTo("Stage");
+        assertThat(franceTravailProvider.resolveContractType("Profession libérale")).isNull();
+        assertThat(franceTravailProvider.resolveContractType(null)).isNull();
     }
 
     @Test
