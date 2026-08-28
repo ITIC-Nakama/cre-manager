@@ -109,8 +109,8 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
 
     /**
      * Résout le type de contrat ITIC à partir du libellé fourni par la source.
-     * Renvoie null si le libellé ne correspond à aucune catégorie reconnue — l'appelant
-     * doit alors ignorer l'offre plutôt que de deviner un type de contrat erroné.
+     * Retombe sur le type "Inconnu" (jamais deviné en CDI) quand le libellé ne correspond
+     * à aucune catégorie reconnue, ou qu'aucun libellé n'est fourni par la source.
      */
     public ContractType resolveContractType(String contractTypeLabel) {
         List<ContractType> types = contractTypeRepository.findAll().stream()
@@ -129,7 +129,7 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
                 || l.contains("intérim") || l.contains("interim") || l.contains("déterminée") || l.contains("determinee")) {
             return findByLabel(types, "cdd");
         }
-        return null;
+        return findByLabel(types, "inconnu");
     }
 
     private ContractType findByLabel(List<ContractType> types, String label) {

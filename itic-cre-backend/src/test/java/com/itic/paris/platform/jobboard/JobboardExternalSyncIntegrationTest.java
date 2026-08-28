@@ -328,18 +328,19 @@ class JobboardExternalSyncIntegrationTest {
 
     /**
      * resolveContractType() est mutualisé entre les 3 providers externes (AbstractJobProvider) :
-     * seul un libellé contenant un mot-clé reconnu résout vers un ContractType ; sans correspondance,
-     * la méthode renvoie null et persistOffers() ignore l'offre plutôt que de deviner un type erroné.
+     * seul un libellé contenant un mot-clé reconnu résout vers son ContractType dédié ; sans
+     * correspondance (libellé exotique ou absent), la méthode retombe sur le type "Inconnu"
+     * plutôt que de deviner CDI ou d'ignorer l'offre.
      */
     @Test
-    void resolveContractTypeMatchesKnownKeywordsAndReturnsNullOtherwise() {
+    void resolveContractTypeMatchesKnownKeywordsAndFallsBackToInconnu() {
         assertThat(franceTravailProvider.resolveContractType("CDI").getLabel()).isEqualTo("CDI");
         assertThat(franceTravailProvider.resolveContractType("CDD - 6 Mois").getLabel()).isEqualTo("CDD");
         assertThat(franceTravailProvider.resolveContractType("Intérim - 26 Jour(s)").getLabel()).isEqualTo("CDD");
         assertThat(franceTravailProvider.resolveContractType("Contrat d'apprentissage").getLabel()).isEqualTo("Alternance");
         assertThat(franceTravailProvider.resolveContractType("Convention de stage").getLabel()).isEqualTo("Stage");
-        assertThat(franceTravailProvider.resolveContractType("Profession libérale")).isNull();
-        assertThat(franceTravailProvider.resolveContractType(null)).isNull();
+        assertThat(franceTravailProvider.resolveContractType("Profession libérale").getLabel()).isEqualTo("Inconnu");
+        assertThat(franceTravailProvider.resolveContractType(null).getLabel()).isEqualTo("Inconnu");
     }
 
     @Test

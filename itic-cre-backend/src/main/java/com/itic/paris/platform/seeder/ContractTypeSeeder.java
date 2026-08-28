@@ -27,7 +27,8 @@ public class ContractTypeSeeder implements ApplicationRunner {
                 build("CDI",        "Contrat à Durée Indéterminée"),
                 build("CDD",        "Contrat à Durée Déterminée"),
                 build("Stage",      "Convention de stage (2 à 6 mois)"),
-                build("Alternance", "Contrat d'apprentissage ou de professionnalisation")
+                build("Alternance", "Contrat d'apprentissage ou de professionnalisation"),
+                build("Inconnu",    "Type de contrat non déterminé par la source externe")
         );
 
         contractTypeRepository.saveAll(types);
