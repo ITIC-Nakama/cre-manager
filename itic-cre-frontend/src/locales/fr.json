@@ -180,6 +180,49 @@
         "theme_toggle_dark": "Passer en mode sombre"
       }
     },
+    "admin": {
+      "jobboard_external": {
+        "title": "Jobboard externe",
+        "subtitle": "Aucun critère = aucune restriction, toutes filières confondues.",
+        "sync_now": "Synchroniser maintenant",
+        "syncing": "Synchronisation…",
+        "last_sync": "Dernière synchro : {{date}}",
+        "never_synced": "Jamais synchronisé.",
+        "inserted": "{{count}} insérées",
+        "skipped": "{{count}} ignorées",
+        "expired": "{{count}} expirées",
+        "deleted": "{{count}} supprimées",
+        "active_offers_one": "{{count}} offre active",
+        "active_offers_other": "{{count}} offres actives",
+        "source_enabled": "Source activée",
+        "source_disabled": "Source désactivée",
+        "status": {
+          "SUCCESS": "Succès",
+          "PARTIAL": "Partielle",
+          "FAILED": "Échec"
+        },
+        "field_rome_codes": "Codes ROME",
+        "field_rome_codes_placeholder": "Vide = toutes filières",
+        "field_departments": "Départements",
+        "field_departments_placeholder": "Ex: 75,92,93 — vide = toute la France",
+        "field_keywords": "Mots-clés",
+        "field_keywords_placeholder": "Vide = aucune restriction",
+        "field_category": "Catégorie",
+        "field_category_placeholder": "Ex: it-jobs — vide = toutes catégories",
+        "field_excluded_employers": "Employeurs exclus",
+        "field_excluded_employers_placeholder": "Ex: ISCOD,CFA ITIS — vide = aucune exclusion",
+        "save_criteria": "Enregistrer",
+        "toast_sync_started": "Synchronisation lancée.",
+        "toast_sync_error": "Impossible de lancer la synchronisation.",
+        "toast_toggle_error": "Impossible de modifier la source.",
+        "toast_criteria_saved": "Critères mis à jour.",
+        "toast_criteria_error": "Impossible d'enregistrer les critères.",
+        "confirm_disable_title": "Désactiver cette source ?",
+        "confirm_disable_message_one": "L'offre actuellement importée depuis {{label}} sera définitivement supprimée. La réactivation ne la restaure pas — une nouvelle synchronisation la récupérera à nouveau.",
+        "confirm_disable_message_other": "Les {{count}} offres actuellement importées depuis {{label}} seront définitivement supprimées. La réactivation ne les restaure pas — une nouvelle synchronisation les récupérera à nouveau.",
+        "confirm_disable_button": "Désactiver et supprimer"
+      }
+    },
     "advisor": {
       "greeting": "Bonjour, {{name}} 👋",
       "role_admin": "Admin",
@@ -390,6 +433,7 @@
         "contract": "Type de contrat",
         "contact": "Contact",
         "view_offer": "Voir l'offre",
+        "offer_snapshot": "Détails de l'offre",
         "notes": "Notes",
         "stale": "En retard",
         "created_at": "Créée le {{date}}",
@@ -407,8 +451,6 @@
           "in_progress": "En cours",
           "completed": "Terminées"
         },
-        "pagination_prev": "Précédent",
-        "pagination_next": "Suivant",
         "pagination_info": "Page {{current}} sur {{total}}",
         "card": {
           "via_jobboard": "Via le jobboard",
@@ -450,6 +492,7 @@
           "contract": "Type de contrat",
           "contact": "Contact",
           "view_offer": "Voir l'offre",
+          "offer_snapshot": "Détails de l'offre",
           "notes": "Notes",
           "no_notes": "Aucune note.",
           "notes_save": "Enregistrer les notes",
@@ -490,9 +533,38 @@
       "subtitle_other": "{{count}} offres disponibles",
       "create_button": "Publier une offre",
       "search_placeholder": "Rechercher (intitulé, entreprise)…",
+      "location_placeholder": "Ville, département...",
       "filter_all_contracts": "Tous les types de contrat",
+      "filters_button": "Filtres",
+      "filters_button_active_one": "Filtres ({{count}})",
+      "filters_button_active_other": "Filtres ({{count}})",
+      "filters_reset": "Réinitialiser les filtres",
+      "tabs": {
+        "itic": "Offres ITIC",
+        "external": "Marché externe"
+      },
+      "external": {
+        "subtitle_one": "{{count}} offre externe disponible",
+        "subtitle_other": "{{count}} offres externes disponibles",
+        "filter_all_sources": "Toutes les sources",
+        "view_offer": "Voir l'offre",
+        "empty": "Aucune offre externe ne correspond à vos critères.",
+        "sources": {
+          "FRANCE_TRAVAIL": "France Travail",
+          "BONNE_ALTERNANCE": "La Bonne Alternance",
+          "ADZUNA": "Adzuna"
+        }
+      },
       "filter_all_sectors": "Tous les secteurs",
       "filter_all_statuses": "Toutes les offres",
+      "source_options": {
+        "manual": "Offres ITIC (manuelles)",
+        "external": "Offres externes (toutes)",
+        "france_travail": "France Travail",
+        "bonne_alternance": "La Bonne Alternance",
+        "adzuna": "Adzuna"
+      },
+      "external_sync_button": "Offres externes",
       "categories_button": "Secteurs & contrats",
       "categories": {
         "page_title": "Secteurs & types de contrat",
@@ -541,6 +613,7 @@
         "location": "Lieu",
         "contract": "Type de contrat",
         "sector": "Secteur",
+        "source": "Source",
         "applications": "Candidatures",
         "status": "Statut",
         "active": "Active",
@@ -559,9 +632,7 @@
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} offre",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} offres",
-        "prev": "Précédent",
-        "next": "Suivant"
+        "info_other": "Page {{current}} sur {{total}} — {{count}} offres"
       },
       "form": {
         "create_title": "Publier une offre",
@@ -606,7 +677,6 @@
         "deactivated": "Offre désactivée.",
         "activated": "Offre réactivée.",
         "deleted": "Offre supprimée.",
-        "has_applications": "Impossible de supprimer : des candidatures sont liées à cette offre. Désactivez-la plutôt.",
         "action_error": "Une erreur est survenue.",
         "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",
@@ -786,9 +856,7 @@
       "toast_title_too_long": "Le titre ne doit pas dépasser 200 caractères.",
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} article",
-        "info_other": "Page {{current}} sur {{total}} — {{count}} articles",
-        "prev": "Précédent",
-        "next": "Suivant"
+        "info_other": "Page {{current}} sur {{total}} — {{count}} articles"
       },
       "toast_question_too_long": "La question est trop longue.",
       "toast_question_option_too_long": "Une option de réponse est trop longue."
@@ -965,9 +1033,7 @@
         "empty": "Aucun membre ne correspond à vos critères."
       },
       "pagination": {
-        "info": "Page {{current}} sur {{total}} — {{count}} membres",
-        "prev": "Précédent",
-        "next": "Suivant"
+        "info": "Page {{current}} sur {{total}} — {{count}} membres"
       },
       "actions": {
         "edit": "Modifier",
@@ -1091,9 +1157,7 @@
         "empty": "Aucun log ne correspond à vos critères."
       },
       "pagination": {
-        "info": "Page {{current}} sur {{total}} — {{count}} entrées",
-        "prev": "Précédent",
-        "next": "Suivant"
+        "info": "Page {{current}} sur {{total}} — {{count}} entrées"
       },
       "subtitle": "Consultez l'historique des actions et évènements de sécurité sur la plateforme."
     },
@@ -1165,7 +1229,11 @@
           "GDPR_OTP_RETENTION_HOURS": "Durée de conservation des codes OTP de vérification d'email (heures)",
           "GDPR_AUDIT_LOG_RETENTION_DAYS": "Durée de conservation légale des journaux d'audit et traçabilité (jours)",
           "GDPR_INACTIVE_STUDENT_RETENTION_DAYS": "Durée avant anonymisation/suppression automatique des comptes inactifs (jours)",
-          "INACTIVE_STUDENT_DAYS": "Nombre de jours sans connexion avant qu'un étudiant soit considéré comme inactif (statistiques)"
+          "INACTIVE_STUDENT_DAYS": "Nombre de jours sans connexion avant qu'un étudiant soit considéré comme inactif (statistiques)",
+          "JOBBOARD_SYNC_MAX_PER_PROVIDER": "Nombre maximum d'offres récupérées par source externe (France Travail, Adzuna, La Bonne Alternance) à chaque synchronisation",
+          "JOBBOARD_OFFER_EXPIRATION_DAYS": "Nombre de jours après la dernière mise à jour connue d'une offre externe (France Travail, Adzuna) avant de la considérer expirée",
+          "JOBBOARD_OFFER_DELETE_AFTER_DAYS": "Nombre de jours après expiration avant suppression définitive d'une offre externe en base",
+          "APPLICATION_XP_WEEKLY_LIMIT": "Nombre maximum de candidatures \"postuler\" (ITIC ou externe) créditées en XP par étudiant sur 7 jours glissants"
         }
       },
       "preferences": {

@@ -6,6 +6,8 @@ import type {
     JobApplicationPage,
     JobOfferListParams,
     JobOfferPayload,
+    ExternalJobboardStats,
+    ExternalSourceCriteriaPayload,
     SectorDetail,
 } from '../../types/models/JobOffer';
 
@@ -64,4 +66,27 @@ export function fetchMyJobApplications(): Promise<JobApplicationPage> {
 
 export function withdrawJobApplication(id: string): Promise<void> {
     return apiClient.delete(`/jobboard/applications/${id}/withdraw`).then(() => undefined);
+}
+
+// Admin — jobboard externe
+export function fetchExternalJobboardStats(): Promise<ExternalJobboardStats> {
+    return apiClient
+        .get('/jobboard/admin/external/stats')
+        .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
+export function triggerExternalJobboardSync(): Promise<void> {
+    return apiClient.post('/jobboard/admin/external/sync').then(() => undefined);
+}
+
+export function toggleExternalJobboardSource(source: string): Promise<ExternalJobboardStats> {
+    return apiClient
+        .put(`/jobboard/admin/external/sources/${source}/toggle`)
+        .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
+export function updateExternalSourceCriteria(source: string, criteria: ExternalSourceCriteriaPayload): Promise<ExternalJobboardStats> {
+    return apiClient
+        .put(`/jobboard/admin/external/sources/${source}/criteria`, criteria)
+        .then((response) => unwrap<ExternalJobboardStats>(response));
 }

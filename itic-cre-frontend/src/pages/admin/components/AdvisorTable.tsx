@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import {
   Loader2, UserCog, Pencil, Trash2, UserCheck,
-  Mail, Phone, KeyRound, UserX,
+  Mail, Phone, KeyRound, UserX, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
 
@@ -185,16 +185,18 @@ export default function AdvisorTable({
             <button
               onClick={() => onPageChange(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              {t('dashboard.conseillers.pagination.prev')}
+              <ChevronLeft className="h-4 w-4" />
+              <span>{t('common.prev')}</span>
             </button>
             <button
               onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              {t('dashboard.conseillers.pagination.next')}
+              <span>{t('common.next')}</span>
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>

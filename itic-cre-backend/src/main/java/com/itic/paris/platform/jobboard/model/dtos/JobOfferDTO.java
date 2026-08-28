@@ -30,6 +30,12 @@ public class JobOfferDTO {
 
     private String externalLink;
 
+    private String source;
+
+    private String companyLogoUrl;
+
+    private Instant expiresAt;
+
     private Boolean active;
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)

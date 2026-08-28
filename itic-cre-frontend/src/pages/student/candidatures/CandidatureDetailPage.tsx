@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, ExternalLink, Loader2, NotebookPen, Pencil, RotateCcw, Save, Trash2, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, Loader2, MapPin, NotebookPen, Pencil, RotateCcw, Save, Trash2, XCircle } from 'lucide-react';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useApplicationStatuses } from '../../../hooks/useApplications';
@@ -229,6 +229,34 @@ export default function CandidatureDetailPage() {
                         <ExternalLink className="h-3.5 w-3.5" />
                         {t('dashboard.candidatures.student.detail.view_offer')}
                     </a>
+                )}
+
+                {(candidature.offreDescription || candidature.offreLocation) && (
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 p-4 space-y-2.5">
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            {candidature.offreCompanyLogoUrl ? (
+                                <img
+                                    src={candidature.offreCompanyLogoUrl}
+                                    alt={candidature.entreprise}
+                                    className="h-5 w-5 rounded object-contain border border-slate-200 dark:border-slate-800 bg-white"
+                                />
+                            ) : (
+                                <Briefcase className="h-4 w-4 text-indigo-500" />
+                            )}
+                            <h3>{t('dashboard.candidatures.student.detail.offer_snapshot', "Détails de l'offre")}</h3>
+                            {candidature.offreLocation && (
+                                <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium normal-case text-slate-500 dark:text-slate-400">
+                                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                                    {candidature.offreLocation}
+                                </span>
+                            )}
+                        </div>
+                        {candidature.offreDescription && (
+                            <p className="text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300 break-words">
+                                {candidature.offreDescription}
+                            </p>
+                        )}
+                    </div>
                 )}
 
                 <div>

@@ -20,7 +20,9 @@ import {
   EyeOff,
   ChevronUp,
   ChevronDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import type { ArticleSummary } from '../../../../types/models/Skill';
@@ -218,16 +220,18 @@ export default function ArticlesTable({
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium text-slate-700 dark:text-slate-300"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-700 dark:text-slate-300"
             >
-              {t('dashboard.formation.pagination.prev', 'Précédent')}
+              <ChevronLeft className="h-4 w-4" />
+              <span>{t('common.prev')}</span>
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-xs font-medium text-slate-700 dark:text-slate-300"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-700 dark:text-slate-300"
             >
-              {t('dashboard.formation.pagination.next', 'Suivant')}
+              <span>{t('common.next')}</span>
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>

@@ -47,25 +47,30 @@ public class JobOfferController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/sectorId")
+    @Operation(summary = "Lister les offres actives — filtres optionnels search/contractTypeId/sectorId/source/location "
+            + "(source=MANUAL par défaut, EXTERNAL pour toutes les offres externes, ou une source précise)")
     public ResponseEntity<Page<JobOfferDTO>> getActive(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
             @RequestParam(required = false) UUID sectorId,
+            @RequestParam(required = false) String source,
+            @RequestParam(required = false) String location,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, source, location, pageable));
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId/active")
+    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId/source/active/location")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
             @RequestParam(required = false) UUID sectorId,
+            @RequestParam(required = false) String source,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) String location,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, active, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location, pageable));
     }
 
     @GetMapping("/search/company")

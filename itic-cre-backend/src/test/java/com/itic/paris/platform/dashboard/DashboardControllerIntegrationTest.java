@@ -539,6 +539,52 @@ public class DashboardControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.content", hasSize(1)))
                     .andExpect(jsonPath("$.data.content[0].studentId").value(activeStudent.getId().toString()));
         }
+
+        /**
+         * ApplicationReportingService construit sa reponse a la main (Map, pas ApplicationDTO) —
+         * un chemin de mapping distinct de celui utilise par /applications. Verifie que les deux
+         * endpoints qu'il alimente exposent bien viaJobboard et l'instantane de l'offre.
+         */
+        @Test
+        @DisplayName("GET /dashboard/applications and /grouped-by-student expose viaJobboard and the offer snapshot")
+        void applicationEndpointsExposeJobboardSnapshotFields() throws Exception {
+            ApplicationStatus status = applicationStatusRepository.findAll().stream().findFirst().orElseThrow();
+
+            Application jobboardApplication = new Application();
+            jobboardApplication.setStudent(activeStudent);
+            jobboardApplication.setEntreprise("Jobboard Corp");
+            jobboardApplication.setPoste("Developpeur Jobboard");
+            jobboardApplication.setStatus(status);
+            jobboardApplication.setViaJobboard(true);
+            jobboardApplication.setOffreDescription("Description complete de l'offre");
+            jobboardApplication.setOffreLocation("Lyon (69)");
+            jobboardApplication.setOffreCompanyLogoUrl("https://example.com/logo.png");
+            applicationRepository.save(jobboardApplication);
+
+            mockMvc.perform(get("/dashboard/applications")
+                            .param("search", "Jobboard Corp")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(1)))
+                    .andExpect(jsonPath("$.data.content[0].viaJobboard").value(true))
+                    .andExpect(jsonPath("$.data.content[0].offreDescription").value("Description complete de l'offre"))
+                    .andExpect(jsonPath("$.data.content[0].offreLocation").value("Lyon (69)"))
+                    .andExpect(jsonPath("$.data.content[0].offreCompanyLogoUrl").value("https://example.com/logo.png"));
+
+            // search filtre le groupe par etudiant ayant AU MOINS une candidature correspondante,
+            // mais renvoie TOUTES ses candidatures (activeStudent en a deja 2 via @BeforeEach) —
+            // la plus recente (celle-ci) arrive en tete, triee par date de creation descendante.
+            mockMvc.perform(get("/dashboard/applications/grouped-by-student")
+                            .param("search", "Jobboard Corp")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(1)))
+                    .andExpect(jsonPath("$.data.content[0].applications", hasSize(3)))
+                    .andExpect(jsonPath("$.data.content[0].applications[0].viaJobboard").value(true))
+                    .andExpect(jsonPath("$.data.content[0].applications[0].offreDescription").value("Description complete de l'offre"))
+                    .andExpect(jsonPath("$.data.content[0].applications[0].offreLocation").value("Lyon (69)"))
+                    .andExpect(jsonPath("$.data.content[0].applications[0].offreCompanyLogoUrl").value("https://example.com/logo.png"));
+        }
     }
 
     @Nested

@@ -55,7 +55,7 @@ export default function JobOfferDetailModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
@@ -63,9 +63,17 @@ export default function JobOfferDetailModal({
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/30">
                     <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/40 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400 shadow-xs">
-                            <Building2 className="h-6 w-6" />
-                        </div>
+                        {offer.companyLogoUrl ? (
+                            <img
+                                src={offer.companyLogoUrl}
+                                alt={offer.company}
+                                className="h-12 w-12 rounded-2xl object-contain border border-slate-200 dark:border-slate-800 bg-white shrink-0 shadow-xs"
+                            />
+                        ) : (
+                            <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/40 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400 shadow-xs">
+                                <Building2 className="h-6 w-6" />
+                            </div>
+                        )}
                         <div className="min-w-0">
                             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight break-words">
                                 {offer.title}

@@ -101,6 +101,9 @@ public class ApplicationReportingService {
                     ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
                     : null);
             row.put("lienOffre", app.getLienOffre());
+            row.put("offreDescription", app.getOffreDescription());
+            row.put("offreLocation", app.getOffreLocation());
+            row.put("offreCompanyLogoUrl", app.getOffreCompanyLogoUrl());
             row.put("contact", app.getContact());
             row.put("notes", app.getNotes());
             row.put("status", Map.of(
@@ -110,6 +113,7 @@ public class ApplicationReportingService {
                     "declencheAlerte", app.getStatus().getDeclencheAlerte()
             ));
             row.put("stale", isStale);
+            row.put("viaJobboard", app.isViaJobboard());
             row.put("dateCreation", app.getDateCreation());
             row.put("dateModification", app.getDateModification());
             return row;
@@ -205,6 +209,9 @@ public class ApplicationReportingService {
                                 ? Map.of("id", app.getTypeContrat().getId(), "label", app.getTypeContrat().getLabel())
                                 : null);
                         row.put("lienOffre", app.getLienOffre());
+                        row.put("offreDescription", app.getOffreDescription());
+                        row.put("offreLocation", app.getOffreLocation());
+                        row.put("offreCompanyLogoUrl", app.getOffreCompanyLogoUrl());
                         row.put("contact", app.getContact());
                         row.put("notes", app.getNotes());
                         row.put("status", Map.of(
@@ -214,6 +221,7 @@ public class ApplicationReportingService {
                                 "declencheAlerte", app.getStatus().getDeclencheAlerte()
                         ));
                         row.put("stale", isStale);
+                        row.put("viaJobboard", app.isViaJobboard());
                         row.put("dateCreation", app.getDateCreation());
                         row.put("dateModification", app.getDateModification());
                         return row;

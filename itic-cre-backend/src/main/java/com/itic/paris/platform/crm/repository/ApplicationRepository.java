@@ -25,8 +25,6 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     Optional<Application> findByStudentIdAndSourceJobOfferId(UUID studentId, UUID jobOfferId);
 
-    long countBySourceJobOfferId(UUID jobOfferId);
-
     boolean existsByStudentId(UUID studentId);
 
     long countByStudentId(UUID studentId);
@@ -66,4 +64,8 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
     long countStaleApplicationsForStudents(List<UUID> studentIds, Instant threshold);
 
     long countByDateCreationAfterAndStudentIdIn(Instant since, List<UUID> studentIds);
+
+    /** Candidatures jobboard (ITIC ou externe) de cet étudiant depuis :since — sert de base
+      * au seuil hebdomadaire anti-farming d'XP (source-agnostique, cf. createFromJobboard). */
+    long countByStudentIdAndViaJobboardTrueAndDateCreationAfter(UUID studentId, Instant since);
 }

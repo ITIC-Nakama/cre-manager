@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -48,6 +50,19 @@ public class Application {
     @Column(name = "lien_offre", length = 500)
     private String lienOffre;
 
+    /** Copiée depuis l'offre jobboard à la création (candidature créée via le jobboard uniquement).
+      * Comme entreprise/poste/lienOffre : un instantané, jamais mis à jour si l'offre change ensuite. */
+    @Column(columnDefinition = "TEXT", name = "offre_description")
+    private String offreDescription;
+
+    @Size(max = 500)
+    @Column(name = "offre_location", length = 500)
+    private String offreLocation;
+
+    @Size(max = 2048)
+    @Column(name = "offre_company_logo_url", length = 2048)
+    private String offreCompanyLogoUrl;
+
     @Size(max = 200)
     private String contact;
 
@@ -58,11 +73,18 @@ public class Application {
     @JoinColumn(name = "status_id", nullable = false)
     private ApplicationStatus status;
 
-    /** Offre jobboard d'origine si créée automatiquement (null = créée manuellement) —
-      * permet de retrouver la candidature CRM lors d'un retrait/relance côté jobboard,
-      * et sert aussi à dériver "viaJobboard" côté DTO (pas besoin d'un champ séparé). */
+    /** Vrai si créée automatiquement en postulant depuis le jobboard (faux = créée manuellement).
+      * Fait persistant, indépendant de sourceJobOffer : reste vrai même si l'offre d'origine
+      * est supprimée par la suite (ON DELETE SET NULL détache alors juste la référence). */
+    @Column(name = "via_jobboard", nullable = false)
+    private boolean viaJobboard = false;
+
+    /** Offre jobboard d'origine si créée automatiquement, null si créée manuellement OU si
+      * l'offre d'origine a depuis été supprimée — permet de retrouver la candidature CRM lors
+      * d'un retrait/relance côté jobboard, et d'afficher l'offre complète depuis la candidature. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_job_offer_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private JobOffer sourceJobOffer;
 
     @CreationTimestamp

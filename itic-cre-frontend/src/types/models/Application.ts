@@ -22,6 +22,9 @@ export interface Candidature {
     poste: string;
     typeContrat: ContractTypeDetail | null;
     lienOffre: string | null;
+    offreDescription: string | null;
+    offreLocation: string | null;
+    offreCompanyLogoUrl: string | null;
     contact: string | null;
     notes: string | null;
     status: ApplicationStatus;
@@ -74,10 +77,14 @@ export interface ApplicationRow {
     poste: string;
     typeContrat: ContractType | null;
     lienOffre: string | null;
+    offreDescription: string | null;
+    offreLocation: string | null;
+    offreCompanyLogoUrl: string | null;
     contact: string | null;
     notes: string | null;
     status: ApplicationStatus;
     stale: boolean;
+    viaJobboard: boolean;
     dateCreation: string;
     dateModification: string;
 }
