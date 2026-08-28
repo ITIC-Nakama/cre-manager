@@ -111,6 +111,7 @@ export default function OffresPage() {
     ], [t]);
 
     const sourceOptions = useMemo(() => [
+        { value: 'ALL', label: t('dashboard.offres.source_options.all', 'Toutes les offres (ITIC + externes)') },
         { value: 'MANUAL', label: t('dashboard.offres.source_options.manual', 'Offres ITIC (manuelles)') },
         { value: 'EXTERNAL', label: t('dashboard.offres.source_options.external', 'Offres externes (toutes)') },
         { value: 'FRANCE_TRAVAIL', label: t('dashboard.offres.source_options.france_travail', 'France Travail') },

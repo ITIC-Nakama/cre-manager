@@ -558,6 +558,7 @@
       "filter_all_sectors": "All sectors",
       "filter_all_statuses": "All offers",
       "source_options": {
+        "all": "All offers (ITIC + external)",
         "manual": "ITIC offers (manual)",
         "external": "External offers (all)",
         "france_travail": "France Travail",

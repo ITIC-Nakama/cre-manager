@@ -15,7 +15,8 @@ public class JobOfferSpecification {
     /**
      * Offres actives filtrées. Le paramètre source pilote le périmètre :
      * null ou "MANUAL" → offres ITIC uniquement ; "EXTERNAL" → toutes les offres
-     * externes ; sinon filtre exact sur la source (FRANCE_TRAVAIL, ...).
+     * externes ; "ALL" → aucune restriction (ITIC + externes) ; sinon filtre exact
+     * sur la source (FRANCE_TRAVAIL, ...).
      */
     public static Specification<JobOffer> activeWithFilters(String search, UUID contractTypeId, UUID sectorId, String source, String location) {
         return (root, query, cb) -> {
@@ -33,7 +34,8 @@ public class JobOfferSpecification {
     /**
      * Toutes les offres (gestion advisor/admin) avec le filtre source en plus.
      * Même sémantique que pour les offres actives : null ou "MANUAL" → offres ITIC
-     * uniquement ; "EXTERNAL" → toutes les offres externes ; sinon source exacte.
+     * uniquement ; "EXTERNAL" → toutes les offres externes ; "ALL" → aucune
+     * restriction (ITIC + externes) ; sinon source exacte.
      */
     public static Specification<JobOffer> withAllFilters(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location) {
         return (root, query, cb) -> {
@@ -53,6 +55,9 @@ public class JobOfferSpecification {
     private static Predicate sourcePredicate(Root<JobOffer> root, CriteriaBuilder cb, String source) {
         if (source == null || source.isBlank() || source.equalsIgnoreCase("MANUAL")) {
             return cb.equal(root.get("source"), "MANUAL");
+        }
+        if (source.equalsIgnoreCase("ALL")) {
+            return cb.conjunction();
         }
         if (source.equalsIgnoreCase("EXTERNAL")) {
             return cb.notEqual(root.get("source"), "MANUAL");

@@ -558,6 +558,7 @@
       "filter_all_sectors": "Tous les secteurs",
       "filter_all_statuses": "Toutes les offres",
       "source_options": {
+        "all": "Toutes les offres (ITIC + externes)",
         "manual": "Offres ITIC (manuelles)",
         "external": "Offres externes (toutes)",
         "france_travail": "France Travail",
