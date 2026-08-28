@@ -39,7 +39,7 @@ export default function OffresPage() {
                     onClick={() => setActiveTab('external')}
                     className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer ${
                         activeTab === 'external'
-                            ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm scale-[1.03]'
+                            ? 'bg-white dark:bg-slate-800 text-[#1E51FF] dark:text-[#7B9FFF] shadow-sm scale-[1.03]'
                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                     }`}
                 >
