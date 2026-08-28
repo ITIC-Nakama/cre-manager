@@ -80,6 +80,41 @@ class JobOfferSpecificationIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should match a search term without accents against a title that has them")
+    void testActiveWithSearchIsAccentInsensitive() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.activeWithFilters("developpeur", null, null, null, null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCompany()).isEqualTo("BNP Paribas");
+    }
+
+    @Test
+    @DisplayName("Should match a multi-word search whose words appear in a different order in the title")
+    void testActiveWithSearchMatchesMultipleWordsInAnyOrder() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.activeWithFilters("spring developpeur", null, null, null, null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCompany()).isEqualTo("BNP Paribas");
+    }
+
+    @Test
+    @DisplayName("Should require every word of a multi-word search to match (AND, not OR)")
+    void testActiveWithSearchRequiresAllWordsToMatch() {
+        Page<JobOffer> result = jobOfferRepository.findAll(
+                JobOfferSpecification.activeWithFilters("developpeur digital", null, null, null, null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
     @DisplayName("Should filter all offers (active and inactive) by contract type only")
     void testAllFiltersByContractTypeOnly() {
         Page<JobOffer> result = jobOfferRepository.findAll(

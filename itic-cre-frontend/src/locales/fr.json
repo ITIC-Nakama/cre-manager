@@ -541,6 +541,8 @@
         "itic": "Offres ITIC",
         "external": "Marché externe"
       },
+      "itic_subtitle_one": "{{count}} offre ITIC disponible",
+      "itic_subtitle_other": "{{count}} offres ITIC disponibles",
       "external": {
         "subtitle_one": "{{count}} offre externe disponible",
         "subtitle_other": "{{count}} offres externes disponibles",

@@ -67,6 +67,10 @@
 html {
   color-scheme: light;
   scroll-behavior: smooth;
+  /* Reserve la place de la scrollbar verticale en permanence : sans ca, une page qui devient
+     plus courte que le viewport (ex: changer d'onglet vers un contenu plus court) fait
+     disparaitre la scrollbar et tout le contenu se decale visiblement vers la droite. */
+  scrollbar-gutter: stable;
 }
 
 html.dark {

@@ -2,12 +2,14 @@ package com.itic.paris.platform.jobboard.specification;
 
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class JobOfferSpecification {
@@ -86,13 +88,24 @@ public class JobOfferSpecification {
         }
     }
 
+    /**
+     * Un token par mot, chacun doit matcher (titre OU entreprise), insensible aux accents et à
+     * l'ordre — "developpeur" trouve "Développeur", et "alternance developpement" trouve un titre
+     * "Développeur — Alternance" même si les mots n'apparaissent pas dans cet ordre ni collés.
+     */
     private static void addSearchPredicate(List<Predicate> predicates, Root<JobOffer> root,
                                             CriteriaBuilder cb, String search) {
-        if (search != null && !search.trim().isEmpty()) {
-            String searchLike = "%" + search.trim().toLowerCase() + "%";
+        if (search == null || search.trim().isEmpty()) {
+            return;
+        }
+        Expression<String> title = cb.function("unaccent", String.class, cb.lower(root.get("title")));
+        Expression<String> company = cb.function("unaccent", String.class, cb.lower(root.get("company")));
+
+        for (String token : search.trim().toLowerCase(Locale.ROOT).split("\\s+")) {
+            Expression<String> pattern = cb.function("unaccent", String.class, cb.literal("%" + token + "%"));
             predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("company")), searchLike),
-                    cb.like(cb.lower(root.get("title")), searchLike)
+                    cb.like(title, pattern),
+                    cb.like(company, pattern)
             ));
         }
     }
