@@ -29,6 +29,13 @@ public class JobOfferController {
 
     private final JobOfferService jobOfferService;
 
+    /**
+     * Contraint {id} au format UUID pour ne jamais entrer en collision avec un segment
+     * littéral d'une autre route de ce contrôleur (ex : DELETE /wipe matchait {id} avant ça,
+     * avec une IllegalArgumentException à la conversion en UUID de la chaîne "wipe").
+     */
+    private static final String ID = "{id:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}";
+
     @PostMapping
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Créer une offre d'emploi")
@@ -40,7 +47,7 @@ public class JobOfferController {
         return ResponseEntity.status(HttpStatus.CREATED).body(jobOfferService.create(request));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/" + ID)
     @Operation(summary = "Obtenir une offre par identifiant")
     public ResponseEntity<JobOfferDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(jobOfferService.getById(id));
@@ -97,7 +104,7 @@ public class JobOfferController {
         return ResponseEntity.ok(jobOfferService.getByContractType(contractTypeId, pageable));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/" + ID)
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Mettre à jour une offre d'emploi")
     public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody CreateJobOfferRequest request,
@@ -108,7 +115,7 @@ public class JobOfferController {
         return ResponseEntity.ok(jobOfferService.update(id, request));
     }
 
-    @PutMapping("/{id}/deactivate")
+    @PutMapping("/" + ID + "/deactivate")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Désactiver une offre d'emploi")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
@@ -116,7 +123,7 @@ public class JobOfferController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/activate")
+    @PutMapping("/" + ID + "/activate")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Réactiver une offre d'emploi")
     public ResponseEntity<Void> activate(@PathVariable UUID id) {
@@ -124,7 +131,7 @@ public class JobOfferController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/" + ID)
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Supprimer une offre d'emploi")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
