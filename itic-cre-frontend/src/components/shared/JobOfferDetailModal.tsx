@@ -65,8 +65,8 @@ export default function JobOfferDetailModal({
             <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden">
                 
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/30">
-                    <div className="flex items-start gap-4">
+                <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-950/30">
+                    <div className="flex items-start gap-3 sm:gap-4">
                         {offer.companyLogoUrl ? (
                             <img
                                 src={offer.companyLogoUrl}
@@ -79,10 +79,10 @@ export default function JobOfferDetailModal({
                             </div>
                         )}
                         <div className="min-w-0">
-                            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight break-words">
+                            <h2 className="text-base sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight break-words">
                                 {offer.title}
                             </h2>
-                            <p className="text-sm sm:text-base font-medium text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                            <p className="text-xs sm:text-base font-medium text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-1.5">
                                 <span>{offer.company}</span>
                             </p>
                         </div>
