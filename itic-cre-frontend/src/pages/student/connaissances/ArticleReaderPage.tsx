@@ -139,7 +139,7 @@ export default function ArticleReaderPage() {
             <span className="text-4xl select-none leading-none flex-shrink-0" role="img" aria-label={article.categoryNom}>
               {displayIcon}
             </span>
-            <div className="flex-1 flex flex-col gap-3">
+            <div className="flex-1 min-w-0 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 {article.completed && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">

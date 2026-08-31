@@ -233,7 +233,7 @@ export default function Sidebar({ navItems }: SidebarProps) {
     <>
       {/* Bouton burger mobile */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-[#15171f] border border-slate-200 dark:border-[#333a51] shadow-sm cursor-pointer"
+        className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-xl bg-white dark:bg-[#15171f] border border-slate-200 dark:border-[#333a51] shadow-sm cursor-pointer"
         onClick={() => setMobileOpen(true)}
         aria-label="Ouvrir le menu"
       >

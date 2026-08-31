@@ -59,10 +59,10 @@ export default function JobOfferDetailModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 animate-fadeIn"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden">
                 
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/30">
@@ -97,7 +97,7 @@ export default function JobOfferDetailModal({
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6 overflow-y-auto flex-1 text-slate-800 dark:text-slate-200">
+                <div className="p-6 space-y-6 overflow-y-auto flex-1 min-w-0 text-slate-800 dark:text-slate-200">
                     
                     {/* Status banner if applied */}
                     {isApplied && (
@@ -141,7 +141,7 @@ export default function JobOfferDetailModal({
                             <Briefcase className="h-4 w-4 text-indigo-500" />
                             <h3>{t('dashboard.offres.detail_modal.description_title', 'Description du poste')}</h3>
                         </div>
-                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 text-sm sm:text-base leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300 break-words">
+                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 text-sm sm:text-base leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300 break-words [overflow-wrap:anywhere]">
                             {offer.description}
                         </div>
                     </div>

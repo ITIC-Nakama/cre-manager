@@ -9,6 +9,11 @@ export default function TiptapContentStyles() {
         line-height: 1.5;
         outline: none;
         min-height: 200px;
+        overflow-wrap: anywhere;
+      }
+      .ql-editor-replacement pre {
+        max-width: 100%;
+        overflow-x: auto;
       }
       .ql-editor-replacement p.is-editor-empty:first-child::before {
         content: attr(data-placeholder);

@@ -51,13 +51,13 @@ export default function StudentDashboard() {
           <div className="h-4 w-96 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse mt-1" />
         </div>
         {/* Stats skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
-              <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse shrink-0" />
-              <div className="flex flex-col gap-2 flex-1">
+            <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm">
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-2 flex-1 min-w-0">
                 <div className="h-6 w-12 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                <div className="h-3 w-28 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                <div className="h-3 w-full max-w-28 rounded bg-slate-100 dark:bg-slate-800 animate-pulse" />
               </div>
             </div>
           ))}
@@ -117,20 +117,20 @@ export default function StudentDashboard() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
               key={stat.label}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className={`h-11 w-11 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
+              <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
+                <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{stat.label}</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{stat.label}</p>
               </div>
             </div>
           );

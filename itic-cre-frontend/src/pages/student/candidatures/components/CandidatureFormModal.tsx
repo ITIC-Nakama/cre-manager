@@ -74,10 +74,10 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60">
+            <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
 
-                <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-indigo-500" />
                         <p className="text-base font-bold text-slate-900 dark:text-white">
@@ -93,14 +93,14 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 min-w-0">
                     {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
                             {generalError}
                         </p>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.candidatures.student.form.entreprise_label')} <span className="text-rose-500">*</span>

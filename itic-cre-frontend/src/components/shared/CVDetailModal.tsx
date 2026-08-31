@@ -122,7 +122,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                 </div>
 
                 {/* Scrollable body */}
-                <div className="overflow-y-auto flex-1 p-5 space-y-5">
+                <div className="overflow-y-auto flex-1 min-w-0 p-5 space-y-5">
 
                     {/* Status & Dates */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
