@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, RotateCcw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,8 @@ export default function FiltersPopover({ activeCount, onReset, children, classNa
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [panelRect, setPanelRect] = useState<{ top: number; bottom: number; right: number; width: number } | null>(null);
+    const [dropUp, setDropUp] = useState(false);
+    const [measured, setMeasured] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -59,10 +61,27 @@ export default function FiltersPopover({ activeCount, onReset, children, classNa
                     right: window.innerWidth - rect.right,
                     width: rect.width,
                 });
+                // Reouvre toujours d'abord vers le bas, invisible, le temps de mesurer sa vraie
+                // hauteur (voir useLayoutEffect ci-dessous) — le nombre de champs de filtre varie
+                // selon la page qui utilise ce composant, une estimation fixe serait fausse pour
+                // certaines d'entre elles.
+                setDropUp(false);
+                setMeasured(false);
             }
             return next;
         });
     };
+
+    // Mesure la hauteur reelle du panneau une fois monte, avant peinture (useLayoutEffect =
+    // synchrone, pas de flash a la mauvaise position) : plus fiable qu'une estimation fixe.
+    useLayoutEffect(() => {
+        if (!isOpen || !panelRect || measured || !panelRef.current) return;
+        const panelHeight = panelRef.current.getBoundingClientRect().height;
+        const shouldDropUp = window.innerHeight - panelRect.bottom < panelHeight
+            && panelRect.top > panelHeight;
+        setDropUp(shouldDropUp);
+        setMeasured(true);
+    }, [isOpen, panelRect, measured]);
 
     const hasActive = activeCount > 0;
 
@@ -91,11 +110,17 @@ export default function FiltersPopover({ activeCount, onReset, children, classNa
                     ref={panelRef}
                     style={{
                         position: 'fixed',
-                        top: panelRect.bottom + 10,
                         right: panelRect.right,
                         width: 320,
+                        maxHeight: '80vh',
+                        overflowY: 'auto',
+                        opacity: measured ? 1 : 0,
+                        pointerEvents: measured ? 'auto' : 'none',
+                        ...(dropUp
+                            ? { bottom: window.innerHeight - panelRect.top + 10 }
+                            : { top: panelRect.bottom + 10 }),
                     }}
-                    className="z-[100] origin-top-right rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl ring-1 ring-black/5 overflow-hidden animate-fadeIn"
+                    className={`z-[100] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl ring-1 ring-black/5 overflow-hidden ${measured ? 'animate-fadeIn' : ''} ${dropUp ? 'origin-bottom-right' : 'origin-top-right'}`}
                 >
                     <div className="h-[3px] bg-gradient-to-r from-indigo-500 to-violet-500" />
                     <div className="flex items-center justify-between px-4 pt-3.5 pb-2">

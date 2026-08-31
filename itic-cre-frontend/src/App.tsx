@@ -29,6 +29,7 @@ import EtudiantsPage from './pages/advisor/etudiants/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/candidatures/CandidaturesPage'
 import SupervisorOffresPage from './pages/advisor/offres/OffresPage'
 import OffresCategoriesPage from './pages/advisor/offres/CategoriesPage'
+import ExternalSyncPage from './pages/advisor/offres/ExternalSyncPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import ContenuPage from './pages/advisor/formation/ContenuPage'
@@ -124,6 +125,7 @@ function App() {
             <Route path="/admin/promotions"  element={<PromotionsPage />} />
             <Route path="/admin/promotions/:id" element={<PromotionDetailPage />} />
             <Route path="/admin/audit"       element={<AuditLogsPage />} />
+            <Route path="/supervisor/offres/synchronisation-externe" element={<ExternalSyncPage />} />
           </Route>
 
         </Route>

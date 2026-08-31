@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import {
     X, Briefcase, Building2, MapPin, FileSignature, Layers,
     Calendar, ExternalLink, CheckCircle2, UserMinus, Loader2,
-    Globe
+    Globe, Power, PowerOff, Trash2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { JobOffer } from '../../types/models/JobOffer';
@@ -15,6 +15,8 @@ interface Props {
     onWithdraw?: (offer: JobOffer) => void;
     isApplying?: boolean;
     onEdit?: (offer: JobOffer) => void;
+    onToggleActive?: (offer: JobOffer) => void;
+    onDelete?: (offer: JobOffer) => void;
     showAdminActions?: boolean;
 }
 
@@ -35,6 +37,8 @@ export default function JobOfferDetailModal({
     onWithdraw,
     isApplying = false,
     onEdit,
+    onToggleActive,
+    onDelete,
     showAdminActions = false,
 }: Props) {
     const { t, i18n } = useTranslation();
@@ -181,6 +185,37 @@ export default function JobOfferDetailModal({
                         >
                             {t('dashboard.offres.detail_modal.close', 'Fermer')}
                         </button>
+
+                        {/* Advisor Delete/Toggle Buttons */}
+                        {showAdminActions && onDelete && (
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    onDelete(offer);
+                                }}
+                                className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 active:scale-95 transition-all cursor-pointer"
+                                title={t('dashboard.offres.actions.delete', 'Supprimer')}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
+
+                        {showAdminActions && onToggleActive && (
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    onToggleActive(offer);
+                                }}
+                                className={`p-2 rounded-xl active:scale-95 transition-all cursor-pointer ${
+                                    offer.active
+                                        ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                                        : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                                }`}
+                                title={t(offer.active ? 'dashboard.offres.actions.deactivate' : 'dashboard.offres.actions.activate')}
+                            >
+                                {offer.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                            </button>
+                        )}
 
                         {/* Advisor Edit Button */}
                         {showAdminActions && onEdit && (

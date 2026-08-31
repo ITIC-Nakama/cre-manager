@@ -3,6 +3,7 @@ package com.itic.paris.platform.jobboard.external.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
+import com.itic.paris.platform.jobboard.external.dto.ContractTypeCountDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
@@ -199,6 +200,7 @@ public class ExternalJobSyncService {
                             p.getLabel(),
                             p.isEnabled(),
                             jobOfferRepository.countBySourceAndActiveTrue(p.getSource()),
+                            countActiveByContractType(p.getSource()),
                             config != null ? config.getRomeCodes() : null,
                             config != null ? config.getDepartments() : null,
                             config != null ? config.getKeywords() : null,
@@ -213,6 +215,14 @@ public class ExternalJobSyncService {
                 .orElse(null);
 
         return new ExternalJobboardStatsDTO(isSyncInProgress(), lastSync, sources);
+    }
+
+    /** Répartition des offres actives d'une source par type de contrat, pour vérifier en direct
+     * l'effet de la pondération 2/3 (alternance+stage) / 1/3 (CDI+CDD) appliquée à la synchronisation. */
+    private List<ContractTypeCountDTO> countActiveByContractType(String source) {
+        return jobOfferRepository.countActiveBySourceGroupedByContractType(source).stream()
+                .map(row -> new ContractTypeCountDTO((String) row[0], (Long) row[1]))
+                .toList();
     }
 
     /**

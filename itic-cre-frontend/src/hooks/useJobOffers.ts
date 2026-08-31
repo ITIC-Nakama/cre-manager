@@ -17,6 +17,8 @@ import {
     triggerExternalJobboardSync,
     toggleExternalJobboardSource,
     updateExternalSourceCriteria,
+    fetchRomeCodesReference,
+    fetchAdzunaCategoriesReference,
 } from '../api-s/requests/JobOfferRequest';
 import type { JobOfferListParams, JobOfferPayload, ExternalSourceCriteriaPayload } from '../types/models/JobOffer';
 
@@ -167,5 +169,23 @@ export function useUpdateExternalSourceCriteria() {
         mutationFn: ({ source, criteria }: { source: string; criteria: ExternalSourceCriteriaPayload }) =>
             updateExternalSourceCriteria(source, criteria),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
+// Référentiels quasi statiques (codes ROME, catégories Adzuna) : staleTime long, pas de refetch
+// agressif — ces listes ne changent pratiquement jamais.
+export function useRomeCodesReference() {
+    return useQuery({
+        queryKey: ['jobboard-external-reference', 'rome-codes'],
+        queryFn: fetchRomeCodesReference,
+        staleTime: 60 * 60 * 1000,
+    });
+}
+
+export function useAdzunaCategoriesReference() {
+    return useQuery({
+        queryKey: ['jobboard-external-reference', 'adzuna-categories'],
+        queryFn: fetchAdzunaCategoriesReference,
+        staleTime: 60 * 60 * 1000,
     });
 }

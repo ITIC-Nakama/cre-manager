@@ -2,6 +2,9 @@ package com.itic.paris.platform.jobboard.controller;
 
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
+import com.itic.paris.platform.jobboard.external.dto.ReferenceOptionDTO;
+import com.itic.paris.platform.jobboard.external.provider.AdzunaProvider;
+import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
 import com.itic.paris.platform.jobboard.external.service.ExternalJobSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/jobboard/admin/external")
 @RequiredArgsConstructor
@@ -25,6 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class JobboardAdminController {
 
     private final ExternalJobSyncService externalJobSyncService;
+    private final FranceTravailProvider franceTravailProvider;
+    private final AdzunaProvider adzunaProvider;
 
     @GetMapping("/stats")
     @Operation(summary = "Statistiques par source + dernière synchronisation")
@@ -51,5 +58,19 @@ public class JobboardAdminController {
     public ResponseEntity<ExternalJobboardStatsDTO> updateCriteria(@PathVariable String source,
                                                                      @RequestBody ExternalSourceCriteriaDTO criteria) {
         return ResponseEntity.ok(externalJobSyncService.updateCriteria(source, criteria));
+    }
+
+    @GetMapping("/reference/rome-codes")
+    @Operation(summary = "Référentiel complet des codes ROME (France Travail), pour peupler le "
+            + "sélecteur de codes ROME (France Travail / La Bonne Alternance)")
+    public ResponseEntity<List<ReferenceOptionDTO>> getRomeCodesReference() {
+        return ResponseEntity.ok(franceTravailProvider.fetchRomeReferential());
+    }
+
+    @GetMapping("/reference/adzuna-categories")
+    @Operation(summary = "Référentiel complet des catégories Adzuna, pour peupler le sélecteur "
+            + "de catégories Adzuna")
+    public ResponseEntity<List<ReferenceOptionDTO>> getAdzunaCategoriesReference() {
+        return ResponseEntity.ok(adzunaProvider.getReferenceCategories());
     }
 }

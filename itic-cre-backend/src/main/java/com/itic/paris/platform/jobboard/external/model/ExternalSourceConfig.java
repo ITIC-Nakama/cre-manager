@@ -43,7 +43,7 @@ public class ExternalSourceConfig {
     @Column(name = "keywords", length = 500)
     private String keywords;
 
-    @Column(name = "category", length = 100)
+    @Column(name = "category", length = 500)
     private String category;
 
     /**

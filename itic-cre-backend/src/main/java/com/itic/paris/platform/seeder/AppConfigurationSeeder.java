@@ -72,8 +72,10 @@ public class AppConfigurationSeeder implements ApplicationRunner {
 
         seedIfMissing(
                 AppConfigurationKey.JOBBOARD_SYNC_MAX_PER_PROVIDER,
-                "300",
-                "Nombre maximum d'offres récupérées par source externe (France Travail, Adzuna, La Bonne Alternance) à chaque synchronisation"
+                "10000",
+                "Nombre maximum d'offres récupérées par code ROME sélectionné (France Travail, La Bonne "
+                        + "Alternance) ou par catégorie sélectionnée (Adzuna) à chaque synchronisation — le total "
+                        + "réel augmente avec le nombre de codes ROME/catégories configurés"
         );
 
         seedIfMissing(

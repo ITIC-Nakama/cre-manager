@@ -9,6 +9,7 @@ import type {
     ExternalJobboardStats,
     ExternalSourceCriteriaPayload,
     SectorDetail,
+    ReferenceOption,
 } from '../../types/models/JobOffer';
 
 function unwrap<T>(response: { data: unknown }): T {
@@ -94,4 +95,16 @@ export function updateExternalSourceCriteria(source: string, criteria: ExternalS
     return apiClient
         .put(`/jobboard/admin/external/sources/${source}/criteria`, criteria)
         .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
+export function fetchRomeCodesReference(): Promise<ReferenceOption[]> {
+    return apiClient
+        .get('/jobboard/admin/external/reference/rome-codes')
+        .then((response) => unwrap<ReferenceOption[]>(response));
+}
+
+export function fetchAdzunaCategoriesReference(): Promise<ReferenceOption[]> {
+    return apiClient
+        .get('/jobboard/admin/external/reference/adzuna-categories')
+        .then((response) => unwrap<ReferenceOption[]>(response));
 }

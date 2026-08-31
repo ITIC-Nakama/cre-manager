@@ -1,5 +1,7 @@
 package com.itic.paris.platform.jobboard.external.dto;
 
+import java.util.List;
+
 /**
  * romeCodes/departments : pertinents pour FRANCE_TRAVAIL et BONNE_ALTERNANCE (taxonomie ROME).
  * keywords/category : pertinents pour ADZUNA (pas de ROME côté Adzuna).
@@ -10,6 +12,7 @@ public record ExternalSourceStatsDTO(
         String label,
         boolean enabled,
         long activeOffers,
+        List<ContractTypeCountDTO> offersByContractType,
         String romeCodes,
         String departments,
         String keywords,

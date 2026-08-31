@@ -54,7 +54,7 @@ public class AppConfigurationService {
     public int getJobboardSyncMaxPerProvider() {
         return appConfigurationRepository.findByKey(AppConfigurationKey.JOBBOARD_SYNC_MAX_PER_PROVIDER)
                 .map(c -> Integer.parseInt(c.getValue()))
-                .orElse(300);
+                .orElse(10000);
     }
 
     /**
@@ -122,7 +122,7 @@ public class AppConfigurationService {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             } else if (key == AppConfigurationKey.INACTIVE_STUDENT_DAYS && (val < 1 || val > 365)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
-            } else if (key == AppConfigurationKey.JOBBOARD_SYNC_MAX_PER_PROVIDER && (val < 10 || val > 5000)) {
+            } else if (key == AppConfigurationKey.JOBBOARD_SYNC_MAX_PER_PROVIDER && (val < 10 || val > 20000)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             } else if (key == AppConfigurationKey.JOBBOARD_OFFER_EXPIRATION_DAYS && (val < 1 || val > 365)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);

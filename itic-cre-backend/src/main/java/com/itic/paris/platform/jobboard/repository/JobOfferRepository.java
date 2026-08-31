@@ -26,6 +26,11 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
 
     long countBySourceAndActiveTrue(String source);
 
+    /** Répartition des offres actives d'une source par type de contrat (CDI/CDD/Alternance/Stage). */
+    @Query("SELECT j.contractType.label, COUNT(j) FROM JobOffer j "
+            + "WHERE j.source = :source AND j.active = true GROUP BY j.contractType.label")
+    List<Object[]> countActiveBySourceGroupedByContractType(@Param("source") String source);
+
     /**
      * Désactive les offres externes dont la date d'expiration est dépassée. Retourne le nombre de lignes.
      * clearAutomatically : cette mise à jour en masse contourne le contexte de persistance JPA — sans

@@ -85,11 +85,18 @@ export interface ExternalSyncRun {
     deletedCount: number;
 }
 
+export interface ContractTypeCount {
+    label: string;
+    count: number;
+}
+
 export interface ExternalSourceStat {
     source: string;
     label: string;
     enabled: boolean;
     activeOffers: number;
+    /** Répartition des offres actives par type de contrat (CDI/CDD/Alternance/Stage). */
+    offersByContractType: ContractTypeCount[];
     /** Pertinent pour FRANCE_TRAVAIL / BONNE_ALTERNANCE (taxonomie ROME). null = jamais configuré. */
     romeCodes: string | null;
     /** Pertinent pour FRANCE_TRAVAIL / BONNE_ALTERNANCE. */
@@ -114,4 +121,10 @@ export interface ExternalJobboardStats {
     syncInProgress: boolean;
     lastSync: ExternalSyncRun | null;
     sources: ExternalSourceStat[];
+}
+
+/** Une option d'un référentiel externe (code ROME, tag de catégorie Adzuna...). */
+export interface ReferenceOption {
+    value: string;
+    label: string;
 }

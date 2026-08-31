@@ -21,7 +21,7 @@ export default function WipeOffersDialog({ isOpen, loading = false, onConfirm, o
         {
             value: 'MANUAL',
             icon: <Building2 className="h-4 w-4" />,
-            label: t('dashboard.offres.wipe_dialog.manual_label', 'Offres ITIC (manuelles)'),
+            label: t('dashboard.offres.wipe_dialog.manual_label', 'Offres internes (manuelles)'),
             description: t('dashboard.offres.wipe_dialog.manual_description', 'Supprime uniquement les offres créées manuellement par les conseillers.'),
         },
         {
