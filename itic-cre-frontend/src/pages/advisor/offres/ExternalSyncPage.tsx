@@ -8,8 +8,10 @@ import {
     useExternalJobboardStats,
     useTriggerExternalJobboardSync,
     useToggleExternalJobboardSource,
+    useToggleScheduledSync,
     useUpdateExternalSourceCriteria,
     useRomeCodesReference,
+    useRegionsReference,
     useAdzunaCategoriesReference,
 } from '../../../hooks/useJobOffers';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
@@ -26,6 +28,7 @@ function toForm(source: ExternalSourceStat): CriteriaForm {
     return {
         romeCodes: source.romeCodes ?? '',
         departments: source.departments ?? '',
+        regions: source.regions ?? '',
         keywords: source.keywords ?? '',
         category: source.category ?? '',
         excludedEmployers: source.excludedEmployers ?? '',
@@ -40,7 +43,10 @@ export default function ExternalSyncPage() {
     const toggleMutation = useToggleExternalJobboardSource();
     const criteriaMutation = useUpdateExternalSourceCriteria();
     const { data: romeCodesRef = [], isLoading: romeCodesRefLoading } = useRomeCodesReference();
+    const { data: regionsRef = [], isLoading: regionsRefLoading } = useRegionsReference();
     const { data: adzunaCategoriesRef = [], isLoading: adzunaCategoriesRefLoading } = useAdzunaCategoriesReference();
+    const toggleScheduledSyncMutation = useToggleScheduledSync();
+    const scheduledSyncEnabled = stats?.scheduledSyncEnabled !== false;
 
     const [forms, setForms] = useState<Record<string, CriteriaForm>>({});
     const [disableTarget, setDisableTarget] = useState<ExternalSourceStat | null>(null);
@@ -77,6 +83,17 @@ export default function ExternalSyncPage() {
             toast.success(t('dashboard.admin.jobboard_external.toast_sync_started'));
         } catch {
             toast.error(t('dashboard.admin.jobboard_external.toast_sync_error'));
+        }
+    };
+
+    const handleToggleScheduledSync = async () => {
+        try {
+            await toggleScheduledSyncMutation.mutateAsync();
+            toast.success(scheduledSyncEnabled
+                ? t('dashboard.admin.jobboard_external.scheduled_sync_disabled', 'Synchronisation automatique désactivée.')
+                : t('dashboard.admin.jobboard_external.scheduled_sync_enabled', 'Synchronisation automatique activée.'));
+        } catch {
+            toast.error(t('dashboard.admin.jobboard_external.toast_toggle_error'));
         }
     };
 
@@ -124,6 +141,7 @@ export default function ExternalSyncPage() {
         const original = toForm(source);
         return form.romeCodes !== original.romeCodes
             || form.departments !== original.departments
+            || form.regions !== original.regions
             || form.keywords !== original.keywords
             || form.category !== original.category
             || form.excludedEmployers !== original.excludedEmployers;
@@ -151,20 +169,42 @@ export default function ExternalSyncPage() {
                             {t('dashboard.admin.jobboard_external.subtitle', "Aucun critère = aucune restriction, toutes filières confondues.")}
                         </p>
                     </div>
-                    <button
-                        onClick={handleSync}
-                        disabled={syncing}
-                        className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed bg-[#E2762F] hover:bg-[#c9631f] text-white disabled:opacity-60"
-                    >
-                        {syncing ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <RefreshCw className="h-4 w-4" />
-                        )}
-                        {syncing
-                            ? t('dashboard.admin.jobboard_external.syncing')
-                            : t('dashboard.admin.jobboard_external.sync_now')}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <label className="inline-flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 select-none shadow-sm">
+                            <span>{t('dashboard.admin.jobboard_external.scheduled_sync_label', 'Synchro automatique')}</span>
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={scheduledSyncEnabled}
+                                disabled={toggleScheduledSyncMutation.isPending}
+                                onClick={handleToggleScheduledSync}
+                                title={t('dashboard.admin.jobboard_external.scheduled_sync_hint', "N'affecte pas la synchronisation manuelle, toujours disponible ci-contre.")}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
+                                    scheduledSyncEnabled ? 'bg-[#E2762F]' : 'bg-slate-300 dark:bg-slate-700'
+                                }`}
+                            >
+                                <span
+                                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                                        scheduledSyncEnabled ? 'translate-x-4' : 'translate-x-1'
+                                    }`}
+                                />
+                            </button>
+                        </label>
+                        <button
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed bg-[#E2762F] hover:bg-[#c9631f] text-white disabled:opacity-60"
+                        >
+                            {syncing ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4" />
+                            )}
+                            {syncing
+                                ? t('dashboard.admin.jobboard_external.syncing')
+                                : t('dashboard.admin.jobboard_external.sync_now')}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -246,6 +286,8 @@ export default function ExternalSyncPage() {
                             toggling={toggleMutation.isPending}
                             romeCodesRef={romeCodesRef}
                             romeCodesRefLoading={romeCodesRefLoading}
+                            regionsRef={regionsRef}
+                            regionsRefLoading={regionsRefLoading}
                             adzunaCategoriesRef={adzunaCategoriesRef}
                             adzunaCategoriesRefLoading={adzunaCategoriesRefLoading}
                         />

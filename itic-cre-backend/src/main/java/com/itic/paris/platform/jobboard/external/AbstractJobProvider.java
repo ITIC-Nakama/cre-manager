@@ -1,5 +1,6 @@
 package com.itic.paris.platform.jobboard.external;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.itic.paris.platform.jobboard.external.model.ExternalSourceConfig;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
@@ -8,11 +9,13 @@ import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Logique commune aux providers d'offres externes.
@@ -147,7 +150,25 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
         return value.substring(0, maxLength);
     }
 
-    protected String textOrNull(com.fasterxml.jackson.databind.JsonNode node) {
-        return (node == null || node.isNull() || node.asText().isBlank()) ? null : node.asText();
+    // Convertit les sauts de bloc HTML en \n avant de retirer les balises, pour ne pas coller
+    // les paragraphes/items entre eux.
+    private static final Pattern HTML_BLOCK_BREAK = Pattern.compile("(?i)</p>|<br\\s*/?>|</li>");
+    private static final Pattern HTML_TAG = Pattern.compile("<[^>]+>");
+    private static final Pattern EXCESS_BLANK_LINES = Pattern.compile("\n{3,}");
+
+    /** Desechappe les entites HTML et retire les balises HTML brutes des champs texte —
+      * point d'extraction commun a tous les providers, plutot que par source. */
+    protected String textOrNull(JsonNode node) {
+        if (node == null || node.isNull() || node.asText().isBlank()) {
+            return null;
+        }
+        String unescaped = HtmlUtils.htmlUnescape(node.asText());
+        if (unescaped.indexOf('<') < 0) {
+            return unescaped;
+        }
+        String withBreaks = HTML_BLOCK_BREAK.matcher(unescaped).replaceAll("\n");
+        String stripped = HTML_TAG.matcher(withBreaks).replaceAll("");
+        String collapsed = EXCESS_BLANK_LINES.matcher(stripped).replaceAll("\n\n");
+        return collapsed.trim().isEmpty() ? null : collapsed.trim();
     }
 }

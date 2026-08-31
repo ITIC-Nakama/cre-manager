@@ -101,6 +101,8 @@ export interface ExternalSourceStat {
     romeCodes: string | null;
     /** Pertinent pour FRANCE_TRAVAIL / BONNE_ALTERNANCE. */
     departments: string | null;
+    /** Pertinent uniquement pour FRANCE_TRAVAIL — mutuellement exclusif avec departments côté API. */
+    regions: string | null;
     /** Pertinent pour ADZUNA (pas de ROME côté Adzuna). */
     keywords: string | null;
     /** Pertinent pour ADZUNA. */
@@ -112,6 +114,7 @@ export interface ExternalSourceStat {
 export interface ExternalSourceCriteriaPayload {
     romeCodes: string;
     departments: string;
+    regions: string;
     keywords: string;
     category: string;
     excludedEmployers: string;
@@ -119,6 +122,7 @@ export interface ExternalSourceCriteriaPayload {
 
 export interface ExternalJobboardStats {
     syncInProgress: boolean;
+    scheduledSyncEnabled: boolean;
     lastSync: ExternalSyncRun | null;
     sources: ExternalSourceStat[];
 }

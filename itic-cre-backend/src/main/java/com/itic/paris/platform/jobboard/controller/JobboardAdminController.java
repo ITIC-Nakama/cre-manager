@@ -52,6 +52,12 @@ public class JobboardAdminController {
         return ResponseEntity.ok(externalJobSyncService.toggleSource(source));
     }
 
+    @PutMapping("/scheduled-sync/toggle")
+    @Operation(summary = "Activer/désactiver la synchronisation planifiée (nocturne) — sans effet sur le déclenchement manuel")
+    public ResponseEntity<ExternalJobboardStatsDTO> toggleScheduledSync() {
+        return ResponseEntity.ok(externalJobSyncService.toggleScheduledSync());
+    }
+
     @PutMapping("/sources/{source}/criteria")
     @Operation(summary = "Modifier les critères de recherche d'une source externe (codes ROME, "
             + "départements, mots-clés, catégorie selon la source)")
@@ -72,5 +78,12 @@ public class JobboardAdminController {
             + "de catégories Adzuna")
     public ResponseEntity<List<ReferenceOptionDTO>> getAdzunaCategoriesReference() {
         return ResponseEntity.ok(adzunaProvider.getReferenceCategories());
+    }
+
+    @GetMapping("/reference/regions")
+    @Operation(summary = "Référentiel complet des régions (France Travail), pour peupler le "
+            + "sélecteur de régions — alternative aux départements pour couvrir une zone entière")
+    public ResponseEntity<List<ReferenceOptionDTO>> getRegionsReference() {
+        return ResponseEntity.ok(franceTravailProvider.fetchRegionsReferential());
     }
 }

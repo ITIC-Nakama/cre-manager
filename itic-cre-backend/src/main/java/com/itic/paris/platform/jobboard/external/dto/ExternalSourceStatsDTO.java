@@ -15,6 +15,7 @@ public record ExternalSourceStatsDTO(
         List<ContractTypeCountDTO> offersByContractType,
         String romeCodes,
         String departments,
+        String regions,
         String keywords,
         String category,
         String excludedEmployers

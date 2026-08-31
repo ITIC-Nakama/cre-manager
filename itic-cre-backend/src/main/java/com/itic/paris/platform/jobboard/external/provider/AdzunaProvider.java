@@ -290,7 +290,7 @@ public class AdzunaProvider extends AbstractJobProvider {
                 "adzuna:" + rawId,
                 truncate(title, 200),
                 truncate(company != null ? company : "Entreprise confidentielle", 100),
-                job.path("description").asText(""),
+                textOrNull(job.path("description")),
                 truncate(location, 500),
                 contractTypeLabel,
                 truncate(externalLink, 2048),

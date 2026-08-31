@@ -10,8 +10,11 @@ import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.SyncLogDTO;
 import com.itic.paris.platform.jobboard.external.model.ExternalSourceConfig;
+import com.itic.paris.platform.jobboard.external.model.JobboardSyncSettings;
 import com.itic.paris.platform.jobboard.external.model.SyncLog;
+import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.external.repository.SyncLogRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
@@ -49,15 +52,40 @@ public class ExternalJobSyncService {
     private final JobApplicationRepository jobApplicationRepository;
     private final SyncLogRepository syncLogRepository;
     private final ExternalSourceConfigRepository sourceConfigRepository;
+    private final JobboardSyncSettingsRepository syncSettingsRepository;
     private final AppConfigurationService appConfigurationService;
     private final ObjectMapper objectMapper;
 
     private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
 
-    /** Sync automatique nocturne (cron configurable via jobboard.sync.cron). */
+    /** Sync automatique nocturne (cron configurable via jobboard.sync.cron) — désactivable
+      * depuis l'admin (JobboardSyncSettings.scheduledSyncEnabled) sans affecter le déclenchement
+      * manuel, qui appelle syncAllAsync directement. */
     @Scheduled(cron = "${jobboard.sync.cron:0 0 2 * * *}")
     public void scheduledSync() {
+        if (!isScheduledSyncEnabled()) {
+            log.info("[JOBOARD SYNC] Synchronisation planifiée désactivée par l'admin, appel ignoré.");
+            return;
+        }
         syncAll();
+    }
+
+    public boolean isScheduledSyncEnabled() {
+        return getOrCreateSyncSettings().getScheduledSyncEnabled();
+    }
+
+    public ExternalJobboardStatsDTO toggleScheduledSync() {
+        JobboardSyncSettings settings = getOrCreateSyncSettings();
+        boolean nowEnabled = !settings.getScheduledSyncEnabled();
+        settings.setScheduledSyncEnabled(nowEnabled);
+        syncSettingsRepository.save(settings);
+        log.info("[JOBOARD SYNC] Synchronisation planifiée {} par l'admin", nowEnabled ? "activée" : "désactivée");
+        return getStats();
+    }
+
+    private JobboardSyncSettings getOrCreateSyncSettings() {
+        return syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID)
+                .orElseGet(() -> syncSettingsRepository.save(new JobboardSyncSettings()));
     }
 
     /** Sync manuelle déclenchée depuis l'admin — asynchrone pour ne pas bloquer la requête HTTP. */
@@ -203,6 +231,7 @@ public class ExternalJobSyncService {
                             countActiveByContractType(p.getSource()),
                             config != null ? config.getRomeCodes() : null,
                             config != null ? config.getDepartments() : null,
+                            config != null ? config.getRegions() : null,
                             config != null ? config.getKeywords() : null,
                             config != null ? config.getCategory() : null,
                             config != null ? config.getExcludedEmployers() : null);
@@ -214,7 +243,7 @@ public class ExternalJobSyncService {
                         l.getInsertedCount(), l.getSkippedCount(), l.getExpiredCount(), l.getDeletedCount()))
                 .orElse(null);
 
-        return new ExternalJobboardStatsDTO(isSyncInProgress(), lastSync, sources);
+        return new ExternalJobboardStatsDTO(isSyncInProgress(), isScheduledSyncEnabled(), lastSync, sources);
     }
 
     /** Répartition des offres actives d'une source par type de contrat, pour vérifier en direct
@@ -250,7 +279,10 @@ public class ExternalJobSyncService {
     public ExternalJobboardStatsDTO updateCriteria(String source, ExternalSourceCriteriaDTO criteria) {
         ExternalSourceConfig config = requireKnownSource(source);
         config.setRomeCodes(criteria.romeCodes());
-        config.setDepartments(criteria.departments());
+        // FRANCE_TRAVAIL n'utilise que "regions" cote geographique (voir FranceTravailProvider) —
+        // "departments" ne s'applique qu'a BONNE_ALTERNANCE.
+        config.setDepartments(FranceTravailProvider.SOURCE.equals(source) ? null : criteria.departments());
+        config.setRegions(criteria.regions());
         config.setKeywords(criteria.keywords());
         config.setCategory(criteria.category());
         config.setExcludedEmployers(criteria.excludedEmployers());

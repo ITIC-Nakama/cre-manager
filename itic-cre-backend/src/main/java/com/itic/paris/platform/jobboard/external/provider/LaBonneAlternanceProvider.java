@@ -85,8 +85,12 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
         if (!romes.isEmpty()) {
             uriBuilder.queryParam("romes", String.join(",", romes));
         }
+        // Le parametre s'appelle "departements" et non "departments" — un nom inconnu est
+        // silencieusement ignore par cette API. Plusieurs valeurs se passent en repetant le
+        // parametre (departements=75&departements=92), pas en les joignant par une virgule
+        // (traite comme un seul code invalide).
         if (!departments.isEmpty()) {
-            uriBuilder.queryParam("departments", String.join(",", departments));
+            uriBuilder.queryParam("departements", departments.toArray());
         }
         String uri = uriBuilder.build().toUriString();
 
@@ -125,7 +129,7 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
 
         String company = textOrNull(job.path("workplace").get("name"));
         String location = textOrNull(job.path("workplace").path("location").get("address"));
-        String description = job.path("offer").path("description").asText("");
+        String description = textOrNull(job.path("offer").path("description"));
         String externalLink = textOrNull(job.path("apply").get("url"));
 
         String contractTypeLabel = null;

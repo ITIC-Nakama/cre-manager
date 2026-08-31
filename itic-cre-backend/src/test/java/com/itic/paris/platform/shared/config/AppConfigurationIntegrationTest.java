@@ -200,4 +200,5 @@ public class AppConfigurationIntegrationTest {
                         .content(objectMapper.writeValueAsString(invalidDto)))
                 .andExpect(status().isBadRequest());
     }
+
 }

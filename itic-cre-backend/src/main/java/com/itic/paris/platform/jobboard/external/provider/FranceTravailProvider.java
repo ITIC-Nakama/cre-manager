@@ -45,10 +45,9 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
     /**
      * Buckets de recherche, chacun avec son propre quota garanti. CDI/CDD filtrent via
-     * "typeContrat". L'alternance recouvre en droit francais deux natures de contrat distinctes
-     * (verifie via /v2/referentiel/naturesContrats) : "E2" = contrat d'apprentissage, "FS" =
-     * contrat de professionnalisation — d'ou deux buckets separes plutot qu'un seul. Stage n'a
-     * aucun code dedie sur cette source (un stage n'est pas un emploi au sens du droit du
+     * "typeContrat". L'alternance recouvre deux natures de contrat distinctes : "E2" = contrat
+     * d'apprentissage, "FS" = contrat de professionnalisation, d'ou deux buckets separes. Stage
+     * n'a aucun code dedie sur cette source (un stage n'est pas un emploi au sens du droit du
      * travail), d'ou l'usage de motsCles=stage a la place. Alternance/stage sont prioritaires
      * (2/3 du quota) et places en tete pour etre deja recuperes si la synchro est interrompue
      * avant la fin.
@@ -108,11 +107,10 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
         var config = currentConfig();
         List<String> romeCodes = resolveCsvCriteria(config.getRomeCodes());
-        List<String> departments = resolveCsvCriteria(config.getDepartments());
+        List<String> regions = resolveCsvCriteria(config.getRegions());
         List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
-        String departementParam = departments.isEmpty() ? null : String.join(",", departments);
-        // Aucun code ROME configuré = aucune restriction de filière (verifie : codeROME est optionnel
-        // sur cette API, l'omettre renvoie toutes professions confondues pour les autres criteres donnes).
+        // Aucun code ROME configuré = aucune restriction de filière — codeROME est optionnel sur
+        // cette API, l'omettre renvoie toutes professions confondues pour les autres criteres donnes.
         List<String> romeLoop = romeCodes.isEmpty() ? Collections.singletonList(null) : romeCodes;
 
         // maxOffers est un quota par code ROME : chaque code ROME configure recoit son propre
@@ -149,7 +147,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
                     }
                     try {
                         JsonNode resultats = search(accessToken, rome, bucket.natureContrat(), bucket.typeContrat(), bucket.motsCles(),
-                                departementParam, rangeStart);
+                                regions, rangeStart);
                         if (resultats == null || !resultats.isArray() || resultats.isEmpty()) {
                             break;
                         }
@@ -179,10 +177,13 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
     private static final String METIERS_REFERENTIEL_URL =
             "https://api.francetravail.io/partenaire/offresdemploi/v2/referentiel/metiers";
+    private static final String REGIONS_REFERENTIEL_URL =
+            "https://api.francetravail.io/partenaire/offresdemploi/v2/referentiel/regions";
 
     /** Cache en mémoire : ~500 entrées, quasi jamais modifiées, pas besoin de re-fetch à chaque
      * ouverture du panneau admin. Se recharge au redémarrage de l'application. */
     private volatile List<ReferenceOptionDTO> romeReferentialCache;
+    private volatile List<ReferenceOptionDTO> regionsReferentialCache;
 
     /** Référentiel complet des métiers ROME (code + libellé), pour peupler le sélecteur de codes
      * ROME du panneau admin — évite à un admin de deviner/taper un code à la main. */
@@ -214,6 +215,37 @@ public class FranceTravailProvider extends AbstractJobProvider {
         return result;
     }
 
+    /** Référentiel complet des régions (code INSEE + libellé), pour le sélecteur de régions du
+     * panneau admin — alternative à "departments" pour couvrir une zone entière en une recherche
+     * (voir fetchOffers : "region" et "departement" sont mutuellement exclusifs côté API). */
+    public synchronized List<ReferenceOptionDTO> fetchRegionsReferential() {
+        if (regionsReferentialCache != null) {
+            return regionsReferentialCache;
+        }
+        String accessToken = fetchAccessToken();
+        if (accessToken == null) {
+            throw new IllegalStateException("Impossible d'obtenir un token France Travail");
+        }
+        JsonNode response = restClient.get()
+                .uri(URI.create(REGIONS_REFERENTIEL_URL))
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .body(JsonNode.class);
+        List<ReferenceOptionDTO> result = new ArrayList<>();
+        if (response != null && response.isArray()) {
+            for (JsonNode region : response) {
+                String code = textOrNull(region.get("code"));
+                String libelle = textOrNull(region.get("libelle"));
+                if (code != null && libelle != null) {
+                    result.add(new ReferenceOptionDTO(code, libelle));
+                }
+            }
+        }
+        result.sort(Comparator.comparing(ReferenceOptionDTO::label));
+        regionsReferentialCache = result;
+        return result;
+    }
+
     private String fetchAccessToken() {
         try {
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
@@ -238,7 +270,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
     }
 
     private JsonNode search(String accessToken, String rome, String natureContrat, String typeContrat,
-                             String motsCles, String departement, int rangeStart) {
+                             String motsCles, List<String> regions, int rangeStart) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
                 .queryParam("range", rangeStart + "-" + (rangeStart + PAGE_SIZE - 1));
         if (rome != null) {
@@ -253,8 +285,9 @@ public class FranceTravailProvider extends AbstractJobProvider {
         if (motsCles != null) {
             uriBuilder.queryParam("motsCles", motsCles);
         }
-        if (departement != null) {
-            uriBuilder.queryParam("departement", departement);
+
+        if (regions != null && !regions.isEmpty()) {
+            uriBuilder.queryParam("region", regions.toArray());
         }
         JsonNode response = restClient.get()
                 .uri(uriBuilder.build().toUri())
@@ -310,7 +343,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 "ft:" + rawId,
                 truncate(title, 200),
                 truncate(company != null ? company : "Entreprise confidentielle", 100),
-                offre.path("description").asText(""),
+                textOrNull(offre.path("description")),
                 truncate(location, 500),
                 contractTypeLabel,
                 truncate(externalLink, 2048),

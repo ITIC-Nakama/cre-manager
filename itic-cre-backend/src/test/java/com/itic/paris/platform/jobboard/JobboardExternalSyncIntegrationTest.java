@@ -12,7 +12,12 @@ import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
+import com.itic.paris.platform.jobboard.external.model.JobboardSyncSettings;
 import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
+import com.itic.paris.platform.jobboard.external.repository.SyncLogRepository;
+import com.itic.paris.platform.jobboard.external.service.ExternalJobSyncService;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobApplication;
 import com.itic.paris.platform.jobboard.model.JobOffer;
@@ -85,6 +90,15 @@ class JobboardExternalSyncIntegrationTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private ExternalJobSyncService externalJobSyncService;
+
+    @Autowired
+    private SyncLogRepository syncLogRepository;
+
+    @Autowired
+    private JobboardSyncSettingsRepository syncSettingsRepository;
 
     private String adminToken;
     private String advisorToken;
@@ -326,6 +340,49 @@ class JobboardExternalSyncIntegrationTest {
         assertThat(survivingApplication.getSourceJobOffer()).isNull();
     }
 
+    @Test
+    void updateCriteriaIgnoresDepartmentsForFranceTravail() {
+        // FRANCE_TRAVAIL n'utilise que "regions" cote geographique — un "departments" envoye
+        // quand meme est ignore/mis a null plutot que persiste.
+        ExternalSourceCriteriaDTO withDepartments = new ExternalSourceCriteriaDTO(
+                null, "75,92", null, null, null, null);
+
+        var stats = externalJobSyncService.updateCriteria(FranceTravailProvider.SOURCE, withDepartments);
+
+        var franceTravail = stats.sources().stream()
+                .filter(s -> s.source().equals(FranceTravailProvider.SOURCE))
+                .findFirst().orElseThrow();
+        assertThat(franceTravail.departments()).isNull();
+    }
+
+    @Test
+    void updateCriteriaAcceptsRegionsAloneForFranceTravail() {
+        ExternalSourceCriteriaDTO regionsOnly = new ExternalSourceCriteriaDTO(
+                null, "", "11,84", null, null, null);
+
+        var stats = externalJobSyncService.updateCriteria(FranceTravailProvider.SOURCE, regionsOnly);
+
+        var franceTravail = stats.sources().stream()
+                .filter(s -> s.source().equals(FranceTravailProvider.SOURCE))
+                .findFirst().orElseThrow();
+        assertThat(franceTravail.regions()).isEqualTo("11,84");
+    }
+
+    @Test
+    void updateCriteriaAllowsMoreThanFiveDepartmentsForOtherSources() {
+        // Le plafond de 5 est specifique a l'API France Travail — La Bonne Alternance n'a pas
+        // cette contrainte.
+        ExternalSourceCriteriaDTO manyDepartments = new ExternalSourceCriteriaDTO(
+                null, "75,77,78,91,92,93,94,95", null, null, null, null);
+
+        var stats = externalJobSyncService.updateCriteria("BONNE_ALTERNANCE", manyDepartments);
+
+        var lba = stats.sources().stream()
+                .filter(s -> s.source().equals("BONNE_ALTERNANCE"))
+                .findFirst().orElseThrow();
+        assertThat(lba.departments()).isEqualTo("75,77,78,91,92,93,94,95");
+    }
+
     /**
      * resolveContractType() est mutualisé entre les 3 providers externes (AbstractJobProvider) :
      * seul un libellé contenant un mot-clé reconnu résout vers son ContractType dédié ; sans
@@ -372,6 +429,46 @@ class JobboardExternalSyncIntegrationTest {
         mockMvc.perform(post("/jobboard/admin/external/sync")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                 .andExpect(status().isAccepted());
+    }
+
+    /**
+     * scheduledSync() (le cron nocturne) doit respecter le flag admin
+     * JobboardSyncSettings.scheduledSyncEnabled et ne rien faire quand il est desactive — verifie
+     * via l'absence de SyncLog cree, plutot que via syncAll() directement (qui appellerait les
+     * vrais providers ; sans credentials en config de test ils se rapportent juste "disabled",
+     * d'ou le meme mecanisme deja exploite par syncAndToggleEndpointsAreAdminOnly ci-dessus).
+     */
+    @Test
+    void scheduledSyncSkipsWhenDisabledByAdmin() {
+        setScheduledSyncEnabled(false);
+        long before = syncLogRepository.count();
+
+        externalJobSyncService.scheduledSync();
+
+        assertThat(syncLogRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void toggleScheduledSyncEndpointIsAdminOnlyAndFlipsTheFlag() throws Exception {
+        setScheduledSyncEnabled(true);
+
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/toggle")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/toggle")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.scheduledSyncEnabled").value(false));
+
+        assertThat(externalJobSyncService.isScheduledSyncEnabled()).isFalse();
+    }
+
+    private void setScheduledSyncEnabled(boolean enabled) {
+        JobboardSyncSettings settings = syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID)
+                .orElseGet(JobboardSyncSettings::new);
+        settings.setScheduledSyncEnabled(enabled);
+        syncSettingsRepository.saveAndFlush(settings);
     }
 
     @Test

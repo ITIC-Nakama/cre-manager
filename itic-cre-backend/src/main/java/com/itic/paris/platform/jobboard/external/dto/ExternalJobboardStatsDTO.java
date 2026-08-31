@@ -4,6 +4,7 @@ import java.util.List;
 
 public record ExternalJobboardStatsDTO(
         boolean syncInProgress,
+        boolean scheduledSyncEnabled,
         SyncLogDTO lastSync,
         List<ExternalSourceStatsDTO> sources
 ) {

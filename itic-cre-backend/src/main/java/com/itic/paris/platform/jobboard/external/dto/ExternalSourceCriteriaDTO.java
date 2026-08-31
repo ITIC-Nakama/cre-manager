@@ -8,6 +8,7 @@ package com.itic.paris.platform.jobboard.external.dto;
 public record ExternalSourceCriteriaDTO(
         String romeCodes,
         String departments,
+        String regions,
         String keywords,
         String category,
         String excludedEmployers

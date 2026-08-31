@@ -6,6 +6,7 @@ import type { ExternalSourceStat, ReferenceOption } from '../../../../types/mode
 export interface CriteriaForm {
     romeCodes: string;
     departments: string;
+    regions: string;
     keywords: string;
     category: string;
     excludedEmployers: string;
@@ -13,6 +14,9 @@ export interface CriteriaForm {
 
 /** ADZUNA n'a pas de taxonomie ROME (contrairement à FRANCE_TRAVAIL/BONNE_ALTERNANCE) — critères différents. */
 const ROME_BASED_SOURCES = new Set(['FRANCE_TRAVAIL', 'BONNE_ALTERNANCE']);
+
+/** Seul FRANCE_TRAVAIL expose un filtre par région (alternative aux départements, voir backend). */
+const REGION_BASED_SOURCES = new Set(['FRANCE_TRAVAIL']);
 
 /** Types de contrat priorisés à 2/3 du quota de synchronisation (voir AdzunaProvider/FranceTravailProvider) — mis en avant visuellement pour vérifier l'effet en direct. */
 const PRIORITY_CONTRACT_LABELS = new Set(['Alternance', 'Stage']);
@@ -28,6 +32,8 @@ interface ExternalSourceDetailProps {
     toggling: boolean;
     romeCodesRef: ReferenceOption[];
     romeCodesRefLoading: boolean;
+    regionsRef: ReferenceOption[];
+    regionsRefLoading: boolean;
     adzunaCategoriesRef: ReferenceOption[];
     adzunaCategoriesRefLoading: boolean;
 }
@@ -43,11 +49,14 @@ export default function ExternalSourceDetail({
     toggling,
     romeCodesRef,
     romeCodesRefLoading,
+    regionsRef,
+    regionsRefLoading,
     adzunaCategoriesRef,
     adzunaCategoriesRefLoading,
 }: ExternalSourceDetailProps) {
     const { t } = useTranslation();
     const romeBased = ROME_BASED_SOURCES.has(source.source);
+    const regionBased = REGION_BASED_SOURCES.has(source.source);
 
     return (
         <div className="flex flex-col gap-5 p-5 rounded-2xl bg-slate-50 dark:bg-[#15171F] border border-slate-100 dark:border-slate-800">
@@ -135,18 +144,37 @@ export default function ExternalSourceDetail({
             {/* Critères secondaires — deux colonnes sur écran large */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {romeBased ? (
-                    <div>
-                        <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
-                            {t('dashboard.admin.jobboard_external.field_departments', 'Départements')}
-                        </label>
-                        <input
-                            type="text"
-                            value={form.departments}
-                            onChange={(e) => onFieldChange('departments', e.target.value)}
-                            placeholder={t('dashboard.admin.jobboard_external.field_departments_placeholder', 'Ex: 75,92,93 — vide = toute la France')}
-                            className="w-full rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
-                        />
-                    </div>
+                    regionBased ? (
+                        <div>
+                            <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                                {t('dashboard.admin.jobboard_external.field_regions', 'Régions')}
+                            </label>
+                            <MultiSelectReference
+                                options={regionsRef}
+                                loading={regionsRefLoading}
+                                value={form.regions}
+                                onChange={(csv) => onFieldChange('regions', csv)}
+                                allLabel={t('dashboard.admin.jobboard_external.option_all_regions', 'Toutes les régions')}
+                                searchPlaceholder={t('dashboard.admin.jobboard_external.search_regions', 'Rechercher une région…')}
+                                noResultsLabel={t('dashboard.admin.jobboard_external.no_results', 'Aucun résultat')}
+                                closeLabel={t('dashboard.admin.jobboard_external.close', 'Fermer')}
+                                selectedCountLabel={(count) => t('dashboard.admin.jobboard_external.multi_select_count', { count, defaultValue: `${count} sélectionnés` })}
+                            />
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                                {t('dashboard.admin.jobboard_external.field_departments', 'Départements')}
+                            </label>
+                            <input
+                                type="text"
+                                value={form.departments}
+                                onChange={(e) => onFieldChange('departments', e.target.value)}
+                                placeholder={t('dashboard.admin.jobboard_external.field_departments_placeholder', 'Ex: 75,92,93 — vide = toute la France')}
+                                className="w-full rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
+                            />
+                        </div>
+                    )
                 ) : (
                     <>
                         <div>

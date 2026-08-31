@@ -16,8 +16,10 @@ import {
     fetchExternalJobboardStats,
     triggerExternalJobboardSync,
     toggleExternalJobboardSource,
+    toggleScheduledSync,
     updateExternalSourceCriteria,
     fetchRomeCodesReference,
+    fetchRegionsReference,
     fetchAdzunaCategoriesReference,
 } from '../api-s/requests/JobOfferRequest';
 import type { JobOfferListParams, JobOfferPayload, ExternalSourceCriteriaPayload } from '../types/models/JobOffer';
@@ -163,6 +165,14 @@ export function useToggleExternalJobboardSource() {
     });
 }
 
+export function useToggleScheduledSync() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => toggleScheduledSync(),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
 export function useUpdateExternalSourceCriteria() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -178,6 +188,14 @@ export function useRomeCodesReference() {
     return useQuery({
         queryKey: ['jobboard-external-reference', 'rome-codes'],
         queryFn: fetchRomeCodesReference,
+        staleTime: 60 * 60 * 1000,
+    });
+}
+
+export function useRegionsReference() {
+    return useQuery({
+        queryKey: ['jobboard-external-reference', 'regions'],
+        queryFn: fetchRegionsReference,
         staleTime: 60 * 60 * 1000,
     });
 }

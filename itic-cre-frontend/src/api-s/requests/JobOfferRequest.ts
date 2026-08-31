@@ -91,6 +91,12 @@ export function toggleExternalJobboardSource(source: string): Promise<ExternalJo
         .then((response) => unwrap<ExternalJobboardStats>(response));
 }
 
+export function toggleScheduledSync(): Promise<ExternalJobboardStats> {
+    return apiClient
+        .put('/jobboard/admin/external/scheduled-sync/toggle')
+        .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
 export function updateExternalSourceCriteria(source: string, criteria: ExternalSourceCriteriaPayload): Promise<ExternalJobboardStats> {
     return apiClient
         .put(`/jobboard/admin/external/sources/${source}/criteria`, criteria)
@@ -100,6 +106,12 @@ export function updateExternalSourceCriteria(source: string, criteria: ExternalS
 export function fetchRomeCodesReference(): Promise<ReferenceOption[]> {
     return apiClient
         .get('/jobboard/admin/external/reference/rome-codes')
+        .then((response) => unwrap<ReferenceOption[]>(response));
+}
+
+export function fetchRegionsReference(): Promise<ReferenceOption[]> {
+    return apiClient
+        .get('/jobboard/admin/external/reference/regions')
         .then((response) => unwrap<ReferenceOption[]>(response));
 }
 

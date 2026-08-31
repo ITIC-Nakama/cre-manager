@@ -40,6 +40,11 @@ public class ExternalSourceConfig {
     @Column(name = "departments", length = 200)
     private String departments;
 
+    /** FRANCE_TRAVAIL uniquement — codes région (ex: "11" Île-de-France), mutuellement exclusif
+      * avec departments côté API (voir FranceTravailProvider.fetchOffers). */
+    @Column(name = "regions", length = 500)
+    private String regions;
+
     @Column(name = "keywords", length = 500)
     private String keywords;
 

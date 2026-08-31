@@ -75,6 +75,7 @@ public class AppConfigurationService {
                 .orElse(30);
     }
 
+
     /**
      * Nombre maximum de candidatures "postuler" (jobboard, ITIC ou externe indifféremment)
      * créditées en XP sur une fenêtre glissante de 7 jours, par étudiant. Au-delà, la candidature
