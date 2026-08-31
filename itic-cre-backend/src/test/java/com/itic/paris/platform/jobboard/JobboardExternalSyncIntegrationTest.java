@@ -449,7 +449,7 @@ class JobboardExternalSyncIntegrationTest {
     }
 
     @Test
-    void toggleScheduledSyncEndpointIsAdminOnlyAndFlipsTheFlag() throws Exception {
+    void toggleScheduledSyncEndpointIsAdminOnlyAndFlipsTheFlagBothWays() throws Exception {
         setScheduledSyncEnabled(true);
 
         mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/toggle")
@@ -462,6 +462,17 @@ class JobboardExternalSyncIntegrationTest {
                 .andExpect(jsonPath("$.data.scheduledSyncEnabled").value(false));
 
         assertThat(externalJobSyncService.isScheduledSyncEnabled()).isFalse();
+        assertThat(syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID).orElseThrow().getScheduledSyncEnabled())
+                .isFalse();
+
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/toggle")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.scheduledSyncEnabled").value(true));
+
+        assertThat(externalJobSyncService.isScheduledSyncEnabled()).isTrue();
+        assertThat(syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID).orElseThrow().getScheduledSyncEnabled())
+                .isTrue();
     }
 
     private void setScheduledSyncEnabled(boolean enabled) {
