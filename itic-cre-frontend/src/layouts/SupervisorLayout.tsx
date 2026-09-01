@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useUserStore } from '../store/UserStore';
 import { Role } from '../types/models/Auth';
@@ -10,10 +11,13 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
+import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
 
 export default function SupervisorLayout() {
   const { t } = useTranslation();
   const { user } = useUserStore();
+  const mainRef = useRef<HTMLElement>(null);
+  useResetScrollOnNavigate(mainRef);
 
   const isAdmin = user?.role === Role.ADMIN;
 
@@ -49,7 +53,7 @@ export default function SupervisorLayout() {
     <RequireAuthMiddleware allowedRoles={[Role.ADVISOR, Role.ADMIN]} redirectTo="/student/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
-        <main className="flex-1 overflow-y-auto h-full pt-14 lg:pt-0">
+        <main ref={mainRef} className="flex-1 overflow-y-auto h-full pt-14 lg:pt-0">
           <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-8 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
