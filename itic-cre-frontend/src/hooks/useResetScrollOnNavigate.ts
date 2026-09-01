@@ -12,6 +12,6 @@ export function useResetScrollOnNavigate(containerRef: RefObject<HTMLElement | n
     const { pathname } = useLocation();
 
     useEffect(() => {
-        containerRef.current?.scrollTo({ top: 0 });
+        containerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     }, [pathname, containerRef]);
 }

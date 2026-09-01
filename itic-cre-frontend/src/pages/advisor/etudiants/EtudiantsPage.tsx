@@ -134,7 +134,7 @@ export default function EtudiantsPage() {
         })),
     ], [availableYears, t]);
 
-    const params = {
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         isActive: filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : undefined,
@@ -144,11 +144,16 @@ export default function EtudiantsPage() {
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
         advisorId: advisorFilter || undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
-    };
+    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, isAdmin, includeAnonymized]);
 
     const {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useStudentListInfinite(params);
+
+    // IMPORTANT: getCoreRowModel() doit etre memoize — l'appeler inline cree une nouvelle
+    // fonction a chaque render, ce que useReactTable interprete comme un changement et
+    // declenche un nouveau render, creant une boucle infinie qui bloque React.
+    const coreRowModel = useMemo(() => getCoreRowModel(), []);
 
     const table = useReactTable({
         data: students,
@@ -158,7 +163,7 @@ export default function EtudiantsPage() {
         onRowSelectionChange: setRowSelection,
         getRowId: (row) => row.id,
         enableRowSelection: (row) => isAdmin && !isAnonymizedStudent(row.original),
-        getCoreRowModel: getCoreRowModel(),
+        getCoreRowModel: coreRowModel,
         manualSorting: true,
     });
 

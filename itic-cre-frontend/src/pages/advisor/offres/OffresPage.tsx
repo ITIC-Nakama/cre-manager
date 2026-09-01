@@ -55,7 +55,7 @@ export default function OffresPage() {
 
     const isInternalSource = sourceFilter === 'MANUAL';
 
-    const params = {
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
@@ -63,7 +63,7 @@ export default function OffresPage() {
         active: activeFilter === '' ? undefined : activeFilter === 'true',
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
-    };
+    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation]);
     const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();

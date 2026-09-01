@@ -114,10 +114,12 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
         // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [t]);
 
+    const coreRowModel = useMemo(() => getCoreRowModel(), []);
+
     const table = useReactTable({
         data: offers,
         columns,
-        getCoreRowModel: getCoreRowModel(),
+        getCoreRowModel: coreRowModel,
     });
 
     return (

@@ -101,9 +101,7 @@ export default function CandidaturesPage() {
             .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t, currentUserId]);
 
-    const {
-        items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
-    } = useApplicationGroupedListInfinite({
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         statusId: statusFilter || undefined,
@@ -112,7 +110,11 @@ export default function CandidaturesPage() {
         stale: staleOnly ? true : undefined,
         activeStudentsOnly: true,
         advisorId: advisorFilter || undefined,
-    });
+    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter]);
+
+    const {
+        items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useApplicationGroupedListInfinite(params);
 
     const studentGroups = items as StudentGroup[];
 

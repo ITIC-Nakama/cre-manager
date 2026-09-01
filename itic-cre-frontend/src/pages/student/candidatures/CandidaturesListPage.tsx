@@ -29,14 +29,16 @@ export default function CandidaturesListPage() {
     const { data: statuses } = useApplicationStatuses();
     const { data: contractTypes } = useContractTypes();
 
-    const {
-        items: candidatures, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
-    } = useMyCandidaturesInfinite({
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         statusId: statusFilter || undefined,
         typeContratId: contractTypeFilter || undefined,
-    });
+    }), [debouncedSearch, statusFilter, contractTypeFilter]);
+
+    const {
+        items: candidatures, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useMyCandidaturesInfinite(params);
 
     const createMutation = useCreateCandidature();
 

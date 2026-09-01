@@ -109,6 +109,9 @@ export default function ArticlesTable({
     }),
   ], [t]);
 
+  const coreRowModel = useMemo(() => getCoreRowModel(), []);
+  const sortedRowModel = useMemo(() => getSortedRowModel(), []);
+
   const table = useReactTable({
     data: articles,
     columns,
@@ -116,8 +119,8 @@ export default function ArticlesTable({
       sorting,
     },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getCoreRowModel: coreRowModel,
+    getSortedRowModel: sortedRowModel,
   });
 
   if (articles.length === 0) {

@@ -46,13 +46,13 @@ export default function ExternalOffresTab() {
         handleWithdrawConfirm,
     } = useJobOfferApplyActions();
 
-    const params = {
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
         source: sourceFilter || 'EXTERNAL',
         location: debouncedLocation || undefined,
-    };
+    }), [debouncedSearch, contractTypeFilter, sourceFilter, debouncedLocation]);
 
     const {
         items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

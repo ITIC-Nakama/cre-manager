@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import type { QueryKey } from '@tanstack/react-query';
 
 interface PageLike<T> {
@@ -21,13 +22,16 @@ export function useInfiniteListQuery<T, P extends { page?: number }>(
 ) {
     const query = useInfiniteQuery({
         queryKey,
-        queryFn: ({ pageParam }) => fetchPage({ ...params, page: pageParam }),
+        queryFn: ({ pageParam }) => fetchPage({ ...params, page: pageParam as number }),
         initialPageParam: 0,
         getNextPageParam: (lastPage) => (lastPage.number + 1 < lastPage.totalPages ? lastPage.number + 1 : undefined),
         enabled: options.enabled,
     });
 
-    const items = query.data?.pages.flatMap((p) => p.content) ?? [];
+    const items = useMemo(
+        () => query.data?.pages.flatMap((p) => p.content ?? []) ?? [],
+        [query.data]
+    );
     const totalElements = query.data?.pages[0]?.totalElements ?? 0;
 
     return { ...query, items, totalElements };

@@ -41,13 +41,13 @@ export default function PromotionDetailPage() {
   const { data: yearCountsData } = usePromotionYearCounts(id, !!id);
 
   // Paginated table data from backend
-  const params = {
+  const params = useMemo(() => ({
     size: PAGE_SIZE,
     promotionId: id,
     studyYear: typeof selectedYearTab === 'number' ? selectedYearTab : undefined,
     studyYearMissing: selectedYearTab === 'UNASSIGNED' ? true : undefined,
     search: debouncedSearch || undefined,
-  };
+  }), [id, selectedYearTab, debouncedSearch]);
 
   const {
     items: students, totalElements, isLoading: loadingStudents, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

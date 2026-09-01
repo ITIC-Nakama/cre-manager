@@ -40,13 +40,13 @@ export default function IticOffresTab() {
         handleWithdrawConfirm,
     } = useJobOfferApplyActions();
 
-    const params = {
+    const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
         sectorId: sectorFilter || undefined,
         location: debouncedLocation || undefined,
-    };
+    }), [debouncedSearch, contractTypeFilter, sectorFilter, debouncedLocation]);
 
     const {
         items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

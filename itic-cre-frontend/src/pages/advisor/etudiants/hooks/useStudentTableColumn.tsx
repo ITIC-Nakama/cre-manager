@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { FileText, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,29 @@ interface UseStudentColumnsOptions {
     isAdmin: boolean;
 }
 
+function IndeterminateCheckbox({
+    indeterminate,
+    className = '',
+    ...rest
+}: { indeterminate?: boolean } & React.InputHTMLAttributes<HTMLInputElement>) {
+    const ref = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (typeof indeterminate === 'boolean' && ref.current) {
+            ref.current.indeterminate = indeterminate;
+        }
+    }, [indeterminate]);
+
+    return (
+        <input
+            type="checkbox"
+            ref={ref}
+            className={className}
+            {...rest}
+        />
+    );
+}
+
 export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
     const { t } = useTranslation();
 
@@ -19,12 +42,9 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
         ...(isAdmin ? [col.display({
             id: 'select',
             header: ({ table }) => (
-                <input
-                    type="checkbox"
+                <IndeterminateCheckbox
                     checked={table.getIsAllPageRowsSelected()}
-                    ref={(el) => {
-                        if (el) el.indeterminate = !table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected();
-                    }}
+                    indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
                     onChange={table.getToggleAllPageRowsSelectedHandler()}
                     className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />

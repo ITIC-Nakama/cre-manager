@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
@@ -30,17 +30,16 @@ export default function AdvisorPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 1. Requête distincte pour les Conseillers
-  const advisorQuery = useAdvisorsInfinite({
+  const params = useMemo(() => ({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
-  });
+  }), [debouncedSearch]);
+
+  // 1. Requête distincte pour les Conseillers
+  const advisorQuery = useAdvisorsInfinite(params);
 
   // 2. Requête distincte pour les Administrateurs
-  const adminQuery = useAdminsInfinite({
-    size: PAGE_SIZE,
-    search: debouncedSearch || undefined,
-  });
+  const adminQuery = useAdminsInfinite(params);
 
   const isAdminsTab = activeTab === 'admins';
   const activeQuery = isAdminsTab ? adminQuery : advisorQuery;

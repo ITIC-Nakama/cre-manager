@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
 import { Search, Loader2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
@@ -26,15 +26,17 @@ export default function AuditLogsPage() {
   const [toDate, setToDate] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const {
-    items: logs, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
-  } = useAuditLogsInfinite({
+  const params = useMemo(() => ({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
     action: actionFilter || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
-  });
+  }), [debouncedSearch, actionFilter, fromDate, toDate]);
+
+  const {
+    items: logs, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+  } = useAuditLogsInfinite(params);
 
   const actionOptions = [
     { value: '', label: t('dashboard.audit_page.filter_all_actions') },
