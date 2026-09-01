@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     fetchMyCandidatures,
     fetchCandidatureById,
@@ -16,6 +17,10 @@ export function useMyCandidatures(params?: FetchMyCandidaturesParams) {
         queryKey: [...MY_CANDIDATURES_KEY, params],
         queryFn: () => fetchMyCandidatures(params),
     });
+}
+
+export function useMyCandidaturesInfinite(params: FetchMyCandidaturesParams = {}) {
+    return useInfiniteListQuery([...MY_CANDIDATURES_KEY, 'infinite', params], fetchMyCandidatures, params);
 }
 
 export function useCandidature(id: string | undefined) {

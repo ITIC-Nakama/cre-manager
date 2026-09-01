@@ -44,6 +44,7 @@ export default function JobOfferDetailModal({
 }: Props) {
     const { t, i18n } = useTranslation();
     const panelRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,7 +56,7 @@ export default function JobOfferDetailModal({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    useLockBodyScroll(panelRef, !!offer);
+    useLockBodyScroll(scrollRef, !!offer);
 
     if (!offer) return null;
 
@@ -104,7 +105,7 @@ export default function JobOfferDetailModal({
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-w-0 text-slate-800 dark:text-slate-200">
+                <div ref={scrollRef} className="p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-w-0 text-slate-800 dark:text-slate-200">
                     
                     {/* Status banner if applied */}
                     {isApplied && (

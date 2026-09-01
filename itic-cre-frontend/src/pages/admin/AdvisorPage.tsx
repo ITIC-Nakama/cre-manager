@@ -6,7 +6,7 @@ import { Plus, Search, Loader2, Shield, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
-  useAdvisors, useAdmins, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor,
+  useAdvisorsInfinite, useAdminsInfinite, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor,
   useDeactivateUser, useReactivateAdvisor,
 } from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
@@ -25,40 +25,36 @@ export default function AdvisorPage() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<Tab>('advisors');
-  const [advisorPage, setAdvisorPage] = useState(0);
-  const [adminPage, setAdminPage] = useState(0);
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 1. Requête distincte pour les Conseillers
-  const advisorQuery = useAdvisors({
-    page: advisorPage,
+  const advisorQuery = useAdvisorsInfinite({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
   });
 
   // 2. Requête distincte pour les Administrateurs
-  const adminQuery = useAdmins({
-    page: adminPage,
+  const adminQuery = useAdminsInfinite({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
   });
 
   const isAdminsTab = activeTab === 'admins';
   const activeQuery = isAdminsTab ? adminQuery : advisorQuery;
-  const page = isAdminsTab ? adminPage : advisorPage;
-  const setPage = isAdminsTab ? setAdminPage : setAdvisorPage;
 
-  const currentList = activeQuery.data?.content ?? [];
-  const totalElements = activeQuery.data?.totalElements ?? 0;
-  const totalPages = activeQuery.data?.totalPages ?? 1;
+  const currentList = activeQuery.items;
+  const totalElements = activeQuery.totalElements;
   const isLoading = activeQuery.isLoading;
   const isFetching = activeQuery.isFetching;
+  const isFetchingNextPage = activeQuery.isFetchingNextPage;
+  const hasNextPage = activeQuery.hasNextPage;
+  const fetchNextPage = activeQuery.fetchNextPage;
 
-  const advisorTotalCount = advisorQuery.data?.totalElements ?? 0;
-  const adminTotalCount = adminQuery.data?.totalElements ?? 0;
+  const advisorTotalCount = advisorQuery.totalElements;
+  const adminTotalCount = adminQuery.totalElements;
 
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
@@ -124,8 +120,6 @@ export default function AdvisorPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setAdvisorPage(0);
-    setAdminPage(0);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
   };
@@ -262,7 +256,7 @@ export default function AdvisorPage() {
         </button>
       </div>
 
-      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-col gap-4">
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
         {/* ── Tabs Admin / Conseiller ── */}
         <AdvisorTabs
           activeTab={activeTab}
@@ -300,10 +294,9 @@ export default function AdvisorPage() {
         currentList={currentList}
         isLoading={isLoading}
         isAdminsTab={isAdminsTab}
-        page={page}
-        totalPages={totalPages}
-        totalElements={totalElements}
-        onPageChange={setPage}
+        hasNextPage={!!hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={fetchNextPage}
         onEdit={(advisor) => setModal({ isOpen: true, mode: 'edit', advisor })}
         onResetPassword={(advisor) => setResetPasswordModal({ isOpen: true, advisor })}
         onDeactivate={handleDeactivate}

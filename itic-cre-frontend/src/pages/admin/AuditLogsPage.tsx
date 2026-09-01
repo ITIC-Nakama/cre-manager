@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
-import { Search, Loader2, ShieldCheck, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Loader2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 
-import { useAuditLogs } from '../../hooks/useAudit';
+import { useAuditLogsInfinite } from '../../hooks/useAudit';
 import { AUDIT_ACTIONS, auditActionColor } from '../../utils/auditActionColors';
 import CustomSelect from '../../components/basics/CustomSelect';
+import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
 
 const PAGE_SIZE = 20;
 
@@ -18,7 +19,6 @@ function formatDate(iso: string) {
 
 export default function AuditLogsPage() {
   const { t } = useTranslation();
-  const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
@@ -26,17 +26,15 @@ export default function AuditLogsPage() {
   const [toDate, setToDate] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data, isLoading, isFetching } = useAuditLogs({
-    page,
+  const {
+    items: logs, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+  } = useAuditLogsInfinite({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
     action: actionFilter || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
   });
-  const logs = data?.content ?? [];
-  const totalElements = data?.totalElements ?? 0;
-  const totalPages = data?.totalPages ?? 1;
 
   const actionOptions = [
     { value: '', label: t('dashboard.audit_page.filter_all_actions') },
@@ -48,24 +46,20 @@ export default function AuditLogsPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(0);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
   };
 
   const handleActionFilterChange = (value: string) => {
     setActionFilter(value);
-    setPage(0);
   };
 
   const handleFromDateChange = (value: string) => {
     setFromDate(value);
-    setPage(0);
   };
 
   const handleToDateChange = (value: string) => {
     setToDate(value);
-    setPage(0);
   };
 
   return (
@@ -83,7 +77,7 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Filters */}
-      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-wrap items-center gap-3">
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48 max-w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
@@ -177,31 +171,12 @@ export default function AuditLogsPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-            <span className="text-slate-500 dark:text-slate-400">
-              {t('dashboard.audit_page.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>{t('common.prev')}</span>
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-              >
-                <span>{t('common.next')}</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+        {!isLoading && logs.length > 0 && (
+          <InfiniteScrollSentinel
+            hasMore={!!hasNextPage}
+            isLoadingMore={isFetchingNextPage}
+            onLoadMore={fetchNextPage}
+          />
         )}
       </div>
     </div>

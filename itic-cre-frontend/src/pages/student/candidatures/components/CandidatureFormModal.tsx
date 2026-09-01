@@ -32,7 +32,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
-    useLockBodyScroll(panelRef, true);
+    const scrollRef = useRef<HTMLFormElement>(null);
+    useLockBodyScroll(scrollRef, true);
 
     const contractTypeOptions = [
         { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },
@@ -96,7 +97,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1 min-w-0">
+                <form ref={scrollRef} onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1 min-w-0">
                     {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
                             {generalError}

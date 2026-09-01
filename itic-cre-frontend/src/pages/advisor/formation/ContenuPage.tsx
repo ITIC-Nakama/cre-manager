@@ -206,7 +206,7 @@ export default function ContenuPage() {
       <FormationHeader />
 
       {/* Tabs Selector */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={() => setActiveTab('articles')}
           className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'articles'

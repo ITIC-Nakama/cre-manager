@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     fetchDashboardOverview,
     fetchPromotionStudentCounts,
@@ -40,6 +41,10 @@ export function useStudentList(params: StudentListParams = {}, enabled = true) {
         placeholderData: (prev) => prev,
         enabled,
     });
+}
+
+export function useStudentListInfinite(params: StudentListParams = {}, enabled = true) {
+    return useInfiniteListQuery(['dashboard', 'students', 'infinite', params], fetchStudentList, params, { enabled });
 }
 
 export function useStudentsNeedingAttention(advisorId?: string) {

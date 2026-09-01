@@ -98,11 +98,13 @@ export default function ParametresPage() {
       </div>
 
       {/* Sous-menu / Onglets pour basculer entre le profil et la configuration système */}
-      <ParametresSubmenu
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        showSystemTab={isAdmin}
-      />
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2">
+        <ParametresSubmenu
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          showSystemTab={isAdmin}
+        />
+      </div>
 
       {activeTab === 'profile' ? (
         <>

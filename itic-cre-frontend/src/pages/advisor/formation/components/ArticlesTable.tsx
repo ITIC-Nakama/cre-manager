@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   flexRender,
   createColumnHelper,
-  getPaginationRowModel,
   getSortedRowModel,
   type SortingState,
 } from '@tanstack/react-table';
@@ -21,10 +20,9 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  ChevronLeft,
-  ChevronRight
 } from 'lucide-react';
 import TruncatedText from '../../../../components/shared/TruncatedText';
+import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { ArticleSummary } from '../../../../types/models/Skill';
 
 interface ArticlesTableProps {
@@ -51,10 +49,7 @@ export default function ArticlesTable({
 }: ArticlesTableProps) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  });
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const columns = useMemo(() => [
     col.accessor('titre', {
@@ -119,13 +114,10 @@ export default function ArticlesTable({
     columns,
     state: {
       sorting,
-      pagination,
     },
     onSortingChange: setSorting,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   if (articles.length === 0) {
@@ -138,9 +130,9 @@ export default function ArticlesTable({
     );
   }
 
-  const totalElements = articles.length;
-  const pageIndex = table.getState().pagination.pageIndex;
-  const totalPages = table.getPageCount();
+  const sortedRows = table.getSortedRowModel().rows;
+  const visibleRows = sortedRows.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedRows.length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -169,7 +161,7 @@ export default function ArticlesTable({
             ))}
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-            {table.getRowModel().rows.map((row) => (
+            {visibleRows.map((row) => (
               <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="py-4 px-6">
@@ -205,37 +197,11 @@ export default function ArticlesTable({
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 text-sm mt-2">
-          <span className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">
-            {t('dashboard.formation.pagination.info', {
-              current: pageIndex + 1,
-              total: totalPages,
-              count: totalElements,
-              defaultValue: 'Page {{current}} sur {{total}} — {{count}} articles'
-            })}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-700 dark:text-slate-300"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span>{t('common.prev')}</span>
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-700 dark:text-slate-300"
-            >
-              <span>{t('common.next')}</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <InfiniteScrollSentinel
+        hasMore={hasMore}
+        isLoadingMore={false}
+        onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
+      />
     </div>
   );
 }

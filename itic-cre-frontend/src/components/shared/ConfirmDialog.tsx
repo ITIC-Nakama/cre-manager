@@ -26,7 +26,10 @@ export default function ConfirmDialog({
 }: Props) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
-  useLockBodyScroll(panelRef, isOpen);
+  // Rien dans ce dialogue n'est scrollable : on passe une ref jamais attachee
+  // pour que useLockBodyScroll bloque tout, y compris les touches a l'interieur du panneau.
+  const noScrollRef = useRef<HTMLDivElement>(null);
+  useLockBodyScroll(noScrollRef, isOpen);
 
   if (!isOpen) return null;
 

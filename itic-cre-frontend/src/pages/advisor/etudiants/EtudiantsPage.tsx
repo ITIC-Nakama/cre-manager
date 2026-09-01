@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { useStudentList, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
+import { useStudentListInfinite, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
@@ -37,7 +37,6 @@ export default function EtudiantsPage() {
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
 
-    const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
@@ -136,7 +135,6 @@ export default function EtudiantsPage() {
     ], [availableYears, t]);
 
     const params = {
-        page,
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         isActive: filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : undefined,
@@ -148,10 +146,9 @@ export default function EtudiantsPage() {
         includeAnonymized: isAdmin ? includeAnonymized : false,
     };
 
-    const { data, isLoading, isFetching } = useStudentList(params);
-    const students = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
+    const {
+        items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useStudentListInfinite(params);
 
     const table = useReactTable({
         data: students,
@@ -162,9 +159,7 @@ export default function EtudiantsPage() {
         getRowId: (row) => row.id,
         enableRowSelection: (row) => isAdmin && !isAnonymizedStudent(row.original),
         getCoreRowModel: getCoreRowModel(),
-        manualPagination: true,
         manualSorting: true,
-        pageCount: totalPages,
     });
 
     const selectedIds = useMemo(() => Object.keys(rowSelection).filter((id) => rowSelection[id]), [rowSelection]);
@@ -184,7 +179,6 @@ export default function EtudiantsPage() {
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        setPage(0);
         clearSelection();
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
@@ -192,26 +186,22 @@ export default function EtudiantsPage() {
 
     const handleFilterChange = (value: FilterStatus) => {
         setFilterStatus(value);
-        setPage(0);
         clearSelection();
     };
 
     const handlePromotionFilterChange = (value: string) => {
         setPromotionFilter(value);
         setStudyYearFilter('');
-        setPage(0);
         clearSelection();
     };
 
     const handleStudyYearFilterChange = (value: string) => {
         setStudyYearFilter(value);
-        setPage(0);
         clearSelection();
     };
 
     const handleAdvisorFilterChange = (value: string) => {
         setAdvisorFilter(value);
-        setPage(0);
         clearSelection();
     };
 
@@ -319,7 +309,7 @@ export default function EtudiantsPage() {
             />
 
             {/* Filters */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203]">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2">
                 <EtudiantsFilters
                     search={search}
                     filterStatus={filterStatus}
@@ -342,7 +332,6 @@ export default function EtudiantsPage() {
                     onAdvisorFilterChange={handleAdvisorFilterChange}
                     onIncludeAnonymizedChange={(checked) => {
                         setIncludeAnonymized(checked);
-                        setPage(0);
                         clearSelection();
                     }}
                 />
@@ -370,10 +359,9 @@ export default function EtudiantsPage() {
                 table={table}
                 isLoading={isLoading}
                 students={students}
-                totalElements={totalElements}
-                totalPages={totalPages}
-                page={page}
-                setPage={setPage}
+                hasNextPage={!!hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={fetchNextPage}
                 studentCvLoading={studentCvLoading}
                 viewingCvStudentId={viewingCvStudentId}
                 setViewingCvStudentId={setViewingCvStudentId}

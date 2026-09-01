@@ -22,7 +22,7 @@ export default function StudentLayout() {
     <RequireAuthMiddleware allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
-        <main className="flex-1 overflow-y-auto h-full lg:pl-0 pt-10 sm:pt-10 lg:pt-0">
+        <main className="flex-1 overflow-y-auto h-full lg:pl-0 pt-14 lg:pt-0">
           <div className="max-w-screen-xl mx-auto px-4 pt-6 pb-4 sm:px-6 sm:pt-6 sm:pb-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
@@ -31,4 +31,3 @@ export default function StudentLayout() {
     </RequireAuthMiddleware>
   );
 }
-

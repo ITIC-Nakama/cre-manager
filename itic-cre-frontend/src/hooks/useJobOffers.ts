@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
@@ -38,6 +39,14 @@ export function useActiveJobOffers(params: JobOfferListParams = {}) {
         queryFn: () => fetchActiveJobOffers(params),
         placeholderData: (prev) => prev,
     });
+}
+
+export function useAllJobOffersInfinite(params: JobOfferListParams = {}) {
+    return useInfiniteListQuery(['job-offers', 'all', 'infinite', params], fetchAllJobOffers, params);
+}
+
+export function useActiveJobOffersInfinite(params: JobOfferListParams = {}) {
+    return useInfiniteListQuery(['job-offers', 'active', 'infinite', params], fetchActiveJobOffers, params);
 }
 
 export function useSectors() {

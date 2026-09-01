@@ -10,17 +10,16 @@ import {
   GraduationCap,
   ShieldCheck,
   ShieldAlert,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
-import { useStudentList, usePromotionYearCounts } from '../../hooks/useDashboard';
+import { useStudentListInfinite, usePromotionYearCounts } from '../../hooks/useDashboard';
 import { usePromotions, useRemoveStudentFromPromotion, useAssignStudentToPromotion } from '../../hooks/usePromotions';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import CustomSelect, { type SelectOption } from '../../components/basics/CustomSelect';
 import PromotionYearTabs from './components/PromotionYearTabs';
 import AssignStudentModal from './components/AssignStudentModal';
+import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 const PAGE_SIZE = 10;
@@ -33,7 +32,6 @@ export default function PromotionDetailPage() {
   const { data: promotions, isLoading: loadingPromos } = usePromotions();
   const promotion = promotions?.find((p) => p.id === id);
 
-  const [page, setPage] = useState(0);
   const [filterText, setFilterText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedYearTab, setSelectedYearTab] = useState<'ALL' | number | 'UNASSIGNED'>('ALL');
@@ -44,7 +42,6 @@ export default function PromotionDetailPage() {
 
   // Paginated table data from backend
   const params = {
-    page,
     size: PAGE_SIZE,
     promotionId: id,
     studyYear: typeof selectedYearTab === 'number' ? selectedYearTab : undefined,
@@ -52,10 +49,9 @@ export default function PromotionDetailPage() {
     search: debouncedSearch || undefined,
   };
 
-  const { data, isLoading: loadingStudents, isFetching } = useStudentList(params);
-  const students = data?.content ?? [];
-  const totalElements = data?.totalElements ?? 0;
-  const totalPages = data?.totalPages ?? 1;
+  const {
+    items: students, totalElements, isLoading: loadingStudents, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+  } = useStudentListInfinite(params);
 
   const removeMutation = useRemoveStudentFromPromotion();
   const assignMutation = useAssignStudentToPromotion();
@@ -86,14 +82,12 @@ export default function PromotionDetailPage() {
 
   const handleSearchChange = (value: string) => {
     setFilterText(value);
-    setPage(0);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(value.trim()), 400);
   };
 
   const handleSelectTab = (tab: 'ALL' | number | 'UNASSIGNED') => {
     setSelectedYearTab(tab);
-    setPage(0);
   };
 
   const handleRemove = async () => {
@@ -301,36 +295,12 @@ export default function PromotionDetailPage() {
           </table>
         </div>
 
-        {/* Pagination Bar */}
-        {!loadingStudents && totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              {t('dashboard.etudiants.pagination.info', {
-                current: page + 1,
-                total: totalPages,
-                count: totalElements,
-                defaultValue: `Page ${page + 1} sur ${totalPages} (${totalElements} étudiants)`
-              })}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-600 dark:text-slate-300"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors text-slate-600 dark:text-slate-300"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+        {!loadingStudents && students.length > 0 && (
+          <InfiniteScrollSentinel
+            hasMore={!!hasNextPage}
+            isLoadingMore={isFetchingNextPage}
+            onLoadMore={fetchNextPage}
+          />
         )}
       </div>
 

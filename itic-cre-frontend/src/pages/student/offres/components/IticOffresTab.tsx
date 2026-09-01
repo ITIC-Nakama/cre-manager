@@ -1,10 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
 import {
     Search, Loader2, Briefcase, MapPin, FileSignature, Layers,
-    ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useActiveJobOffers, useSectors } from '../../../../hooks/useJobOffers';
+import { useActiveJobOffersInfinite, useSectors } from '../../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useJobOfferApplyActions } from '../../../../hooks/useJobOfferApplyActions';
 import CustomSelect from '../../../../components/basics/CustomSelect';
@@ -12,13 +11,13 @@ import FiltersPopover from '../../../../components/basics/FiltersPopover';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import JobOfferDetailModal from '../../../../components/shared/JobOfferDetailModal';
 import OfferCard from '../../../../components/shared/OfferCard';
+import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { JobOffer } from '../../../../types/models/JobOffer';
 
 const PAGE_SIZE = 9;
 
 export default function IticOffresTab() {
     const { t } = useTranslation();
-    const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [contractTypeFilter, setContractTypeFilter] = useState('');
@@ -42,7 +41,6 @@ export default function IticOffresTab() {
     } = useJobOfferApplyActions();
 
     const params = {
-        page,
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
@@ -50,10 +48,9 @@ export default function IticOffresTab() {
         location: debouncedLocation || undefined,
     };
 
-    const { data, isLoading, isFetching } = useActiveJobOffers(params);
-    const offers = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
+    const {
+        items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useActiveJobOffersInfinite(params);
 
     const contractTypeOptions = useMemo(() => [
         { value: '', label: t('dashboard.offres.filter_all_contracts') },
@@ -67,26 +64,22 @@ export default function IticOffresTab() {
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        setPage(0);
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
     const handleLocationChange = (value: string) => {
         setLocationFilter(value);
-        setPage(0);
         if (locationTimer.current) clearTimeout(locationTimer.current);
         locationTimer.current = setTimeout(() => setDebouncedLocation(value), 400);
     };
 
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
-        setPage(0);
     };
 
     const handleSectorChange = (value: string) => {
         setSectorFilter(value);
-        setPage(0);
     };
 
     const activeFilterCount = [locationFilter, contractTypeFilter, sectorFilter].filter(Boolean).length;
@@ -96,7 +89,6 @@ export default function IticOffresTab() {
         setDebouncedLocation('');
         setContractTypeFilter('');
         setSectorFilter('');
-        setPage(0);
         if (locationTimer.current) clearTimeout(locationTimer.current);
     };
 
@@ -108,7 +100,7 @@ export default function IticOffresTab() {
             </p>
 
             {/* Filters */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-wrap items-center gap-3">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-48 max-w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
@@ -195,32 +187,14 @@ export default function IticOffresTab() {
                     })}
                 </div>
             )}
-                    {/* Pagination */}
-                    {!isLoading && totalPages > 1 && (
-                        <div className="flex items-center justify-between pt-2">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">
-                                {t('dashboard.offres.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-                            </span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                                    disabled={page === 0}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span>{t('common.prev')}</span>
-                                </button>
-                                <button
-                                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                                    disabled={page >= totalPages - 1}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                                >
-                                    <span>{t('common.next')}</span>
-                                    <ChevronRight className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+
+            {!isLoading && offers.length > 0 && (
+                <InfiniteScrollSentinel
+                    hasMore={!!hasNextPage}
+                    isLoadingMore={isFetchingNextPage}
+                    onLoadMore={fetchNextPage}
+                />
+            )}
 
                     {/* Detail Modal */}
                     {selectedOffer && (

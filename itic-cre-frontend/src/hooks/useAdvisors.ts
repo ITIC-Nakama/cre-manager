@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
   fetchAdvisors,
   fetchAllAdvisors,
@@ -34,6 +35,14 @@ export function useAdmins(params: AdvisorListParams = {}) {
     queryKey: ['admins', params],
     queryFn: () => fetchAdmins(params),
   });
+}
+
+export function useAdvisorsInfinite(params: AdvisorListParams = {}) {
+  return useInfiniteListQuery(['advisors', 'infinite', params], fetchAdvisors, params);
+}
+
+export function useAdminsInfinite(params: AdvisorListParams = {}) {
+  return useInfiniteListQuery(['admins', 'infinite', params], fetchAdmins, params);
 }
 
 export function useCreateAdvisor() {

@@ -2,13 +2,14 @@ import { useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { Briefcase, Loader2, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMyCandidatures, useCreateCandidature } from '../../../hooks/useCandidatures';
+import { Briefcase, Loader2, Plus, Search } from 'lucide-react';
+import { useMyCandidaturesInfinite, useCreateCandidature } from '../../../hooks/useCandidatures';
 import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
+import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import { isCompleted } from './utils';
 
 type Tab = 'in_progress' | 'completed';
@@ -19,7 +20,6 @@ export default function CandidaturesListPage() {
     const [tab, setTab] = useState<Tab>('in_progress');
     const [formOpen, setFormOpen] = useState(false);
 
-    const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -29,8 +29,9 @@ export default function CandidaturesListPage() {
     const { data: statuses } = useApplicationStatuses();
     const { data: contractTypes } = useContractTypes();
 
-    const { data, isLoading, isFetching } = useMyCandidatures({
-        page,
+    const {
+        items: candidatures, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useMyCandidaturesInfinite({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         statusId: statusFilter || undefined,
@@ -38,10 +39,6 @@ export default function CandidaturesListPage() {
     });
 
     const createMutation = useCreateCandidature();
-
-    const candidatures = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
 
     const inProgress = useMemo(() => candidatures.filter((c) => !isCompleted(c)), [candidatures]);
     const completed = useMemo(() => candidatures.filter((c) => isCompleted(c)), [candidatures]);
@@ -59,19 +56,16 @@ export default function CandidaturesListPage() {
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        setPage(0);
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 350);
     };
 
     const handleStatusChange = (val: string) => {
         setStatusFilter(val);
-        setPage(0);
     };
 
     const handleContractTypeChange = (val: string) => {
         setContractTypeFilter(val);
-        setPage(0);
     };
 
     const handleCreate = async (payload: CandidaturePayload) => {
@@ -81,7 +75,7 @@ export default function CandidaturesListPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 pb-4 animate-fadeIn">
+        <div className="flex flex-col gap-6 py-4 animate-fadeIn">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -105,7 +99,7 @@ export default function CandidaturesListPage() {
             </div>
 
             {/* Filters Bar */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-wrap items-center justify-between gap-3">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3 flex-1">
                     <div className="relative flex-1 min-w-48 max-w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -172,31 +166,12 @@ export default function CandidaturesListPage() {
                 </div>
             )}
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4 mt-2">
-                    <button
-                        onClick={() => setPage((p) => Math.max(0, p - 1))}
-                        disabled={page === 0}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span>{t('common.prev')}</span>
-                    </button>
-
-                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        {t('dashboard.candidatures.student.pagination_info', { current: page + 1, total: totalPages, defaultValue: 'Page {{current}} / {{total}}' })}
-                    </span>
-
-                    <button
-                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                        disabled={page >= totalPages - 1}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <span>{t('common.next')}</span>
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
-                </div>
+            {!isLoading && visible.length > 0 && (
+                <InfiniteScrollSentinel
+                    hasMore={!!hasNextPage}
+                    isLoadingMore={isFetchingNextPage}
+                    onLoadMore={fetchNextPage}
+                />
             )}
 
             {formOpen && (

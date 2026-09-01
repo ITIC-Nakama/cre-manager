@@ -54,7 +54,7 @@ export default function OfferCard({
         <div
             onClick={onSelect}
             style={{ animationDelay: `${animationDelayMs}ms` }}
-            className={`group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fade-in-up ${
+            className={`group relative z-0 overflow-hidden bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fadeIn ${
                 isItic
                     ? 'border border-indigo-200/60 dark:border-indigo-900/50 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40'
                     : 'border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'

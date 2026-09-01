@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     fetchAllCVs,
     fetchCVStatuts,
@@ -22,6 +23,10 @@ export function useAllCVs(params: CVListParams = {}) {
         queryFn: () => fetchAllCVs(params),
         placeholderData: (prev) => prev,
     });
+}
+
+export function useAllCVsInfinite(params: CVListParams = {}) {
+    return useInfiniteListQuery(['cvs', 'all', 'infinite', params], fetchAllCVs, params);
 }
 
 export function useCVStatuts() {

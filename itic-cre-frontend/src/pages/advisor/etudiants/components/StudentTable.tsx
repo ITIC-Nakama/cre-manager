@@ -1,12 +1,13 @@
 import type { Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import {
-    Loader2, FileText, Eye, ChevronLeft, ChevronRight,
+    Loader2, FileText, Eye,
     ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
+import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 
 
 function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
@@ -19,10 +20,9 @@ interface StudentTableProps {
     table: Table<StudentRow>;
     isLoading: boolean;
     students: StudentRow[];
-    totalElements: number;
-    totalPages: number;
-    page: number;
-    setPage: (updater: number | ((p: number) => number)) => void;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    onLoadMore: () => void;
     studentCvLoading: boolean;
     viewingCvStudentId: string | null;
     setViewingCvStudentId: (id: string | null) => void;
@@ -33,10 +33,9 @@ export default function StudentTable({
     table,
     isLoading,
     students,
-    totalElements,
-    totalPages,
-    page,
-    setPage,
+    hasNextPage,
+    isFetchingNextPage,
+    onLoadMore,
     studentCvLoading,
     viewingCvStudentId,
     setViewingCvStudentId,
@@ -130,43 +129,12 @@ export default function StudentTable({
                 </table>
             </div>
 
-            {!isLoading && totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">
-                        {t('dashboard.etudiants.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-                    </span>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => setPage((p) => Math.max(0, p - 1))}
-                            disabled={page === 0}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                            const pageNum = Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
-                            return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => setPage(pageNum)}
-                                    className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${pageNum === page
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                        }`}
-                                >
-                                    {pageNum + 1}
-                                </button>
-                            );
-                        })}
-                        <button
-                            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                            disabled={page >= totalPages - 1}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
+            {!isLoading && students.length > 0 && (
+                <InfiniteScrollSentinel
+                    hasMore={hasNextPage}
+                    isLoadingMore={isFetchingNextPage}
+                    onLoadMore={onLoadMore}
+                />
             )}
         </div>
     );

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
-    useAllJobOffers, useCreateJobOffer, useUpdateJobOffer,
+    useAllJobOffersInfinite, useCreateJobOffer, useUpdateJobOffer,
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors,
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
@@ -27,7 +27,6 @@ export default function OffresPage() {
     const navigate = useNavigate();
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
-    const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
@@ -57,7 +56,6 @@ export default function OffresPage() {
     const isInternalSource = sourceFilter === 'MANUAL';
 
     const params = {
-        page,
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
@@ -66,10 +64,7 @@ export default function OffresPage() {
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
     };
-    const { data, isLoading, isFetching } = useAllJobOffers(params);
-    const offers = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
+    const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();
     const contractTypeOptions = useMemo(() => [
@@ -131,26 +126,22 @@ export default function OffresPage() {
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        setPage(0);
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
     const handleLocationChange = (value: string) => {
         setLocationFilter(value);
-        setPage(0);
         if (locationTimer.current) clearTimeout(locationTimer.current);
         locationTimer.current = setTimeout(() => setDebouncedLocation(value), 400);
     };
 
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
-        setPage(0);
     };
 
     const handleSectorChange = (value: string) => {
         setSectorFilter(value);
-        setPage(0);
     };
 
     const handleSourceChange = (value: string) => {
@@ -158,12 +149,10 @@ export default function OffresPage() {
         if (value !== 'MANUAL') {
             setSectorFilter('');
         }
-        setPage(0);
     };
 
     const handleActiveFilterChange = (value: string) => {
         setActiveFilter(value);
-        setPage(0);
     };
 
     const activeFilterCount = [locationFilter, contractTypeFilter, isInternalSource ? sectorFilter : '', activeFilter !== 'true' ? activeFilter || 'all' : ''].filter(Boolean).length;
@@ -174,7 +163,6 @@ export default function OffresPage() {
         setContractTypeFilter('');
         setSectorFilter('');
         setActiveFilter('true');
-        setPage(0);
         if (locationTimer.current) clearTimeout(locationTimer.current);
     };
 
@@ -238,7 +226,7 @@ export default function OffresPage() {
                 onCreateClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
             />
 
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203]">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2">
                 <OffresFiltersBar
                     search={search}
                     onSearchChange={handleSearch}
@@ -267,10 +255,9 @@ export default function OffresPage() {
             <OffresTable
                 offers={offers}
                 isLoading={isLoading}
-                page={page}
-                setPage={setPage}
-                totalPages={totalPages}
-                totalElements={totalElements}
+                hasNextPage={!!hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={fetchNextPage}
                 onView={setViewingOffer}
                 onEdit={(offer) => { setEditingOffer(offer); setIsReadOnly(false); setFormOpen(true); }}
             />

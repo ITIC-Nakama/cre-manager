@@ -8,16 +8,16 @@ import {
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle, Users,
-    ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
-import { useAllCVs, useCVStatuts, useCVStats } from '../../../hooks/useCV';
+import { useAllCVsInfinite, useCVStatuts, useCVStats } from '../../../hooks/useCV';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
+import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import type { CVRow } from '../../../types/models/CV';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -62,7 +62,6 @@ export default function CVValidationPage() {
 
     const [statutFilter, setStatutFilter] = useState('');
     const [search, setSearch] = useState('');
-    const [page, setPage] = useState(0);
     const [selectedCV, setSelectedCV] = useState<CVRow | null>(null);
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
@@ -71,18 +70,14 @@ export default function CVValidationPage() {
     const { data: statuts = [] } = useCVStatuts();
     const { data: stats = [] } = useCVStats(advisorFilter || undefined);
     const { data: advisors = [] } = useAllAdvisors();
-    const { data, isLoading } = useAllCVs({
-        page,
+    const {
+        items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useAllCVsInfinite({
         size: PAGE_SIZE_LOCAL,
         statutId: statutFilter || undefined,
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
     });
-
-    const pagedCVs = data?.content ?? [];
-    const totalElements = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 1;
-    const safePage = data?.number ?? 0;
 
     const statutOptions = useMemo(() => [
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
@@ -152,23 +147,18 @@ export default function CVValidationPage() {
         data: pagedCVs,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        manualPagination: true,
-        pageCount: totalPages,
     });
 
     const handleStatutChange = (val: string) => {
         setStatutFilter(val);
-        setPage(0);
     };
 
     const handleSearch = (val: string) => {
         setSearch(val);
-        setPage(0);
     };
 
     const handleAdvisorFilterChange = (val: string) => {
         setAdvisorFilter(val);
-        setPage(0);
     };
 
     return (
@@ -185,7 +175,7 @@ export default function CVValidationPage() {
                 </p>
             </div>
 
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-col gap-3">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-3">
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-48 max-w-72">
@@ -313,44 +303,12 @@ export default function CVValidationPage() {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {!isLoading && totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-                        <span className="text-slate-500 dark:text-slate-400">
-                            {`Page ${safePage + 1} sur ${totalPages} — ${totalElements} CV`}
-                        </span>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                                disabled={safePage === 0}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </button>
-                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                const pageNum = Math.max(0, Math.min(safePage - 2, totalPages - 5)) + i;
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => setPage(pageNum)}
-                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${pageNum === safePage
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                            }`}
-                                    >
-                                        {pageNum + 1}
-                                    </button>
-                                );
-                            })}
-                            <button
-                                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                                disabled={safePage >= totalPages - 1}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
+                {!isLoading && pagedCVs.length > 0 && (
+                    <InfiniteScrollSentinel
+                        hasMore={!!hasNextPage}
+                        isLoadingMore={isFetchingNextPage}
+                        onLoadMore={fetchNextPage}
+                    />
                 )}
             </div>
 

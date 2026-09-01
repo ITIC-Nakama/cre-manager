@@ -112,7 +112,7 @@ export default function PromotionsPage() {
     <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <GraduationCap className="h-7 w-7 text-[#E2762F] shrink-0" />

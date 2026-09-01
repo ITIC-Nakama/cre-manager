@@ -6,10 +6,11 @@ import {
     createColumnHelper,
 } from '@tanstack/react-table';
 import {
-    Briefcase, Building2, ChevronLeft, ChevronRight, ExternalLink, Eye, Loader2, Pencil, Users,
+    Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TruncatedText from '../../../../components/shared/TruncatedText';
+import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { JobOffer } from '../../../../types/models/JobOffer';
 
 const col = createColumnHelper<JobOffer>();
@@ -23,15 +24,14 @@ function formatDate(iso: string) {
 interface Props {
     offers: JobOffer[];
     isLoading: boolean;
-    page: number;
-    setPage: (updater: (p: number) => number) => void;
-    totalPages: number;
-    totalElements: number;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    onLoadMore: () => void;
     onView: (offer: JobOffer) => void;
     onEdit: (offer: JobOffer) => void;
 }
 
-export default function OffresTable({ offers, isLoading, page, setPage, totalPages, totalElements, onView, onEdit }: Props) {
+export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit }: Props) {
     const { t } = useTranslation();
 
     const columns = useMemo(() => [
@@ -118,8 +118,6 @@ export default function OffresTable({ offers, isLoading, page, setPage, totalPag
         data: offers,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        manualPagination: true,
-        pageCount: totalPages,
     });
 
     return (
@@ -196,30 +194,12 @@ export default function OffresTable({ offers, isLoading, page, setPage, totalPag
                 </table>
             </div>
 
-            {!isLoading && totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">
-                        {t('dashboard.offres.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-                    </span>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => setPage((p) => Math.max(0, p - 1))}
-                            disabled={page === 0}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            <span>{t('common.prev')}</span>
-                        </button>
-                        <button
-                            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                            disabled={page >= totalPages - 1}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <span>{t('common.next')}</span>
-                            <ChevronRight className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
+            {!isLoading && offers.length > 0 && (
+                <InfiniteScrollSentinel
+                    hasMore={hasNextPage}
+                    isLoadingMore={isFetchingNextPage}
+                    onLoadMore={onLoadMore}
+                />
             )}
         </div>
     );

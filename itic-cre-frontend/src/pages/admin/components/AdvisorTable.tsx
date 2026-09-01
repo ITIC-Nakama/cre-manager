@@ -1,18 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import {
   Loader2, UserCog, Pencil, Trash2, UserCheck,
-  Mail, Phone, KeyRound, UserX, ChevronLeft, ChevronRight,
+  Mail, Phone, KeyRound, UserX,
 } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
+import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 
 interface AdvisorTableProps {
   currentList: Advisor[];
   isLoading: boolean;
   isAdminsTab: boolean;
-  page: number;
-  totalPages: number;
-  totalElements: number;
-  onPageChange: (newPage: number) => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
   onEdit: (advisor: Advisor) => void;
   onResetPassword: (advisor: Advisor) => void;
   onDeactivate: (advisor: Advisor) => void;
@@ -24,10 +24,9 @@ export default function AdvisorTable({
   currentList,
   isLoading,
   isAdminsTab,
-  page,
-  totalPages,
-  totalElements,
-  onPageChange,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onEdit,
   onResetPassword,
   onDeactivate,
@@ -175,31 +174,12 @@ export default function AdvisorTable({
         </table>
       </div>
 
-      {/* Pagination */}
-      {!isLoading && totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 text-sm">
-          <span className="text-slate-500 dark:text-slate-400">
-            {t('dashboard.conseillers.pagination.info', { current: page + 1, total: totalPages, count: totalElements })}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onPageChange(Math.max(0, page - 1))}
-              disabled={page === 0}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span>{t('common.prev')}</span>
-            </button>
-            <button
-              onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
-              disabled={page >= totalPages - 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              <span>{t('common.next')}</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+      {!isLoading && currentList.length > 0 && (
+        <InfiniteScrollSentinel
+          hasMore={hasNextPage}
+          isLoadingMore={isFetchingNextPage}
+          onLoadMore={onLoadMore}
+        />
       )}
     </div>
   );

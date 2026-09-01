@@ -3,11 +3,11 @@ import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
     GraduationCap, FileSignature, Users, Star,
-    ChevronLeft, ChevronRight, Download,
+    Download,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useApplicationGroupedList, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
+import { useApplicationGroupedListInfinite, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import { usePromotions } from '../../../hooks/usePromotions';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { exportApplicationsCsv } from '../../../api-s/requests/DashboardRequest';
@@ -16,6 +16,7 @@ import { formatStaffLabel } from '../../../utils/staffUtils';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
+import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import type { StudentGroup } from './types';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -37,7 +38,6 @@ export default function CandidaturesPage() {
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [staleOnly, setStaleOnly] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<StudentGroup | null>(null);
-    const [page, setPage] = useState(0);
     const [isExporting, setIsExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -101,8 +101,9 @@ export default function CandidaturesPage() {
             .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t, currentUserId]);
 
-    const { data, isLoading, isFetching } = useApplicationGroupedList({
-        page,
+    const {
+        items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useApplicationGroupedListInfinite({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         statusId: statusFilter || undefined,
@@ -113,35 +114,28 @@ export default function CandidaturesPage() {
         advisorId: advisorFilter || undefined,
     });
 
-    const studentGroups = (data?.content ?? []) as StudentGroup[];
-    const totalStudents = data?.totalElements ?? 0;
-    const totalPages = data?.totalPages ?? 0;
+    const studentGroups = items as StudentGroup[];
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        setPage(0);
         if (searchTimer.current) clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
     const handleStatusChange = (value: string) => {
         setStatusFilter(value);
-        setPage(0);
     };
 
     const handlePromotionChange = (value: string) => {
         setPromotionFilter(value);
-        setPage(0);
     };
 
     const handleContractTypeChange = (value: string) => {
         setContractTypeFilter(value);
-        setPage(0);
     };
 
     const handleAdvisorFilterChange = (value: string) => {
         setAdvisorFilter(value);
-        setPage(0);
     };
 
     return (
@@ -171,7 +165,7 @@ export default function CandidaturesPage() {
             </div>
 
             {/* Filters */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-wrap items-center gap-3">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-48 max-w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
@@ -227,7 +221,7 @@ export default function CandidaturesPage() {
                     />
                 )}
                 <button
-                    onClick={() => { setStaleOnly((p) => !p); setPage(0); }}
+                    onClick={() => setStaleOnly((p) => !p)}
                     className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
                         staleOnly
                             ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400'
@@ -265,46 +259,11 @@ export default function CandidaturesPage() {
                         ))}
                     </div>
 
-                    {/* Backend Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-2 text-sm">
-                            <span className="text-slate-500 dark:text-slate-400">
-                                {t('dashboard.candidatures.pagination_info', { current: page + 1, total: totalPages, count: totalStudents, defaultValue: 'Page {{current}} sur {{total}} — {{count}} étudiant' })}
-                            </span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                                    disabled={page === 0}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </button>
-                                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                    const pageNum = Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => setPage(pageNum)}
-                                            className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                                                pageNum === page
-                                                    ? 'bg-indigo-600 text-white'
-                                                    : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                            }`}
-                                        >
-                                            {pageNum + 1}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                                    disabled={page >= totalPages - 1}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    <InfiniteScrollSentinel
+                        hasMore={!!hasNextPage}
+                        isLoadingMore={isFetchingNextPage}
+                        onLoadMore={fetchNextPage}
+                    />
                 </>
             )}
 
