@@ -328,7 +328,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
             contractTypeLabel = textOrNull(offre.get("typeContratLibelle"));
         }
 
-        // dateActualisation + fenêtre d'expiration configurable comme date d'expiration
+        // dateActualisation (derniere mise a jour) + fenêtre d'expiration configurable comme date
+        // d'expiration. dateCreation est la vraie date de publication de l'offre, distincte.
         Instant expiresAt = null;
         String dateActualisation = textOrNull(offre.get("dateActualisation"));
         if (dateActualisation != null) {
@@ -336,6 +337,15 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 expiresAt = Instant.parse(dateActualisation).plus(currentOfferExpirationDays(), ChronoUnit.DAYS);
             } catch (Exception e) {
                 log.debug("[FT] dateActualisation non parsable: {}", dateActualisation);
+            }
+        }
+        Instant publishedAt = null;
+        String dateCreation = textOrNull(offre.get("dateCreation"));
+        if (dateCreation != null) {
+            try {
+                publishedAt = Instant.parse(dateCreation);
+            } catch (Exception e) {
+                log.debug("[FT] dateCreation non parsable: {}", dateCreation);
             }
         }
 
@@ -348,7 +358,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 contractTypeLabel,
                 truncate(externalLink, 2048),
                 truncate(logoUrl, 2048),
-                expiresAt
+                expiresAt,
+                publishedAt
         );
     }
 }

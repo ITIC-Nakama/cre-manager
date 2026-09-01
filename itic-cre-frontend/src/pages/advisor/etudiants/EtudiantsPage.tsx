@@ -319,32 +319,34 @@ export default function EtudiantsPage() {
             />
 
             {/* Filters */}
-            <EtudiantsFilters
-                search={search}
-                filterStatus={filterStatus}
-                promotionFilter={promotionFilter}
-                studyYearFilter={studyYearFilter}
-                advisorFilter={advisorFilter}
-                includeAnonymized={includeAnonymized}
-                isFetching={isFetching}
-                isLoading={isLoading}
-                isAdmin={isAdmin}
-                currentUserId={currentUserId}
-                filterOptions={filterOptions}
-                promotionOptions={promotionOptions}
-                studyYearOptions={studyYearOptions}
-                advisorOptions={advisorOptions}
-                onSearchChange={handleSearch}
-                onFilterChange={handleFilterChange}
-                onPromotionChange={handlePromotionFilterChange}
-                onStudyYearChange={handleStudyYearFilterChange}
-                onAdvisorFilterChange={handleAdvisorFilterChange}
-                onIncludeAnonymizedChange={(checked) => {
-                    setIncludeAnonymized(checked);
-                    setPage(0);
-                    clearSelection();
-                }}
-            />
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203]">
+                <EtudiantsFilters
+                    search={search}
+                    filterStatus={filterStatus}
+                    promotionFilter={promotionFilter}
+                    studyYearFilter={studyYearFilter}
+                    advisorFilter={advisorFilter}
+                    includeAnonymized={includeAnonymized}
+                    isFetching={isFetching}
+                    isLoading={isLoading}
+                    isAdmin={isAdmin}
+                    currentUserId={currentUserId}
+                    filterOptions={filterOptions}
+                    promotionOptions={promotionOptions}
+                    studyYearOptions={studyYearOptions}
+                    advisorOptions={advisorOptions}
+                    onSearchChange={handleSearch}
+                    onFilterChange={handleFilterChange}
+                    onPromotionChange={handlePromotionFilterChange}
+                    onStudyYearChange={handleStudyYearFilterChange}
+                    onAdvisorFilterChange={handleAdvisorFilterChange}
+                    onIncludeAnonymizedChange={(checked) => {
+                        setIncludeAnonymized(checked);
+                        setPage(0);
+                        clearSelection();
+                    }}
+                />
+            </div>
 
             {/* Bulk assign bar */}
             {isAdmin && selectedIds.length > 0 && (

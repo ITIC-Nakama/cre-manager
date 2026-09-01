@@ -203,6 +203,7 @@ public class ExternalJobSyncService {
             offer.setSourceId(dto.sourceId());
             offer.setCompanyLogoUrl(dto.companyLogoUrl());
             offer.setExpiresAt(dto.expiresAt());
+            offer.setPublishedAt(dto.publishedAt());
             offer.setActive(true);
 
             try {

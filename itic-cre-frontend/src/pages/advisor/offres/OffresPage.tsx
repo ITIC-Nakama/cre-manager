@@ -238,29 +238,31 @@ export default function OffresPage() {
                 onCreateClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
             />
 
-            <OffresFiltersBar
-                search={search}
-                onSearchChange={handleSearch}
-                sourceFilter={sourceFilter}
-                sourceOptions={sourceOptions}
-                onSourceChange={handleSourceChange}
-                locationFilter={locationFilter}
-                onLocationChange={handleLocationChange}
-                contractTypeFilter={contractTypeFilter}
-                contractTypeOptions={contractTypeOptions}
-                onContractTypeChange={handleContractTypeChange}
-                isInternalSource={isInternalSource}
-                sectorFilter={sectorFilter}
-                sectorOptions={sectorOptions}
-                onSectorChange={handleSectorChange}
-                activeFilter={activeFilter}
-                activeFilterOptions={activeFilterOptions}
-                onActiveFilterChange={handleActiveFilterChange}
-                activeFilterCount={activeFilterCount}
-                onReset={handleResetFilters}
-                isFetching={isFetching}
-                isLoading={isLoading}
-            />
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203]">
+                <OffresFiltersBar
+                    search={search}
+                    onSearchChange={handleSearch}
+                    sourceFilter={sourceFilter}
+                    sourceOptions={sourceOptions}
+                    onSourceChange={handleSourceChange}
+                    locationFilter={locationFilter}
+                    onLocationChange={handleLocationChange}
+                    contractTypeFilter={contractTypeFilter}
+                    contractTypeOptions={contractTypeOptions}
+                    onContractTypeChange={handleContractTypeChange}
+                    isInternalSource={isInternalSource}
+                    sectorFilter={sectorFilter}
+                    sectorOptions={sectorOptions}
+                    onSectorChange={handleSectorChange}
+                    activeFilter={activeFilter}
+                    activeFilterOptions={activeFilterOptions}
+                    onActiveFilterChange={handleActiveFilterChange}
+                    activeFilterCount={activeFilterCount}
+                    onReset={handleResetFilters}
+                    isFetching={isFetching}
+                    isLoading={isLoading}
+                />
+            </div>
 
             <OffresTable
                 offers={offers}

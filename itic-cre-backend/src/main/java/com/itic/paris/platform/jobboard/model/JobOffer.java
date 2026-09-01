@@ -80,6 +80,13 @@ public class JobOffer {
     @Column(name = "expires_at")
     private Instant expiresAt;
 
+    /** Date de publication réelle de l'offre chez la source externe (distincte de createdAt,
+      * qui est la date d'insertion dans notre base — peut être bien postérieure si l'offre était
+      * déjà en ligne avant de matcher nos filtres de synchro). Null pour les offres MANUAL,
+      * où createdAt fait déjà foi. */
+    @Column(name = "published_at")
+    private Instant publishedAt;
+
     @Column(name = "is_active", nullable = false)
     private Boolean active = true;
 

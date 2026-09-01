@@ -213,6 +213,7 @@ public class JobOfferService {
                 jobOffer.getSource(),
                 jobOffer.getCompanyLogoUrl(),
                 jobOffer.getExpiresAt(),
+                jobOffer.getPublishedAt(),
                 jobOffer.getActive(),
                 jobOffer.getCreatedAt(),
                 jobOffer.getUpdatedAt(),

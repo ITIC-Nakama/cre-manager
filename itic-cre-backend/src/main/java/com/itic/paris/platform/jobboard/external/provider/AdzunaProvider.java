@@ -275,16 +275,20 @@ public class AdzunaProvider extends AbstractJobProvider {
             };
         }
 
-        // Pas de date d'expiration fournie : created + fenêtre d'expiration configurable
-        Instant expiresAt = null;
+        // "created" est la vraie date de publication de l'offre chez Adzuna — sert aussi de base
+        // pour l'expiration (pas de date d'expiration fournie par cette API).
+        Instant publishedAt = null;
         String created = textOrNull(job.get("created"));
         if (created != null) {
             try {
-                expiresAt = Instant.parse(created).plus(currentOfferExpirationDays(), ChronoUnit.DAYS);
+                publishedAt = Instant.parse(created);
             } catch (Exception e) {
                 log.debug("[Adzuna] Date 'created' non parsable: {}", created);
             }
         }
+        Instant expiresAt = publishedAt != null
+                ? publishedAt.plus(currentOfferExpirationDays(), ChronoUnit.DAYS)
+                : null;
 
         return new ExternalJobOfferDTO(
                 "adzuna:" + rawId,
@@ -295,7 +299,8 @@ public class AdzunaProvider extends AbstractJobProvider {
                 contractTypeLabel,
                 truncate(externalLink, 2048),
                 null,
-                expiresAt
+                expiresAt,
+                publishedAt
         );
     }
 }

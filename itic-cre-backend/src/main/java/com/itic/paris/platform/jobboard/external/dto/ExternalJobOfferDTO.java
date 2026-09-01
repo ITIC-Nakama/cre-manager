@@ -15,6 +15,7 @@ public record ExternalJobOfferDTO(
         String contractTypeLabel,
         String externalLink,
         String companyLogoUrl,
-        Instant expiresAt
+        Instant expiresAt,
+        Instant publishedAt
 ) {
 }

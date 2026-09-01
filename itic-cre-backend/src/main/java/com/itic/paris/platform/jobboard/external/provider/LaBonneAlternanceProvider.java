@@ -150,6 +150,15 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
                 log.debug("[LBA] Date 'offer.publication.expiration' non parsable: {}", expiration);
             }
         }
+        Instant publishedAt = null;
+        String creation = textOrNull(job.path("offer").path("publication").get("creation"));
+        if (creation != null) {
+            try {
+                publishedAt = Instant.parse(creation);
+            } catch (Exception e) {
+                log.debug("[LBA] Date 'offer.publication.creation' non parsable: {}", creation);
+            }
+        }
 
         return new ExternalJobOfferDTO(
                 "lba:" + rawId,
@@ -160,7 +169,8 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
                 contractTypeLabel,
                 truncate(externalLink, 2048),
                 null,
-                expiresAt
+                expiresAt,
+                publishedAt
         );
     }
 }

@@ -171,7 +171,7 @@ export default function CandidaturesPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-48 max-w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input

@@ -30,6 +30,8 @@ export interface JobOffer {
     source: string;
     companyLogoUrl: string | null;
     expiresAt: string | null;
+    /** Date de publication réelle chez la source externe, null pour les offres MANUAL. */
+    publishedAt: string | null;
 }
 
 export interface JobOfferPage {

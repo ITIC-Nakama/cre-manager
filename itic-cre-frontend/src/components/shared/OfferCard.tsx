@@ -54,7 +54,7 @@ export default function OfferCard({
         <div
             onClick={onSelect}
             style={{ animationDelay: `${animationDelayMs}ms` }}
-            className={`group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3.5 cursor-pointer animate-fade-in-up ${
+            className={`group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fade-in-up ${
                 isItic
                     ? 'border border-indigo-200/60 dark:border-indigo-900/50 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40'
                     : 'border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'
@@ -143,13 +143,13 @@ export default function OfferCard({
             </div>
 
             {/* Description */}
-            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed flex-1 relative z-10">
+            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">
                 {offer.description}
             </p>
 
             {/* Actions Footer */}
             <div
-                className="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80 mt-auto relative z-10"
+                className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 mt-auto relative z-10"
                 onClick={(e) => e.stopPropagation()}
             >
                 {isApplied ? (

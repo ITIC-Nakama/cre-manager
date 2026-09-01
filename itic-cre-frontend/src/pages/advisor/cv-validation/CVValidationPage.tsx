@@ -185,74 +185,76 @@ export default function CVValidationPage() {
                 </p>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="relative flex-1 min-w-48 max-w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        placeholder={t('dashboard.cv.search_placeholder', 'Rechercher un étudiant…')}
-                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <CustomSelect
-                    value={statutFilter}
-                    options={statutOptions}
-                    onChange={handleStatutChange}
-                    icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                    <input
-                        type="checkbox"
-                        checked={advisorFilter === currentUserId}
-                        onChange={(e) => handleAdvisorFilterChange(e.target.checked ? currentUserId : '')}
-                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                    />
-                    <Users className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>{t('dashboard.etudiants.filter_my_students', 'Mes étudiants uniquement')}</span>
-                </label>
-                {isAdmin && (
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-col gap-3">
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 min-w-48 max-w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            placeholder={t('dashboard.cv.search_placeholder', 'Rechercher un étudiant…')}
+                            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                    </div>
                     <CustomSelect
-                        value={advisorFilter === currentUserId ? '' : advisorFilter}
-                        options={advisorOptions}
-                        onChange={handleAdvisorFilterChange}
-                        icon={<Users className="h-4 w-4 text-slate-400" />}
-                        className={`min-w-48 transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
-                        searchable
+                        value={statutFilter}
+                        options={statutOptions}
+                        onChange={handleStatutChange}
+                        icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                        className="min-w-48"
                     />
-                )}
-                {isLoading && (
-                    <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
+                    <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={advisorFilter === currentUserId}
+                            onChange={(e) => handleAdvisorFilterChange(e.target.checked ? currentUserId : '')}
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <Users className="h-3.5 w-3.5 text-indigo-500" />
+                        <span>{t('dashboard.etudiants.filter_my_students', 'Mes étudiants uniquement')}</span>
+                    </label>
+                    {isAdmin && (
+                        <CustomSelect
+                            value={advisorFilter === currentUserId ? '' : advisorFilter}
+                            options={advisorOptions}
+                            onChange={handleAdvisorFilterChange}
+                            icon={<Users className="h-4 w-4 text-slate-400" />}
+                            className={`min-w-48 transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
+                            searchable
+                        />
+                    )}
+                    {isLoading && (
+                        <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
+                    )}
+                </div>
+
+                {/* Status summary chips */}
+                {!isLoading && statuts.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {statuts.map((s) => {
+                            const stat = stats.find((st) => st.statutId === s.id);
+                            const count = stat ? stat.count : 0;
+                            return (
+                                <button
+                                    key={s.id}
+                                    onClick={() => handleStatutChange(statutFilter === s.id ? '' : s.id)}
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${statutFilter === s.id ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                        }`}
+                                    style={{
+                                        background: `${s.couleur}18`,
+                                        color: s.couleur,
+                                        border: `1px solid ${s.couleur}44`,
+                                    }}
+                                >
+                                    {s.nom} · {count}
+                                </button>
+                            );
+                        })}
+                    </div>
                 )}
             </div>
-
-            {/* Status summary chips */}
-            {!isLoading && statuts.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {statuts.map((s) => {
-                        const stat = stats.find((st) => st.statutId === s.id);
-                        const count = stat ? stat.count : 0;
-                        return (
-                            <button
-                                key={s.id}
-                                onClick={() => handleStatutChange(statutFilter === s.id ? '' : s.id)}
-                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${statutFilter === s.id ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
-                                    }`}
-                                style={{
-                                    background: `${s.couleur}18`,
-                                    color: s.couleur,
-                                    border: `1px solid ${s.couleur}44`,
-                                }}
-                            >
-                                {s.nom} · {count}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
 
             {/* Table */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">

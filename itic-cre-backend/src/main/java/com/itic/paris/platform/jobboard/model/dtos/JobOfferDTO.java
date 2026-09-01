@@ -36,6 +36,9 @@ public class JobOfferDTO {
 
     private Instant expiresAt;
 
+    @Schema(description = "Date de publication réelle chez la source externe, null pour les offres MANUAL")
+    private Instant publishedAt;
+
     private Boolean active;
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)

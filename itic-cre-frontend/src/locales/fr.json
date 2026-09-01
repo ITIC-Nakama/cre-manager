@@ -695,6 +695,7 @@
         "sector": "Secteur d'activité",
         "location": "Localisation",
         "published_at": "Publiée le {{date}}",
+        "inserted_at": "Ajoutée sur ITIC le {{date}}",
         "external_link_notice": "Cette offre redirige vers une plateforme externe pour candidater.",
         "external_link_button": "Consulter l'annonce",
         "status_applied": "Vous avez déjà postulé à cette offre",

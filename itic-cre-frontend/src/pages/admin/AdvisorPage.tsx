@@ -262,35 +262,37 @@ export default function AdvisorPage() {
         </button>
       </div>
 
-      {/* ── Tabs Admin / Conseiller ── */}
-      <AdvisorTabs
-        activeTab={activeTab}
-        advisorTotalCount={advisorTotalCount}
-        adminTotalCount={adminTotalCount}
-        onSwitchTab={setActiveTab}
-      />
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] flex flex-col gap-4">
+        {/* ── Tabs Admin / Conseiller ── */}
+        <AdvisorTabs
+          activeTab={activeTab}
+          advisorTotalCount={advisorTotalCount}
+          adminTotalCount={adminTotalCount}
+          onSwitchTab={setActiveTab}
+        />
 
-      {/* ── Info banner for admins tab ── */}
-      {isAdminsTab && (
-        <div className="flex items-start gap-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 px-4 py-3 text-sm text-purple-800 dark:text-purple-300">
-          <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>{t('dashboard.conseillers.governance_banner')}</span>
-        </div>
-      )}
+        {/* ── Info banner for admins tab ── */}
+        {isAdminsTab && (
+          <div className="flex items-start gap-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 px-4 py-3 text-sm text-purple-800 dark:text-purple-300">
+            <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <span>{t('dashboard.conseillers.governance_banner')}</span>
+          </div>
+        )}
 
-      {/* ── Search ── */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-48 max-w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder={t('dashboard.conseillers.search_placeholder')}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+        {/* ── Search ── */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-48 max-w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder={t('dashboard.conseillers.search_placeholder')}
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
         </div>
-        {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
       </div>
 
       {/* ── Table ── */}

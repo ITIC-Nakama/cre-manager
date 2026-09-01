@@ -195,8 +195,8 @@ export default function PromotionDetailPage() {
       )}
 
       {/* Main Student List Table with Single Search Input */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+        <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 rounded-t-2xl p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -217,7 +217,7 @@ export default function PromotionDetailPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto min-h-[320px]">
+        <div className="overflow-x-auto rounded-b-2xl min-h-[320px]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">

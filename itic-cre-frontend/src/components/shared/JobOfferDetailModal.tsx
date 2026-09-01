@@ -134,10 +134,19 @@ export default function JobOfferDetailModal({
                                 {offer.location}
                             </span>
                         )}
-                        {offer.createdAt && (
+                        {(offer.publishedAt || offer.createdAt) && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50 shadow-2xs">
                                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                                {t('dashboard.offres.detail_modal.published_at', { date: formatDate(offer.createdAt, locale) })}
+                                {t('dashboard.offres.detail_modal.published_at', { date: formatDate(offer.publishedAt ?? offer.createdAt, locale) })}
+                            </span>
+                        )}
+                        {/* Insertion chez nous vs publication reelle chez la source : ne differe
+                          * que pour les offres externes, donc affiche uniquement si publishedAt
+                          * existe et cote admin/conseiller — un etudiant n'a pas besoin de le savoir. */}
+                        {showAdminActions && offer.publishedAt && offer.createdAt && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-2xs">
+                                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                                {t('dashboard.offres.detail_modal.inserted_at', { date: formatDate(offer.createdAt, locale) })}
                             </span>
                         )}
                     </div>

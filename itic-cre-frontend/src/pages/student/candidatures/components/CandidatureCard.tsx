@@ -43,7 +43,7 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
     return (
         <div
             onClick={() => navigate(`/student/candidatures/${candidature.id}`)}
-            className={`group cursor-pointer bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-3 ${
+            className={`group cursor-pointer bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 ${
                 candidature.stale ? 'border-l-2 border-l-amber-400 border-y-slate-200 border-r-slate-200 dark:border-y-slate-800 dark:border-r-slate-800' : 'border-slate-200 dark:border-slate-800'
             }`}
         >
