@@ -150,11 +150,11 @@ export default function JobOfferDetailModal({
                     {offer.externalLink && (
                         <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-start gap-2.5">
                             <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
                                     {t('dashboard.offres.detail_modal.external_link_notice', "Cette offre redirige vers une plateforme externe pour candidater.")}
                                 </p>
-                                <p className="text-xs text-indigo-700/80 dark:text-indigo-300/70 truncate max-w-md mt-0.5">
+                                <p className="text-xs text-indigo-700/80 dark:text-indigo-300/70 truncate max-w-full mt-0.5">
                                     {offer.externalLink}
                                 </p>
                             </div>
