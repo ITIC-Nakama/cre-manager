@@ -70,14 +70,16 @@ export default function CVValidationPage() {
     const { data: statuts = [] } = useCVStatuts();
     const { data: stats = [] } = useCVStats(advisorFilter || undefined);
     const { data: advisors = [] } = useAllAdvisors();
-    const {
-        items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
-    } = useAllCVsInfinite({
+    const params = useMemo(() => ({
         size: PAGE_SIZE_LOCAL,
         statutId: statutFilter || undefined,
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
-    });
+    }), [statutFilter, search, advisorFilter]);
+
+    const {
+        items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
+    } = useAllCVsInfinite(params);
 
     const statutOptions = useMemo(() => [
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
