@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
     X, Briefcase, Building2, MapPin, FileSignature, Layers,
     Calendar, ExternalLink, CheckCircle2, UserMinus, Loader2,
     Globe, Power, PowerOff, Trash2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import type { JobOffer } from '../../types/models/JobOffer';
 
 interface Props {
@@ -42,6 +43,7 @@ export default function JobOfferDetailModal({
     showAdminActions = false,
 }: Props) {
     const { t, i18n } = useTranslation();
+    const panelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,6 +55,8 @@ export default function JobOfferDetailModal({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
+    useLockBodyScroll(panelRef, !!offer);
+
     if (!offer) return null;
 
     const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR';
@@ -62,7 +66,10 @@ export default function JobOfferDetailModal({
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 animate-fadeIn"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden">
+            <div
+                ref={panelRef}
+                className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden"
+            >
                 
                 {/* Header */}
                 <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-950/30">
@@ -97,7 +104,7 @@ export default function JobOfferDetailModal({
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6 overflow-y-auto flex-1 min-w-0 text-slate-800 dark:text-slate-200">
+                <div className="p-6 space-y-6 overflow-y-auto overscroll-contain flex-1 min-w-0 text-slate-800 dark:text-slate-200">
                     
                     {/* Status banner if applied */}
                     {isApplied && (

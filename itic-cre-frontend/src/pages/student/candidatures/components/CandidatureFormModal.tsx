@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { X, Loader2, Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import { useContractTypes } from '../../../../hooks/useApplications';
+import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import type { Candidature, CandidaturePayload } from '../../../../types/models/Application';
 
 interface Props {
@@ -30,6 +31,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const [notes, setNotes] = useState(candidature?.notes ?? '');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string | null>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    useLockBodyScroll(panelRef, true);
 
     const contractTypeOptions = [
         { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },
@@ -75,7 +78,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60">
-            <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+            <div ref={panelRef} className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
 
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-2">
@@ -93,7 +96,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 min-w-0">
+                <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1 min-w-0">
                     {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
                             {generalError}
