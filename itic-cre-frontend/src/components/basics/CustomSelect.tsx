@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 
 export interface SelectOption {
   value: string;
@@ -81,11 +81,20 @@ export default function CustomSelect({
     });
   };
 
-  // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement.
+  // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement:
+  // si le trigger bouge réellement (page ou conteneur parent scrollé), le panneau fixed devient
+  // désaligné et doit se fermer. Mais sur mobile (et systématiquement en PWA), l'ouverture déclenche
+  // aussi un scroll quasi nul (clavier virtuel qui ajuste le viewport à cause de l'autoFocus de la
+  // recherche, ou barre d'adresse qui se réduit en bas de page) qui ne déplace pas le trigger : on
+  // se base donc sur la position réelle du trigger plutôt que sur le simple fait qu'un scroll ait eu lieu.
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !containerRef.current) return;
+    const initialTop = containerRef.current.getBoundingClientRect().top;
+    const SCROLL_CLOSE_THRESHOLD = 8;
     const closeOnScroll = (e: Event) => {
       if (panelRef.current?.contains(e.target as Node)) return;
+      const currentTop = containerRef.current?.getBoundingClientRect().top ?? initialTop;
+      if (Math.abs(currentTop - initialTop) < SCROLL_CLOSE_THRESHOLD) return;
       setIsOpen(false);
     };
     window.addEventListener('scroll', closeOnScroll, true);
@@ -130,20 +139,33 @@ export default function CustomSelect({
           }}
           className="z-[100] origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-black/5 dark:border-slate-800 dark:bg-slate-950 focus:outline-none"
         >
-          {searchable && (
-            <div className="relative px-0.5 pb-1.5 mb-1 border-b border-slate-100 dark:border-slate-800">
-              <Search className="absolute left-3 top-4 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <input
-                autoFocus
-                type="text"
-                value={search}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full pl-8 pr-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-          )}
+          <div className={`flex items-center gap-1.5 pb-1.5 mb-1 border-b border-slate-100 dark:border-slate-800 ${searchable ? 'px-0.5' : 'justify-end'}`}>
+            {searchable && (
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={search}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="w-full pl-8 pr-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                setSearch('');
+              }}
+              aria-label="Fermer"
+              className="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
           <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => {
