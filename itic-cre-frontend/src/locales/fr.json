@@ -696,6 +696,7 @@
         "location": "Localisation",
         "published_at": "Publiée le {{date}}",
         "inserted_at": "Ajoutée sur ITIC le {{date}}",
+        "published_by": "Publiée par {{name}}",
         "external_link_notice": "Cette offre redirige vers une plateforme externe pour candidater.",
         "external_link_button": "Consulter l'annonce",
         "status_applied": "Vous avez déjà postulé à cette offre",
@@ -1177,6 +1178,12 @@
         "PROMOTION_DELETED": "Suppression Promotion",
         "STUDENT_REMOVED_FROM_PROMOTION": "Étudiant Retiré de Promotion",
         "STUDENT_ASSIGNED_TO_PROMOTION": "Étudiant Affecté à Promotion",
+        "JOB_OFFER_CREATED": "Création Offre d'Emploi",
+        "JOB_OFFER_UPDATED": "Modification Offre d'Emploi",
+        "JOB_OFFER_DELETED": "Suppression Offre d'Emploi",
+        "JOB_OFFER_ACTIVATED": "Activation Offre d'Emploi",
+        "JOB_OFFER_DEACTIVATED": "Désactivation Offre d'Emploi",
+        "JOB_OFFER_WIPED": "Purge Offres d'Emploi",
         "OTHER": "Autre Action"
       },
       "table": {

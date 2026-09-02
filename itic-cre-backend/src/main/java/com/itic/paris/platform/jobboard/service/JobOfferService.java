@@ -5,6 +5,8 @@ import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.UserRepository;
+import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.model.Sector;
@@ -34,6 +36,7 @@ public class JobOfferService {
     private final SectorRepository sectorRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
@@ -54,6 +57,8 @@ public class JobOfferService {
         jobOffer.setCreatedBy(createdBy);
 
         JobOffer saved = jobOfferRepository.save(jobOffer);
+        auditLogService.log(AuditAction.JOB_OFFER_CREATED, createdBy, "JOB_OFFER", saved.getId(),
+                saved.getTitle() + " — " + saved.getCompany());
         return mapToDTO(saved);
     }
 
@@ -118,6 +123,8 @@ public class JobOfferService {
         jobOffer.setExternalLink(request.getExternalLink());
 
         JobOffer updated = jobOfferRepository.save(jobOffer);
+        auditLogService.log(AuditAction.JOB_OFFER_UPDATED, getCurrentUser(), "JOB_OFFER", updated.getId(),
+                updated.getTitle() + " — " + updated.getCompany());
         return mapToDTO(updated);
     }
 
@@ -126,6 +133,8 @@ public class JobOfferService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
         jobOffer.setActive(false);
         jobOfferRepository.save(jobOffer);
+        auditLogService.log(AuditAction.JOB_OFFER_DEACTIVATED, getCurrentUser(), "JOB_OFFER", jobOffer.getId(),
+                jobOffer.getTitle() + " — " + jobOffer.getCompany());
     }
 
     public void activate(UUID id) {
@@ -133,6 +142,8 @@ public class JobOfferService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
         jobOffer.setActive(true);
         jobOfferRepository.save(jobOffer);
+        auditLogService.log(AuditAction.JOB_OFFER_ACTIVATED, getCurrentUser(), "JOB_OFFER", jobOffer.getId(),
+                jobOffer.getTitle() + " — " + jobOffer.getCompany());
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, Pageable pageable) {
@@ -171,6 +182,8 @@ public class JobOfferService {
         // du jobboard (job_applications) n'ont pas de valeur de suivi, on les supprime avec l'offre.
         jobApplicationRepository.deleteByJobOfferId(id);
         jobOfferRepository.delete(jobOffer);
+        auditLogService.log(AuditAction.JOB_OFFER_DELETED, getCurrentUser(), "JOB_OFFER", id,
+                jobOffer.getTitle() + " — " + jobOffer.getCompany());
     }
 
     /**
@@ -181,21 +194,28 @@ public class JobOfferService {
      */
     @Transactional
     public void wipe(String scope) {
+        int deletedOffers;
+        int deletedApplications;
         switch (scope) {
             case "MANUAL" -> {
-                jobApplicationRepository.deleteByJobOfferSource("MANUAL");
-                jobOfferRepository.deleteBySource("MANUAL");
+                deletedApplications = jobApplicationRepository.deleteByJobOfferSource("MANUAL");
+                deletedOffers = jobOfferRepository.deleteBySource("MANUAL");
             }
             case "EXTERNAL" -> {
-                jobApplicationRepository.deleteByJobOfferSourceNot("MANUAL");
-                jobOfferRepository.deleteBySourceNot("MANUAL");
+                deletedApplications = jobApplicationRepository.deleteByJobOfferSourceNot("MANUAL");
+                deletedOffers = jobOfferRepository.deleteBySourceNot("MANUAL");
             }
             case "ALL" -> {
-                jobApplicationRepository.deleteAllApplications();
-                jobOfferRepository.deleteAllOffers();
+                deletedApplications = jobApplicationRepository.deleteAllApplications();
+                deletedOffers = jobOfferRepository.deleteAllOffers();
             }
             default -> throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_WIPE_INVALID_SCOPE);
         }
+
+        // Une seule ligne pour toute la purge (pas une par offre supprimee) : le detail (scope,
+        // compteurs) suffit a comprendre ce qui a ete fait sans noyer le journal d'audit.
+        auditLogService.log(AuditAction.JOB_OFFER_WIPED, getCurrentUser(), "JOB_OFFER", (UUID) null,
+                "Purge (" + scope + ") — " + deletedOffers + " offre(s), " + deletedApplications + " candidature(s) jobboard");
     }
 
     private JobOfferDTO mapToDTO(JobOffer jobOffer) {
@@ -217,7 +237,9 @@ public class JobOfferService {
                 jobOffer.getActive(),
                 jobOffer.getCreatedAt(),
                 jobOffer.getUpdatedAt(),
-                applicationCount
+                applicationCount,
+                jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getFirstName() : null,
+                jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getLastName() : null
         );
     }
 

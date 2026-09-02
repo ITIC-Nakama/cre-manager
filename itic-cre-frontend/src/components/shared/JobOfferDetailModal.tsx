@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
     X, Briefcase, Building2, MapPin, FileSignature, Layers,
     Calendar, ExternalLink, CheckCircle2, UserMinus, Loader2,
-    Globe, Power, PowerOff, Trash2
+    Globe, Power, PowerOff, Trash2, User
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -148,6 +148,15 @@ export default function JobOfferDetailModal({
                             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-2xs">
                                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
                                 {t('dashboard.offres.detail_modal.inserted_at', { date: formatDate(offer.createdAt, locale) })}
+                            </span>
+                        )}
+                        {/* Uniquement les offres MANUAL ont un createdBy — externe = null. Reserve
+                          * a l'admin/conseiller, un etudiant n'a pas besoin de savoir qui a saisi
+                          * l'offre en interne. */}
+                        {showAdminActions && offer.createdByFirstName && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-2xs">
+                                <User className="h-3.5 w-3.5 text-slate-400" />
+                                {t('dashboard.offres.detail_modal.published_by', { name: `${offer.createdByFirstName} ${offer.createdByLastName ?? ''}`.trim() })}
                             </span>
                         )}
                     </div>

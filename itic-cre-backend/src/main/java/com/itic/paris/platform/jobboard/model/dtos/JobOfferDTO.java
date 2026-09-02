@@ -49,4 +49,10 @@ public class JobOfferDTO {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Integer applicationCount;
+
+    @Schema(description = "Conseiller/admin ayant cree l'offre, null pour les offres externes (source != MANUAL)", accessMode = Schema.AccessMode.READ_ONLY)
+    private String createdByFirstName;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private String createdByLastName;
 }

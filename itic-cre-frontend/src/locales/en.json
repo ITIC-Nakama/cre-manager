@@ -696,6 +696,7 @@
         "location": "Location",
         "published_at": "Published on {{date}}",
         "inserted_at": "Added to ITIC on {{date}}",
+        "published_by": "Published by {{name}}",
         "external_link_notice": "This offer links to an external platform to apply.",
         "external_link_button": "View original job posting",
         "status_applied": "You have already applied to this offer",
@@ -1177,6 +1178,12 @@
         "PROMOTION_DELETED": "Promotion Deleted",
         "STUDENT_REMOVED_FROM_PROMOTION": "Student Removed from Promotion",
         "STUDENT_ASSIGNED_TO_PROMOTION": "Student Assigned to Promotion",
+        "JOB_OFFER_CREATED": "Job Offer Created",
+        "JOB_OFFER_UPDATED": "Job Offer Updated",
+        "JOB_OFFER_DELETED": "Job Offer Deleted",
+        "JOB_OFFER_ACTIVATED": "Job Offer Activated",
+        "JOB_OFFER_DEACTIVATED": "Job Offer Deactivated",
+        "JOB_OFFER_WIPED": "Job Offers Wiped",
         "OTHER": "Other Action"
       },
       "table": {

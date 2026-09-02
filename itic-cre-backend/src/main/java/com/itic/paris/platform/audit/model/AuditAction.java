@@ -41,6 +41,14 @@ public enum AuditAction {
     STUDENT_ASSIGNED_TO_ADVISOR,
     STUDENT_REMOVED_FROM_ADVISOR,
 
+    // --- Actions de gestion des offres d'emploi (manuelles uniquement) ---
+    JOB_OFFER_CREATED,
+    JOB_OFFER_UPDATED,
+    JOB_OFFER_DELETED,
+    JOB_OFFER_ACTIVATED,
+    JOB_OFFER_DEACTIVATED,
+    JOB_OFFER_WIPED,
+
     // --- Autre / Action générique ---
     OTHER
 }

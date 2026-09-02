@@ -32,6 +32,9 @@ export interface JobOffer {
     expiresAt: string | null;
     /** Date de publication réelle chez la source externe, null pour les offres MANUAL. */
     publishedAt: string | null;
+    /** Conseiller/admin ayant créé l'offre, null pour les offres externes (source != MANUAL). */
+    createdByFirstName: string | null;
+    createdByLastName: string | null;
 }
 
 export interface JobOfferPage {
