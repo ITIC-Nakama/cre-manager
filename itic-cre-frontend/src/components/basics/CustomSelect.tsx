@@ -83,16 +83,20 @@ export default function CustomSelect({
 
   // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement:
   // si le trigger bouge réellement (page ou conteneur parent scrollé), le panneau fixed devient
-  // désaligné et doit se fermer. Mais sur mobile (et systématiquement en PWA), l'ouverture déclenche
-  // aussi un scroll quasi nul (clavier virtuel qui ajuste le viewport à cause de l'autoFocus de la
-  // recherche, ou barre d'adresse qui se réduit en bas de page) qui ne déplace pas le trigger : on
-  // se base donc sur la position réelle du trigger plutôt que sur le simple fait qu'un scroll ait eu lieu.
+  // désaligné et doit se fermer. Mais deux choses réduisent le viewport visuel sans que ce soit une
+  // vraie intention de scroll: le clavier virtuel qui s'ouvre (focus sur la recherche) et la barre
+  // d'adresse mobile qui se réduit en bas de page — dans les deux cas on ignore, quel que soit le
+  // déplacement du trigger que ça provoque au passage (le clavier peut reflow toute la page).
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
     const initialTop = containerRef.current.getBoundingClientRect().top;
+    const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
     const SCROLL_CLOSE_THRESHOLD = 8;
+    const VIEWPORT_SHRINK_THRESHOLD = 60;
     const closeOnScroll = (e: Event) => {
       if (panelRef.current?.contains(e.target as Node)) return;
+      const currentViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      if (initialViewportHeight - currentViewportHeight > VIEWPORT_SHRINK_THRESHOLD) return;
       const currentTop = containerRef.current?.getBoundingClientRect().top ?? initialTop;
       if (Math.abs(currentTop - initialTop) < SCROLL_CLOSE_THRESHOLD) return;
       setIsOpen(false);
