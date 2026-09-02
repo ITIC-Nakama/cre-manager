@@ -81,29 +81,34 @@ export default function CustomSelect({
     });
   };
 
-  // panelRect n'est calculé qu'à l'ouverture, d'où la fermeture au scroll plutôt qu'un repositionnement:
-  // si le trigger bouge réellement (page ou conteneur parent scrollé), le panneau fixed devient
-  // désaligné et doit se fermer. Mais deux choses réduisent le viewport visuel sans que ce soit une
-  // vraie intention de scroll: le clavier virtuel qui s'ouvre (focus sur la recherche) et la barre
-  // d'adresse mobile qui se réduit en bas de page — dans les deux cas on ignore, quel que soit le
-  // déplacement du trigger que ça provoque au passage (le clavier peut reflow toute la page).
+  // Le panneau est en position: fixed, ancré au trigger au moment de l'ouverture. Sans repositionnement,
+  // tout scroll pendant qu'il est ouvert (page, conteneur parent, ou même le reflow causé par le clavier
+  // virtuel) le laisse figé à l'écran pendant que le trigger bouge, donnant un rendu décalé/incohérent.
+  // On le maintient donc aligné en continu tant qu'il est ouvert, comme un vrai popover.
   useEffect(() => {
-    if (!isOpen || !containerRef.current) return;
-    const initialTop = containerRef.current.getBoundingClientRect().top;
-    const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-    const SCROLL_CLOSE_THRESHOLD = 8;
-    const VIEWPORT_SHRINK_THRESHOLD = 60;
-    const closeOnScroll = (e: Event) => {
-      if (panelRef.current?.contains(e.target as Node)) return;
-      const currentViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      if (initialViewportHeight - currentViewportHeight > VIEWPORT_SHRINK_THRESHOLD) return;
-      const currentTop = containerRef.current?.getBoundingClientRect().top ?? initialTop;
-      if (Math.abs(currentTop - initialTop) < SCROLL_CLOSE_THRESHOLD) return;
-      setIsOpen(false);
+    if (!isOpen) return;
+    let rafId: number | null = null;
+    const updatePosition = () => {
+      rafId = null;
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const estimatedDropdownHeight = (searchable ? 300 : 260);
+      const shouldDropUp = window.innerHeight - rect.bottom < estimatedDropdownHeight;
+      setAutoDropUp(shouldDropUp);
+      setPanelRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
     };
-    window.addEventListener('scroll', closeOnScroll, true);
-    return () => window.removeEventListener('scroll', closeOnScroll, true);
-  }, [isOpen]);
+    const onScrollOrResize = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(updatePosition);
+    };
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [isOpen, searchable]);
 
   return (
     <div ref={containerRef} className={`relative inline-block text-left ${className}`} id={id}>
@@ -165,9 +170,9 @@ export default function CustomSelect({
                 setSearch('');
               }}
               aria-label="Fermer"
-              className="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              className="shrink-0 rounded-full p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
           <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
