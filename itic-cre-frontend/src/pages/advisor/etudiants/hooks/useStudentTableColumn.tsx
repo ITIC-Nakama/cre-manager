@@ -85,7 +85,6 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                     </div>
                 );
             },
-            enableSorting: false,
         }),
         col.accessor((row) => row.promotion?.nom ?? '', {
             id: 'promotion',
@@ -117,7 +116,6 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                     ? <span className="text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
                     : <span className="text-slate-300 dark:text-slate-600">—</span>;
             },
-            enableSorting: false,
         }),
         col.accessor('xpTotal', {
             header: t('dashboard.etudiants.table.grade_xp').split(' / ')[0],
@@ -145,7 +143,6 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                     )}
                 </div>
             ),
-            enableSorting: false,
         }),
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
@@ -165,7 +162,6 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                     )}
                 </div>
             ),
-            enableSorting: false,
         }),
     ], [t, isAdmin]);
 }

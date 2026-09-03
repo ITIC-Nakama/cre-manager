@@ -32,6 +32,27 @@ import BulkAssignBar from './components/BulkAssignBar';
 
 const PAGE_SIZE = 20;
 
+// Traduit l'id de colonne TanStack Table vers le(s) champ(s) de tri Spring Data attendus par
+// /dashboard/students. "name"/"advisor" sont des colonnes composées (prénom+nom) sans équivalent
+// direct en base, on trie donc par nom de famille. "isActive" est calculé côté backend à partir de
+// lastActivity (pas une colonne persistée) — lastActivity est un proxy fidèle du même ordre.
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+    name: 'lastName',
+    promotion: 'promotion.name',
+    advisor: 'advisor.lastName',
+    xpTotal: 'xpTotal',
+    hasCv: 'hasCv',
+    isActive: 'lastActivity',
+};
+
+function toSortParam(sorting: SortingState): string | undefined {
+    const [first] = sorting;
+    if (!first) return undefined;
+    const field = SORT_FIELD_BY_COLUMN[first.id];
+    if (!field) return undefined;
+    return `${field},${first.desc ? 'desc' : 'asc'}`;
+}
+
 export default function EtudiantsPage() {
     const { t } = useTranslation();
     const currentUser = useUserStore((state) => state.user);
@@ -144,7 +165,8 @@ export default function EtudiantsPage() {
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
         advisorId: advisorFilter || undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
-    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, isAdmin, includeAnonymized]);
+        sort: toSortParam(sorting),
+    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, isAdmin, includeAnonymized, sorting]);
 
     const {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

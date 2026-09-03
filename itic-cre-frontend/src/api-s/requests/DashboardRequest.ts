@@ -36,6 +36,7 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
     if (params.advisorId)                 query.advisorId = params.advisorId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
+    if (params.sort)                      query.sort = params.sort;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }

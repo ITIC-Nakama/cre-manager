@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import type { SortingState } from '@tanstack/react-table';
 import {
     useAllJobOffersInfinite, useCreateJobOffer, useUpdateJobOffer,
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors,
@@ -20,6 +21,24 @@ import type { JobOffer } from '../../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../../types/models/JobOffer';
 
 const PAGE_SIZE = 20;
+
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+    title: 'title',
+    location: 'location',
+    contractType: 'contractType.label',
+    sector: 'sector.label',
+    applicationCount: 'applicationCount',
+    active: 'active',
+    createdAt: 'createdAt',
+};
+
+function toSortParam(sorting: SortingState): string | undefined {
+    const [first] = sorting;
+    if (!first) return undefined;
+    const field = SORT_FIELD_BY_COLUMN[first.id];
+    if (!field) return undefined;
+    return `${field},${first.desc ? 'desc' : 'asc'}`;
+}
 
 export default function OffresPage() {
     const { t } = useTranslation();
@@ -54,6 +73,7 @@ export default function OffresPage() {
     }, [location]);
 
     const isInternalSource = sourceFilter === 'MANUAL';
+    const [sorting, setSorting] = useState<SortingState>([]);
 
     const params = useMemo(() => ({
         size: PAGE_SIZE,
@@ -63,7 +83,8 @@ export default function OffresPage() {
         active: activeFilter === '' ? undefined : activeFilter === 'true',
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
-    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation]);
+        sort: toSortParam(sorting),
+    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, sorting]);
     const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();
@@ -255,6 +276,8 @@ export default function OffresPage() {
             <OffresTable
                 offers={offers}
                 isLoading={isLoading}
+                sorting={sorting}
+                onSortingChange={setSorting}
                 hasNextPage={!!hasNextPage}
                 isFetchingNextPage={isFetchingNextPage}
                 onLoadMore={fetchNextPage}

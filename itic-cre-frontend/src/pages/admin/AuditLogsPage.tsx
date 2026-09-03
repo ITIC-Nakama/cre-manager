@@ -7,8 +7,23 @@ import { useAuditLogsInfinite } from '../../hooks/useAudit';
 import { AUDIT_ACTIONS, auditActionColor } from '../../utils/auditActionColors';
 import CustomSelect from '../../components/basics/CustomSelect';
 import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
+import SortableTh, { toggleSort, type SortState } from '../../components/basics/SortableTh';
 
 const PAGE_SIZE = 20;
+
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+  action: 'action',
+  description: 'description',
+  actor: 'actorLastName',
+  date: 'createdAt',
+};
+
+function toSortParam(sort: SortState | null): string {
+  if (!sort) return 'createdAt,desc';
+  const field = SORT_FIELD_BY_COLUMN[sort.key];
+  if (!field) return 'createdAt,desc';
+  return `${field},${sort.direction}`;
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('fr-FR', {
@@ -24,6 +39,8 @@ export default function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [sort, setSort] = useState<SortState | null>(null);
+  const handleSort = (key: string) => setSort((prev) => toggleSort(prev, key));
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const params = useMemo(() => ({
@@ -32,7 +49,8 @@ export default function AuditLogsPage() {
     action: actionFilter || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
-  }), [debouncedSearch, actionFilter, fromDate, toDate]);
+    sort: toSortParam(sort),
+  }), [debouncedSearch, actionFilter, fromDate, toDate, sort]);
 
   const {
     items: logs, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -128,10 +146,10 @@ export default function AuditLogsPage() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <th className="px-6 py-4">{t('dashboard.audit_page.table.action')}</th>
-                <th className="px-6 py-4">{t('dashboard.audit_page.table.description')}</th>
-                <th className="px-6 py-4">{t('dashboard.audit_page.table.actor')}</th>
-                <th className="px-6 py-4">{t('dashboard.audit_page.table.date')}</th>
+                <SortableTh label={t('dashboard.audit_page.table.action')} sortKey="action" currentSort={sort} onSort={handleSort} />
+                <SortableTh label={t('dashboard.audit_page.table.description')} sortKey="description" currentSort={sort} onSort={handleSort} />
+                <SortableTh label={t('dashboard.audit_page.table.actor')} sortKey="actor" currentSort={sort} onSort={handleSort} />
+                <SortableTh label={t('dashboard.audit_page.table.date')} sortKey="date" currentSort={sort} onSort={handleSort} />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

@@ -12,6 +12,7 @@ export function fetchAllCVs(params: CVListParams = {}): Promise<CVPage> {
     if (params.statutId) query.statutId = params.statutId;
     if (params.search)   query.search   = params.search;
     if (params.advisorId) query.advisorId = params.advisorId;
+    if (params.sort)     query.sort     = params.sort;
     return apiClient.get('/cv', { params: query }).then(unwrap<CVPage>);
 }
 

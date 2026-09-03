@@ -39,6 +39,7 @@ export interface CVListParams {
     statutId?: string;
     search?: string;
     advisorId?: string;
+    sort?: string;
 }
 
 export interface CVStatCount {

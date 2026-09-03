@@ -28,6 +28,7 @@ export interface AdvisorListParams {
   size?: number;
   search?: string;
   role?: 'ADVISOR' | 'ADMIN';
+  sort?: string;
 }
 
 export interface CreateAdvisorData {

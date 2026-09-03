@@ -1389,6 +1389,7 @@
       "tab_unassigned": "Sans niveau ({{count}})",
       "search_in_promo": "Filtrer les étudiants...",
       "filtered_count": "{{count}} affiché(s)",
+      "filter_no_cv": "Sans CV uniquement",
       "status_label": "Statut",
       "change_year_tooltip": "Changer le niveau d'année",
       "select_year_placeholder": "Niveau...",

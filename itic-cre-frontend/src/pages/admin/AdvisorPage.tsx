@@ -16,8 +16,22 @@ import StaffModal from './components/StaffModal';
 import ResetPasswordModal from './components/ResetPasswordModal';
 import AdvisorTabs, { type Tab } from './components/AdvisorTabs';
 import AdvisorTable from './components/AdvisorTable';
+import { toggleSort, type SortState } from '../../components/basics/SortableTh';
 
 const PAGE_SIZE = 20;
+
+
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+  name: 'lastName',
+  contact: 'email',
+};
+
+function toSortParam(sort: SortState | null): string | undefined {
+  if (!sort) return undefined;
+  const field = SORT_FIELD_BY_COLUMN[sort.key];
+  if (!field) return undefined;
+  return `${field},${sort.direction}`;
+}
 
 export default function AdvisorPage() {
   const { t } = useTranslation();
@@ -30,10 +44,14 @@ export default function AdvisorPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [sort, setSort] = useState<SortState | null>(null);
+  const handleSort = (key: string) => setSort((prev) => toggleSort(prev, key));
+
   const params = useMemo(() => ({
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
-  }), [debouncedSearch]);
+    sort: toSortParam(sort),
+  }), [debouncedSearch, sort]);
 
   // 1. Requête distincte pour les Conseillers
   const advisorQuery = useAdvisorsInfinite(params);
@@ -296,6 +314,8 @@ export default function AdvisorPage() {
         hasNextPage={!!hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         onLoadMore={fetchNextPage}
+        sort={sort}
+        onSort={handleSort}
         onEdit={(advisor) => setModal({ isOpen: true, mode: 'edit', advisor })}
         onResetPassword={(advisor) => setResetPasswordModal({ isOpen: true, advisor })}
         onDeactivate={handleDeactivate}

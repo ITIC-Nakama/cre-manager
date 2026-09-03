@@ -27,4 +27,5 @@ export interface AuditLogParams {
     action?: string;
     from?: string;
     to?: string;
+    sort?: string;
 }

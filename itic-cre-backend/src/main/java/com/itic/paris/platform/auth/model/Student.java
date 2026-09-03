@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Formula;
 
 import java.time.Instant;
 
@@ -16,6 +17,12 @@ public class Student extends User {
 
     @Column(name = "xp_total", nullable = false)
     private Integer xpTotal = 0;
+
+    // Champ calcule en lecture seule (jamais persiste), expose uniquement pour permettre
+    // Sort.by("hasCv") sur /dashboard/students — la valeur affichee au client continue de
+    // venir de StudentReportingService.buildStudentRows (batch), independant de ce champ.
+    @Formula("(select case when exists (select 1 from cvs c where c.student_id = user_id) then true else false end)")
+    private boolean hasCv;
 
     @Column(name = "last_activity")
     private Instant lastActivity;

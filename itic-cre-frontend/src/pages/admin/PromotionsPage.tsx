@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
@@ -11,6 +11,7 @@ import type { Promotion, PromotionData } from '../../types/models/Promotion';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import PromotionModal from './components/PromotionModal';
+import SortableTh, { toggleSort, type SortState } from '../../components/basics/SortableTh';
 
 export default function PromotionsPage() {
   const { t } = useTranslation();
@@ -108,6 +109,26 @@ export default function PromotionsPage() {
 
   const totalElements = promotions?.length ?? 0;
 
+  const [sort, setSort] = useState<SortState | null>(null);
+  const handleSort = (key: string) => setSort((prev) => toggleSort(prev, key));
+
+  const sortedPromotions = useMemo(() => {
+    if (!promotions || !sort) return promotions;
+    const dir = sort.direction === 'asc' ? 1 : -1;
+    return [...promotions].sort((a, b) => {
+      switch (sort.key) {
+        case 'name':
+          return a.name.localeCompare(b.name) * dir;
+        case 'year':
+          return (a.year ?? '').localeCompare(b.year ?? '') * dir;
+        case 'students':
+          return ((studentCounts?.[a.id] ?? 0) - (studentCounts?.[b.id] ?? 0)) * dir;
+        default:
+          return 0;
+      }
+    });
+  }, [promotions, sort, studentCounts]);
+
   return (
     <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
 
@@ -137,10 +158,10 @@ export default function PromotionsPage() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <th className="px-6 py-4">{t('dashboard.promotions.table.name')}</th>
-                <th className="px-6 py-4">{t('dashboard.promotions.table.year')}</th>
+                <SortableTh label={t('dashboard.promotions.table.name')} sortKey="name" currentSort={sort} onSort={handleSort} />
+                <SortableTh label={t('dashboard.promotions.table.year')} sortKey="year" currentSort={sort} onSort={handleSort} />
                 <th className="px-6 py-4">{t('dashboard.promotions.table.years_levels')}</th>
-                <th className="px-6 py-4">{t('dashboard.promotions.table.students')}</th>
+                <SortableTh label={t('dashboard.promotions.table.students')} sortKey="students" currentSort={sort} onSort={handleSort} />
                 <th className="px-6 py-4 text-right">{t('dashboard.promotions.table.actions')}</th>
               </tr>
             </thead>
@@ -151,7 +172,7 @@ export default function PromotionsPage() {
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : !promotions || promotions.length === 0 ? (
+              ) : !sortedPromotions || sortedPromotions.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-16 text-slate-400">
                     <GraduationCap className="h-8 w-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
@@ -159,7 +180,7 @@ export default function PromotionsPage() {
                   </td>
                 </tr>
               ) : (
-                promotions.map((promotion) => {
+                sortedPromotions.map((promotion) => {
                   const count = studentCounts?.[promotion.id] ?? 0;
                   return (
                     <tr key={promotion.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">

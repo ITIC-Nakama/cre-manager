@@ -17,12 +17,27 @@ import { useStudentListInfinite, usePromotionYearCounts } from '../../hooks/useD
 import { usePromotions, useRemoveStudentFromPromotion, useAssignStudentToPromotion } from '../../hooks/usePromotions';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import CustomSelect, { type SelectOption } from '../../components/basics/CustomSelect';
+import SortableTh, { toggleSort, type SortState } from '../../components/basics/SortableTh';
 import PromotionYearTabs from './components/PromotionYearTabs';
 import AssignStudentModal from './components/AssignStudentModal';
 import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 const PAGE_SIZE = 10;
+
+// Meme mapping colonne -> champ de tri Spring Data que EtudiantsPage (meme endpoint /dashboard/students).
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+  student: 'lastName',
+  isActive: 'lastActivity',
+  studyYear: 'studyYear',
+};
+
+function toSortParam(sort: SortState | null): string | undefined {
+  if (!sort) return undefined;
+  const field = SORT_FIELD_BY_COLUMN[sort.key];
+  if (!field) return undefined;
+  return `${field},${sort.direction}`;
+}
 
 export default function PromotionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +50,9 @@ export default function PromotionDetailPage() {
   const [filterText, setFilterText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedYearTab, setSelectedYearTab] = useState<'ALL' | number | 'UNASSIGNED'>('ALL');
+  const [noCvOnly, setNoCvOnly] = useState(false);
+  const [sort, setSort] = useState<SortState | null>(null);
+  const handleSort = (key: string) => setSort((prev) => toggleSort(prev, key));
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dedicated lightweight aggregate stats endpoint
@@ -47,7 +65,9 @@ export default function PromotionDetailPage() {
     studyYear: typeof selectedYearTab === 'number' ? selectedYearTab : undefined,
     studyYearMissing: selectedYearTab === 'UNASSIGNED' ? true : undefined,
     search: debouncedSearch || undefined,
-  }), [id, selectedYearTab, debouncedSearch]);
+    hasCv: noCvOnly ? false : undefined,
+    sort: toSortParam(sort),
+  }), [id, selectedYearTab, debouncedSearch, noCvOnly, sort]);
 
   const {
     items: students, totalElements, isLoading: loadingStudents, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -201,7 +221,16 @@ export default function PromotionDetailPage() {
               className="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-center">
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={noCvOnly}
+                onChange={(e) => setNoCvOnly(e.target.checked)}
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              {t('dashboard.promotions.filter_no_cv', 'Sans CV uniquement')}
+            </label>
             {isFetching && !loadingStudents && (
               <Loader2 className="h-3.5 w-3.5 text-slate-400 animate-spin" />
             )}
@@ -215,9 +244,11 @@ export default function PromotionDetailPage() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <th className="px-6 py-4">{t('dashboard.promotions.table.students', 'Étudiant')}</th>
-                <th className="px-6 py-4">{t('dashboard.promotions.status_label', 'Statut')}</th>
-                {promotion.hasYears && <th className="px-6 py-4">{t('dashboard.promotions.available_years_label', "Niveau d'année")}</th>}
+                <SortableTh label={t('dashboard.promotions.table.students', 'Étudiant')} sortKey="student" currentSort={sort} onSort={handleSort} />
+                <SortableTh label={t('dashboard.promotions.status_label', 'Statut')} sortKey="isActive" currentSort={sort} onSort={handleSort} />
+                {promotion.hasYears && (
+                  <SortableTh label={t('dashboard.promotions.available_years_label', "Niveau d'année")} sortKey="studyYear" currentSort={sort} onSort={handleSort} />
+                )}
                 <th className="px-6 py-4 text-right">{t('dashboard.promotions.table.actions', 'Actions')}</th>
               </tr>
             </thead>

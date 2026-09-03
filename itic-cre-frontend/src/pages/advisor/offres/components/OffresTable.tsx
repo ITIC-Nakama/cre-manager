@@ -4,9 +4,11 @@ import {
     getCoreRowModel,
     flexRender,
     createColumnHelper,
+    type SortingState,
 } from '@tanstack/react-table';
 import {
     Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
+    ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TruncatedText from '../../../../components/shared/TruncatedText';
@@ -14,6 +16,12 @@ import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScroll
 import type { JobOffer } from '../../../../types/models/JobOffer';
 
 const col = createColumnHelper<JobOffer>();
+
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+    if (sorted === 'asc') return <ChevronUp className="h-3.5 w-3.5" />;
+    if (sorted === 'desc') return <ChevronDown className="h-3.5 w-3.5" />;
+    return <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />;
+}
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('fr-FR', {
@@ -29,9 +37,11 @@ interface Props {
     onLoadMore: () => void;
     onView: (offer: JobOffer) => void;
     onEdit: (offer: JobOffer) => void;
+    sorting: SortingState;
+    onSortingChange: (sorting: SortingState) => void;
 }
 
-export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit }: Props) {
+export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, sorting, onSortingChange }: Props) {
     const { t } = useTranslation();
 
     const columns = useMemo(() => [
@@ -119,7 +129,10 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
     const table = useReactTable({
         data: offers,
         columns,
+        state: { sorting },
+        onSortingChange: (updater) => onSortingChange(typeof updater === 'function' ? updater(sorting) : updater),
         getCoreRowModel: coreRowModel,
+        manualSorting: true,
     });
 
     return (
@@ -131,7 +144,17 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                             <tr key={hg.id} className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 {hg.headers.map((header) => (
                                     <th key={header.id} className="px-4 py-3">
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                        {header.column.getCanSort() ? (
+                                            <button
+                                                onClick={header.column.getToggleSortingHandler()}
+                                                className="inline-flex items-center gap-1 cursor-pointer hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                                            >
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                <SortIcon sorted={header.column.getIsSorted()} />
+                                            </button>
+                                        ) : (
+                                            flexRender(header.column.columnDef.header, header.getContext())
+                                        )}
                                     </th>
                                 ))}
                                 <th className="px-4 py-3 text-right">{t('dashboard.offres.table.actions')}</th>

@@ -4,10 +4,12 @@ import {
     getCoreRowModel,
     flexRender,
     createColumnHelper,
+    type SortingState,
 } from '@tanstack/react-table';
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle, Users,
+    ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
@@ -25,6 +27,28 @@ import { Role } from '../../../types/models/Auth';
 const PAGE_SIZE_LOCAL = 20;
 
 const col = createColumnHelper<CVRow>();
+
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+    student: 'student.lastName',
+    promotion: 'student.promotion.name',
+    statut: 'statut.nom',
+    uploadedAt: 'uploadedAt',
+    updatedAt: 'updatedAt',
+};
+
+function toSortParam(sorting: SortingState): string | undefined {
+    const [first] = sorting;
+    if (!first) return undefined;
+    const field = SORT_FIELD_BY_COLUMN[first.id];
+    if (!field) return undefined;
+    return `${field},${first.desc ? 'desc' : 'asc'}`;
+}
+
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+    if (sorted === 'asc') return <ChevronUp className="h-3.5 w-3.5" />;
+    if (sorted === 'desc') return <ChevronDown className="h-3.5 w-3.5" />;
+    return <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />;
+}
 
 function formatDate(iso: string | null) {
     if (!iso) return '—';
@@ -66,6 +90,7 @@ export default function CVValidationPage() {
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
+    const [sorting, setSorting] = useState<SortingState>([]);
 
     const { data: statuts = [] } = useCVStatuts();
     const { data: stats = [] } = useCVStats(advisorFilter || undefined);
@@ -75,7 +100,8 @@ export default function CVValidationPage() {
         statutId: statutFilter || undefined,
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
-    }), [statutFilter, search, advisorFilter]);
+        sort: toSortParam(sorting),
+    }), [statutFilter, search, advisorFilter, sorting]);
 
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -150,7 +176,10 @@ export default function CVValidationPage() {
     const table = useReactTable({
         data: pagedCVs,
         columns,
+        state: { sorting },
+        onSortingChange: setSorting,
         getCoreRowModel: coreRowModel,
+        manualSorting: true,
     });
 
     const handleStatutChange = (val: string) => {
@@ -259,7 +288,17 @@ export default function CVValidationPage() {
                                 <tr key={hg.id} className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     {hg.headers.map((header) => (
                                         <th key={header.id} className="px-6 py-4">
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                            {header.column.getCanSort() ? (
+                                                <button
+                                                    onClick={header.column.getToggleSortingHandler()}
+                                                    className="inline-flex items-center gap-1 cursor-pointer hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                                                >
+                                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    <SortIcon sorted={header.column.getIsSorted()} />
+                                                </button>
+                                            ) : (
+                                                flexRender(header.column.columnDef.header, header.getContext())
+                                            )}
                                         </th>
                                     ))}
                                     <th className="px-6 py-4 text-right">{t('dashboard.offres.table.actions', 'Actions')}</th>

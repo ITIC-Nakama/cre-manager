@@ -76,6 +76,7 @@ export interface StudentListParams {
   excludePromotionId?: string;
   advisorId?: string;
   includeAnonymized?: boolean;
+  sort?: string;
 }
 
 export type StudentFilter = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';

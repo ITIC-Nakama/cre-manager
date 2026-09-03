@@ -68,6 +68,7 @@ export interface JobOfferListParams {
     active?: boolean;
     source?: string;
     location?: string;
+    sort?: string;
 }
 
 export interface JobOfferPayload {

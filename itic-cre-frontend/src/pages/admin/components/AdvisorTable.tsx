@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import type { Advisor } from '../../../types/models/Advisor';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
+import SortableTh, { type SortState } from '../../../components/basics/SortableTh';
 
 interface AdvisorTableProps {
   currentList: Advisor[];
@@ -13,6 +14,8 @@ interface AdvisorTableProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
+  sort: SortState | null;
+  onSort: (key: string) => void;
   onEdit: (advisor: Advisor) => void;
   onResetPassword: (advisor: Advisor) => void;
   onDeactivate: (advisor: Advisor) => void;
@@ -27,6 +30,8 @@ export default function AdvisorTable({
   hasNextPage,
   isFetchingNextPage,
   onLoadMore,
+  sort,
+  onSort,
   onEdit,
   onResetPassword,
   onDeactivate,
@@ -41,8 +46,8 @@ export default function AdvisorTable({
         <table className="w-full text-left border-collapse text-sm">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              <th className="px-6 py-4">{t('dashboard.conseillers.table.name')}</th>
-              <th className="px-6 py-4">{t('dashboard.conseillers.table.contact')}</th>
+              <SortableTh label={t('dashboard.conseillers.table.name')} sortKey="name" currentSort={sort} onSort={onSort} />
+              <SortableTh label={t('dashboard.conseillers.table.contact')} sortKey="contact" currentSort={sort} onSort={onSort} />
               <th className="px-6 py-4">{t('dashboard.conseillers.table.job_title')}</th>
               <th className="px-6 py-4 text-right">{t('dashboard.conseillers.table.actions')}</th>
             </tr>

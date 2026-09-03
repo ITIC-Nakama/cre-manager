@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -23,6 +24,12 @@ public class JobOffer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    // Champ calcule en lecture seule (jamais persiste), expose uniquement pour permettre
+    // Sort.by("applicationCount") sur /jobboard/offers/all — la valeur affichee au client continue
+    // de venir de JobOfferService.mapToDTO (requete dediee), independant de ce champ.
+    @Formula("(select count(*) from job_applications ja where ja.job_offer_id = id)")
+    private int applicationCount;
 
     @NotNull
     @Size(min = 5, max = 200)
