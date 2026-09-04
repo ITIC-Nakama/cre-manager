@@ -473,7 +473,7 @@
         "save": "Save",
         "invalid_dates": "End date must be after start date",
         "contract_dates_saved": "Contract dates saved",
-        "contract_dates_error": "Could not save — this student may not be in your portfolio",
+        "contract_dates_error": "Could not save — please try again",
         "contract_verified": "Declaration confirmed",
         "contract_rejected": "Declaration rejected — previous status restored",
         "contract_verified_label": "Contract verified by an advisor",

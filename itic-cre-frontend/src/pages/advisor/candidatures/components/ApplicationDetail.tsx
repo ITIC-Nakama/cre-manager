@@ -41,7 +41,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
             onUpdated({ startDate: updated.startDate, endDate: updated.endDate, contractVerified: updated.contractVerified });
             toast.success(t('dashboard.candidatures.detail.contract_dates_saved', 'Dates du contrat enregistrées'));
         } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — cet étudiant n'est peut-être pas dans votre portefeuille"));
+            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
         }
     };
 
@@ -51,7 +51,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
             onUpdated({ contractVerified: updated.contractVerified });
             toast.success(t('dashboard.candidatures.detail.contract_verified', 'Déclaration confirmée'));
         } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — cet étudiant n'est peut-être pas dans votre portefeuille"));
+            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
         }
     };
 
@@ -62,7 +62,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
             toast.success(t('dashboard.candidatures.detail.contract_rejected', 'Déclaration refusée — statut précédent rétabli'));
             setRejectConfirmOpen(false);
         } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — cet étudiant n'est peut-être pas dans votre portefeuille"));
+            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
         }
     };
 

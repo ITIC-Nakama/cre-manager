@@ -191,7 +191,7 @@ public class DashboardController {
 
     @PatchMapping("/applications/{id}/contract-dates")
     @Operation(summary = "Renseigner/modifier les dates de contrat (début/fin) d'une candidature — "
-            + "réservé à l'admin ou au conseiller affecté à l'étudiant propriétaire de la candidature")
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
     public ResponseEntity<ApplicationDTO> updateContractDates(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateContractDatesRequest request) {
@@ -200,14 +200,14 @@ public class DashboardController {
 
     @PostMapping("/applications/{id}/verify-contract")
     @Operation(summary = "Confirmer une déclaration de contrat étudiant déjà exacte — "
-            + "réservé à l'admin ou au conseiller affecté à l'étudiant propriétaire de la candidature")
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
     public ResponseEntity<ApplicationDTO> verifyContract(@PathVariable UUID id) {
         return ResponseEntity.ok(applicationService.verifyContractDeclaration(id));
     }
 
     @PostMapping("/applications/{id}/reject-contract")
     @Operation(summary = "Refuser une déclaration de contrat étudiant — revient au statut précédent — "
-            + "réservé à l'admin ou au conseiller affecté à l'étudiant propriétaire de la candidature")
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
     public ResponseEntity<ApplicationDTO> rejectContract(@PathVariable UUID id) {
         return ResponseEntity.ok(applicationService.rejectContractDeclaration(id));
     }

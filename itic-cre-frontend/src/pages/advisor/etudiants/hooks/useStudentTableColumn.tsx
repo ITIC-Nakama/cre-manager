@@ -88,7 +88,7 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                             )}
                             {row.original.contractNeedsVerification && (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    <ShieldAlert className="h-3 w-3" />
+                                    <ShieldAlert className="h-2.5 w-2.5" />
                                     {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
                                 </span>
                             )}

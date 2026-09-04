@@ -473,7 +473,7 @@
         "save": "Enregistrer",
         "invalid_dates": "La date de fin doit être postérieure à la date de début",
         "contract_dates_saved": "Dates du contrat enregistrées",
-        "contract_dates_error": "Impossible d'enregistrer — cet étudiant n'est peut-être pas dans votre portefeuille",
+        "contract_dates_error": "Impossible d'enregistrer — veuillez réessayer",
         "contract_verified": "Déclaration confirmée",
         "contract_rejected": "Déclaration refusée — statut précédent rétabli",
         "contract_verified_label": "Contrat vérifié par un conseiller",

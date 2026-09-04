@@ -33,7 +33,7 @@ export function fetchContractTypes(): Promise<ContractType[]> {
     return apiClient.get('/jobboard/contract-types/active/list').then((response) => unwrap<ContractType[]>(response));
 }
 
-/** Reserve a l'admin ou au conseiller affecte a l'etudiant proprietaire de la candidature. */
+/** Ouvert a tout conseiller/admin, pas seulement celui affecte a l'etudiant. */
 export function updateApplicationContractDates(
     id: string,
     payload: { startDate?: string | null; endDate?: string | null },
