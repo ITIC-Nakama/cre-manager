@@ -24,6 +24,8 @@ export interface DashboardOverview {
   inactiveStudents: number;
   studentsWithoutCv: number;
   staleApplicationsCount: number;
+  studentsUnderContractCount: number;
+  studentsNeedingContractVerificationCount: number;
   recentApplications7d: number;
   applicationsByStatus: AppByStatus[];
   cvsByStatut: CvByStatut[];
@@ -53,6 +55,8 @@ export interface StudentRow {
   applicationCount: number;
   staleApplicationCount: number;
   hasCv: boolean;
+  underContract: boolean;
+  contractNeedsVerification: boolean;
   isAnonymized?: boolean;
 }
 
@@ -76,6 +80,7 @@ export interface StudentListParams {
   excludePromotionId?: string;
   advisorId?: string;
   includeAnonymized?: boolean;
+  underContract?: boolean;
   sort?: string;
 }
 

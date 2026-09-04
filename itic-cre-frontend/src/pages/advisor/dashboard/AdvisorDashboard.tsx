@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FileText, Briefcase, AlertCircle, LayoutDashboard, Globe, User as UserIcon } from 'lucide-react';
+import { Plus, FileText, Briefcase, AlertCircle, LayoutDashboard, Globe, User as UserIcon, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -128,35 +128,58 @@ export default function AdvisorDashboard() {
 
         {/* Quick Action / Alert Card */}
         <div className="flex flex-col gap-4">
-          {overview?.staleApplicationsCount && overview.staleApplicationsCount > 0 ? (
-            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/20 p-6 flex flex-col justify-between shadow-sm">
-              <div>
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold mb-2">
-                  <AlertCircle className="h-5 w-5" />
-                  {t('dashboard.advisor.stale_card.title')}
+          {(() => {
+            const staleCount = overview?.staleApplicationsCount ?? 0;
+            const verificationCount = overview?.studentsNeedingContractVerificationCount ?? 0;
+            const hasAttentionItems = staleCount > 0 || verificationCount > 0;
+
+            if (!hasAttentionItems) {
+              return (
+                <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20 p-6 flex flex-col justify-between shadow-sm">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold">
+                    <FileText className="h-5 w-5" />
+                    {t('dashboard.advisor.all_clean_card.title')}
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                    {t('dashboard.advisor.all_clean_card.message')}
+                  </p>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('dashboard.advisor.stale_card.message', { count: overview.staleApplicationsCount })}
-                </p>
+              );
+            }
+
+            return (
+              <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/20 p-6 flex flex-col gap-4 shadow-sm">
+                {staleCount > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold mb-1">
+                      <AlertCircle className="h-5 w-5" />
+                      {t('dashboard.advisor.stale_card.title')}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {t('dashboard.advisor.stale_card.message', { count: staleCount })}
+                    </p>
+                  </div>
+                )}
+                {verificationCount > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold mb-1">
+                      <ShieldAlert className="h-5 w-5" />
+                      {t('dashboard.advisor.verification_card.title', 'Contrats à vérifier')}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {t('dashboard.advisor.verification_card.message', { count: verificationCount })}
+                    </p>
+                  </div>
+                )}
+                <button
+                  onClick={() => navigate('/supervisor/candidatures')}
+                  className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  {t('dashboard.advisor.stale_card.btn_view')}
+                </button>
               </div>
-              <button
-                onClick={() => navigate('/supervisor/candidatures')}
-                className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors cursor-pointer"
-              >
-                {t('dashboard.advisor.stale_card.btn_view')}
-              </button>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20 p-6 flex flex-col justify-between shadow-sm">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold">
-                <FileText className="h-5 w-5" />
-                {t('dashboard.advisor.all_clean_card.title')}
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-                {t('dashboard.advisor.all_clean_card.message')}
-              </p>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

@@ -33,8 +33,12 @@ export function useJobOfferApplyActions() {
     const handleWithdrawConfirm = async () => {
         if (!withdrawTarget) return;
         try {
-            await withdrawMutation.mutateAsync(withdrawTarget.applicationId);
-            toast.success(t('dashboard.offres.toast.withdrawn'));
+            const result = await withdrawMutation.mutateAsync(withdrawTarget.applicationId);
+            if (result.xpRevoked > 0) {
+                toast.success(t('dashboard.offres.toast.withdrawn_xp_revoked', { xp: result.xpRevoked }));
+            } else {
+                toast.success(t('dashboard.offres.toast.withdrawn'));
+            }
             setWithdrawTarget(null);
         } catch {
             toast.error(t('dashboard.offres.toast.withdraw_error'));

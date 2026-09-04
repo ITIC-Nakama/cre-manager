@@ -4,6 +4,9 @@ import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
+import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
+import com.itic.paris.platform.crm.model.dtos.UpdateContractDatesRequest;
+import com.itic.paris.platform.crm.service.ApplicationService;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
 import com.itic.paris.platform.dashboard.service.ApplicationReportingService;
 import com.itic.paris.platform.dashboard.service.DashboardOverviewService;
@@ -40,6 +43,7 @@ public class DashboardController {
     private final PromotionStatsService promotionStatsService;
     private final StudentReportingService studentReportingService;
     private final ApplicationReportingService applicationReportingService;
+    private final ApplicationService applicationService;
 
     @GetMapping("/overview")
     @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut. " +
@@ -85,7 +89,7 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized/underContract")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
@@ -97,11 +101,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
+            @RequestParam(required = false) Boolean underContract,
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
-                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
                 .build();
         return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
     }
@@ -118,11 +123,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
-            @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized) {
+            @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
+            @RequestParam(required = false) Boolean underContract) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
-                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized)
+                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
                 .build();
         Page<Map<String, Object>> result = studentReportingService.getStudentList(criteria, Pageable.unpaged());
         return ResponseEntity.ok(result.getContent());
@@ -153,10 +159,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean stale,
             @RequestParam(required = false) Boolean activeStudentsOnly,
             @RequestParam(required = false) UUID advisorId,
+            @RequestParam(required = false) Boolean underContract,
             @PageableDefault(size = 20) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
+                .underContract(underContract)
                 .build();
         return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }
@@ -179,6 +187,29 @@ public class DashboardController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
                 .body(csvBytes);
+    }
+
+    @PatchMapping("/applications/{id}/contract-dates")
+    @Operation(summary = "Renseigner/modifier les dates de contrat (début/fin) d'une candidature — "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> updateContractDates(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateContractDatesRequest request) {
+        return ResponseEntity.ok(applicationService.updateContractDatesAsAdvisor(id, request));
+    }
+
+    @PostMapping("/applications/{id}/verify-contract")
+    @Operation(summary = "Confirmer une déclaration de contrat étudiant déjà exacte — "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> verifyContract(@PathVariable UUID id) {
+        return ResponseEntity.ok(applicationService.verifyContractDeclaration(id));
+    }
+
+    @PostMapping("/applications/{id}/reject-contract")
+    @Operation(summary = "Refuser une déclaration de contrat étudiant — revient au statut précédent — "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> rejectContract(@PathVariable UUID id) {
+        return ResponseEntity.ok(applicationService.rejectContractDeclaration(id));
     }
 
     @GetMapping("/students/{studentId}")

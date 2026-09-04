@@ -20,4 +20,8 @@ public class ApplicationStatusDTO {
     private Integer gainXP;
     private Boolean declencheAlerte;
     private Boolean actif;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Vrai si ce statut marque l'étudiant comme sous contrat (ex: Offre reçue) — une date de début devient alors obligatoire au changement de statut")
+    private Boolean compteCommeContrat;
 }

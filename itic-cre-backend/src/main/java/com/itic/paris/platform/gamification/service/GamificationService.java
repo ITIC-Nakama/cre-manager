@@ -2,6 +2,7 @@ package com.itic.paris.platform.gamification.service;
 
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.gamification.model.GamificationConfig;
 import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.model.XPHistory;
@@ -27,6 +28,14 @@ public class GamificationService {
 
     @Transactional
     public void awardXP(Student student, ActionXP action, int points, String description) {
+        awardXP(student, action, points, description, null);
+    }
+
+    /** Meme logique, mais relie explicitement la ligne d'historique a la candidature qui l'a
+      * declenchee — necessaire pour pouvoir annuler exactement cet XP si la candidature est
+      * supprimee ensuite (voir XPHistoryRepository.sumPointsByApplicationId). */
+    @Transactional
+    public void awardXP(Student student, ActionXP action, int points, String description, Application application) {
         if (points <= 0) return;
 
         XPHistory xp = new XPHistory();
@@ -34,6 +43,7 @@ public class GamificationService {
         xp.setAction(action);
         xp.setPoints(points);
         xp.setDescription(description);
+        xp.setApplicationId(application != null ? application.getId() : null);
         xpHistoryRepository.save(xp);
 
         student.setXpTotal(student.getXpTotal() + points);
@@ -43,6 +53,11 @@ public class GamificationService {
 
     @Transactional
     public void revokeXP(Student student, ActionXP action, int points, String description) {
+        revokeXP(student, action, points, description, null);
+    }
+
+    @Transactional
+    public void revokeXP(Student student, ActionXP action, int points, String description, Application application) {
         if (points <= 0) return;
 
         XPHistory xp = new XPHistory();
@@ -50,6 +65,7 @@ public class GamificationService {
         xp.setAction(action);
         xp.setPoints(-points);
         xp.setDescription(description);
+        xp.setApplicationId(application != null ? application.getId() : null);
         xpHistoryRepository.save(xp);
 
         student.setXpTotal(Math.max(0, student.getXpTotal() - points));

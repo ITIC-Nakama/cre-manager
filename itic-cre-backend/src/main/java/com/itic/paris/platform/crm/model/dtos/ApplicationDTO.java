@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +37,17 @@ public class ApplicationDTO {
 
     private String contact;
     private String notes;
+
+    @Schema(description = "Début du contrat obtenu (alternance/stage/CDI/CDD), null si non renseigné")
+    private LocalDate startDate;
+
+    @Schema(description = "Fin du contrat, null si en cours ou CDI")
+    private LocalDate endDate;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Vrai si un conseiller/admin a confirmé cette déclaration de contrat — faux tant qu'elle reste purement déclarative")
+    private Boolean contractVerified;
+
     private ApplicationStatusDTO status;
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY,

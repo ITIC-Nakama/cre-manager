@@ -274,7 +274,9 @@
         "cvs_label": "CVs to review",
         "cvs_sub_one": "{{count}} CV uploaded",
         "cvs_sub_other": "{{count}} CVs uploaded",
-        "cvs_sub": "Pending review"
+        "cvs_sub": "Pending review",
+        "under_contract_label": "Students under contract",
+        "under_contract_sub": "Apprenticeship / internship / permanent / fixed-term ongoing"
       },
       "cvs_panel": {
         "title": "CVs by status",
@@ -320,6 +322,11 @@
       "all_clean_card": {
         "title": "Everything up to date!",
         "message": "No applications need follow-up."
+      },
+      "verification_card": {
+        "title": "Contracts to verify",
+        "message_one": "{{count}} contract declaration to verify.",
+        "message_other": "{{count}} contract declarations to verify."
       }
     },
     "etudiants": {
@@ -338,6 +345,9 @@
       "filter_all_promotions": "All cohorts",
       "filter_all_advisors": "All advisors",
       "filter_my_students": "My students only",
+      "filter_contract_not_under": "Not under contract",
+      "filter_contract_under": "Under contract",
+      "filter_contract_all": "All",
       "filter_study_year": "Study year",
       "filter_study_year_all": "All years",
       "promotion_search_placeholder": "Search a cohort…",
@@ -354,6 +364,8 @@
         "advisor": "Advisor",
         "no_advisor": "No advisor",
         "gdpr_badge": "Deleted (GDPR)",
+        "under_contract_badge": "Under contract",
+        "contract_unverified_badge": "To verify",
         "cv_deposited": "Uploaded",
         "cv_none": "None",
         "active": "Active",
@@ -369,7 +381,8 @@
         "edit_promotion": "Edit",
         "no_promotion": "None",
         "toast_promo_updated": "Assignment updated successfully!",
-        "toast_promo_update_error": "Error updating promotion."
+        "toast_promo_update_error": "Error updating promotion.",
+        "not_under_contract": "Not under contract"
       },
       "pagination": {
         "info_one": "Page {{current}} of {{total}} — {{count}} student",
@@ -456,7 +469,24 @@
         "stale": "Late",
         "created_at": "Created on {{date}}",
         "updated_at": "Updated on {{date}}",
-        "back": "Back to applications"
+        "back": "Back to applications",
+        "contract_dates": "Contract dates",
+        "start_date": "Start",
+        "end_date": "End",
+        "save": "Save",
+        "invalid_dates": "End date must be after start date",
+        "contract_dates_saved": "Contract dates saved",
+        "contract_dates_error": "Could not save — please try again",
+        "contract_verified": "Declaration confirmed",
+        "contract_rejected": "Declaration rejected — previous status restored",
+        "contract_verified_label": "Contract verified by an advisor",
+        "contract_unverified_label": "Needs verification — status declared by the student, not yet confirmed",
+        "contract_unverified_hint": "The student reported receiving this offer themselves. Verify it (contract, employer email...) before confirming, or reject it if the offer was not actually received.",
+        "contract_needs_verification_badge": "Needs verification",
+        "verify_button": "Mark as verified",
+        "reject_button": "Reject offer",
+        "reject_confirm_title": "Reject the received offer",
+        "reject_confirm_message": "Revert to the previous status for \"{{poste}}\" at {{entreprise}}? The associated XP will be taken back."
       },
       "student": {
         "title": "My applications",
@@ -478,7 +508,9 @@
           "stale_days_one": "{{count}} day with no update",
           "stale_days_other": "{{count}} days with no update",
           "next_step_button": "Next step",
-          "next_step_xp": "+{{xp}} XP"
+          "next_step_xp": "+{{xp}} XP",
+          "contract_verified": "Verified",
+          "pending_verification": "Pending approval"
         },
         "form": {
           "create_title": "Add an application",
@@ -490,6 +522,9 @@
           "link_label": "Job offer link",
           "contact_label": "Contact",
           "notes_label": "Notes",
+          "start_date_label": "Contract start date",
+          "end_date_label": "Contract end date",
+          "invalid_dates": "End date must be after start date",
           "cancel": "Cancel",
           "save": "Save",
           "length_error": "Must be between {{min}} and {{max}} characters.",
@@ -499,6 +534,7 @@
           "created": "Application added.",
           "updated": "Application updated.",
           "deleted": "Application deleted.",
+          "deleted_xp_revoked": "Application deleted — {{xp}} XP taken back.",
           "status_changed": "Status updated.",
           "status_changed_xp": "Status updated — +{{xp}} XP!",
           "action_error": "An error occurred.",
@@ -521,16 +557,27 @@
           "confirm_delete_title": "Delete application",
           "confirm_delete_message": "Delete the application \"{{poste}}\" at {{entreprise}}? This action is irreversible.",
           "mark_refused_button": "Mark as rejected",
+          "contract_verified_badge": "Verified by your advisor",
+          "pending_verification_title": "Pending approval",
+          "pending_verification_message": "Your advisor will review this declaration.",
           "refused_banner_title": "Application rejected",
           "refused_banner_message": "This application has been marked as rejected.",
           "reopen_button": "Reopen (back to Applied)",
-          "not_found": "Application not found."
+          "not_found": "Application not found.",
+          "contract_dates": "Contract dates",
+          "contract_ongoing": "ongoing"
         },
         "stepper": {
           "current_label": "Current step",
           "go_back_button": "Go back to previous step",
           "go_forward_button": "Move to this step",
           "xp_preview": "+{{xp}} XP"
+        },
+        "contract_gate": {
+          "title": "Move to \"{{status}}\"",
+          "explanation": "Specify the start date (and end date if known) of this contract so it shows up correctly in your tracking.",
+          "start_date_required": "Start date is required",
+          "confirm": "Confirm"
         },
         "subtitle": "Track your applications and job opportunities."
       }
@@ -716,6 +763,7 @@
         "already_applied": "You already applied to this offer.",
         "apply_error": "Unable to send the application.",
         "withdrawn": "Application withdrawn.",
+        "withdrawn_xp_revoked": "Application withdrawn — {{xp}} XP taken back.",
         "withdraw_error": "Unable to withdraw the application."
       },
       "subtitle": "View and manage job offers."
@@ -1187,6 +1235,8 @@
         "JOB_OFFER_ACTIVATED": "Job Offer Activated",
         "JOB_OFFER_DEACTIVATED": "Job Offer Deactivated",
         "JOB_OFFER_WIPED": "Job Offers Wiped",
+        "APPLICATION_CONTRACT_VERIFIED": "Contract Verified",
+        "APPLICATION_CONTRACT_REJECTED": "Contract Rejected",
         "OTHER": "Other Action"
       },
       "table": {

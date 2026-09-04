@@ -71,7 +71,7 @@ public class JobApplicationService {
     }
 
     @Transactional
-    public void withdraw(UUID applicationId) {
+    public int withdraw(UUID applicationId) {
         JobApplication application = jobApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_APPLICATION_NOT_FOUND));
 
@@ -82,7 +82,7 @@ public class JobApplicationService {
 
         UUID jobOfferId = application.getJobOffer().getId();
         jobApplicationRepository.deleteById(applicationId);
-        applicationService.deleteFromJobboardWithdrawal(student.getId(), jobOfferId);
+        return applicationService.deleteFromJobboardWithdrawal(student.getId(), jobOfferId);
     }
 
     private JobApplicationDTO mapToDTO(JobApplication application) {

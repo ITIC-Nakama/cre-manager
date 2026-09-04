@@ -1,4 +1,4 @@
-import { AlertCircle, Briefcase, ChevronRight, GraduationCap } from 'lucide-react';
+import { AlertCircle, Briefcase, ChevronRight, GraduationCap, Handshake, ShieldAlert } from 'lucide-react';
 import UserAvatar from '../../../../components/shared/UserAvatar';
 import type { StudentGroup } from '../types';
 
@@ -49,6 +49,18 @@ export default function StudentCard({ group, onClick }: Props) {
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
                         <AlertCircle className="h-3 w-3" />
                         {group.staleCount} en retard
+                    </span>
+                )}
+                {group.underContract && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
+                        <Handshake className="h-3 w-3" />
+                        Sous contrat
+                    </span>
+                )}
+                {group.contractNeedsVerification && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
+                        <ShieldAlert className="h-3 w-3" />
+                        À vérifier
                     </span>
                 )}
             </div>

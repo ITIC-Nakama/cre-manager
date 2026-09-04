@@ -103,6 +103,12 @@ public class StudentReportingService {
         Set<UUID> studentIdsWithCv = studentIds.isEmpty() ? Set.of()
                 : new HashSet<>(cvRepository.findStudentIdsWithCv(studentIds));
 
+        Set<UUID> studentIdsUnderContract = studentIds.isEmpty() ? Set.of()
+                : new HashSet<>(applicationRepository.findStudentIdsUnderContract(studentIds));
+
+        Set<UUID> studentIdsNeedingVerification = studentIds.isEmpty() ? Set.of()
+                : new HashSet<>(applicationRepository.findStudentIdsWithUnverifiedContract(studentIds));
+
         Map<UUID, Long> appCountByStudent = studentIds.isEmpty() ? Map.of()
                 : applicationRepository.countGroupedByStudentId(studentIds).stream()
                         .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
@@ -143,6 +149,8 @@ public class StudentReportingService {
             row.put("applicationCount", appCountByStudent.getOrDefault(student.getId(), 0L));
             row.put("staleApplicationCount", staleCount);
             row.put("hasCv", cvPresent);
+            row.put("underContract", studentIdsUnderContract.contains(student.getId()));
+            row.put("contractNeedsVerification", studentIdsNeedingVerification.contains(student.getId()));
             row.put("isAnonymized", student.isAnonymized());
             return row;
         }).toList();

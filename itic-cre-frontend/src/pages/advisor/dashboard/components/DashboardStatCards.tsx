@@ -1,4 +1,4 @@
-import { Users, Briefcase, AlertCircle, FileText, HelpCircle, type LucideIcon } from 'lucide-react';
+import { Users, Briefcase, AlertCircle, FileText, HelpCircle, Handshake, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { DashboardOverview } from '../../../../types/models/Dashboard';
 
@@ -75,12 +75,21 @@ export default function DashboardStatCards({ overview, loading, cvsToReview, isA
       color: 'text-emerald-500',
       bg: 'bg-emerald-500/10',
     },
+    {
+      id: 'under-contract',
+      label: t('dashboard.advisor.stats.under_contract_label', 'Étudiants sous contrat'),
+      value: overview?.studentsUnderContractCount ?? '—',
+      sub: t('dashboard.advisor.stats.under_contract_sub', 'Alternance / stage / CDI / CDD en cours'),
+      icon: Handshake,
+      color: 'text-teal-500',
+      bg: 'bg-teal-500/10',
+    },
   ];
 
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm animate-pulse">
             <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
             <div className="flex flex-col gap-2 flex-1">

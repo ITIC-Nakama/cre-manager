@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -30,4 +31,10 @@ public class UpdateApplicationRequest {
     private String contact;
 
     private String notes;
+
+    /** Début du contrat obtenu (alternance/stage/CDI/CDD), optionnel. */
+    private LocalDate startDate;
+
+    /** Fin du contrat, optionnel — null si en cours ou CDI. */
+    private LocalDate endDate;
 }

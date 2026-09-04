@@ -36,6 +36,6 @@ public class ApplicationStatusService {
     public ApplicationStatusDTO mapToDTO(ApplicationStatus s) {
         return new ApplicationStatusDTO(
                 s.getId(), s.getNom(), s.getOrdre(), s.getCouleur(),
-                s.getGainXP(), s.getDeclencheAlerte(), s.getActif());
+                s.getGainXP(), s.getDeclencheAlerte(), s.getActif(), s.getCompteCommeContrat());
     }
 }

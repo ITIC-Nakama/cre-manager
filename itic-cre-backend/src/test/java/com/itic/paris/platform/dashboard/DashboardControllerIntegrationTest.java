@@ -1,6 +1,8 @@
 package com.itic.paris.platform.dashboard;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
 import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Advisor;
@@ -39,14 +41,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -81,6 +87,9 @@ public class DashboardControllerIntegrationTest {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Autowired
     private CVRepository cvRepository;
@@ -636,6 +645,297 @@ public class DashboardControllerIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Contract Status & Dates Endpoints")
+    class ContractStatusTests {
+
+        @Test
+        @DisplayName("GET /dashboard/students?underContract=true only returns students with an active contract application")
+        void studentListFilteredByUnderContract() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst()
+                    .orElseThrow();
+
+            Application contractApp = new Application();
+            contractApp.setStudent(activeStudent);
+            contractApp.setEntreprise("Contract Corp");
+            contractApp.setPoste("Alternant");
+            contractApp.setStatus(contractStatus);
+            contractApp.setStartDate(LocalDate.now().minusMonths(1));
+            contractApp.setContractVerified(true);
+            applicationRepository.save(contractApp);
+
+            mockMvc.perform(get("/dashboard/students")
+                            .param("underContract", "true")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content", hasSize(1)))
+                    .andExpect(jsonPath("$.data.content[0].id").value(activeStudent.getId().toString()))
+                    .andExpect(jsonPath("$.data.content[0].underContract").value(true));
+
+            mockMvc.perform(get("/dashboard/students")
+                            .param("underContract", "false")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content[*].id", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem(activeStudent.getId().toString()))));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students?underContract=false still shows a student whose contract declaration is not yet verified")
+        void studentListDefaultFilterKeepsUnverifiedDeclarationVisible() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst()
+                    .orElseThrow();
+
+            Application pendingApp = new Application();
+            pendingApp.setStudent(activeStudent);
+            pendingApp.setEntreprise("Pending Corp");
+            pendingApp.setPoste("Alternant");
+            pendingApp.setStatus(contractStatus);
+            pendingApp.setStartDate(LocalDate.now().minusDays(1));
+            applicationRepository.save(pendingApp);
+
+            mockMvc.perform(get("/dashboard/students")
+                            .param("underContract", "false")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content[*].id", org.hamcrest.Matchers.hasItem(activeStudent.getId().toString())));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/overview reflects studentsUnderContractCount")
+        void overviewReflectsStudentsUnderContractCount() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst()
+                    .orElseThrow();
+
+            Application contractApp = new Application();
+            contractApp.setStudent(activeStudent);
+            contractApp.setEntreprise("Contract Corp");
+            contractApp.setPoste("Alternant");
+            contractApp.setStatus(contractStatus);
+            contractApp.setStartDate(LocalDate.now().minusMonths(1));
+            contractApp.setContractVerified(true);
+            applicationRepository.save(contractApp);
+
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.studentsUnderContractCount").value(1));
+        }
+
+        @Test
+        @DisplayName("PATCH /dashboard/applications/{id}/contract-dates as ADMIN succeeds and returns the updated dates")
+        void adminCanUpdateContractDates() throws Exception {
+            Map<String, String> body = Map.of("startDate", "2026-01-15", "endDate", "2026-12-31");
+
+            mockMvc.perform(patch("/dashboard/applications/" + sampleApplication.getId() + "/contract-dates")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.startDate").value("2026-01-15"))
+                    .andExpect(jsonPath("$.data.endDate").value("2026-12-31"));
+        }
+
+        @Test
+        @DisplayName("PATCH .../contract-dates as the student's own assigned advisor succeeds")
+        void owningAdvisorCanUpdateContractDates() throws Exception {
+            activeStudent.setAdvisor(advisor);
+            studentRepository.save(activeStudent);
+
+            Map<String, String> body = Map.of("startDate", "2026-02-01");
+
+            mockMvc.perform(patch("/dashboard/applications/" + sampleApplication.getId() + "/contract-dates")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.startDate").value("2026-02-01"));
+        }
+
+        @Test
+        @DisplayName("PATCH .../contract-dates as an advisor NOT assigned to the student still succeeds (open access, any advisor can act)")
+        void nonOwningAdvisorCanUpdateContractDates() throws Exception {
+            // activeStudent volontairement non affecte a `advisor` dans ce test : les conseillers
+            // se couvrent mutuellement, l'action n'est pas limitee au conseiller assigne.
+            Map<String, String> body = Map.of("startDate", "2026-02-01");
+
+            mockMvc.perform(patch("/dashboard/applications/" + sampleApplication.getId() + "/contract-dates")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.startDate").value("2026-02-01"));
+        }
+
+        @Test
+        @DisplayName("PATCH .../contract-dates with an end date before the start date returns 400 Bad Request")
+        void invalidContractDateRangeReturns400() throws Exception {
+            Map<String, String> body = Map.of("startDate", "2026-06-01", "endDate", "2026-01-01");
+
+            mockMvc.perform(patch("/dashboard/applications/" + sampleApplication.getId() + "/contract-dates")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("PATCH .../contract-dates for an unknown application id returns 404 Not Found")
+        void updateContractDatesNotFound() throws Exception {
+            Map<String, String> body = Map.of("startDate", "2026-01-01");
+
+            mockMvc.perform(patch("/dashboard/applications/" + UUID.randomUUID() + "/contract-dates")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("POST /dashboard/applications/{id}/verify-contract as ADMIN marks the declaration verified")
+        void adminCanVerifyContract() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Application app = new Application();
+            app.setStudent(activeStudent);
+            app.setEntreprise("Verify Corp");
+            app.setPoste("Alternant");
+            app.setStatus(contractStatus);
+            app.setStartDate(LocalDate.now().minusDays(1));
+            app = applicationRepository.save(app);
+
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/verify-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.contractVerified").value(true));
+
+            boolean logged = auditLogRepository.findAll().stream()
+                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_VERIFIED
+                            && log.getDescription() != null && log.getDescription().contains("Verify Corp"));
+            assertThat(logged).isTrue();
+        }
+
+        @Test
+        @DisplayName("POST .../verify-contract on an application not currently under contract returns 400 Bad Request")
+        void verifyContractOnNonContractStatusReturns400() throws Exception {
+            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/verify-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("POST .../verify-contract as an advisor NOT assigned to the student still succeeds (open access, any advisor can act)")
+        void nonOwningAdvisorCanVerifyContract() throws Exception {
+            // activeStudent volontairement non affecte a `advisor` dans ce test : les conseillers
+            // se couvrent mutuellement, l'action n'est pas limitee au conseiller assigne.
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Application app = new Application();
+            app.setStudent(activeStudent);
+            app.setEntreprise("Verify Corp");
+            app.setPoste("Alternant");
+            app.setStatus(contractStatus);
+            app.setStartDate(LocalDate.now().minusDays(1));
+            app = applicationRepository.save(app);
+
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/verify-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.contractVerified").value(true));
+        }
+
+        @Test
+        @DisplayName("POST .../reject-contract on an application not currently under contract returns 400 Bad Request")
+        void rejectContractOnNonContractStatusReturns400() throws Exception {
+            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/reject-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("POST .../reject-contract reverts to the previous status and revokes the XP awarded for reaching the contract status")
+        void rejectContractRevertsStatusAndRevokesXp() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+            ApplicationStatus previousStatus = applicationStatusRepository.findByOrdre(contractStatus.getOrdre() - 1)
+                    .orElseThrow();
+
+            // Candidature avancee via le flux etudiant reel jusqu'au statut precedent, pour que
+            // l'historique + l'XP existent avant le passage "sous contrat" a rejeter.
+            Application app = new Application();
+            app.setStudent(activeStudent);
+            app.setEntreprise("Real Flow Corp");
+            app.setPoste("Alternant");
+            app.setStatus(previousStatus);
+            app = applicationRepository.save(app);
+
+            Map<String, String> changeStatusBody = Map.of("statusId", contractStatus.getId().toString(), "startDate", "2026-01-01");
+            mockMvc.perform(patch("/applications/" + app.getId() + "/status")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(changeStatusBody)))
+                    .andExpect(status().isOk());
+
+            // Valeur primitive capturee ici — activeStudent/beforeReject restent la MEME instance geree
+            // par Hibernate tout au long du test, donc relire .getXpTotal() plus tard refleterait deja
+            // la valeur post-refus (d'ou la copie explicite dans un int avant d'appeler le refus).
+            int xpBeforeReject = studentRepository.findById(activeStudent.getId()).orElseThrow().getXpTotal();
+            assertThat(xpBeforeReject).isEqualTo(250 + contractStatus.getGainXP());
+
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/reject-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.status.id").value(previousStatus.getId().toString()))
+                    .andExpect(jsonPath("$.data.contractVerified").value(false));
+
+            int xpAfterReject = studentRepository.findById(activeStudent.getId()).orElseThrow().getXpTotal();
+            assertThat(xpAfterReject).isLessThan(xpBeforeReject);
+
+            boolean logged = auditLogRepository.findAll().stream()
+                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_REJECTED
+                            && log.getDescription() != null && log.getDescription().contains("Real Flow Corp"));
+            assertThat(logged).isTrue();
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/applications/grouped-by-student exposes status.compteCommeContrat (needed by the advisor verify/reject UI)")
+        void groupedByStudentExposesCompteCommeContrat() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Application app = new Application();
+            app.setStudent(activeStudent);
+            app.setEntreprise("Field Exposure Corp");
+            app.setPoste("Alternant");
+            app.setStatus(contractStatus);
+            app.setStartDate(LocalDate.now().minusDays(1));
+            applicationRepository.save(app);
+
+            mockMvc.perform(get("/dashboard/applications/grouped-by-student")
+                            .param("search", "Field Exposure Corp")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content[0].applications[0].status.compteCommeContrat").value(true));
+
+            mockMvc.perform(get("/dashboard/applications")
+                            .param("search", "Field Exposure Corp")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content[0].status.compteCommeContrat").value(true));
         }
     }
 }

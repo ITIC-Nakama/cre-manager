@@ -9,6 +9,8 @@ export interface StudentGroup {
     promotion: { id: string; nom: string } | null;
     applications: ApplicationRow[];
     staleCount: number;
+    underContract: boolean;
+    contractNeedsVerification: boolean;
 }
 
 export function formatDate(iso: string) {

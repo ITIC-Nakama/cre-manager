@@ -70,7 +70,11 @@ export default function StudentDrawer({ group, onClose }: Props) {
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4">
                     {selectedApp ? (
-                        <ApplicationDetail app={selectedApp} onBack={() => setSelectedApp(null)} />
+                        <ApplicationDetail
+                            app={selectedApp}
+                            onBack={() => setSelectedApp(null)}
+                            onUpdated={(patch) => setSelectedApp((prev) => prev ? { ...prev, ...patch } : prev)}
+                        />
                     ) : group.applications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center gap-2 text-slate-400">
                             <Briefcase className="h-8 w-8 text-slate-300 dark:text-slate-700" />

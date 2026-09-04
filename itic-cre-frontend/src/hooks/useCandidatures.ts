@@ -50,7 +50,8 @@ export function useUpdateCandidature() {
 export function useChangeCandidatureStatus() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, statusId }: { id: string; statusId: string }) => changeCandidatureStatus(id, statusId),
+        mutationFn: ({ id, statusId, startDate, endDate }: { id: string; statusId: string; startDate?: string; endDate?: string }) =>
+            changeCandidatureStatus(id, statusId, startDate, endDate),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
             queryClient.invalidateQueries({ queryKey: ['me'] });

@@ -121,6 +121,20 @@ Les tâches affichées sur le tableau de bord de l'étudiant sont calculées dyn
 
 Ces libellés sont traduits dynamiquement par le backend selon la langue spécifiée dans les en-têtes HTTP de la requête cliente.
 
+### Suivi "sous contrat" (déclaration étudiante + vérification conseiller)
+- **Purement déclaratif à l'origine** : `ApplicationStatus.compteCommeContrat` marque un statut comme "vaut contrat" (seul "Offre reçue" par défaut). Un étudiant peut lui-même faire passer sa candidature à ce statut, sans preuve — aucune validation n'est requise pour la déclaration elle-même. Une date de début (`Application.startDate`) est **obligatoire** pour atteindre un tel statut (`APPLICATION_CONTRACT_START_DATE_REQUIRED` sinon), une date de fin (`endDate`) est optionnelle. Les deux dates restent éditables ensuite par l'étudiant (formulaire de candidature) comme par un conseiller/admin.
+- **Vérification par un conseiller/admin** : `Application.contractVerified` (`false` par défaut, remis à `false` à chaque **nouvelle** déclaration `compteCommeContrat`) distingue une déclaration en attente d'une déclaration confirmée. Trois actions dédiées, réservées `ADVISOR`/`ADMIN`, **ouvertes à n'importe quel conseiller/admin** (pas seulement celui affecté à l'étudiant — même philosophie que les autres actions conseiller : relance, CV, promotion...) :
+  - `POST /dashboard/applications/{id}/verify-contract` : marque `contractVerified = true`.
+  - `POST /dashboard/applications/{id}/reject-contract` : annule la déclaration, revient au statut précédent (comme un retour en arrière fait par l'étudiant) et révoque l'XP gagné entre-temps. Seule action du flux qui notifie l'étudiant par email (voir §12) — la vérification/confirmation, elle, ne déclenche aucun email, seul le badge de son suivi passe au vert.
+  - `PATCH /dashboard/applications/{id}/contract-dates` : modifie les dates ; toucher les dates vaut confirmation implicite (`contractVerified` passe à `true`).
+  - Les deux premières actions sont journalisées (`APPLICATION_CONTRACT_VERIFIED`, `APPLICATION_CONTRACT_REJECTED`, voir §8).
+- **Pas de cumul de postes** : seule la **dernière** déclaration `compteCommeContrat` en date (`startDate` le plus récent pour cet étudiant) compte jamais comme "sous contrat" ou "à vérifier" — une ancienne déclaration jamais clôturée n'est pas prise en compte en plus du poste actuel.
+- **"Sous contrat" (`underContract=true`, filtre/stat/badge)** = dernière déclaration, **vérifiée**, et pas de date de fin déjà passée (`endDate IS NULL OR endDate >= aujourd'hui`). Ne nécessite **pas** que la date de début soit déjà atteinte : signature + confirmation suffisent, un étudiant déclare le plus souvent une offre avant que le contrat ne démarre réellement. Filtre disponible sur `GET /dashboard/students`, `GET /dashboard/students/all` et `GET /dashboard/applications/grouped-by-student`.
+- **Exclusion par défaut (`underContract=false`)** ne s'applique qu'aux déclarations **déjà vérifiées** — une déclaration encore en attente reste visible dans la vue par défaut (avec son badge "À vérifier"), pour que le conseiller la découvre sans devoir changer de filtre.
+- **Besoin de vérification (`studentsNeedingContractVerificationCount`, badge "À vérifier")** = dernière déclaration `compteCommeContrat`, **non vérifiée**. Volontairement **sans aucune contrainte de date** (ni début ni fin) : l'alerte doit apparaître dès la déclaration, avant même que le contrat ne démarre — attendre la date de début viderait l'alerte de son intérêt, qui est justement de permettre une vérification en amont.
+- **Fin de contrat** : pas de statut dédié "rompu"/"terminé" — l'étudiant renseigne lui-même une date de fin (via son formulaire d'édition de candidature). Dès qu'elle est dépassée, la candidature sort automatiquement de "sous contrat" sans action du conseiller ; `contractVerified` n'est pas réinitialisé pour autant (une simple modification de dates ne redemande pas de vérification, seul un nouveau passage vers un statut `compteCommeContrat` le fait).
+- **Dashboard conseiller** : la carte d'alerte (`/dashboard/overview`) affiche les candidatures stagnantes et les contrats à vérifier **dans la même carte**, empilés l'un sous l'autre si les deux comptes sont non nuls (pas deux cartes distinctes) ; carte neutre "Tout est à jour !" uniquement si les deux compteurs sont à zéro.
+
 ---
 
 ## 3. Jobboard — Offres d'emploi
@@ -338,7 +352,8 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 ## 8. Journal d'audit
 
 - Lecture réservée à `ADMIN` uniquement (pas même les conseillers).
-- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `OTHER`.
+- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `APPLICATION_CONTRACT_VERIFIED`, `APPLICATION_CONTRACT_REJECTED`, `OTHER`.
+- **`APPLICATION_CONTRACT_VERIFIED`/`APPLICATION_CONTRACT_REJECTED`** (voir §2, "Suivi sous contrat") : posées à chaque vérification/refus d'une déclaration "sous contrat" par un conseiller/admin ; la description embarque le statut, l'entreprise et l'identité de l'étudiant concerné. Ajoutées via Flyway (`audit_logs_action_check` reconstruite à chaque ajout de valeur d'enum — toujours nécessaire, la contrainte CHECK ne suit pas l'enum Java automatiquement).
 
 ---
 
@@ -391,6 +406,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 | `cv-notification.html` (variante statut) | Un conseiller change le statut d'un CV |
 | `cv-notification.html` (variante commentaire) | Un conseiller ajoute un commentaire sur un CV |
 | `student-reminder.html` | Un conseiller envoie un rappel libre via `POST /dashboard/students/{id}/notify` |
+| `contract-declaration-rejected.html` | Un conseiller/admin refuse une déclaration "sous contrat" (`POST /dashboard/applications/{id}/reject-contract`) — seul évènement de la section §2 "Suivi sous contrat" à notifier l'étudiant ; la confirmation (`verify-contract`) n'envoie rien, la déclaration passe juste au vert dans son suivi. Bilingue (`lang` de l'étudiant, comme `advisor-assigned.html`). |
 
 - **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée uniquement pour le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
 - **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.

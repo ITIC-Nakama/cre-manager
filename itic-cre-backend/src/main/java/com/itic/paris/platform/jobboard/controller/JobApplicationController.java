@@ -1,5 +1,6 @@
 package com.itic.paris.platform.jobboard.controller;
 
+import com.itic.paris.platform.gamification.model.dtos.XpRevokedResponse;
 import com.itic.paris.platform.jobboard.model.dtos.JobApplicationDTO;
 import com.itic.paris.platform.jobboard.service.JobApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,9 +64,10 @@ public class JobApplicationController {
 
     @DeleteMapping("/{id}/withdraw")
     @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "Retirer sa candidature")
-    public ResponseEntity<Void> withdraw(@PathVariable UUID id) {
-        jobApplicationService.withdraw(id);
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "Retirer sa candidature",
+            description = "Retourne l'XP repris (0 si la candidature n'en avait généré aucun) pour en informer l'étudiant.")
+    public ResponseEntity<XpRevokedResponse> withdraw(@PathVariable UUID id) {
+        int xpRevoked = jobApplicationService.withdraw(id);
+        return ResponseEntity.ok(new XpRevokedResponse(xpRevoked));
     }
 }
