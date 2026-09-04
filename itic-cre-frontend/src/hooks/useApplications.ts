@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
-import { fetchApplicationList, fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus } from '../api-s/requests/ApplicationRequest';
+import { fetchApplicationList, fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, verifyApplicationContract, rejectApplicationContract } from '../api-s/requests/ApplicationRequest';
 import type { ApplicationListParams } from '../types/models/Application';
 
 export function useApplicationList(params: ApplicationListParams = {}) {
@@ -46,6 +46,40 @@ export function useUpdateApplicationStatus() {
             updateApplicationStatus(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['application-statuses'] });
+        },
+    });
+}
+
+export function useUpdateContractDates() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, startDate, endDate }: { id: string; startDate?: string | null; endDate?: string | null }) =>
+            updateApplicationContractDates(id, { startDate, endDate }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+}
+
+export function useVerifyContract() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => verifyApplicationContract(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+}
+
+export function useRejectContract() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => rejectApplicationContract(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 }

@@ -70,8 +70,8 @@ export function fetchMyJobApplications(): Promise<JobApplicationPage> {
         .then((response) => unwrap<JobApplicationPage>(response));
 }
 
-export function withdrawJobApplication(id: string): Promise<void> {
-    return apiClient.delete(`/jobboard/applications/${id}/withdraw`).then(() => undefined);
+export function withdrawJobApplication(id: string): Promise<{ xpRevoked: number }> {
+    return apiClient.delete(`/jobboard/applications/${id}/withdraw`).then((response) => unwrap<{ xpRevoked: number }>(response));
 }
 
 // Admin — jobboard externe

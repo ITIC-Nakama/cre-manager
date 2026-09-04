@@ -34,4 +34,7 @@ public class ApplicationStatus {
 
     @Column(name = "declenche_alerte", nullable = false)
     private Boolean declencheAlerte = false;
+
+    @Column(name = "compte_comme_contrat", nullable = false)
+    private Boolean compteCommeContrat = false;
 }

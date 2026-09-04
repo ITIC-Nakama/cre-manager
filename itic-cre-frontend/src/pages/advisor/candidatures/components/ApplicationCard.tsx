@@ -1,4 +1,4 @@
-import { AlertCircle, Eye } from 'lucide-react';
+import { AlertCircle, Eye, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import { formatDate } from '../types';
@@ -11,12 +11,15 @@ interface Props {
 
 export default function ApplicationCard({ app, onClick }: Props) {
     const { t } = useTranslation();
+    const needsVerification = app.status.compteCommeContrat && !app.contractVerified;
 
     return (
         <button
             onClick={onClick}
             className={`w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group cursor-pointer ${
-                app.stale
+                needsVerification
+                    ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 hover:border-amber-400'
+                    : app.stale
                     ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 hover:border-amber-400'
                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700'
             }`}
@@ -30,6 +33,12 @@ export default function ApplicationCard({ app, onClick }: Props) {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
                 <StatusBadge nom={app.status.nom} couleur={app.status.couleur} />
+                {needsVerification && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                        <ShieldAlert className="h-3 w-3" />
+                        {t('dashboard.candidatures.detail.contract_needs_verification_badge', 'À vérifier')}
+                    </span>
+                )}
                 {app.stale && (
                     <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
                         <AlertCircle className="h-3 w-3" />

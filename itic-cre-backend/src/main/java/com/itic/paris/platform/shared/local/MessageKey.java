@@ -94,6 +94,9 @@ public enum MessageKey {
     // CRM messages
     APPLICATION_NOT_FOUND("application-not-found", "Candidature introuvable", "Application not found"),
     APPLICATION_STATUS_NOT_FOUND("application-status-not-found", "Statut introuvable", "Application status not found"),
+    APPLICATION_INVALID_CONTRACT_DATES("application-invalid-contract-dates", "La date de fin doit être postérieure à la date de début", "End date must be after start date"),
+    APPLICATION_CONTRACT_START_DATE_REQUIRED("application-contract-start-date-required", "Une date de début est requise pour passer ce statut", "A start date is required to set this status"),
+    APPLICATION_NOT_UNDER_CONTRACT("application-not-under-contract", "Cette candidature n'est pas actuellement marquée sous contrat", "This application is not currently marked as under contract"),
     SKILL_CATEGORY_NOT_FOUND("skill-category-not-found", "Catégorie introuvable", "Skill category not found"),
     // Gamification messages
     GRADE_NOT_FOUND("grade-not-found", "Grade introuvable", "Grade not found"),

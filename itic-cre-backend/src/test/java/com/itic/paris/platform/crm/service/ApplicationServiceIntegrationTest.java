@@ -1,5 +1,6 @@
 package com.itic.paris.platform.crm.service;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
@@ -9,6 +10,7 @@ import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
 import com.itic.paris.platform.crm.model.dtos.ChangeStatusRequest;
+import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
 import com.itic.paris.platform.crm.repository.ApplicationHistoryRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
@@ -16,20 +18,24 @@ import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.shared.local.MessageKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -64,6 +70,7 @@ public class ApplicationServiceIntegrationTest {
     private ApplicationStatus aPostulerStatus;
     private ApplicationStatus postuleStatus;
     private ApplicationStatus entretienStatus;
+    private ApplicationStatus offreRecueStatus;
 
     @BeforeEach
     public void setUp() {
@@ -92,6 +99,8 @@ public class ApplicationServiceIntegrationTest {
                 .orElseThrow(() -> new IllegalStateException("Seeded status 'Postulé' (ordre 2) not found"));
         entretienStatus = statusRepository.findByOrdre(3)
                 .orElseThrow(() -> new IllegalStateException("Seeded status 'Entretien décroché' (ordre 3) not found"));
+        offreRecueStatus = statusRepository.findByOrdre(5)
+                .orElseThrow(() -> new IllegalStateException("Seeded status 'Offre reçue' (ordre 5) not found"));
     }
 
     @AfterEach
@@ -210,5 +219,132 @@ public class ApplicationServiceIntegrationTest {
         // Then: The application and history must be physically deleted without SQL error
         assertThat(applicationRepository.findById(app.getId())).isEmpty();
         assertThat(historyRepository.findDistinctNewStatusIdByApplicationId(app.getId())).isEmpty();
+    }
+
+    @Test
+    public void testChangeStatus_ToContractStatusWithoutStartDate_ShouldBeRejected() {
+        // Given: une candidature prete a passer a "Offre recue" (compteCommeContrat=true)
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Amazon");
+        app.setPoste("Alternant Backend");
+        app.setStatus(entretienStatus);
+        app = applicationRepository.save(app);
+
+        // When: on tente de passer a "Offre recue" sans fournir de date de debut
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        UUID appId = app.getId();
+
+        // Then: rejete — sans date de debut, la candidature ne remonterait jamais comme
+        // "sous contrat" dans les filtres/stats conseiller (voir underContractPredicate).
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatus(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_START_DATE_REQUIRED);
+
+        // Et le statut n'a pas ete modifie
+        Application unchanged = applicationRepository.findById(app.getId()).orElseThrow();
+        assertThat(unchanged.getStatus().getId()).isEqualTo(entretienStatus.getId());
+    }
+
+    @Test
+    public void testChangeStatus_ToContractStatusWithStartDate_ShouldSucceedAndPersistDates() {
+        // Given
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Microsoft");
+        app.setPoste("Alternant Cloud");
+        app.setStatus(entretienStatus);
+        app = applicationRepository.save(app);
+
+        // When: la date de debut est fournie (et une date de fin optionnelle)
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now().minusDays(1));
+        request.setEndDate(LocalDate.now().plusMonths(12));
+
+        ApplicationDTO dto = applicationService.changeStatus(app.getId(), request);
+
+        // Then
+        assertThat(dto.getStatus().getId()).isEqualTo(offreRecueStatus.getId());
+        assertThat(dto.getStartDate()).isEqualTo(LocalDate.now().minusDays(1));
+        assertThat(dto.getEndDate()).isEqualTo(LocalDate.now().plusMonths(12));
+
+        Application persisted = applicationRepository.findById(app.getId()).orElseThrow();
+        assertThat(persisted.getStartDate()).isEqualTo(LocalDate.now().minusDays(1));
+        assertThat(persisted.getEndDate()).isEqualTo(LocalDate.now().plusMonths(12));
+    }
+
+    @Test
+    public void testChangeStatus_ToContractStatusWithEndDateBeforeStartDate_ShouldBeRejected() {
+        // Given
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Meta");
+        app.setPoste("Alternant Data");
+        app.setStatus(entretienStatus);
+        app = applicationRepository.save(app);
+
+        // When
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+        request.setEndDate(LocalDate.now().minusDays(10));
+        UUID appId = app.getId();
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatus(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
+    }
+
+    @Test
+    public void testDelete_ShouldRevokeAllXPAwardedForThatApplication() {
+        // Given: creation (10 XP) puis avancement jusqu'a "Entretien decroche" (gainXP seede > 0)
+        CreateApplicationRequest createRequest = new CreateApplicationRequest();
+        createRequest.setEntreprise("Netflix");
+        createRequest.setPoste("Alternant DevOps");
+        ApplicationDTO created = applicationService.create(createRequest);
+
+        ChangeStatusRequest advanceRequest = new ChangeStatusRequest();
+        advanceRequest.setStatusId(entretienStatus.getId());
+        applicationService.changeStatus(created.getId(), advanceRequest);
+
+        Student afterProgress = studentRepository.findById(testStudent.getId()).orElseThrow();
+        int xpBeforeDelete = afterProgress.getXpTotal();
+        assertThat(xpBeforeDelete).isGreaterThan(0);
+
+        // When: la candidature est supprimee par l'etudiant
+        applicationService.delete(created.getId());
+
+        // Then: tout l'XP qu'elle avait genere est annule — pas seulement credite indefiniment
+        Student afterDelete = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(afterDelete.getXpTotal()).isEqualTo(0);
+        assertThat(applicationRepository.findById(created.getId())).isEmpty();
+    }
+
+    @Test
+    public void testDeleteFromJobboardWithdrawal_ShouldRevokeAwardedXP() {
+        // Given: candidature creee via le jobboard, qui credite du CANDIDATURE_CREATED XP
+        JobOffer jobOffer = new JobOffer();
+        jobOffer.setTitle("Alternance Reseau");
+        jobOffer.setCompany("Orange");
+        jobOffer.setDescription("Description");
+        jobOffer.setContractType(cdiContract);
+        jobOffer.setActive(true);
+        jobOffer = jobOfferRepository.save(jobOffer);
+
+        applicationService.createFromJobboard(testStudent, jobOffer);
+        Student afterCreate = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(afterCreate.getXpTotal()).isGreaterThan(0);
+
+        // When: retrait de la candidature depuis le jobboard (bouton "retirer ma candidature")
+        applicationService.deleteFromJobboardWithdrawal(testStudent.getId(), jobOffer.getId());
+
+        // Then: l'XP credite pour cette candidature est integralement repris — sans quoi
+        // supprimer/recreer la meme candidature permettrait de farmer l'XP indefiniment
+        // (le seuil hebdomadaire anti-farming ne compte que les lignes encore existantes).
+        Student afterWithdrawal = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(afterWithdrawal.getXpTotal()).isEqualTo(0);
     }
 }

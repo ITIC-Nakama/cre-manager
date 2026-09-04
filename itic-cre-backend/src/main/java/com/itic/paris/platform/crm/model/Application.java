@@ -15,6 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -68,6 +69,21 @@ public class Application {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /** Début du contrat (alternance/stage/CDI/CDD) associé à cette candidature, si obtenu. */
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    /** Fin du contrat, null si en cours ou sans date de fin connue (CDI). */
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    /** Vrai si un conseiller/admin a confirmé cette déclaration de contrat (purement déclarative
+      * de la part de l'étudiant tant que ce champ reste faux) — remis à faux à chaque nouvelle
+      * déclaration (changeStatus vers un statut compteCommeContrat), mis à vrai par une action
+      * explicite du conseiller (verifyContractDeclaration ou toute modification des dates). */
+    @Column(name = "contract_verified", nullable = false)
+    private Boolean contractVerified = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "status_id", nullable = false)

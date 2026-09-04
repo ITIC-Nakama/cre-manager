@@ -5,6 +5,7 @@ import type {
     ApplicationPage,
     ApplicationListParams,
     ApplicationGroupedPage,
+    Candidature,
 } from '../../types/models/Application';
 
 function unwrap<T>(response: { data: unknown }): T {
@@ -30,4 +31,22 @@ export function updateApplicationStatus(id: string, data: { gainXP?: number; cou
 
 export function fetchContractTypes(): Promise<ContractType[]> {
     return apiClient.get('/jobboard/contract-types/active/list').then((response) => unwrap<ContractType[]>(response));
+}
+
+/** Reserve a l'admin ou au conseiller affecte a l'etudiant proprietaire de la candidature. */
+export function updateApplicationContractDates(
+    id: string,
+    payload: { startDate?: string | null; endDate?: string | null },
+): Promise<Candidature> {
+    return apiClient.patch(`/dashboard/applications/${id}/contract-dates`, payload).then((response) => unwrap<Candidature>(response));
+}
+
+/** Confirme une déclaration "sous contrat" déjà exacte, sans toucher aux dates. */
+export function verifyApplicationContract(id: string): Promise<Candidature> {
+    return apiClient.post(`/dashboard/applications/${id}/verify-contract`).then((response) => unwrap<Candidature>(response));
+}
+
+/** Refuse une déclaration "sous contrat" — revient au statut précédent et annule l'XP devenu invalide. */
+export function rejectApplicationContract(id: string): Promise<Candidature> {
+    return apiClient.post(`/dashboard/applications/${id}/reject-contract`).then((response) => unwrap<Candidature>(response));
 }

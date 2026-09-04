@@ -1,8 +1,9 @@
-import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 
 export type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
+export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract';
 
 interface FilterOption {
     value: string;
@@ -15,6 +16,7 @@ interface EtudiantsFiltersProps {
     promotionFilter: string;
     studyYearFilter: string;
     advisorFilter: string;
+    contractFilter: ContractFilter;
     includeAnonymized: boolean;
     isFetching: boolean;
     isLoading: boolean;
@@ -24,11 +26,13 @@ interface EtudiantsFiltersProps {
     promotionOptions: FilterOption[];
     studyYearOptions: FilterOption[];
     advisorOptions: FilterOption[];
+    contractFilterOptions: FilterOption[];
     onSearchChange: (value: string) => void;
     onFilterChange: (value: FilterStatus) => void;
     onPromotionChange: (value: string) => void;
     onStudyYearChange: (value: string) => void;
     onAdvisorFilterChange: (value: string) => void;
+    onContractFilterChange: (value: ContractFilter) => void;
     onIncludeAnonymizedChange: (value: boolean) => void;
 }
 
@@ -38,6 +42,7 @@ export default function EtudiantsFilters({
     promotionFilter,
     studyYearFilter,
     advisorFilter,
+    contractFilter,
     includeAnonymized,
     isFetching,
     isLoading,
@@ -47,11 +52,13 @@ export default function EtudiantsFilters({
     promotionOptions,
     studyYearOptions,
     advisorOptions,
+    contractFilterOptions,
     onSearchChange,
     onFilterChange,
     onPromotionChange,
     onStudyYearChange,
     onAdvisorFilterChange,
+    onContractFilterChange,
     onIncludeAnonymizedChange,
 }: EtudiantsFiltersProps) {
     const { t } = useTranslation();
@@ -98,6 +105,15 @@ export default function EtudiantsFilters({
                 onChange={onStudyYearChange}
                 icon={<Calendar className="h-4 w-4 text-slate-400" />}
                 className="min-w-44"
+            />
+
+            {/* Contract status select — "not_under_contract" par defaut (ecarte les etudiants deja sous contrat) */}
+            <CustomSelect
+                value={contractFilter}
+                options={contractFilterOptions}
+                onChange={(value) => onContractFilterChange(value as ContractFilter)}
+                icon={<Handshake className="h-4 w-4 text-slate-400" />}
+                className="min-w-48"
             />
 
             {/* Advisor "my students only" toggle — same mechanism for admin and advisor */}

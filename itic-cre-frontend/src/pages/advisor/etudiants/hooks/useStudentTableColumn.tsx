@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { FileText, ShieldAlert } from 'lucide-react';
+import { FileText, ShieldAlert, FileSignature } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import TruncatedText from '../../../../components/shared/TruncatedText';
@@ -78,6 +78,18 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                     <ShieldAlert className="h-3 w-3" />
                                     {t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}
+                                </span>
+                            )}
+                            {row.original.underContract && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <FileSignature className="h-3 w-3" />
+                                    {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
+                                </span>
+                            )}
+                            {row.original.contractNeedsVerification && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <ShieldAlert className="h-3 w-3" />
+                                    {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
                                 </span>
                             )}
                         </div>

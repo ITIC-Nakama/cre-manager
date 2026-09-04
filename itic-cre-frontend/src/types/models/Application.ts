@@ -8,6 +8,9 @@ export interface ApplicationStatus {
     gainXP: number;
     declencheAlerte: boolean;
     actif: boolean;
+    /** Vrai si ce statut marque l'étudiant comme sous contrat (ex: Offre reçue) — une date de
+      * début devient alors obligatoire au changement de statut (voir ContractDateGateModal). */
+    compteCommeContrat: boolean;
 }
 
 export interface ContractType {
@@ -27,6 +30,11 @@ export interface Candidature {
     offreCompanyLogoUrl: string | null;
     contact: string | null;
     notes: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    /** Vrai si un conseiller/admin a confirmé cette déclaration de contrat — faux tant qu'elle
+      * reste purement déclarative de la part de l'étudiant. */
+    contractVerified: boolean;
     status: ApplicationStatus;
     stale: boolean;
     viaJobboard: boolean;
@@ -58,6 +66,8 @@ export interface CandidaturePayload {
     lienOffre?: string;
     contact?: string;
     notes?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface ApplicationStudent {
@@ -82,6 +92,9 @@ export interface ApplicationRow {
     offreCompanyLogoUrl: string | null;
     contact: string | null;
     notes: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    contractVerified: boolean;
     status: ApplicationStatus;
     stale: boolean;
     viaJobboard: boolean;
@@ -106,6 +119,7 @@ export interface ApplicationListParams {
     stale?: boolean;
     activeStudentsOnly?: boolean;
     advisorId?: string;
+    underContract?: boolean;
 }
 
 export interface StudentGroupDTO {
@@ -117,6 +131,8 @@ export interface StudentGroupDTO {
     promotion: { id: string; nom: string } | null;
     applications: ApplicationRow[];
     staleCount: number;
+    underContract: boolean;
+    contractNeedsVerification: boolean;
 }
 
 export interface ApplicationGroupedPage {

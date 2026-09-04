@@ -24,6 +24,8 @@ export const AUDIT_ACTION_COLORS: Record<string, string> = {
     JOB_OFFER_ACTIVATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
     JOB_OFFER_DEACTIVATED: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30',
     JOB_OFFER_WIPED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
+    APPLICATION_CONTRACT_VERIFIED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
+    APPLICATION_CONTRACT_REJECTED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
     OTHER: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800',
 };
 

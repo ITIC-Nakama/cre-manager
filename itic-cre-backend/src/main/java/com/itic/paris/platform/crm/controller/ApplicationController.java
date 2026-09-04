@@ -2,6 +2,7 @@ package com.itic.paris.platform.crm.controller;
 
 import com.itic.paris.platform.crm.model.dtos.*;
 import com.itic.paris.platform.crm.service.ApplicationService;
+import com.itic.paris.platform.gamification.model.dtos.XpRevokedResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -64,9 +65,10 @@ public class ApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Supprimer une candidature")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        applicationService.delete(id);
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "Supprimer une candidature",
+            description = "Retourne l'XP repris (0 si la candidature n'en avait généré aucun) pour en informer l'étudiant.")
+    public ResponseEntity<XpRevokedResponse> delete(@PathVariable UUID id) {
+        int xpRevoked = applicationService.delete(id);
+        return ResponseEntity.ok(new XpRevokedResponse(xpRevoked));
     }
 }

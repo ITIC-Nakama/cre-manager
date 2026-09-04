@@ -32,10 +32,15 @@ export function updateCandidature(id: string, payload: CandidaturePayload): Prom
     return apiClient.put(`/applications/${id}`, payload).then((response) => unwrap<Candidature>(response));
 }
 
-export function changeCandidatureStatus(id: string, statusId: string): Promise<Candidature> {
-    return apiClient.patch(`/applications/${id}/status`, { statusId }).then((response) => unwrap<Candidature>(response));
+export function changeCandidatureStatus(
+    id: string,
+    statusId: string,
+    startDate?: string,
+    endDate?: string,
+): Promise<Candidature> {
+    return apiClient.patch(`/applications/${id}/status`, { statusId, startDate, endDate }).then((response) => unwrap<Candidature>(response));
 }
 
-export function deleteCandidature(id: string): Promise<void> {
-    return apiClient.delete(`/applications/${id}`).then(() => undefined);
+export function deleteCandidature(id: string): Promise<{ xpRevoked: number }> {
+    return apiClient.delete(`/applications/${id}`).then((response) => unwrap<{ xpRevoked: number }>(response));
 }

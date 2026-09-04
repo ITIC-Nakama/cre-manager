@@ -271,7 +271,9 @@
         "cvs_label": "CVs à examiner",
         "cvs_sub_one": "{{count}} CV déposé",
         "cvs_sub_other": "{{count}} CVs déposés",
-        "cvs_sub": "En attente de validation"
+        "cvs_sub": "En attente de validation",
+        "under_contract_label": "Étudiants sous contrat",
+        "under_contract_sub": "Alternance / stage / CDI / CDD en cours"
       },
       "cvs_panel": {
         "title": "CVs par statut",
@@ -317,6 +319,11 @@
       "all_clean_card": {
         "title": "Tout est à jour !",
         "message": "Aucune candidature n'est en retard de relance."
+      },
+      "verification_card": {
+        "title": "Contrats à vérifier",
+        "message_one": "{{count}} déclaration de contrat à vérifier.",
+        "message_other": "{{count}} déclarations de contrat à vérifier."
       }
     },
     "etudiants": {
@@ -335,6 +342,9 @@
       "filter_all_promotions": "Toutes les promotions",
       "filter_all_advisors": "Tous les conseillers",
       "filter_my_students": "Mes étudiants uniquement",
+      "filter_contract_not_under": "Pas sous contrat",
+      "filter_contract_under": "Sous contrat",
+      "filter_contract_all": "Tous",
       "filter_study_year": "Année d'étude",
       "filter_study_year_all": "Toutes les années",
       "promotion_search_placeholder": "Rechercher une promotion…",
@@ -351,6 +361,8 @@
         "advisor": "Conseiller",
         "no_advisor": "Aucun conseiller",
         "gdpr_badge": "Supprimé (RGPD)",
+        "under_contract_badge": "Sous contrat",
+        "contract_unverified_badge": "À vérifier",
         "cv_deposited": "Déposé",
         "cv_none": "Aucun",
         "active": "Actif",
@@ -366,7 +378,8 @@
         "edit_promotion": "Modifier",
         "no_promotion": "Aucune",
         "toast_promo_updated": "Affectation mise à jour avec succès !",
-        "toast_promo_update_error": "Erreur lors de la mise à jour de la promotion."
+        "toast_promo_update_error": "Erreur lors de la mise à jour de la promotion.",
+        "not_under_contract": "Pas sous contrat"
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
@@ -453,7 +466,24 @@
         "stale": "En retard",
         "created_at": "Créée le {{date}}",
         "updated_at": "Mise à jour le {{date}}",
-        "back": "Retour aux candidatures"
+        "back": "Retour aux candidatures",
+        "contract_dates": "Dates du contrat",
+        "start_date": "Début",
+        "end_date": "Fin",
+        "save": "Enregistrer",
+        "invalid_dates": "La date de fin doit être postérieure à la date de début",
+        "contract_dates_saved": "Dates du contrat enregistrées",
+        "contract_dates_error": "Impossible d'enregistrer — cet étudiant n'est peut-être pas dans votre portefeuille",
+        "contract_verified": "Déclaration confirmée",
+        "contract_rejected": "Déclaration refusée — statut précédent rétabli",
+        "contract_verified_label": "Contrat vérifié par un conseiller",
+        "contract_unverified_label": "À vérifier — statut déclaré par l'étudiant, pas encore confirmé",
+        "contract_unverified_hint": "L'étudiant a lui-même indiqué avoir reçu cette offre. Vérifiez l'information (contrat, e-mail de l'entreprise...) avant de confirmer, ou refusez si l'offre n'a pas été reçue.",
+        "contract_needs_verification_badge": "À vérifier",
+        "verify_button": "Marquer comme vérifié",
+        "reject_button": "Refuser l'offre",
+        "reject_confirm_title": "Refuser l'offre reçue",
+        "reject_confirm_message": "Revenir au statut précédent pour \"{{poste}}\" chez {{entreprise}} ? L'XP associé sera repris."
       },
       "student": {
         "title": "Mes candidatures",
@@ -475,7 +505,9 @@
           "stale_days_one": "{{count}} jour sans nouvelle",
           "stale_days_other": "{{count}} jours sans nouvelle",
           "next_step_button": "Étape suivante",
-          "next_step_xp": "+{{xp}} XP"
+          "next_step_xp": "+{{xp}} XP",
+          "contract_verified": "Vérifié",
+          "pending_verification": "En attente de validation"
         },
         "form": {
           "create_title": "Ajouter une candidature",
@@ -487,6 +519,9 @@
           "link_label": "Lien de l'offre",
           "contact_label": "Contact",
           "notes_label": "Notes",
+          "start_date_label": "Date de début du contrat",
+          "end_date_label": "Date de fin du contrat",
+          "invalid_dates": "La date de fin doit être postérieure à la date de début",
           "cancel": "Annuler",
           "save": "Enregistrer",
           "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
@@ -496,6 +531,7 @@
           "created": "Candidature ajoutée.",
           "updated": "Candidature mise à jour.",
           "deleted": "Candidature supprimée.",
+          "deleted_xp_revoked": "Candidature supprimée — {{xp}} XP repris.",
           "status_changed": "Statut mis à jour.",
           "status_changed_xp": "Statut mis à jour — +{{xp}} XP !",
           "action_error": "Une erreur est survenue.",
@@ -518,16 +554,27 @@
           "confirm_delete_title": "Supprimer la candidature",
           "confirm_delete_message": "Supprimer la candidature « {{poste}} » chez {{entreprise}} ? Cette action est irréversible.",
           "mark_refused_button": "Marquer comme refusée",
+          "contract_verified_badge": "Vérifié par votre conseiller",
+          "pending_verification_title": "En attente de validation",
+          "pending_verification_message": "Votre conseiller va vérifier cette déclaration.",
           "refused_banner_title": "Candidature refusée",
           "refused_banner_message": "Cette candidature a été marquée comme refusée.",
           "reopen_button": "Rouvrir (repasser en Postulé)",
-          "not_found": "Candidature introuvable."
+          "not_found": "Candidature introuvable.",
+          "contract_dates": "Dates du contrat",
+          "contract_ongoing": "en cours"
         },
         "stepper": {
           "current_label": "Étape actuelle",
           "go_back_button": "Revenir à l'étape précédente",
           "go_forward_button": "Passer à cette étape",
           "xp_preview": "+{{xp}} XP"
+        },
+        "contract_gate": {
+          "title": "Passer à \"{{status}}\"",
+          "explanation": "Précisez la date de début (et de fin si connue) de ce contrat pour qu'il apparaisse correctement dans votre suivi.",
+          "start_date_required": "La date de début est requise",
+          "confirm": "Confirmer"
         },
         "subtitle": "Suivez l'évolution de vos candidatures et opportunités de stage ou d'alternance."
       }
@@ -713,6 +760,7 @@
         "already_applied": "Vous avez déjà postulé à cette offre.",
         "apply_error": "Impossible d'envoyer la candidature.",
         "withdrawn": "Candidature retirée.",
+        "withdrawn_xp_revoked": "Candidature retirée — {{xp}} XP repris.",
         "withdraw_error": "Impossible de retirer la candidature."
       },
       "subtitle": "Consultez et gérez l'ensemble des offres d'emploi et d'alternance."
@@ -1184,6 +1232,8 @@
         "JOB_OFFER_ACTIVATED": "Activation Offre d'Emploi",
         "JOB_OFFER_DEACTIVATED": "Désactivation Offre d'Emploi",
         "JOB_OFFER_WIPED": "Purge Offres d'Emploi",
+        "APPLICATION_CONTRACT_VERIFIED": "Contrat Vérifié",
+        "APPLICATION_CONTRACT_REJECTED": "Contrat Refusé",
         "OTHER": "Autre Action"
       },
       "table": {

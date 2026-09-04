@@ -2,9 +2,10 @@ import { useState, useRef, useMemo } from 'react';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
-    GraduationCap, FileSignature, Users, Star,
+    GraduationCap, FileSignature, Handshake, Users, Star,
     Download,
 } from 'lucide-react';
+import type { ContractFilter } from '../etudiants/components/EtudiantsFilters';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useApplicationGroupedListInfinite, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
@@ -37,7 +38,12 @@ export default function CandidaturesPage() {
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [staleOnly, setStaleOnly] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState<StudentGroup | null>(null);
+    // Par defaut on ecarte les etudiants deja sous contrat, comme sur la liste des etudiants.
+    const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
+    // Id plutot que l'objet lui-meme : le drawer doit refleter les donnees a jour (ex: verification
+    // d'un contrat) sans que l'utilisateur ait besoin de fermer/rouvrir — un objet fige au moment du
+    // clic ne serait jamais rafraichi malgre l'invalidation React Query de la liste.
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
     const [isExporting, setIsExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -101,6 +107,12 @@ export default function CandidaturesPage() {
             .map((a) => ({ value: a.id, label: formatStaffLabel(a, t('common.admin_tag', '(Admin)')) })),
     ], [advisors, t, currentUserId]);
 
+    const contractFilterOptions = useMemo(() => [
+        { value: 'not_under_contract', label: t('dashboard.etudiants.filter_contract_not_under', 'Pas sous contrat') },
+        { value: 'under_contract', label: t('dashboard.etudiants.filter_contract_under', 'Sous contrat') },
+        { value: 'all', label: t('dashboard.etudiants.filter_contract_all', 'Tous') },
+    ], [t]);
+
     const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
@@ -110,13 +122,17 @@ export default function CandidaturesPage() {
         stale: staleOnly ? true : undefined,
         activeStudentsOnly: true,
         advisorId: advisorFilter || undefined,
-    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter]);
+        underContract: contractFilter === 'all' ? undefined : contractFilter === 'under_contract',
+    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter]);
 
     const {
         items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useApplicationGroupedListInfinite(params);
 
     const studentGroups = items as StudentGroup[];
+    const selectedGroup = selectedGroupId
+        ? studentGroups.find((group) => group.studentId === selectedGroupId) ?? null
+        : null;
 
     const handleSearch = (value: string) => {
         setSearch(value);
@@ -202,6 +218,13 @@ export default function CandidaturesPage() {
                     icon={<FileSignature className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
+                <CustomSelect
+                    value={contractFilter}
+                    options={contractFilterOptions}
+                    onChange={(value) => setContractFilter(value as ContractFilter)}
+                    icon={<Handshake className="h-4 w-4 text-slate-400" />}
+                    className="min-w-48"
+                />
                 <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                     <input
                         type="checkbox"
@@ -256,7 +279,7 @@ export default function CandidaturesPage() {
                             <StudentCard
                                 key={group.studentId}
                                 group={group}
-                                onClick={() => setSelectedGroup(group)}
+                                onClick={() => setSelectedGroupId(group.studentId)}
                             />
                         ))}
                     </div>
@@ -270,7 +293,7 @@ export default function CandidaturesPage() {
             )}
 
             {selectedGroup && (
-                <StudentDrawer group={selectedGroup} onClose={() => setSelectedGroup(null)} />
+                <StudentDrawer group={selectedGroup} onClose={() => setSelectedGroupId(null)} />
             )}
         </div>
     );

@@ -190,6 +190,19 @@ Détail complet du fonctionnement de l'agrégation externe (synchronisation, cri
 
 ---
 
+## Suivi "sous contrat"
+
+Le statut "sous contrat" d'un étudiant repose sur une **déclaration purement étudiante** : n'importe quel étudiant peut faire passer sa candidature au statut "Offre reçue" (`ApplicationStatus.compteCommeContrat = true`) sans preuve. `Application.contractVerified` distingue une déclaration en attente d'une déclaration confirmée par un conseiller/admin — remis à `false` à chaque nouvelle déclaration.
+
+Trois endpoints dédiés dans `DashboardController` (`ADVISOR`/`ADMIN`, **ouverts à n'importe quel conseiller/admin**, pas seulement celui affecté à l'étudiant) :
+- `PATCH /dashboard/applications/{id}/contract-dates` — modifie les dates, vaut confirmation implicite.
+- `POST /dashboard/applications/{id}/verify-contract` — confirme la déclaration.
+- `POST /dashboard/applications/{id}/reject-contract` — l'annule, revient au statut précédent et révoque l'XP gagné entre-temps ; journalisé (`APPLICATION_CONTRACT_VERIFIED`/`APPLICATION_CONTRACT_REJECTED`).
+
+Le filtre `underContract` (`GET /dashboard/students`, `.../students/all`, `.../applications/grouped-by-student`) et le compteur `studentsNeedingContractVerificationCount` (`GET /dashboard/overview`) suivent des règles de date distinctes — voir [docs/REGLES_METIER.md §2](../docs/REGLES_METIER.md#suivi-sous-contrat-déclaration-étudiante--vérification-conseiller) pour le détail complet.
+
+---
+
 ## Gamification
 
 | Action | XP (configurable) |

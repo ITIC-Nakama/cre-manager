@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -84,6 +85,10 @@ public class StudentSpecification {
 
             subquery.where(subPredicates.toArray(new Predicate[0]));
             predicates.add(cb.exists(subquery));
+
+            if (criteria.getUnderContract() != null) {
+                predicates.add(underContractPredicate(root, query, cb, criteria.getUnderContract()));
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -188,8 +193,57 @@ public class StudentSpecification {
                 predicates.add(cb.exists(staleSubquery));
             }
 
+            // Under-contract filter
+            if (criteria.getUnderContract() != null) {
+                predicates.add(underContractPredicate(root, query, cb, criteria.getUnderContract()));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * Etudiant a une candidature actuellement "sous contrat" : statut marque compteCommeContrat,
+     * VERIFIEE par un conseiller, et pas de date de fin deja passee (ou pas de date de fin).
+     * "Sous contrat" = signe + confirme, point — pas besoin d'attendre que la date de debut soit
+     * arrivee (un etudiant signe la plupart du temps avant que le contrat ne debute). Seule une
+     * date de fin deja passee met fin au statut "sous contrat" (contrat termine/rompu).
+     * Une declaration non encore verifiee ne compte pas comme "sous contrat" (ni dans
+     * underContract=true, ni dans les stats/badges associes) — seule une verification humaine
+     * confirme qu'une offre a bien ete recue.
+     * Ne considere que la derniere candidature "sous contrat" en date (startDate le plus recent) —
+     * un etudiant n'est pas cense cumuler plusieurs postes ; d'anciennes declarations oubliees
+     * (jamais cloturees) ne doivent pas compter en plus de la position actuelle.
+     *
+     * underContract=false (exclusion par defaut des listes) laisse donc visible une declaration
+     * encore en attente de verification (avec son badge "a verifier"), sans quoi personne ne
+     * serait jamais alerte d'une nouvelle declaration a traiter.
+     */
+    private static Predicate underContractPredicate(Root<Student> root, CriteriaQuery<?> query, CriteriaBuilder cb, Boolean underContract) {
+        Subquery<UUID> contractSubquery = query.subquery(UUID.class);
+        Root<Application> appRoot = contractSubquery.from(Application.class);
+        Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
+        LocalDate today = LocalDate.now();
+
+        Subquery<LocalDate> latestStartDateSubquery = contractSubquery.subquery(LocalDate.class);
+        Root<Application> latestAppRoot = latestStartDateSubquery.from(Application.class);
+        Join<Application, ApplicationStatus> latestStatusJoin = latestAppRoot.join("status", JoinType.INNER);
+        latestStartDateSubquery.select(cb.greatest(latestAppRoot.<LocalDate>get("startDate")));
+        latestStartDateSubquery.where(
+                cb.equal(latestAppRoot.get("student"), appRoot.get("student")),
+                cb.isTrue(latestStatusJoin.get("compteCommeContrat"))
+        );
+
+        contractSubquery.select(appRoot.get("id"));
+        contractSubquery.where(
+                cb.equal(appRoot.get("student"), root),
+                cb.isTrue(statusJoin.get("compteCommeContrat")),
+                cb.isTrue(appRoot.get("contractVerified")),
+                cb.equal(appRoot.get("startDate"), latestStartDateSubquery),
+                cb.or(cb.isNull(appRoot.get("endDate")), cb.greaterThanOrEqualTo(appRoot.get("endDate"), today))
+        );
+
+        return Boolean.TRUE.equals(underContract) ? cb.exists(contractSubquery) : cb.not(cb.exists(contractSubquery));
     }
 
     /**

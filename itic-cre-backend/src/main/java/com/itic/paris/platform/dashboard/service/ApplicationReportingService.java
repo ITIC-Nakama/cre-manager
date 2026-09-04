@@ -22,9 +22,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Listes et export CSV des candidatures — toutes promotions ou groupées par étudiant. */
@@ -106,11 +108,15 @@ public class ApplicationReportingService {
             row.put("offreCompanyLogoUrl", app.getOffreCompanyLogoUrl());
             row.put("contact", app.getContact());
             row.put("notes", app.getNotes());
+            row.put("startDate", app.getStartDate());
+            row.put("endDate", app.getEndDate());
+            row.put("contractVerified", app.getContractVerified());
             row.put("status", Map.of(
                     "id", app.getStatus().getId(),
                     "nom", app.getStatus().getNom(),
                     "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
-                    "declencheAlerte", app.getStatus().getDeclencheAlerte()
+                    "declencheAlerte", app.getStatus().getDeclencheAlerte(),
+                    "compteCommeContrat", app.getStatus().getCompteCommeContrat()
             ));
             row.put("stale", isStale);
             row.put("viaJobboard", app.isViaJobboard());
@@ -190,6 +196,12 @@ public class ApplicationReportingService {
         Specification<Student> spec = StudentSpecification.withApplicationFilters(criteria, staleThreshold);
         Page<Student> studentPage = studentRepository.findAll(spec, pageable);
 
+        List<UUID> pageStudentIds = studentPage.getContent().stream().map(Student::getId).toList();
+        Set<UUID> studentIdsUnderContract = pageStudentIds.isEmpty() ? Set.of()
+                : new HashSet<>(applicationRepository.findStudentIdsUnderContract(pageStudentIds));
+        Set<UUID> studentIdsNeedingVerification = pageStudentIds.isEmpty() ? Set.of()
+                : new HashSet<>(applicationRepository.findStudentIdsWithUnverifiedContract(pageStudentIds));
+
         List<Map<String, Object>> content = studentPage.getContent().stream().map(student -> {
             List<Application> studentApps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
 
@@ -214,11 +226,15 @@ public class ApplicationReportingService {
                         row.put("offreCompanyLogoUrl", app.getOffreCompanyLogoUrl());
                         row.put("contact", app.getContact());
                         row.put("notes", app.getNotes());
+                        row.put("startDate", app.getStartDate());
+                        row.put("endDate", app.getEndDate());
+                        row.put("contractVerified", app.getContractVerified());
                         row.put("status", Map.of(
                                 "id", app.getStatus().getId(),
                                 "nom", app.getStatus().getNom(),
                                 "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
-                                "declencheAlerte", app.getStatus().getDeclencheAlerte()
+                                "declencheAlerte", app.getStatus().getDeclencheAlerte(),
+                                "compteCommeContrat", app.getStatus().getCompteCommeContrat()
                         ));
                         row.put("stale", isStale);
                         row.put("viaJobboard", app.isViaJobboard());
@@ -244,6 +260,8 @@ public class ApplicationReportingService {
             group.put("studyYear", student.getStudyYear());
             group.put("applications", appRows);
             group.put("staleCount", staleCount);
+            group.put("underContract", studentIdsUnderContract.contains(student.getId()));
+            group.put("contractNeedsVerification", studentIdsNeedingVerification.contains(student.getId()));
             return group;
         }).toList();
 

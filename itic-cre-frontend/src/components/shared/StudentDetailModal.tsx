@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck, Pencil, Check, Loader2 } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck, Pencil, Check, Loader2, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -137,6 +137,24 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                             <FileText className="h-3.5 w-3.5" />
                             {student.hasCv ? t('dashboard.etudiants.table.cv_deposited') : t('dashboard.etudiants.table.cv_none')}
                         </span>
+
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                            student.underContract
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
+                                : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
+                        }`}>
+                            <Handshake className="h-3.5 w-3.5" />
+                            {student.underContract
+                                ? t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')
+                                : t('dashboard.etudiants.detail.not_under_contract', 'Pas sous contrat')}
+                        </span>
+
+                        {student.contractNeedsVerification && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
+                                <ShieldAlert className="h-3.5 w-3.5" />
+                                {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
+                            </span>
+                        )}
                     </div>
 
                     {/* Basic Info Cards */}

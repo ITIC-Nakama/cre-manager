@@ -5,6 +5,10 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.model.ApplicationStatus;
+import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +33,12 @@ class StudentSpecificationIntegrationTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ApplicationStatusRepository applicationStatusRepository;
 
     private Student student1;
     private Student student2;
@@ -122,5 +133,202 @@ class StudentSpecificationIntegrationTest {
 
         assertThat(year2Result.getContent()).hasSize(1);
         assertThat(year2Result.getContent().get(0).getFirstName()).isEqualTo("Bob");
+    }
+
+    @Test
+    @DisplayName("Should filter students by under-contract status (active application on a compteCommeContrat status)")
+    void testUnderContractFilter() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue test");
+        contractStatus.setOrdre(100);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        ApplicationStatus otherStatus = new ApplicationStatus();
+        otherStatus.setNom("Postulé test");
+        otherStatus.setOrdre(101);
+        otherStatus.setCompteCommeContrat(false);
+        otherStatus = applicationStatusRepository.save(otherStatus);
+
+        Application contractApp = new Application();
+        contractApp.setStudent(student1);
+        contractApp.setEntreprise("ITIC Corp");
+        contractApp.setPoste("Alternant");
+        contractApp.setStatus(contractStatus);
+        contractApp.setStartDate(LocalDate.now().minusMonths(1));
+        contractApp.setContractVerified(true);
+        applicationRepository.save(contractApp);
+
+        Application otherApp = new Application();
+        otherApp.setStudent(student2);
+        otherApp.setEntreprise("Other Corp");
+        otherApp.setPoste("Stagiaire");
+        otherApp.setStatus(otherStatus);
+        applicationRepository.save(otherApp);
+
+        Page<Student> underContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(underContractResult.getContent()).hasSize(1);
+        assertThat(underContractResult.getContent().get(0).getFirstName()).isEqualTo("Alice");
+
+        Page<Student> notUnderContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(false).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(notUnderContractResult.getContent()).hasSize(1);
+        assertThat(notUnderContractResult.getContent().get(0).getFirstName()).isEqualTo("Bob");
+    }
+
+    @Test
+    @DisplayName("A pending (unverified) contract declaration stays visible under the default underContract=false view, but does not count as underContract=true")
+    void testUnderContractFilterKeepsUnverifiedDeclarationVisibleByDefault() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue non verifiee test");
+        contractStatus.setOrdre(104);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        // Declaration purement etudiante, pas encore verifiee par un conseiller : ne doit pas
+        // disparaitre de la vue par defaut (underContract=false), sinon personne ne la voit sans
+        // basculer manuellement le filtre. Mais tant qu'elle n'est pas verifiee, elle ne doit pas
+        // non plus compter comme "sous contrat confirme" (underContract=true / stats / badge) —
+        // seule une verification humaine confirme qu'une offre a bien ete recue.
+        Application unverifiedApp = new Application();
+        unverifiedApp.setStudent(student1);
+        unverifiedApp.setEntreprise("Pending Corp");
+        unverifiedApp.setPoste("Alternant");
+        unverifiedApp.setStatus(contractStatus);
+        unverifiedApp.setStartDate(LocalDate.now().minusDays(1));
+        applicationRepository.save(unverifiedApp);
+
+        Page<Student> notUnderContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(false).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(notUnderContractResult.getContent())
+                .extracting(Student::getFirstName)
+                .contains("Alice");
+
+        Page<Student> underContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(underContractResult.getContent())
+                .extracting(Student::getFirstName)
+                .doesNotContain("Alice");
+    }
+
+    @Test
+    @DisplayName("Should not count a verified contract application whose end date has already passed")
+    void testUnderContractFilterExcludesExpiredContract() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue expiree test");
+        contractStatus.setOrdre(102);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        Application expiredApp = new Application();
+        expiredApp.setStudent(student1);
+        expiredApp.setEntreprise("Expired Corp");
+        expiredApp.setPoste("Ancien alternant");
+        expiredApp.setStatus(contractStatus);
+        expiredApp.setStartDate(LocalDate.now().minusYears(1));
+        expiredApp.setEndDate(LocalDate.now().minusMonths(1));
+        expiredApp.setContractVerified(true);
+        applicationRepository.save(expiredApp);
+
+        Page<Student> result = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("A verified contract counts as underContract=true even before its start date is reached")
+    void testUnderContractFilterDoesNotRequireStartDateReached() {
+        // "Sous contrat" = signe + confirme, pas besoin d'attendre le debut effectif — un etudiant
+        // declare la plupart du temps une offre avant que le contrat ne demarre.
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue future test");
+        contractStatus.setOrdre(105);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        Application futureApp = new Application();
+        futureApp.setStudent(student1);
+        futureApp.setEntreprise("Future Corp");
+        futureApp.setPoste("Futur alternant");
+        futureApp.setStatus(contractStatus);
+        futureApp.setStartDate(LocalDate.now().plusWeeks(3));
+        futureApp.setContractVerified(true);
+        applicationRepository.save(futureApp);
+
+        Page<Student> result = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(result.getContent())
+                .extracting(Student::getFirstName)
+                .contains("Alice");
+    }
+
+    @Test
+    @DisplayName("Should only count the most recent contract application — no cumulating several jobs at once")
+    void testUnderContractFilterOnlyConsidersMostRecentDeclaration() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue cumul test");
+        contractStatus.setOrdre(103);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        // Ancienne declaration jamais cloturee (pas de endDate) — sans la contrainte "derniere en
+        // date seulement", elle continuerait de compter en plus du nouveau poste ci-dessous.
+        Application olderApp = new Application();
+        olderApp.setStudent(student1);
+        olderApp.setEntreprise("Old Corp");
+        olderApp.setPoste("Ancien alternant");
+        olderApp.setStatus(contractStatus);
+        olderApp.setStartDate(LocalDate.now().minusYears(1));
+        applicationRepository.save(olderApp);
+
+        Application newerApp = new Application();
+        newerApp.setStudent(student1);
+        newerApp.setEntreprise("New Corp");
+        newerApp.setPoste("Nouvel alternant");
+        newerApp.setStatus(contractStatus);
+        newerApp.setStartDate(LocalDate.now().minusDays(1));
+        newerApp.setContractVerified(true);
+        applicationRepository.save(newerApp);
+
+        // Sous contrat : vrai (grace au poste le plus recent), mais l'ancien ne doit pas etre
+        // pris en compte separement — un seul etudiant "sous contrat", pas un cumul.
+        Page<Student> underContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(underContractResult.getContent()).hasSize(1);
+        assertThat(underContractResult.getContent().get(0).getId()).isEqualTo(student1.getId());
+
+        // Si le poste le plus recent se termine, l'ancien (jamais cloture) ne doit pas reprendre
+        // le relais — la contrainte "derniere en date" s'applique meme si elle expire.
+        newerApp.setEndDate(LocalDate.now().minusDays(1));
+        applicationRepository.save(newerApp);
+
+        Page<Student> afterExpiryResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(afterExpiryResult.getContent()).isEmpty();
     }
 }

@@ -29,6 +29,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const [lienOffre, setLienOffre] = useState(candidature?.lienOffre ?? '');
     const [contact, setContact] = useState(candidature?.contact ?? '');
     const [notes, setNotes] = useState(candidature?.notes ?? '');
+    const [startDate, setStartDate] = useState(candidature?.startDate ?? '');
+    const [endDate, setEndDate] = useState(candidature?.endDate ?? '');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,9 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
         if (poste.trim().length < LIMITS.poste.min || poste.trim().length > LIMITS.poste.max) {
             errors.poste = t('dashboard.candidatures.student.form.length_error', LIMITS.poste);
         }
+        if (startDate && endDate && endDate < startDate) {
+            errors.endDate = t('dashboard.candidatures.student.form.invalid_dates', 'La date de fin doit être postérieure à la date de début');
+        }
         return errors;
     };
 
@@ -66,6 +71,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                 lienOffre: lienOffre.trim() || undefined,
                 contact: contact.trim() || undefined,
                 notes: notes.trim() || undefined,
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
             });
         } catch (err: any) {
             const serverFieldErrors = err?.response?.data?.data;
@@ -151,6 +158,42 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                             className="w-full"
                         />
                     </div>
+
+                    {/* Uniquement pertinent une fois l'offre reçue — une candidature vient toujours
+                        d'être créée au statut "À postuler" (forcé côté backend), donc jamais affiché
+                        à la création. Permet à un étudiant de préciser une alternance/stage déjà en cours,
+                        obtenue hors plateforme, une fois sa candidature avancée jusqu'à "Offre reçue". */}
+                    {candidature && candidature.status.ordre >= 5 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.candidatures.student.form.start_date_label', 'Date de début du contrat')}
+                                </label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    disabled={saving}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {t('dashboard.candidatures.student.form.end_date_label', 'Date de fin du contrat')}
+                                </label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    disabled={saving}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                        fieldErrors.endDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                    }`}
+                                />
+                                {fieldErrors.endDate && <p className="text-xs text-rose-500">{fieldErrors.endDate}</p>}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-1.5">
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">

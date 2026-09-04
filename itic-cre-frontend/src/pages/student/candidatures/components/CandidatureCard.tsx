@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Loader2, ShieldCheck } from 'lucide-react';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import { useChangeCandidatureStatus } from '../../../../hooks/useCandidatures';
@@ -9,6 +10,7 @@ import type { ApplicationStatus, Candidature } from '../../../../types/models/Ap
 import { daysAgoLabel } from '../utils';
 import JobboardBadge from './JobboardBadge';
 import CandidatureProgressBar from './CandidatureProgressBar';
+import ContractDateGateModal from './ContractDateGateModal';
 
 interface Props {
     candidature: Candidature;
@@ -19,25 +21,35 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const changeStatusMutation = useChangeCandidatureStatus();
+    const [showContractGate, setShowContractGate] = useState(false);
 
     const nextStatus = candidature.status.ordre < 5
         ? statuses.find((s) => s.ordre === candidature.status.ordre + 1)
         : undefined;
     const nextStatusGrantsXp = !!nextStatus && nextStatus.gainXP > 0 && !candidature.reachedStatusIds.includes(nextStatus.id);
 
-    const handleNextStep = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!nextStatus) return;
+    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string) => {
         try {
-            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId: nextStatus.id });
+            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate });
             if (result.xpAwarded > 0) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed_xp', { xp: result.xpAwarded }));
             } else {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed'));
             }
+            setShowContractGate(false);
         } catch {
             toast.error(t('dashboard.candidatures.student.toast.action_error'));
         }
+    };
+
+    const handleNextStep = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!nextStatus) return;
+        if (nextStatus.compteCommeContrat) {
+            setShowContractGate(true);
+            return;
+        }
+        await applyStatusChange(nextStatus.id);
     };
 
     return (
@@ -62,6 +74,19 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                     </span>
                 )}
                 {candidature.viaJobboard && <JobboardBadge />}
+                {candidature.status.compteCommeContrat && (
+                    candidature.contractVerified ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400">
+                            <ShieldCheck className="h-3 w-3" />
+                            {t('dashboard.candidatures.student.card.contract_verified', 'Vérifié')}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400">
+                            <Clock className="h-3 w-3" />
+                            {t('dashboard.candidatures.student.card.pending_verification', 'En attente de validation')}
+                        </span>
+                    )
+                )}
             </div>
 
             <CandidatureProgressBar candidature={candidature} statuses={statuses} />
@@ -92,6 +117,17 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                     </button>
                 )}
             </div>
+
+            {showContractGate && nextStatus && (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <ContractDateGateModal
+                        statusName={nextStatus.nom}
+                        saving={changeStatusMutation.isPending}
+                        onClose={() => setShowContractGate(false)}
+                        onConfirm={(startDate, endDate) => applyStatusChange(nextStatus.id, startDate, endDate)}
+                    />
+                </div>
+            )}
         </div>
     );
 }

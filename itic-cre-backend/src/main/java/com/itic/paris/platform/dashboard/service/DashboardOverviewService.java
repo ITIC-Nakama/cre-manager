@@ -52,6 +52,8 @@ public class DashboardOverviewService {
 
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
         long staleApplicationsCount = applicationRepository.countStaleApplications(staleThreshold);
+        long studentsUnderContractCount = applicationRepository.countStudentsUnderContract();
+        long studentsNeedingContractVerificationCount = applicationRepository.countStudentsWithUnverifiedContract();
 
         long recentApplications7d = applicationRepository.countByDateCreationAfter(
                 Instant.now().minus(7, ChronoUnit.DAYS));
@@ -91,6 +93,8 @@ public class DashboardOverviewService {
         overview.put("inactiveStudents", inactiveStudents);
         overview.put("studentsWithoutCv", studentsWithoutCv);
         overview.put("staleApplicationsCount", staleApplicationsCount);
+        overview.put("studentsUnderContractCount", studentsUnderContractCount);
+        overview.put("studentsNeedingContractVerificationCount", studentsNeedingContractVerificationCount);
         overview.put("recentApplications7d", recentApplications7d);
         overview.put("cvsToReview", cvRepository.countNotInFinalStatut());
         overview.put("recentApplications30d", recentApplications30d);
@@ -127,6 +131,8 @@ public class DashboardOverviewService {
 
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
         long staleApplicationsCount = applicationRepository.countStaleApplicationsForStudents(studentIds, staleThreshold);
+        long studentsUnderContractCount = applicationRepository.countStudentsUnderContractForStudents(studentIds);
+        long studentsNeedingContractVerificationCount = applicationRepository.countStudentsWithUnverifiedContractForStudents(studentIds);
 
         long recentApplications7d = applicationRepository.countByDateCreationAfterAndStudentIdIn(
                 Instant.now().minus(7, ChronoUnit.DAYS), studentIds);
@@ -165,6 +171,8 @@ public class DashboardOverviewService {
         overview.put("inactiveStudents", inactiveStudents);
         overview.put("studentsWithoutCv", studentsWithoutCv);
         overview.put("staleApplicationsCount", staleApplicationsCount);
+        overview.put("studentsUnderContractCount", studentsUnderContractCount);
+        overview.put("studentsNeedingContractVerificationCount", studentsNeedingContractVerificationCount);
         overview.put("recentApplications7d", recentApplications7d);
         overview.put("cvsToReview", cvRepository.countNotInFinalStatutForStudents(studentIds));
         overview.put("recentApplications30d", recentApplications30d);
@@ -189,6 +197,8 @@ public class DashboardOverviewService {
         overview.put("inactiveStudents", 0L);
         overview.put("studentsWithoutCv", 0L);
         overview.put("staleApplicationsCount", 0L);
+        overview.put("studentsUnderContractCount", 0L);
+        overview.put("studentsNeedingContractVerificationCount", 0L);
         overview.put("recentApplications7d", 0L);
         overview.put("cvsToReview", 0L);
         overview.put("recentApplications30d", 0L);

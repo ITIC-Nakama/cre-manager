@@ -27,7 +27,7 @@ import { isAnonymizedStudent } from '../../../utils/studentUtils';
 import { useStudentColumns } from './hooks/useStudentTableColumn';
 import StudentTable from './components/StudentTable';
 import EtudiantsHeader from './components/EtudiantsHeader';
-import EtudiantsFilters, { type FilterStatus } from './components/EtudiantsFilters';
+import EtudiantsFilters, { type FilterStatus, type ContractFilter } from './components/EtudiantsFilters';
 import BulkAssignBar from './components/BulkAssignBar';
 
 const PAGE_SIZE = 20;
@@ -63,6 +63,9 @@ export default function EtudiantsPage() {
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
     const [promotionFilter, setPromotionFilter] = useState('');
     const [studyYearFilter, setStudyYearFilter] = useState('');
+    // Par defaut on ecarte les etudiants deja sous contrat (alternance/stage/CDI/CDD en cours) —
+    // l'utilisateur peut choisir de les inclure ou de n'afficher qu'eux via le select.
+    const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
     // Un conseiller voit par defaut uniquement ses propres etudiants ("mon portefeuille") ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
@@ -155,6 +158,12 @@ export default function EtudiantsPage() {
         })),
     ], [availableYears, t]);
 
+    const contractFilterOptions = useMemo(() => [
+        { value: 'not_under_contract', label: t('dashboard.etudiants.filter_contract_not_under', 'Pas sous contrat') },
+        { value: 'under_contract', label: t('dashboard.etudiants.filter_contract_under', 'Sous contrat') },
+        { value: 'all', label: t('dashboard.etudiants.filter_contract_all', 'Tous') },
+    ], [t]);
+
     const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
@@ -164,9 +173,10 @@ export default function EtudiantsPage() {
         promotionId: promotionFilter || undefined,
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
         advisorId: advisorFilter || undefined,
+        underContract: contractFilter === 'all' ? undefined : contractFilter === 'under_contract',
         includeAnonymized: isAdmin ? includeAnonymized : false,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, isAdmin, includeAnonymized, sorting]);
+    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, isAdmin, includeAnonymized, sorting]);
 
     const {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -229,6 +239,11 @@ export default function EtudiantsPage() {
 
     const handleAdvisorFilterChange = (value: string) => {
         setAdvisorFilter(value);
+        clearSelection();
+    };
+
+    const handleContractFilterChange = (value: ContractFilter) => {
+        setContractFilter(value);
         clearSelection();
     };
 
@@ -343,6 +358,7 @@ export default function EtudiantsPage() {
                     promotionFilter={promotionFilter}
                     studyYearFilter={studyYearFilter}
                     advisorFilter={advisorFilter}
+                    contractFilter={contractFilter}
                     includeAnonymized={includeAnonymized}
                     isFetching={isFetching}
                     isLoading={isLoading}
@@ -352,11 +368,13 @@ export default function EtudiantsPage() {
                     promotionOptions={promotionOptions}
                     studyYearOptions={studyYearOptions}
                     advisorOptions={advisorOptions}
+                    contractFilterOptions={contractFilterOptions}
                     onSearchChange={handleSearch}
                     onFilterChange={handleFilterChange}
                     onPromotionChange={handlePromotionFilterChange}
                     onStudyYearChange={handleStudyYearFilterChange}
                     onAdvisorFilterChange={handleAdvisorFilterChange}
+                    onContractFilterChange={handleContractFilterChange}
                     onIncludeAnonymizedChange={(checked) => {
                         setIncludeAnonymized(checked);
                         clearSelection();

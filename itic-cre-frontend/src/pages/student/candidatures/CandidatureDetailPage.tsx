@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, Loader2, MapPin, NotebookPen, Pencil, RotateCcw, Save, Trash2, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Briefcase, Clock, ExternalLink, Loader2, MapPin, NotebookPen, Pencil, RotateCcw, Save, ShieldCheck, Trash2, XCircle } from 'lucide-react';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useApplicationStatuses } from '../../../hooks/useApplications';
@@ -12,6 +12,7 @@ import {
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CandidatureStepper from './components/CandidatureStepper';
 import CandidatureFormModal from './components/CandidatureFormModal';
+import ContractDateGateModal from './components/ContractDateGateModal';
 import JobboardBadge from './components/JobboardBadge';
 import { formatDateTime } from './utils';
 
@@ -22,6 +23,7 @@ export default function CandidatureDetailPage() {
 
     const [formOpen, setFormOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [pendingContractStatusId, setPendingContractStatusId] = useState<string | null>(null);
 
     const { data: statuses } = useApplicationStatuses();
     const { data: candidature, isLoading } = useCandidature(id);
@@ -33,10 +35,10 @@ export default function CandidatureDetailPage() {
     const [notesValue, setNotesValue] = useState<string | null>(null);
     const notesHaveChanged = notesValue !== null && notesValue !== (candidature?.notes ?? '');
 
-    const handleChangeStatus = async (statusId: string) => {
+    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string) => {
         if (!candidature) return;
         try {
-            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId });
+            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate });
             if (result.xpAwarded > 0) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed_xp', { xp: result.xpAwarded }));
             } else if (result.xpAwarded < 0) {
@@ -44,9 +46,19 @@ export default function CandidatureDetailPage() {
             } else {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed'));
             }
+            setPendingContractStatusId(null);
         } catch {
             toast.error(t('dashboard.candidatures.student.toast.action_error'));
         }
+    };
+
+    const handleChangeStatus = async (statusId: string) => {
+        const targetStatus = statuses?.find((s) => s.id === statusId);
+        if (targetStatus?.compteCommeContrat) {
+            setPendingContractStatusId(statusId);
+            return;
+        }
+        await applyStatusChange(statusId);
     };
 
     const handleUpdate = async (payload: CandidaturePayload) => {
@@ -68,6 +80,8 @@ export default function CandidatureDetailPage() {
                     lienOffre: candidature.lienOffre ?? '',
                     contact: candidature.contact ?? '',
                     notes: notesValue,
+                    startDate: candidature.startDate ?? undefined,
+                    endDate: candidature.endDate ?? undefined,
                 },
             });
             toast.success(t('dashboard.candidatures.student.toast.updated'));
@@ -80,8 +94,12 @@ export default function CandidatureDetailPage() {
     const handleDelete = async () => {
         if (!candidature) return;
         try {
-            await deleteMutation.mutateAsync(candidature.id);
-            toast.success(t('dashboard.candidatures.student.toast.deleted'));
+            const result = await deleteMutation.mutateAsync(candidature.id);
+            if (result.xpRevoked > 0) {
+                toast.success(t('dashboard.candidatures.student.toast.deleted_xp_revoked', { xp: result.xpRevoked }));
+            } else {
+                toast.success(t('dashboard.candidatures.student.toast.deleted'));
+            }
             navigate('/student/candidatures');
         } catch {
             toast.error(t('dashboard.candidatures.student.toast.action_error'));
@@ -137,6 +155,12 @@ export default function CandidatureDetailPage() {
                         </span>
                     )}
                     <StatusBadge nom={candidature.status.nom} couleur={candidature.status.couleur} />
+                    {candidature.status.compteCommeContrat && candidature.contractVerified && (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.student.detail.contract_verified_badge', 'Vérifié par votre conseiller')}
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -166,6 +190,20 @@ export default function CandidatureDetailPage() {
                     {t('dashboard.candidatures.student.detail.delete_button')}
                 </button>
             </div>
+
+            {candidature.status.compteCommeContrat && !candidature.contractVerified && (
+                <div className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4 flex items-center gap-3">
+                    <Clock className="h-4.5 w-4.5 text-amber-500 flex-shrink-0" />
+                    <div>
+                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                            {t('dashboard.candidatures.student.detail.pending_verification_title', 'En attente de validation')}
+                        </p>
+                        <p className="text-xs text-amber-600/80 dark:text-amber-400/70">
+                            {t('dashboard.candidatures.student.detail.pending_verification_message', 'Votre conseiller va vérifier cette déclaration.')}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {isRefused && (
                 <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center justify-between gap-4 flex-wrap">
@@ -217,6 +255,16 @@ export default function CandidatureDetailPage() {
                         </p>
                         <p className="text-slate-700 dark:text-slate-300">{candidature.contact || '—'}</p>
                     </div>
+                    {(candidature.startDate || candidature.endDate) && (
+                        <div className="col-span-2">
+                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                {t('dashboard.candidatures.student.detail.contract_dates', 'Dates du contrat')}
+                            </p>
+                            <p className="text-slate-700 dark:text-slate-300">
+                                {candidature.startDate ?? '—'} → {candidature.endDate ?? t('dashboard.candidatures.student.detail.contract_ongoing', 'en cours')}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {candidature.lienOffre && (
@@ -299,6 +347,15 @@ export default function CandidatureDetailPage() {
                     saving={updateMutation.isPending}
                     onClose={() => setFormOpen(false)}
                     onSave={handleUpdate}
+                />
+            )}
+
+            {pendingContractStatusId && (
+                <ContractDateGateModal
+                    statusName={statuses?.find((s) => s.id === pendingContractStatusId)?.nom ?? ''}
+                    saving={changeStatusMutation.isPending}
+                    onClose={() => setPendingContractStatusId(null)}
+                    onConfirm={(startDate, endDate) => applyStatusChange(pendingContractStatusId, startDate, endDate)}
                 />
             )}
 

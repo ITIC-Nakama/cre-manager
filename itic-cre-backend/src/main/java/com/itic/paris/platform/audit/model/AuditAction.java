@@ -49,6 +49,10 @@ public enum AuditAction {
     JOB_OFFER_DEACTIVATED,
     JOB_OFFER_WIPED,
 
+    // --- Actions de validation des contrats étudiants (déclaratif) ---
+    APPLICATION_CONTRACT_VERIFIED,
+    APPLICATION_CONTRACT_REJECTED,
+
     // --- Autre / Action générique ---
     OTHER
 }
