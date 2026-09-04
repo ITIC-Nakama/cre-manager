@@ -237,6 +237,13 @@ ci-dessous).
   liste noire **globale** (comparaison insensible à la casse, sous-chaîne), filtrée au moment de la
   synchronisation, avant même l'insertion en base — pour les 3 sources externes à la fois, à partir
   d'une seule saisie admin (ex : `ISCOD,CFA ITIS`) plutôt que répétée par source.
+- **Purge immédiate à l'enregistrement** : au-delà du filtrage à la synchronisation, mettre à jour
+  la liste noire supprime aussi sur-le-champ les offres externes déjà en base dont l'employeur
+  matche — sans ça un employeur nouvellement exclu resterait visible jusqu'à l'expiration naturelle
+  de ses offres (jusqu'à 60 jours par défaut). Même garantie que `toggleSource` : les clics
+  "postuler" liés (`JobApplication`, FK `NOT NULL`) sont purgés d'abord, les candidatures CRM liées
+  survivent juste détachées (`sourceJobOffer` en `ON DELETE SET NULL`). Offres `MANUAL` jamais
+  concernées.
 - **Filtre localisation** : `GET /jobboard/offers` (étudiant) et `GET /jobboard/offers/all`
   (advisor/admin) acceptent un paramètre `location` optionnel (recherche insensible à la casse,
   sous-chaîne sur `location`), disponible côté étudiant comme côté advisor/admin.

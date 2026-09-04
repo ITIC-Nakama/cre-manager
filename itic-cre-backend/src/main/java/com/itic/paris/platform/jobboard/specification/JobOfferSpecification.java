@@ -54,6 +54,33 @@ public class JobOfferSpecification {
         };
     }
 
+    /**
+     * Offres externes (jamais MANUAL) dont l'employeur matche un des motifs de la liste noire
+     * globale (comparaison "contient", insensible à la casse — même sémantique que
+     * AbstractJobProvider.isEmployerExcluded, appliquée ici à des offres déjà en base plutôt qu'à
+     * la synchronisation). Utilisée par ExternalJobSyncService.purgeOffersFromExcludedEmployers
+     * pour une suppression bulk (JpaSpecificationExecutor.delete) : le moteur filtre lui-même,
+     * aucune offre ne transite par la JVM.
+     */
+    public static Specification<JobOffer> excludedByEmployers(List<String> excludedEmployers) {
+        return (root, query, cb) -> cb.and(
+                cb.notEqual(root.get("source"), "MANUAL"),
+                companyMatchesAny(cb, cb.lower(root.get("company")), excludedEmployers));
+    }
+
+    /**
+     * OR de LIKE "contient" (insensible à la casse) sur l'expression donnée, un par motif —
+     * exposé pour être réutilisé sur une expression jointe (JobApplication.jobOffer.company, voir
+     * ExternalJobSyncService) sans dupliquer la logique de matching.
+     */
+    public static Predicate companyMatchesAny(CriteriaBuilder cb, Expression<String> lowerCompanyExpr,
+                                               List<String> excludedEmployers) {
+        Predicate[] perEmployer = excludedEmployers.stream()
+                .map(employer -> cb.like(lowerCompanyExpr, "%" + employer.toLowerCase(Locale.ROOT) + "%"))
+                .toArray(Predicate[]::new);
+        return cb.or(perEmployer);
+    }
+
     private static Predicate sourcePredicate(Root<JobOffer> root, CriteriaBuilder cb, String source) {
         if (source == null || source.isBlank() || source.equalsIgnoreCase("MANUAL")) {
             return cb.equal(root.get("source"), "MANUAL");

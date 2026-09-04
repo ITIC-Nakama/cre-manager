@@ -402,6 +402,56 @@ class JobboardExternalSyncIntegrationTest {
     }
 
     /**
+     * Un employeur ajouté à la liste noire ne doit pas rester visible jusqu'à l'expiration
+     * naturelle de ses offres (jusqu'à 60 jours par défaut) : purge immédiate, cohérente avec le
+     * comportement de toggleSource (voir deleteBySourceDeletesOffersWithLinkedApplicationsAndClicks
+     * ci-dessus pour la même garantie côté candidature CRM détachée plutôt que bloquée).
+     */
+    @Test
+    void updateExcludedEmployersPurgesAlreadyStoredOffersFromNewlyBlacklistedEmployers() throws Exception {
+        var status = applicationStatusRepository.findAll().stream().findFirst().orElseThrow();
+
+        JobOffer blacklisted = newExternalOffer("ADZUNA", "adzuna:blacklist-1");
+        blacklisted.setCompany("ISCOD Formation");
+        blacklisted = jobOfferRepository.saveAndFlush(blacklisted);
+
+        JobOffer survivor = newExternalOffer("ADZUNA", "adzuna:blacklist-survivor");
+        survivor.setCompany("Entreprise légitime");
+        survivor = jobOfferRepository.saveAndFlush(survivor);
+
+        JobApplication click = new JobApplication();
+        click.setJobOffer(blacklisted);
+        click.setStudent(savedStudent);
+        jobApplicationRepository.saveAndFlush(click);
+
+        Application application = new Application();
+        application.setStudent(savedStudent);
+        application.setEntreprise("ISCOD Formation");
+        application.setPoste("Poste de test");
+        application.setStatus(status);
+        application.setViaJobboard(true);
+        application.setSourceJobOffer(blacklisted);
+        application = applicationRepository.saveAndFlush(application);
+        UUID applicationId = application.getId();
+
+        entityManager.clear();
+
+        mockMvc.perform(put("/jobboard/admin/external/excluded-employers")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"excludedEmployers\":\"ISCOD\"}"))
+                .andExpect(status().isOk());
+
+        assertThat(jobOfferRepository.findById(blacklisted.getId())).isEmpty();
+        assertThat(jobOfferRepository.findById(survivor.getId())).isPresent();
+        assertThat(jobApplicationRepository.findById(click.getId())).isEmpty();
+
+        Application survivingApplication = applicationRepository.findById(applicationId).orElseThrow();
+        assertThat(survivingApplication.isViaJobboard()).isTrue();
+        assertThat(survivingApplication.getSourceJobOffer()).isNull();
+    }
+
+    /**
      * resolveContractType() est mutualisé entre les 3 providers externes (AbstractJobProvider) :
      * seul un libellé contenant un mot-clé reconnu résout vers son ContractType dédié ; sans
      * correspondance (libellé exotique ou absent), la méthode retombe sur le type "Inconnu"

@@ -32,9 +32,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -85,13 +87,58 @@ public class ExternalJobSyncService {
     }
 
     /** Liste noire globale d'employeurs exclus, appliquée aux trois sources — réglage unique
-      * plutôt que ressaisi séparément pour chacune (voir AbstractJobProvider.currentExcludedEmployers). */
+      * plutôt que ressaisi séparément pour chacune (voir AbstractJobProvider.currentExcludedEmployers).
+      * Purge aussi immédiatement les offres déjà en base dont l'employeur vient d'entrer dans la
+      * liste : sans ça, un employeur ajouté à la liste noire resterait visible jusqu'à l'expiration
+      * naturelle de ses offres (jusqu'à 60 jours par défaut) — incohérent avec la désactivation
+      * d'une source, qui supprime ses offres sur-le-champ. */
     public ExternalJobboardStatsDTO updateExcludedEmployers(ExcludedEmployersDTO dto) {
         JobboardSyncSettings settings = getOrCreateSyncSettings();
         settings.setExcludedEmployers(dto.excludedEmployers());
         syncSettingsRepository.save(settings);
-        log.info("[JOBOARD SYNC] Liste noire globale des employeurs mise à jour");
+
+        int purged = purgeOffersFromExcludedEmployers(dto.excludedEmployers());
+        log.info("[JOBOARD SYNC] Liste noire globale des employeurs mise à jour, {} offre(s) déjà en base supprimée(s)", purged);
         return getStats();
+    }
+
+    /**
+     * Supprime immédiatement les offres externes (toute source confondue) dont l'employeur
+     * matche la liste noire — les clics "postuler" liés sont purgés d'abord (FK NOT NULL, pas de
+     * ON DELETE possible) ; les candidatures CRM liées survivent, juste détachées (ON DELETE SET
+     * NULL, même garantie que pour toggleSource/deactivateExpiredExternalOffers).
+     * Le matching (LOWER/LIKE) est fait par le moteur via JobOfferRepository.findIdsByExcludedEmployers
+     * (Specification, même pattern que le filtre "location" existant) — pas de requête SQL native
+     * (ce projet est Postgres en production mais teste sur H2, Flyway désactivé dans les tests ;
+     * unnest/string_to_array/DELETE...USING n'existent pas sur H2), et pas de suppression jointe
+     * directe non plus : JpaSpecificationExecutor.delete(Specification) avec une jointure
+     * (JobApplication → JobOffer) génère du SQL invalide sous Hibernate 6.6 pour Postgres (colonne
+     * "_rowid_" inexistante — reproduit et confirmé en base réelle). D'où le passage par une
+     * liste d'IDs (seule la colonne id transite par la JVM, pas les offres complètes) entre les
+     * deux suppressions.
+     */
+    private int purgeOffersFromExcludedEmployers(String excludedEmployersCsv) {
+        List<String> excludedEmployers = parseExcludedEmployers(excludedEmployersCsv);
+        if (excludedEmployers.isEmpty()) {
+            return 0;
+        }
+        List<UUID> matchedIds = jobOfferRepository.findIdsByExcludedEmployers(excludedEmployers);
+        if (matchedIds.isEmpty()) {
+            return 0;
+        }
+        jobApplicationRepository.deleteByJobOfferIdIn(matchedIds);
+        jobOfferRepository.deleteAllByIdInBatch(matchedIds);
+        return matchedIds.size();
+    }
+
+    private static List<String> parseExcludedEmployers(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 
     private JobboardSyncSettings getOrCreateSyncSettings() {

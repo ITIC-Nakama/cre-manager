@@ -28,6 +28,20 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     void deleteByJobOfferId(UUID jobOfferId);
 
+    /**
+     * Purge des clics "postuler" liés aux offres retirées pour cause d'employeur mis en liste
+     * noire — voir JobOfferRepository.findIdsByExcludedEmployers /
+     * ExternalJobSyncService.purgeOffersFromExcludedEmployers. Requête bulk explicite (comme
+     * deleteByJobOfferSource) plutôt qu'un delete-by dérivé : ce dernier passe par
+     * entityManager.remove() par entité, dont le flush n'est pas garanti avant le DELETE bulk sur
+     * job_offers qui suit immédiatement (space de requête différent = pas d'auto-flush Hibernate),
+     * ce qui viole la contrainte FK — reproduit et confirmé en test.
+     */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM JobApplication ja WHERE ja.jobOffer.id IN :jobOfferIds")
+    int deleteByJobOfferIdIn(@Param("jobOfferIds") List<UUID> jobOfferIds);
+
     boolean existsByStudentId(UUID studentId);
 
     List<JobApplication> findByStudentId(UUID studentId);

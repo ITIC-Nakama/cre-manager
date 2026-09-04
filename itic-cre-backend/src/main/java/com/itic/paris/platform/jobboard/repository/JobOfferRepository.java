@@ -1,6 +1,7 @@
 package com.itic.paris.platform.jobboard.repository;
 
 import com.itic.paris.platform.jobboard.model.JobOffer;
+import com.itic.paris.platform.jobboard.specification.JobOfferSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,27 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
     boolean existsBySourceId(String sourceId);
 
     long countBySourceAndActiveTrue(String source);
+
+    /**
+     * IDs des offres externes dont l'employeur matche la liste noire globale — le matching
+     * (LOWER/LIKE, voir JobOfferSpecification.excludedByEmployers) est fait par le moteur, seule
+     * la colonne id transite par la JVM. Utilisé par
+     * ExternalJobSyncService.purgeOffersFromExcludedEmployers : un DELETE direct joint sur
+     * JobApplication.jobOffer se heurte à un bug Hibernate 6.6 (delete-by-Specification avec
+     * jointure génère du SQL invalide, colonne "_rowid_" inexistante sous Postgres — reproduit et
+     * confirmé en base réelle), d'où le passage par cette liste d'IDs plutôt qu'une suppression
+     * jointe en une seule requête.
+     */
+    interface JobOfferIdView {
+        UUID getId();
+    }
+
+    default List<UUID> findIdsByExcludedEmployers(List<String> excludedEmployers) {
+        return findBy(JobOfferSpecification.excludedByEmployers(excludedEmployers), q -> q.as(JobOfferIdView.class).all())
+                .stream()
+                .map(JobOfferIdView::getId)
+                .toList();
+    }
 
     /** Répartition des offres actives d'une source par type de contrat (CDI/CDD/Alternance/Stage). */
     @Query("SELECT j.contractType.label, COUNT(j) FROM JobOffer j "
