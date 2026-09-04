@@ -432,7 +432,8 @@ public class ApplicationService {
                         + " (étudiant : " + saved.getStudent().getFirstName() + " " + saved.getStudent().getLastName() + ")");
 
         eventPublisher.publishEvent(new ContractDeclarationRejectedEvent(
-                saved.getStudent().getEmail(), saved.getStudent().getFirstName(), saved.getEntreprise(), saved.getPoste()));
+                saved.getStudent().getEmail(), saved.getStudent().getFirstName(), saved.getStudent().getLang(),
+                saved.getEntreprise(), saved.getPoste()));
 
         return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
     }

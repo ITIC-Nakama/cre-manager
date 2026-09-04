@@ -396,7 +396,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 | `cv-notification.html` (variante statut) | Un conseiller change le statut d'un CV |
 | `cv-notification.html` (variante commentaire) | Un conseiller ajoute un commentaire sur un CV |
 | `student-reminder.html` | Un conseiller envoie un rappel libre via `POST /dashboard/students/{id}/notify` |
-| `contract-declaration-rejected.html` | Un conseiller/admin refuse une déclaration "sous contrat" (`POST /dashboard/applications/{id}/reject-contract`) — seul évènement de la section §2 "Suivi sous contrat" à notifier l'étudiant ; la confirmation (`verify-contract`) n'envoie rien, la déclaration passe juste au vert dans son suivi. |
+| `contract-declaration-rejected.html` | Un conseiller/admin refuse une déclaration "sous contrat" (`POST /dashboard/applications/{id}/reject-contract`) — seul évènement de la section §2 "Suivi sous contrat" à notifier l'étudiant ; la confirmation (`verify-contract`) n'envoie rien, la déclaration passe juste au vert dans son suivi. Bilingue (`lang` de l'étudiant, comme `advisor-assigned.html`). |
 
 - **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée uniquement pour le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
 - **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.

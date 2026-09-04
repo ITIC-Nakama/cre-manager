@@ -92,8 +92,9 @@ public class EmailTemplateService {
         return templateEngine.process("email/student-reminder", context);
     }
 
-    public String renderContractDeclarationRejectedEmail(String firstName, String entreprise, String poste) {
+    public String renderContractDeclarationRejectedEmail(String lang, String firstName, String entreprise, String poste) {
         Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
         context.setVariable("firstName", firstName != null ? firstName.trim() : "");
         context.setVariable("entreprise", entreprise != null ? entreprise.trim() : "");
         context.setVariable("poste", poste != null ? poste.trim() : "");

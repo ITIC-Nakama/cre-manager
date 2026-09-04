@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="color-scheme" content="dark"/>
     <meta name="supported-color-schemes" content="dark"/>
-    <title>Déclaration de contrat refusée</title>
+    <title th:text="${brandName}">ITIC CRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 </head>
 <body style="margin:0;padding:0;background-color:#020203;font-family:'Roboto',Arial,sans-serif;" bgcolor="#020203">
@@ -26,7 +26,8 @@
                                 </tr>
                             </table>
                             <h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">
-                                Déclaration de contrat refusée
+                                <span th:if="${lang == 'en'}">Contract declaration rejected</span>
+                                <span th:if="${lang != 'en'}">Déclaration de contrat refusée</span>
                             </h1>
                         </td>
                     </tr>
@@ -36,11 +37,14 @@
                         <td style="background-color:#15171f;padding:36px 40px;border-left:1px solid #333a51;border-right:1px solid #333a51;" bgcolor="#15171f">
 
                             <p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#ffffff;">
-                                Bonjour <strong style="color:#E2782E;" th:text="${firstName}">Étudiant</strong>,
+                                <span th:if="${lang == 'en'}">Hello</span>
+                                <span th:if="${lang != 'en'}">Bonjour</span>
+                                <strong style="color:#E2782E;" th:text="${firstName}">Étudiant</strong>,
                             </p>
 
                             <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#9aa0a6;">
-                                Votre conseiller a examiné votre déclaration "Offre reçue" pour la candidature suivante et l'a refusée :
+                                <span th:if="${lang == 'en'}">Your advisor has reviewed your "Offer received" declaration for the following application and rejected it:</span>
+                                <span th:if="${lang != 'en'}">Votre conseiller a examiné votre déclaration "Offre reçue" pour la candidature suivante et l'a refusée :</span>
                             </p>
 
                             <!-- Candidature concernee -->
@@ -61,7 +65,8 @@
                             </table>
 
                             <p style="margin:0 0 28px 0;font-size:14px;color:#9aa0a6;line-height:1.6;">
-                                La candidature est revenue à son statut précédent. Si cette offre a bien été reçue, contactez votre conseiller ou mettez à jour votre candidature depuis votre espace.
+                                <span th:if="${lang == 'en'}">The application has reverted to its previous status. If you did in fact receive this offer, contact your advisor or update your application from your student space.</span>
+                                <span th:if="${lang != 'en'}">La candidature est revenue à son statut précédent. Si cette offre a bien été reçue, contactez votre conseiller ou mettez à jour votre candidature depuis votre espace.</span>
                             </p>
 
                             <!-- CTA Button — couleur pleine, comme les boutons de la plateforme -->
@@ -70,7 +75,8 @@
                                     <td style="background-color:#E2762F;border-radius:11px;" bgcolor="#E2762F">
                                         <a th:href="${frontendUrl} + '/student/candidatures'" target="_blank"
                                            style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
-                                            Voir mes candidatures →
+                                            <span th:if="${lang == 'en'}">See my applications →</span>
+                                            <span th:if="${lang != 'en'}">Voir mes candidatures →</span>
                                         </a>
                                     </td>
                                 </tr>
@@ -86,8 +92,8 @@
                                 <span th:text="${brandName}">ITIC Paris CRE</span>
                             </p>
                             <p style="margin:0;font-size:11px;color:#9aa0a6;line-height:1.5;">
-                                Cet email a été envoyé automatiquement par <span th:text="${brandName}">ITIC CRE</span>.
-                                Ne pas répondre à ce message.
+                                <span th:if="${lang == 'en'}">This email was sent automatically by <span th:text="${brandName}">ITIC CRE</span>. Do not reply to this message.</span>
+                                <span th:if="${lang != 'en'}">Cet email a été envoyé automatiquement par <span th:text="${brandName}">ITIC CRE</span>. Ne pas répondre à ce message.</span>
                             </p>
                         </td>
                     </tr>

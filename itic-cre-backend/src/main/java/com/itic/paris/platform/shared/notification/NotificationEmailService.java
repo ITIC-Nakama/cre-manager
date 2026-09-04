@@ -48,8 +48,11 @@ public class NotificationEmailService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onContractDeclarationRejected(ContractDeclarationRejectedEvent event) {
         String html = emailTemplateService.renderContractDeclarationRejectedEmail(
-                event.studentFirstName(), event.entreprise(), event.poste());
-        sendHtml(event.studentEmail(), "Déclaration de contrat refusée — ITIC CRE", html);
+                event.studentLang(), event.studentFirstName(), event.entreprise(), event.poste());
+        String subject = "en".equals(event.studentLang())
+                ? "Contract declaration rejected — ITIC CRE"
+                : "Déclaration de contrat refusée — ITIC CRE";
+        sendHtml(event.studentEmail(), subject, html);
     }
 
     @Async

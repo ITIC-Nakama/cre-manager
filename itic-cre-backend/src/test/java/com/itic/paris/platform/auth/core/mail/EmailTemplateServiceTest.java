@@ -41,12 +41,21 @@ class EmailTemplateServiceTest {
 
     @Test
     void rendersContractDeclarationRejectedEmailWithApplicationDetails() {
-        String html = emailTemplateService.renderContractDeclarationRejectedEmail("Jean", "Acme Corp", "Alternant Backend");
+        String html = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
         assertTrue(html.contains("Jean"));
         assertTrue(html.contains("Acme Corp"));
         assertTrue(html.contains("Alternant Backend"));
         assertTrue(html.contains("refusée"));
+    }
+
+    @Test
+    void rendersContractDeclarationRejectedEmailInEnglish() {
+        String html = emailTemplateService.renderContractDeclarationRejectedEmail("en", "John", "Acme Corp", "Backend Intern");
+
+        assertTrue(html.contains("Hello"));
+        assertTrue(html.contains("rejected"));
+        assertTrue(!html.contains("refusée"));
     }
 
     @Test
@@ -56,7 +65,7 @@ class EmailTemplateServiceTest {
         String cvStatus = emailTemplateService.renderCVStatusChangeEmail("Jean", "Validé", "#10B981");
         String cvComment = emailTemplateService.renderCVCommentEmail("Jean", "Bon travail");
         String reminder = emailTemplateService.renderStudentReminderEmail("Jean", "M. Martin", "Relance tes candidatures");
-        String contractRejected = emailTemplateService.renderContractDeclarationRejectedEmail("Jean", "Acme Corp", "Alternant Backend");
+        String contractRejected = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
         for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractRejected}) {
             assertTrue(html.contains("name=\"color-scheme\" content=\"dark\""));
