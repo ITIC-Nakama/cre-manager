@@ -15,6 +15,7 @@ import { exportApplicationsCsv } from '../../../api-s/requests/DashboardRequest'
 import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CustomSelect from '../../../components/basics/CustomSelect';
+import FiltersPopover from '../../../components/basics/FiltersPopover';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -158,6 +159,25 @@ export default function CandidaturesPage() {
         setAdvisorFilter(value);
     };
 
+    // Filtres regroupes dans le panneau "Filtres" (tout sauf recherche/statut, restes visibles) —
+    // "actif" = valeur qui s'ecarte du defaut de ce champ pour le role courant, meme principe
+    // qu'EtudiantsPage.
+    const activeFilterCount = [
+        promotionFilter,
+        contractTypeFilter,
+        contractFilter !== 'not_under_contract' ? contractFilter : '',
+        isAdmin ? advisorFilter : (advisorFilter !== currentUserId ? advisorFilter : ''),
+        staleOnly ? 'stale' : '',
+    ].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setPromotionFilter('');
+        setContractTypeFilter('');
+        setContractFilter('not_under_contract');
+        setAdvisorFilter(!isAdmin && currentUser ? String(currentUser.id) : '');
+        setStaleOnly(false);
+    };
+
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
 
@@ -203,61 +223,89 @@ export default function CandidaturesPage() {
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
                 />
-                <CustomSelect
-                    value={promotionFilter}
-                    options={promotionOptions}
-                    onChange={handlePromotionChange}
-                    icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                    searchable
-                    searchPlaceholder={t('dashboard.candidatures.promotion_search_placeholder')}
-                    noResultsLabel={t('dashboard.candidatures.promotion_no_results')}
-                />
-                <CustomSelect
-                    value={contractTypeFilter}
-                    options={contractTypeOptions}
-                    onChange={handleContractTypeChange}
-                    icon={<FileSignature className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <CustomSelect
-                    value={contractFilter}
-                    options={contractFilterOptions}
-                    onChange={(value) => setContractFilter(value as ContractFilter)}
-                    icon={<Handshake className="h-4 w-4 text-slate-400" />}
-                    className="min-w-48"
-                />
-                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                    <input
-                        type="checkbox"
-                        checked={advisorFilter === currentUserId}
-                        onChange={(e) => handleAdvisorFilterChange(e.target.checked ? currentUserId : '')}
-                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                    />
-                    <Users className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>{t('dashboard.etudiants.filter_my_students', 'Mes étudiants uniquement')}</span>
-                </label>
-                {isAdmin && (
-                    <CustomSelect
-                        value={advisorFilter === currentUserId ? '' : advisorFilter}
-                        options={advisorOptions}
-                        onChange={handleAdvisorFilterChange}
-                        icon={<Users className="h-4 w-4 text-slate-400" />}
-                        className={`min-w-48 transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
-                        searchable
-                    />
-                )}
-                <button
-                    onClick={() => setStaleOnly((p) => !p)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                        staleOnly
-                            ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                >
-                    <AlertCircle className="h-4 w-4" />
-                    {t('dashboard.candidatures.filter_stale_only')}
-                </button>
+
+                {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de
+                  * surcharger la barre avec 6+ controles affiches en permanence. */}
+                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                    <div className="py-3 first:pt-3 last:pb-3">
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.etudiants.filter_promotion_label', 'Promotion')}
+                        </label>
+                        <CustomSelect
+                            value={promotionFilter}
+                            options={promotionOptions}
+                            onChange={handlePromotionChange}
+                            icon={<GraduationCap className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                            searchable
+                            searchPlaceholder={t('dashboard.candidatures.promotion_search_placeholder')}
+                            noResultsLabel={t('dashboard.candidatures.promotion_no_results')}
+                        />
+                    </div>
+
+                    <div className="py-3 first:pt-3 last:pb-3">
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.candidatures.detail.contract', 'Type de contrat')}
+                        </label>
+                        <CustomSelect
+                            value={contractTypeFilter}
+                            options={contractTypeOptions}
+                            onChange={handleContractTypeChange}
+                            icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+
+                    <div className="py-3 first:pt-3 last:pb-3">
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.etudiants.filter_contract_label', 'Contrat')}
+                        </label>
+                        <CustomSelect
+                            value={contractFilter}
+                            options={contractFilterOptions}
+                            onChange={(value) => setContractFilter(value as ContractFilter)}
+                            icon={<Handshake className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
+                    </div>
+
+                    <div className="py-3 first:pt-3 last:pb-3 flex flex-col gap-2.5">
+                        <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={advisorFilter === currentUserId}
+                                onChange={(e) => handleAdvisorFilterChange(e.target.checked ? currentUserId : '')}
+                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            />
+                            <Users className="h-3.5 w-3.5 text-indigo-500" />
+                            {t('dashboard.etudiants.filter_my_students', 'Mes étudiants uniquement')}
+                        </label>
+
+                        {isAdmin && (
+                            <CustomSelect
+                                value={advisorFilter === currentUserId ? '' : advisorFilter}
+                                options={advisorOptions}
+                                onChange={handleAdvisorFilterChange}
+                                icon={<Users className="h-4 w-4 text-slate-400" />}
+                                className={`w-full transition-opacity ${advisorFilter === currentUserId ? 'opacity-50' : ''}`}
+                                searchable
+                            />
+                        )}
+                    </div>
+
+                    <div className="py-3 first:pt-3 last:pb-3">
+                        <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={staleOnly}
+                                onChange={(e) => setStaleOnly(e.target.checked)}
+                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            />
+                            <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                            {t('dashboard.candidatures.filter_stale_only')}
+                        </label>
+                    </div>
+                </FiltersPopover>
             </div>
 
             {/* Grid */}

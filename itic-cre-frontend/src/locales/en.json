@@ -343,6 +343,8 @@
       "filter_no_cv": "No CV",
       "filter_show_anonymized": "Show deleted accounts (GDPR)",
       "filter_all_promotions": "All cohorts",
+      "filter_promotion_label": "Cohort",
+      "filter_contract_label": "Contract",
       "filter_all_advisors": "All advisors",
       "filter_my_students": "My students only",
       "filter_contract_not_under": "Not under contract",

@@ -184,6 +184,25 @@ export default function EtudiantsPage() {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useStudentListInfinite(params);
 
+    // Filtres regroupes dans le panneau "Filtres" (tout sauf recherche/statut, restes visibles) —
+    // "actif" = valeur qui s'ecarte du defaut de ce champ pour le role courant.
+    const activeFilterCount = [
+        promotionFilter,
+        studyYearFilter,
+        contractFilter !== 'not_under_contract' ? contractFilter : '',
+        isAdmin ? advisorFilter : (advisorFilter !== currentUserId ? advisorFilter : ''),
+        includeAnonymized ? 'anon' : '',
+    ].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setPromotionFilter('');
+        setStudyYearFilter('');
+        setContractFilter('not_under_contract');
+        setAdvisorFilter(!isAdmin && currentUser ? String(currentUser.id) : '');
+        setIncludeAnonymized(false);
+        clearSelection();
+    };
+
     // IMPORTANT: getCoreRowModel() doit etre memoize — l'appeler inline cree une nouvelle
     // fonction a chaque render, ce que useReactTable interprete comme un changement et
     // declenche un nouveau render, creant une boucle infinie qui bloque React.
@@ -371,6 +390,7 @@ export default function EtudiantsPage() {
                     studyYearOptions={studyYearOptions}
                     advisorOptions={advisorOptions}
                     contractFilterOptions={contractFilterOptions}
+                    activeFilterCount={activeFilterCount}
                     onSearchChange={handleSearch}
                     onFilterChange={handleFilterChange}
                     onPromotionChange={handlePromotionFilterChange}
@@ -381,6 +401,7 @@ export default function EtudiantsPage() {
                         setIncludeAnonymized(checked);
                         clearSelection();
                     }}
+                    onReset={handleResetFilters}
                 />
             </div>
 

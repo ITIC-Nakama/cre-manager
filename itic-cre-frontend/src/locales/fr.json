@@ -343,6 +343,8 @@
       "filter_no_cv": "Sans CV",
       "filter_show_anonymized": "Afficher les comptes supprimés (RGPD)",
       "filter_all_promotions": "Toutes les promotions",
+      "filter_promotion_label": "Promotion",
+      "filter_contract_label": "Contrat",
       "filter_all_advisors": "Tous les conseillers",
       "filter_my_students": "Mes étudiants uniquement",
       "filter_contract_not_under": "Pas sous contrat",
