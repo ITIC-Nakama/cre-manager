@@ -24,7 +24,9 @@ import com.itic.paris.platform.jobboard.model.dtos.ContractTypeDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.event.ContractDeclarationRejectedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,6 +54,7 @@ public class ApplicationService {
     private final XPHistoryRepository xpHistoryRepository;
     private final AppConfigurationService appConfigurationService;
     private final AuditLogService auditLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ApplicationDTO create(CreateApplicationRequest request) {
@@ -427,6 +430,9 @@ public class ApplicationService {
         auditLogService.log(AuditAction.APPLICATION_CONTRACT_REJECTED, getCurrentUser(), "APPLICATION", saved.getId(),
                 currentStatus.getNom() + " refusé → retour à " + targetStatus.getNom() + " — " + saved.getEntreprise()
                         + " (étudiant : " + saved.getStudent().getFirstName() + " " + saved.getStudent().getLastName() + ")");
+
+        eventPublisher.publishEvent(new ContractDeclarationRejectedEvent(
+                saved.getStudent().getEmail(), saved.getStudent().getFirstName(), saved.getEntreprise(), saved.getPoste()));
 
         return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
     }

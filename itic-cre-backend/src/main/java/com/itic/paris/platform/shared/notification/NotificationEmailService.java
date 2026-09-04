@@ -4,6 +4,7 @@ import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.shared.notification.event.AdvisorAssignedEvent;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
+import com.itic.paris.platform.shared.notification.event.ContractDeclarationRejectedEvent;
 import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,14 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderCVCommentEmail(
                 event.studentFirstName(), event.commentContent());
         sendHtml(event.studentEmail(), "Nouveau commentaire sur votre CV", html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onContractDeclarationRejected(ContractDeclarationRejectedEvent event) {
+        String html = emailTemplateService.renderContractDeclarationRejectedEmail(
+                event.studentFirstName(), event.entreprise(), event.poste());
+        sendHtml(event.studentEmail(), "Déclaration de contrat refusée — ITIC CRE", html);
     }
 
     @Async

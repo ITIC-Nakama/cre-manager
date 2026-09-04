@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -118,7 +119,7 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                 )}
             </div>
 
-            {showContractGate && nextStatus && (
+            {showContractGate && nextStatus && createPortal(
                 <div onClick={(e) => e.stopPropagation()}>
                     <ContractDateGateModal
                         statusName={nextStatus.nom}
@@ -126,7 +127,8 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                         onClose={() => setShowContractGate(false)}
                         onConfirm={(startDate, endDate) => applyStatusChange(nextStatus.id, startDate, endDate)}
                     />
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
