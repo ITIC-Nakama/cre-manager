@@ -122,7 +122,6 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
             {showContractGate && nextStatus && createPortal(
                 <div onClick={(e) => e.stopPropagation()}>
                     <ContractDateGateModal
-                        statusName={nextStatus.nom}
                         saving={changeStatusMutation.isPending}
                         onClose={() => setShowContractGate(false)}
                         onConfirm={(startDate, endDate) => applyStatusChange(nextStatus.id, startDate, endDate)}

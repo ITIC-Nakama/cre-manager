@@ -89,7 +89,7 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized/underContract")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized/underContract/needsContractVerification")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
@@ -102,11 +102,13 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @RequestParam(required = false) Boolean underContract,
+            @RequestParam(required = false) Boolean needsContractVerification,
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
+                .needsContractVerification(needsContractVerification)
                 .build();
         return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
     }
@@ -124,11 +126,13 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
-            @RequestParam(required = false) Boolean underContract) {
+            @RequestParam(required = false) Boolean underContract,
+            @RequestParam(required = false) Boolean needsContractVerification) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
+                .needsContractVerification(needsContractVerification)
                 .build();
         Page<Map<String, Object>> result = studentReportingService.getStudentList(criteria, Pageable.unpaged());
         return ResponseEntity.ok(result.getContent());
@@ -160,11 +164,12 @@ public class DashboardController {
             @RequestParam(required = false) Boolean activeStudentsOnly,
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) Boolean underContract,
+            @RequestParam(required = false) Boolean needsContractVerification,
             @PageableDefault(size = 20) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
-                .underContract(underContract)
+                .underContract(underContract).needsContractVerification(needsContractVerification)
                 .build();
         return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }

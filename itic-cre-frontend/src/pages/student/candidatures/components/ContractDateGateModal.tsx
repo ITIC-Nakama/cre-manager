@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 
 interface Props {
-    statusName: string;
     saving: boolean;
     onClose: () => void;
     onConfirm: (startDate: string, endDate?: string) => Promise<void>;
@@ -13,7 +12,7 @@ interface Props {
 /** Bloque le passage à un statut "sous contrat" (ex: Offre reçue) tant qu'une date de début
   * n'est pas renseignée — sans elle, la candidature ne remonterait jamais comme sous contrat
   * dans les filtres/stats conseiller (voir StudentSpecification.underContractPredicate). */
-export default function ContractDateGateModal({ statusName, saving, onClose, onConfirm }: Props) {
+export default function ContractDateGateModal({ saving, onClose, onConfirm }: Props) {
     const { t } = useTranslation();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -41,7 +40,7 @@ export default function ContractDateGateModal({ statusName, saving, onClose, onC
                     <div className="flex items-center gap-2">
                         <Handshake className="h-4 w-4 text-emerald-500" />
                         <p className="text-base font-bold text-slate-900 dark:text-white">
-                            {t('dashboard.candidatures.student.contract_gate.title', { status: statusName, defaultValue: `Passer à "${statusName}"` })}
+                            {t('dashboard.candidatures.student.contract_gate.title', 'Confirmer la réception de l\'offre')}
                         </p>
                     </div>
                     <button

@@ -22,4 +22,5 @@ public class ApplicationFilterCriteria {
     private final Boolean activeStudentsOnly;
     private final UUID advisorId;
     private final Boolean underContract;
+    private final Boolean needsContractVerification;
 }

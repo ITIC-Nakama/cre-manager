@@ -19,6 +19,16 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, UUID>, JpaSpecificationExecutor<Application> {
 
+    /** Sous-requete correlee partagee par les 6 requetes "sous contrat"/"a verifier" ci-dessous :
+      * la date de debut de la derniere candidature compteCommeContrat=true de l'etudiant (pas de
+      * cumul de postes — voir StudentSpecification.latestContractStartDateSubquery, meme regle
+      * exprimee en JPQL ici faute de pouvoir partager du Criteria API dans une annotation @Query). */
+    String LATEST_CONTRACT_START_DATE = "a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 " +
+            "WHERE a2.student = a.student AND a2.status.compteCommeContrat = true)";
+
+    /** Contrat encore actif : pas de date de fin, ou date de fin pas encore atteinte. */
+    String CONTRACT_STILL_ACTIVE = "(a.endDate IS NULL OR a.endDate >= CURRENT_DATE)";
+
     Page<Application> findByStudentId(UUID studentId, Pageable pageable);
 
     Optional<Application> findByIdAndStudentId(UUID id, UUID studentId);
@@ -78,22 +88,22 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
       * Ne considere que la derniere en date (startDate le plus recent) : pas de cumul de postes. */
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true) " +
-            "AND (a.endDate IS NULL OR a.endDate >= CURRENT_DATE)")
+            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + CONTRACT_STILL_ACTIVE)
     long countStudentsUnderContract();
 
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true) " +
-            "AND (a.endDate IS NULL OR a.endDate >= CURRENT_DATE)")
+            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + CONTRACT_STILL_ACTIVE)
     long countStudentsUnderContractForStudents(List<UUID> studentIds);
 
     @Query("SELECT DISTINCT a.student.id FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true) " +
-            "AND (a.endDate IS NULL OR a.endDate >= CURRENT_DATE)")
+            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + CONTRACT_STILL_ACTIVE)
     List<UUID> findStudentIdsUnderContract(List<UUID> studentIds);
 
     /** Etudiants dont une declaration "sous contrat" n'a pas encore ete confirmee par un
@@ -105,16 +115,16 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
       * declaration "sous contrat" en date : pas de cumul de postes. */
     @Query("SELECT DISTINCT a.student.id FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true AND a.contractVerified = false " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true)")
+            "AND " + LATEST_CONTRACT_START_DATE)
     List<UUID> findStudentIdsWithUnverifiedContract(List<UUID> studentIds);
 
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.status.compteCommeContrat = true " +
             "AND a.contractVerified = false " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true)")
+            "AND " + LATEST_CONTRACT_START_DATE)
     long countStudentsWithUnverifiedContract();
 
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true AND a.contractVerified = false " +
-            "AND a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 WHERE a2.student = a.student AND a2.status.compteCommeContrat = true)")
+            "AND " + LATEST_CONTRACT_START_DATE)
     long countStudentsWithUnverifiedContractForStudents(List<UUID> studentIds);
 }

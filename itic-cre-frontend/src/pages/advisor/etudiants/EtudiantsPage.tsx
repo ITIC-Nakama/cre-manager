@@ -161,6 +161,7 @@ export default function EtudiantsPage() {
     const contractFilterOptions = useMemo(() => [
         { value: 'not_under_contract', label: t('dashboard.etudiants.filter_contract_not_under', 'Pas sous contrat') },
         { value: 'under_contract', label: t('dashboard.etudiants.filter_contract_under', 'Sous contrat') },
+        { value: 'needs_verification', label: t('dashboard.etudiants.filter_contract_needs_verification', 'À vérifier') },
         { value: 'all', label: t('dashboard.etudiants.filter_contract_all', 'Tous') },
     ], [t]);
 
@@ -173,7 +174,8 @@ export default function EtudiantsPage() {
         promotionId: promotionFilter || undefined,
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,
         advisorId: advisorFilter || undefined,
-        underContract: contractFilter === 'all' ? undefined : contractFilter === 'under_contract',
+        underContract: contractFilter === 'under_contract' ? true : contractFilter === 'not_under_contract' ? false : undefined,
+        needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
         sort: toSortParam(sorting),
     }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, isAdmin, includeAnonymized, sorting]);

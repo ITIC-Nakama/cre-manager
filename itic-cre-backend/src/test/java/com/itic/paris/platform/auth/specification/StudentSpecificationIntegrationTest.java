@@ -225,6 +225,46 @@ class StudentSpecificationIntegrationTest {
     }
 
     @Test
+    @DisplayName("needsContractVerification=true isolates only students with a pending declaration, excluding verified and unrelated students")
+    void testNeedsContractVerificationFilter() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue filtre verification test");
+        contractStatus.setOrdre(106);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        // Alice : declaration en attente — doit ressortir.
+        Application pendingApp = new Application();
+        pendingApp.setStudent(student1);
+        pendingApp.setEntreprise("Pending Corp");
+        pendingApp.setPoste("Alternant");
+        pendingApp.setStatus(contractStatus);
+        pendingApp.setStartDate(LocalDate.now().minusDays(1));
+        applicationRepository.save(pendingApp);
+
+        // Bob : declaration deja verifiee — ne doit pas ressortir malgre compteCommeContrat=true.
+        Application verifiedApp = new Application();
+        verifiedApp.setStudent(student2);
+        verifiedApp.setEntreprise("Verified Corp");
+        verifiedApp.setPoste("Alternant");
+        verifiedApp.setStatus(contractStatus);
+        verifiedApp.setStartDate(LocalDate.now().minusDays(1));
+        verifiedApp.setContractVerified(true);
+        applicationRepository.save(verifiedApp);
+
+        Page<Student> result = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().needsContractVerification(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(result.getContent())
+                .extracting(Student::getFirstName)
+                .contains("Alice")
+                .doesNotContain("Bob");
+    }
+
+    @Test
     @DisplayName("Should not count a verified contract application whose end date has already passed")
     void testUnderContractFilterExcludesExpiredContract() {
         ApplicationStatus contractStatus = new ApplicationStatus();

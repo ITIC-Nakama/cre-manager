@@ -81,6 +81,7 @@ export interface StudentListParams {
   advisorId?: string;
   includeAnonymized?: boolean;
   underContract?: boolean;
+  needsContractVerification?: boolean;
   sort?: string;
 }
 
