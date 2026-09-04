@@ -27,7 +27,7 @@
 
                     <!-- Header -->
                     <tr>
-                        <td class="bg-frame" style="background-color:#f7f8fa;border-top:4px solid #E2782E;padding:28px 40px;" bgcolor="#f7f8fa">
+                        <td class="bg-frame" style="background-color:#f7f8fa;border-top:4px solid #3B71FF;padding:28px 40px;" bgcolor="#f7f8fa">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td style="padding-bottom:18px;">
@@ -45,7 +45,7 @@
                     <tr>
                         <td class="bg-body" style="background-color:#ffffff;padding:36px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;" bgcolor="#ffffff">
                             <p class="text-primary" style="margin:0 0 20px 0;font-size:16px;color:#111827;line-height:1.6;">
-                                Bonjour <strong style="color:#E2782E;" th:text="${firstName}">Étudiant</strong>,
+                                Bonjour <strong style="color:#3B71FF;" th:text="${firstName}">Étudiant</strong>,
                             </p>
 
                             <!-- CV Status change -->
@@ -62,7 +62,7 @@
                                 </table>
                                 <th:block th:if="${statutNom == 'À corriger'}">
                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                                           class="bg-notice" style="background-color:#f3f4f6;border-radius:10px;border:1px solid #e5e7eb;border-left:4px solid #E2782E;margin-bottom:20px;" bgcolor="#f3f4f6">
+                                           class="bg-notice" style="background-color:#f3f4f6;border-radius:10px;border:1px solid #e5e7eb;border-left:4px solid #3B71FF;margin-bottom:20px;" bgcolor="#f3f4f6">
                                         <tr>
                                             <td style="padding:14px 20px;">
                                                 <p class="text-secondary" style="margin:0;font-size:14px;color:#6b7280;line-height:1.6;">
@@ -99,7 +99,7 @@
                             <!-- CTA Button -->
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="background-color:#E2762F;border-radius:11px;" bgcolor="#E2762F">
+                                    <td style="background-color:#3B71FF;border-radius:11px;" bgcolor="#3B71FF">
                                         <a th:href="${frontendUrl} + '/student/cv'" target="_blank"
                                            style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
                                             Voir mon CV →

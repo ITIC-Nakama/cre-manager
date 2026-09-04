@@ -16,7 +16,7 @@ class EmailTemplateServiceTest {
     void rendersOtpVerificationEmailWithBrandColors() {
         String html = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
 
-        assertTrue(html.contains("#E2782E"));
+        assertTrue(html.contains("#3B71FF"));
         assertTrue(html.contains("482910"));
         assertTrue(html.contains("Bonjour"));
         assertTrue(html.contains("ITIC CRE"));
@@ -59,7 +59,10 @@ class EmailTemplateServiceTest {
     }
 
     @Test
-    void forcesDarkColorSchemeOnEveryTemplate() {
+    void supportsBothColorSchemesOnEveryTemplate() {
+        // Chaque template s'adapte au client mail (clair par defaut, sombre via prefers-color-scheme)
+        // plutot que de forcer un theme unique — voir le bloc @media (prefers-color-scheme: dark)
+        // et les classes bg-page/bg-frame/bg-body qu'il redefinit dans chaque fichier.
         String otp = emailTemplateService.renderOtpVerificationEmail("fr", "Jean", "482910", 10);
         String credentials = emailTemplateService.renderAccountCredentialsEmail("fr", "Jean", "jean@itic.fr", "Temp1234!", true);
         String cvStatus = emailTemplateService.renderCVStatusChangeEmail("Jean", "Validé", "#10B981");
@@ -68,9 +71,20 @@ class EmailTemplateServiceTest {
         String contractRejected = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
         for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractRejected}) {
-            assertTrue(html.contains("name=\"color-scheme\" content=\"dark\""));
-            assertTrue(html.contains("name=\"supported-color-schemes\" content=\"dark\""));
-            assertTrue(html.contains("bgcolor=\"#020203\""));
+            assertTrue(html.contains("name=\"color-scheme\" content=\"light dark\""));
+            assertTrue(html.contains("name=\"supported-color-schemes\" content=\"light dark\""));
+            assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
         }
+    }
+
+    @Test
+    void contractDeclarationRejectedUsesDangerAccentNotDefaultBrandColor() {
+        // Email "important" (refus) : l'accent (bordure d'en-tete + encart candidature) doit
+        // rester rouge/rose pour se distinguer visuellement des autres emails (confirmation,
+        // rappel...) qui utilisent tous le bleu de marque #3B71FF.
+        String html = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
+
+        assertTrue(html.contains("#F43F5E"));
+        assertTrue(html.contains("#3B71FF"));
     }
 }
