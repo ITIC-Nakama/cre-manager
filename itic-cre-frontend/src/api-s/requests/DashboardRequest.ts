@@ -37,6 +37,7 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.advisorId)                 query.advisorId = params.advisorId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
     if (params.underContract !== undefined) query.underContract = params.underContract;
+    if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
     if (params.sort)                      query.sort = params.sort;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
@@ -60,6 +61,7 @@ export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'
     if (params.advisorId)                 query.advisorId = params.advisorId;
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
     if (params.underContract !== undefined) query.underContract = params.underContract;
+    if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
 
     return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);
 }

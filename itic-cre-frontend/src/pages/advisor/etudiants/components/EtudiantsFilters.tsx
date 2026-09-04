@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 
 export type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
-export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract';
+export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | 'needs_verification';
 
 interface FilterOption {
     value: string;

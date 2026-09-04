@@ -347,6 +347,7 @@
       "filter_my_students": "Mes étudiants uniquement",
       "filter_contract_not_under": "Pas sous contrat",
       "filter_contract_under": "Sous contrat",
+      "filter_contract_needs_verification": "À vérifier",
       "filter_contract_all": "Tous",
       "filter_study_year": "Année d'étude",
       "filter_study_year_all": "Toutes les années",
@@ -574,7 +575,7 @@
           "xp_preview": "+{{xp}} XP"
         },
         "contract_gate": {
-          "title": "Passer à \"{{status}}\"",
+          "title": "Confirmer la réception de l'offre",
           "explanation": "Précisez la date de début (et de fin si connue) de ce contrat pour qu'il apparaisse correctement dans votre suivi.",
           "start_date_required": "La date de début est requise",
           "confirm": "Confirmer"

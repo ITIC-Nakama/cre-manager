@@ -9,7 +9,7 @@ Plateforme complète de suivi des candidatures (stage & alternance), de gestion 
 Toute la documentation détaillée du projet est centralisée dans le dossier [`docs/`](./docs) :
 
 *   📋 **[Règles Métier (`docs/REGLES_METIER.md`)](./docs/REGLES_METIER.md)** : Spécifications et règles métier réellement implémentées dans le code (Authentification, CRM, Jobboard externe, Gamification, CV, RGPD, Skill Tree, Audit, Limites d'upload).
-*   🧪 **[Couverture & Architecture des Tests (`docs/TEST_COVERAGE.md`)](./docs/TEST_COVERAGE.md)** : Architecture de test automatisée, matrice de couverture intégrale (207 tests d'intégration sur 16 modules), exécution CI/CD dans GitHub Actions.
+*   🧪 **[Couverture & Architecture des Tests (`docs/TEST_COVERAGE.md`)](./docs/TEST_COVERAGE.md)** : Architecture de test automatisée, matrice de couverture intégrale (209 tests d'intégration sur 16 modules), exécution CI/CD dans GitHub Actions.
 *   🔍 **[Tests — Jobboard externe (`docs/TESTS_JOBBOARD_EXTERNE.md`)](./docs/TESTS_JOBBOARD_EXTERNE.md)** : détail test par test de l'agrégation d'offres externes (France Travail, Adzuna, La Bonne Alternance), du découplage offre/candidature et du seuil d'XP hebdomadaire.
 
 ---
@@ -67,7 +67,7 @@ docker compose up --build
 
 ## 🧪 Tests Automatisés
 
-Le backend inclut **207 tests unitaires et d'intégration** couvrant 100% des modules fonctionnels (Authentification, Gouvernance Admin, CRM, CV, JPA Specifications, Gamification, Skill Tree, Jobboard, RGPD, Audit, Dashboard, Configuration Applicative, Stockage Fichiers et Emails).
+Le backend inclut **209 tests unitaires et d'intégration** couvrant 100% des modules fonctionnels (Authentification, Gouvernance Admin, CRM, CV, JPA Specifications, Gamification, Skill Tree, Jobboard, RGPD, Audit, Dashboard, Configuration Applicative, Stockage Fichiers et Emails).
 
 Pour lancer la suite de tests en local :
 ```bash

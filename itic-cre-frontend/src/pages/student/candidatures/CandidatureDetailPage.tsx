@@ -352,7 +352,6 @@ export default function CandidatureDetailPage() {
 
             {pendingContractStatusId && (
                 <ContractDateGateModal
-                    statusName={statuses?.find((s) => s.id === pendingContractStatusId)?.nom ?? ''}
                     saving={changeStatusMutation.isPending}
                     onClose={() => setPendingContractStatusId(null)}
                     onConfirm={(startDate, endDate) => applyStatusChange(pendingContractStatusId, startDate, endDate)}

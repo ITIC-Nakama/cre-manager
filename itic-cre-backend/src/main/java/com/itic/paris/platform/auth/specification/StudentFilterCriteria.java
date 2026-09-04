@@ -24,4 +24,5 @@ public class StudentFilterCriteria {
     private final Boolean hasStale;
     private final Boolean includeAnonymized;
     private final Boolean underContract;
+    private final Boolean needsContractVerification;
 }

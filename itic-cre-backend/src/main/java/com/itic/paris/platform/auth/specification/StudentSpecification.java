@@ -90,6 +90,10 @@ public class StudentSpecification {
                 predicates.add(underContractPredicate(root, query, cb, criteria.getUnderContract()));
             }
 
+            if (Boolean.TRUE.equals(criteria.getNeedsContractVerification())) {
+                predicates.add(needsContractVerificationPredicate(root, query, cb));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -198,6 +202,10 @@ public class StudentSpecification {
                 predicates.add(underContractPredicate(root, query, cb, criteria.getUnderContract()));
             }
 
+            if (Boolean.TRUE.equals(criteria.getNeedsContractVerification())) {
+                predicates.add(needsContractVerificationPredicate(root, query, cb));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -225,14 +233,7 @@ public class StudentSpecification {
         Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
         LocalDate today = LocalDate.now();
 
-        Subquery<LocalDate> latestStartDateSubquery = contractSubquery.subquery(LocalDate.class);
-        Root<Application> latestAppRoot = latestStartDateSubquery.from(Application.class);
-        Join<Application, ApplicationStatus> latestStatusJoin = latestAppRoot.join("status", JoinType.INNER);
-        latestStartDateSubquery.select(cb.greatest(latestAppRoot.<LocalDate>get("startDate")));
-        latestStartDateSubquery.where(
-                cb.equal(latestAppRoot.get("student"), appRoot.get("student")),
-                cb.isTrue(latestStatusJoin.get("compteCommeContrat"))
-        );
+        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(contractSubquery, cb, appRoot.get("student"));
 
         contractSubquery.select(appRoot.get("id"));
         contractSubquery.where(
@@ -244,6 +245,49 @@ public class StudentSpecification {
         );
 
         return Boolean.TRUE.equals(underContract) ? cb.exists(contractSubquery) : cb.not(cb.exists(contractSubquery));
+    }
+
+    /**
+     * Etudiant dont la derniere declaration "sous contrat" est encore en attente de verification
+     * (compteCommeContrat = true, contractVerified = false). Volontairement sans contrainte de
+     * date, comme ApplicationRepository.findStudentIdsWithUnverifiedContract : un etudiant declare
+     * la plupart du temps une offre avant que le contrat ne demarre, l'alerte doit apparaitre des
+     * la declaration.
+     */
+    private static Predicate needsContractVerificationPredicate(Root<Student> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        Subquery<UUID> subquery = query.subquery(UUID.class);
+        Root<Application> appRoot = subquery.from(Application.class);
+        Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
+
+        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(subquery, cb, appRoot.get("student"));
+
+        subquery.select(appRoot.get("id"));
+        subquery.where(
+                cb.equal(appRoot.get("student"), root),
+                cb.isTrue(statusJoin.get("compteCommeContrat")),
+                cb.isFalse(appRoot.get("contractVerified")),
+                cb.equal(appRoot.get("startDate"), latestStartDateSubquery)
+        );
+
+        return cb.exists(subquery);
+    }
+
+    /**
+     * Sous-requete correlee : la date de debut de la derniere candidature "sous contrat" (la plus
+     * recente compteCommeContrat=true) pour l'etudiant du sous-arbre appele — partagee par
+     * underContractPredicate et needsContractVerificationPredicate, qui ne different que sur les
+     * conditions appliquees a cette "derniere" candidature (verifiee vs non verifiee, date de fin).
+     */
+    private static Subquery<LocalDate> latestContractStartDateSubquery(AbstractQuery<?> parentQuery, CriteriaBuilder cb, Path<?> studentPath) {
+        Subquery<LocalDate> latestStartDateSubquery = parentQuery.subquery(LocalDate.class);
+        Root<Application> latestAppRoot = latestStartDateSubquery.from(Application.class);
+        Join<Application, ApplicationStatus> latestStatusJoin = latestAppRoot.join("status", JoinType.INNER);
+        latestStartDateSubquery.select(cb.greatest(latestAppRoot.<LocalDate>get("startDate")));
+        latestStartDateSubquery.where(
+                cb.equal(latestAppRoot.get("student"), studentPath),
+                cb.isTrue(latestStatusJoin.get("compteCommeContrat"))
+        );
+        return latestStartDateSubquery;
     }
 
     /**

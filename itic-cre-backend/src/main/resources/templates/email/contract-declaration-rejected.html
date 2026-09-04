@@ -3,29 +3,39 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="color-scheme" content="dark"/>
-    <meta name="supported-color-schemes" content="dark"/>
+    <meta name="color-scheme" content="light dark"/>
+    <meta name="supported-color-schemes" content="light dark"/>
     <title th:text="${brandName}">ITIC CRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .bg-page { background-color: #020203 !important; }
+            .bg-frame { background-color: #0d0f16 !important; }
+            .bg-body { background-color: #15171f !important; }
+            .bg-notice { background-color: #1e2130 !important; }
+            .text-primary { color: #ffffff !important; }
+            .text-secondary { color: #9aa0a6 !important; }
+        }
+    </style>
 </head>
-<body style="margin:0;padding:0;background-color:#020203;font-family:'Roboto',Arial,sans-serif;" bgcolor="#020203">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#020203;padding:40px 0;" bgcolor="#020203">
+<body class="bg-page" style="margin:0;padding:0;background-color:#eef0f3;font-family:'Roboto',Arial,sans-serif;" bgcolor="#eef0f3">
+    <table width="100%" cellpadding="0" cellspacing="0" class="bg-page" style="background-color:#eef0f3;padding:40px 0;" bgcolor="#eef0f3">
         <tr>
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0"
-                       style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+                       style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.08);">
 
                     <!-- Header -->
                     <tr>
-                        <td style="background-color:#0d0f16;border-top:4px solid #F43F5E;padding:28px 40px;" bgcolor="#0d0f16">
+                        <td class="bg-frame" style="background-color:#f7f8fa;border-top:4px solid #F43F5E;padding:28px 40px;" bgcolor="#f7f8fa">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td style="padding-bottom:18px;">
-                                        <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9aa0a6;" th:text="${brandName}">ITIC CRE</span>
+                                        <span class="text-secondary" style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#6b7280;" th:text="${brandName}">ITIC CRE</span>
                                     </td>
                                 </tr>
                             </table>
-                            <h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">
+                            <h1 class="text-primary" style="margin:0;font-size:22px;font-weight:700;color:#111827;">
                                 <span th:if="${lang == 'en'}">Contract declaration rejected</span>
                                 <span th:if="${lang != 'en'}">Déclaration de contrat refusée</span>
                             </h1>
@@ -34,37 +44,37 @@
 
                     <!-- Body -->
                     <tr>
-                        <td style="background-color:#15171f;padding:36px 40px;border-left:1px solid #333a51;border-right:1px solid #333a51;" bgcolor="#15171f">
+                        <td class="bg-body" style="background-color:#ffffff;padding:36px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;" bgcolor="#ffffff">
 
-                            <p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#ffffff;">
+                            <p class="text-primary" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#111827;">
                                 <span th:if="${lang == 'en'}">Hello</span>
                                 <span th:if="${lang != 'en'}">Bonjour</span>
-                                <strong style="color:#E2782E;" th:text="${firstName}">Étudiant</strong>,
+                                <strong style="color:#3B71FF;" th:text="${firstName}">Étudiant</strong>,
                             </p>
 
-                            <p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#9aa0a6;">
-                                <span th:if="${lang == 'en'}">Your advisor has reviewed your "Offer received" declaration for the following application and rejected it:</span>
-                                <span th:if="${lang != 'en'}">Votre conseiller a examiné votre déclaration "Offre reçue" pour la candidature suivante et l'a refusée :</span>
+                            <p class="text-secondary" style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#6b7280;">
+                                <span th:if="${lang == 'en'}">Your advisor has reviewed the offer you reported receiving for the following application, and could not confirm it:</span>
+                                <span th:if="${lang != 'en'}">Votre conseiller a examiné l'offre que vous aviez indiqué avoir reçue pour la candidature suivante, et n'a pas pu la confirmer :</span>
                             </p>
 
                             <!-- Candidature concernee -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                                   style="background-color:#0d0f16;border-radius:10px;border:1px solid #333a51;border-left:4px solid #F43F5E;margin:0 0 28px 0;" bgcolor="#0d0f16">
+                                   class="bg-frame" style="background-color:#f7f8fa;border-radius:10px;border:1px solid #e5e7eb;border-left:4px solid #F43F5E;margin:0 0 28px 0;" bgcolor="#f7f8fa">
                                 <tr>
                                     <td style="padding:20px 24px;">
-                                        <p th:text="${poste}"
-                                           style="margin:0 0 4px 0;font-size:15px;font-weight:700;color:#ffffff;">
+                                        <p th:text="${poste}" class="text-primary"
+                                           style="margin:0 0 4px 0;font-size:15px;font-weight:700;color:#111827;">
                                             Poste
                                         </p>
-                                        <p th:text="${entreprise}"
-                                           style="margin:0;font-size:13px;color:#9aa0a6;">
+                                        <p th:text="${entreprise}" class="text-secondary"
+                                           style="margin:0;font-size:13px;color:#6b7280;">
                                             Entreprise
                                         </p>
                                     </td>
                                 </tr>
                             </table>
 
-                            <p style="margin:0 0 28px 0;font-size:14px;color:#9aa0a6;line-height:1.6;">
+                            <p class="text-secondary" style="margin:0 0 28px 0;font-size:14px;color:#6b7280;line-height:1.6;">
                                 <span th:if="${lang == 'en'}">The application has reverted to its previous status. If you did in fact receive this offer, contact your advisor or update your application from your student space.</span>
                                 <span th:if="${lang != 'en'}">La candidature est revenue à son statut précédent. Si cette offre a bien été reçue, contactez votre conseiller ou mettez à jour votre candidature depuis votre espace.</span>
                             </p>
@@ -72,7 +82,7 @@
                             <!-- CTA Button — couleur pleine, comme les boutons de la plateforme -->
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="background-color:#E2762F;border-radius:11px;" bgcolor="#E2762F">
+                                    <td style="background-color:#3B71FF;border-radius:11px;" bgcolor="#3B71FF">
                                         <a th:href="${frontendUrl} + '/student/candidatures'" target="_blank"
                                            style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
                                             <span th:if="${lang == 'en'}">See my applications →</span>
@@ -87,11 +97,11 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color:#0d0f16;border-radius:0 0 16px 16px;padding:24px 40px;border:1px solid #333a51;border-top:none;text-align:center;" bgcolor="#0d0f16">
-                            <p style="margin:0 0 6px 0;font-size:13px;font-weight:700;color:#ffffff;">
+                        <td class="bg-frame" style="background-color:#f7f8fa;border-radius:0 0 16px 16px;padding:24px 40px;border:1px solid #e5e7eb;border-top:none;text-align:center;" bgcolor="#f7f8fa">
+                            <p class="text-primary" style="margin:0 0 6px 0;font-size:13px;font-weight:700;color:#111827;">
                                 <span th:text="${brandName}">ITIC Paris CRE</span>
                             </p>
-                            <p style="margin:0;font-size:11px;color:#9aa0a6;line-height:1.5;">
+                            <p class="text-secondary" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;">
                                 <span th:if="${lang == 'en'}">This email was sent automatically by <span th:text="${brandName}">ITIC CRE</span>. Do not reply to this message.</span>
                                 <span th:if="${lang != 'en'}">Cet email a été envoyé automatiquement par <span th:text="${brandName}">ITIC CRE</span>. Ne pas répondre à ce message.</span>
                             </p>

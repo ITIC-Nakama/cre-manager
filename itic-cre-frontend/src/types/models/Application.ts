@@ -120,6 +120,7 @@ export interface ApplicationListParams {
     activeStudentsOnly?: boolean;
     advisorId?: string;
     underContract?: boolean;
+    needsContractVerification?: boolean;
 }
 
 export interface StudentGroupDTO {

@@ -347,6 +347,7 @@
       "filter_my_students": "My students only",
       "filter_contract_not_under": "Not under contract",
       "filter_contract_under": "Under contract",
+      "filter_contract_needs_verification": "Needs verification",
       "filter_contract_all": "All",
       "filter_study_year": "Study year",
       "filter_study_year_all": "All years",
@@ -574,7 +575,7 @@
           "xp_preview": "+{{xp}} XP"
         },
         "contract_gate": {
-          "title": "Move to \"{{status}}\"",
+          "title": "Confirm you received the offer",
           "explanation": "Specify the start date (and end date if known) of this contract so it shows up correctly in your tracking.",
           "start_date_required": "Start date is required",
           "confirm": "Confirm"
