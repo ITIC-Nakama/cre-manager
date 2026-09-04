@@ -113,8 +113,6 @@ export interface ExternalSourceStat {
     keywords: string | null;
     /** Pertinent pour ADZUNA. */
     category: string | null;
-    /** Employeurs exclus (CSV) : filtre les officines de formation qui postent de fausses offres. */
-    excludedEmployers: string | null;
 }
 
 export interface ExternalSourceCriteriaPayload {
@@ -123,12 +121,13 @@ export interface ExternalSourceCriteriaPayload {
     regions: string;
     keywords: string;
     category: string;
-    excludedEmployers: string;
 }
 
 export interface ExternalJobboardStats {
     syncInProgress: boolean;
     scheduledSyncEnabled: boolean;
+    /** Liste noire globale d'employeurs exclus (CSV), appliquée aux trois sources en une seule fois. */
+    excludedEmployers: string | null;
     lastSync: ExternalSyncRun | null;
     sources: ExternalSourceStat[];
 }

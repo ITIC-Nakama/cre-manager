@@ -345,7 +345,7 @@ class JobboardExternalSyncIntegrationTest {
         // FRANCE_TRAVAIL n'utilise que "regions" cote geographique — un "departments" envoye
         // quand meme est ignore/mis a null plutot que persiste.
         ExternalSourceCriteriaDTO withDepartments = new ExternalSourceCriteriaDTO(
-                null, "75,92", null, null, null, null);
+                null, "75,92", null, null, null);
 
         var stats = externalJobSyncService.updateCriteria(FranceTravailProvider.SOURCE, withDepartments);
 
@@ -358,7 +358,7 @@ class JobboardExternalSyncIntegrationTest {
     @Test
     void updateCriteriaAcceptsRegionsAloneForFranceTravail() {
         ExternalSourceCriteriaDTO regionsOnly = new ExternalSourceCriteriaDTO(
-                null, "", "11,84", null, null, null);
+                null, "", "11,84", null, null);
 
         var stats = externalJobSyncService.updateCriteria(FranceTravailProvider.SOURCE, regionsOnly);
 
@@ -373,7 +373,7 @@ class JobboardExternalSyncIntegrationTest {
         // Le plafond de 5 est specifique a l'API France Travail — La Bonne Alternance n'a pas
         // cette contrainte.
         ExternalSourceCriteriaDTO manyDepartments = new ExternalSourceCriteriaDTO(
-                null, "75,77,78,91,92,93,94,95", null, null, null, null);
+                null, "75,77,78,91,92,93,94,95", null, null, null);
 
         var stats = externalJobSyncService.updateCriteria("BONNE_ALTERNANCE", manyDepartments);
 
@@ -381,6 +381,24 @@ class JobboardExternalSyncIntegrationTest {
                 .filter(s -> s.source().equals("BONNE_ALTERNANCE"))
                 .findFirst().orElseThrow();
         assertThat(lba.departments()).isEqualTo("75,77,78,91,92,93,94,95");
+    }
+
+    /**
+     * La liste noire d'employeurs exclus est un réglage global unique (JobboardSyncSettings),
+     * et non plus ressaisi par source : une seule mise à jour doit se refléter sur les trois
+     * providers (AbstractJobProvider.currentExcludedEmployers), pas seulement sur celui édité.
+     */
+    @Test
+    void updateExcludedEmployersAppliesGloballyAcrossAllSources() throws Exception {
+        mockMvc.perform(put("/jobboard/admin/external/excluded-employers")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"excludedEmployers\":\"ISCOD,CFA ITIS\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.excludedEmployers").value("ISCOD,CFA ITIS"));
+
+        assertThat(syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID).orElseThrow().getExcludedEmployers())
+                .isEqualTo("ISCOD,CFA ITIS");
     }
 
     /**

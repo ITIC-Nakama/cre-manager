@@ -1,5 +1,6 @@
 package com.itic.paris.platform.jobboard.controller;
 
+import com.itic.paris.platform.jobboard.external.dto.ExcludedEmployersDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
 import com.itic.paris.platform.jobboard.external.dto.ReferenceOptionDTO;
@@ -64,6 +65,13 @@ public class JobboardAdminController {
     public ResponseEntity<ExternalJobboardStatsDTO> updateCriteria(@PathVariable String source,
                                                                      @RequestBody ExternalSourceCriteriaDTO criteria) {
         return ResponseEntity.ok(externalJobSyncService.updateCriteria(source, criteria));
+    }
+
+    @PutMapping("/excluded-employers")
+    @Operation(summary = "Modifier la liste noire globale d'employeurs exclus, appliquée en une seule fois "
+            + "aux trois sources externes")
+    public ResponseEntity<ExternalJobboardStatsDTO> updateExcludedEmployers(@RequestBody ExcludedEmployersDTO dto) {
+        return ResponseEntity.ok(externalJobSyncService.updateExcludedEmployers(dto));
     }
 
     @GetMapping("/reference/rome-codes")

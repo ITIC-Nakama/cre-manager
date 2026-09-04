@@ -134,19 +134,20 @@ la synchronisation et l'expiration diffèrent par source (voir plus bas).
 
 ### Critères de recherche des sources externes — 100% configurables en base, jamais codés en dur
 Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`, `departments`,
-`keywords`, `category`, `excludedEmployers`), éditable par un `ADMIN` depuis Offres → Offres
-externes, **sans redéploiement**.
+`keywords`, `category`), éditable par un `ADMIN` depuis Offres → Offres externes,
+**sans redéploiement**.
 
 - `romeCodes`/`departments` : pertinents pour `FRANCE_TRAVAIL` et `BONNE_ALTERNANCE` (les deux
   exposent la taxonomie ROME officielle).
 - `keywords`/`category` : pertinents pour `ADZUNA` (pas de taxonomie ROME côté Adzuna).
-- `excludedEmployers` : les 3 sources — liste d'employeurs à exclure (comparaison insensible à la
-  casse, sous-chaîne), pour filtrer les officines qui postent de fausses offres pour recruter des
-  inscrits payants (ex : `ISCOD`, `CFA ITIS`).
 - **Règle absolue** : un critère non configuré (`null`/vide en base) signifie **aucune
   restriction** sur ce critère, jamais un repli silencieux sur une valeur par défaut codée en dur.
   Vérifié en direct contre les APIs réelles : omettre `codeROME` chez France Travail renvoie bien
   toutes professions confondues, pas un sous-ensemble caché.
+
+`excludedEmployers` (liste noire d'employeurs) n'est **pas** un critère par source : c'est un
+réglage global unique dans `jobboard_sync_settings` (une ligne `GLOBAL`, comme
+`scheduledSyncEnabled`), édité une seule fois et appliqué aux 3 sources — voir plus bas.
 
 ### Synchronisation
 - Déclenchée automatiquement (`jobboard.sync.cron`, tous les jours à 2h par défaut) ou
@@ -232,8 +233,10 @@ ci-dessous).
   supprimer.
 
 ### Employeurs exclus, localisation, visibilité
-- **Employeurs exclus** (`excludedEmployers`) : filtrés au moment de la synchronisation, avant même
-  l'insertion en base — comparaison insensible à la casse, sous-chaîne.
+- **Employeurs exclus** (`excludedEmployers`, `PUT /jobboard/admin/external/excluded-employers`) :
+  liste noire **globale** (comparaison insensible à la casse, sous-chaîne), filtrée au moment de la
+  synchronisation, avant même l'insertion en base — pour les 3 sources externes à la fois, à partir
+  d'une seule saisie admin (ex : `ISCOD,CFA ITIS`) plutôt que répétée par source.
 - **Filtre localisation** : `GET /jobboard/offers` (étudiant) et `GET /jobboard/offers/all`
   (advisor/admin) acceptent un paramètre `location` optionnel (recherche insensible à la casse,
   sous-chaîne sur `location`), disponible côté étudiant comme côté advisor/admin.

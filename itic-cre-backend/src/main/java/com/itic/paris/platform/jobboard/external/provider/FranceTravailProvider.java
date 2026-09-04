@@ -5,6 +5,7 @@ import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.dto.ReferenceOptionDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
@@ -74,10 +75,11 @@ public class FranceTravailProvider extends AbstractJobProvider {
     public FranceTravailProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                  ContractTypeRepository contractTypeRepository,
                                  AppConfigurationService appConfigurationService,
+                                 JobboardSyncSettingsRepository syncSettingsRepository,
                                  @Value("${jobboard.francetravail.enabled:true}") boolean enabled,
                                  @Value("${jobboard.francetravail.client-id:}") String clientId,
                                  @Value("${jobboard.francetravail.client-secret:}") String clientSecret) {
-        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, syncSettingsRepository, enabled);
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.restClient = buildRestClient();
@@ -108,7 +110,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
         var config = currentConfig();
         List<String> romeCodes = resolveCsvCriteria(config.getRomeCodes());
         List<String> regions = resolveCsvCriteria(config.getRegions());
-        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+        List<String> excludedEmployers = currentExcludedEmployers();
         // Aucun code ROME configuré = aucune restriction de filière — codeROME est optionnel sur
         // cette API, l'omettre renvoie toutes professions confondues pour les autres criteres donnes.
         List<String> romeLoop = romeCodes.isEmpty() ? Collections.singletonList(null) : romeCodes;

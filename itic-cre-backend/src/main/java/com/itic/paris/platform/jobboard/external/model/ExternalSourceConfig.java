@@ -51,15 +51,6 @@ public class ExternalSourceConfig {
     @Column(name = "category", length = 500)
     private String category;
 
-    /**
-     * Noms d'employeurs à exclure (CSV, comparaison insensible à la casse, sous-chaîne).
-     * Sert à filtrer les officines de formation qui se font passer pour des offres d'emploi
-     * (ex : écoles d'alternance qui postent des "offres" pour recruter des inscrits payants).
-     * Vide = aucune exclusion.
-     */
-    @Column(name = "excluded_employers", length = 1000)
-    private String excludedEmployers;
-
     public ExternalSourceConfig(String source, Boolean enabled) {
         this.source = source;
         this.enabled = enabled;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Globe, Loader2, RefreshCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
@@ -10,6 +10,7 @@ import {
     useToggleExternalJobboardSource,
     useToggleScheduledSync,
     useUpdateExternalSourceCriteria,
+    useUpdateExcludedEmployers,
     useRomeCodesReference,
     useRegionsReference,
     useAdzunaCategoriesReference,
@@ -31,7 +32,6 @@ function toForm(source: ExternalSourceStat): CriteriaForm {
         regions: source.regions ?? '',
         keywords: source.keywords ?? '',
         category: source.category ?? '',
-        excludedEmployers: source.excludedEmployers ?? '',
     };
 }
 
@@ -47,10 +47,17 @@ export default function ExternalSyncPage() {
     const { data: adzunaCategoriesRef = [], isLoading: adzunaCategoriesRefLoading } = useAdzunaCategoriesReference();
     const toggleScheduledSyncMutation = useToggleScheduledSync();
     const scheduledSyncEnabled = stats?.scheduledSyncEnabled !== false;
+    const excludedEmployersMutation = useUpdateExcludedEmployers();
 
     const [forms, setForms] = useState<Record<string, CriteriaForm>>({});
     const [disableTarget, setDisableTarget] = useState<ExternalSourceStat | null>(null);
     const [activeTab, setActiveTab] = useState<string | null>(null);
+    const [excludedEmployers, setExcludedEmployers] = useState<string | null>(null);
+
+    // null = pas encore édité localement, on suit la valeur serveur (évite d'écraser une saisie
+    // en cours si les stats se rafraîchissent pendant que l'admin tape).
+    const excludedEmployersValue = excludedEmployers ?? stats?.excludedEmployers ?? '';
+    const excludedEmployersDirty = excludedEmployers !== null && excludedEmployers !== (stats?.excludedEmployers ?? '');
 
     // Ré-initialise les formulaires locaux quand les stats arrivent/changent côté serveur,
     // sans écraser une saisie en cours pour une source déjà éditée (préservé même en changeant
@@ -143,8 +150,17 @@ export default function ExternalSyncPage() {
             || form.departments !== original.departments
             || form.regions !== original.regions
             || form.keywords !== original.keywords
-            || form.category !== original.category
-            || form.excludedEmployers !== original.excludedEmployers;
+            || form.category !== original.category;
+    };
+
+    const handleSaveExcludedEmployers = async () => {
+        try {
+            await excludedEmployersMutation.mutateAsync(excludedEmployersValue);
+            setExcludedEmployers(null);
+            toast.success(t('dashboard.admin.jobboard_external.toast_excluded_employers_saved', 'Liste noire mise à jour.'));
+        } catch {
+            toast.error(t('dashboard.admin.jobboard_external.toast_excluded_employers_error', "Impossible d'enregistrer la liste noire."));
+        }
     };
 
     const activeSource = stats?.sources.find((s) => s.source === activeTab) ?? null;
@@ -249,6 +265,34 @@ export default function ExternalSyncPage() {
                         ) : (
                             <span>{t('dashboard.admin.jobboard_external.never_synced')}</span>
                         )}
+                    </div>
+
+                    {/* Liste noire globale — un seul réglage partagé par les trois sources, plutôt
+                        qu'une saisie répétée dans chaque onglet ci-dessous. */}
+                    <div className="flex flex-col gap-2 p-4 rounded-2xl bg-slate-50 dark:bg-[#15171F] border border-slate-100 dark:border-slate-800">
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            {t('dashboard.admin.jobboard_external.excluded_employers_label', 'Employeurs exclus (toutes les sources)')}
+                        </label>
+                        <p className="text-xs text-slate-400 -mt-1">
+                            {t('dashboard.admin.jobboard_external.excluded_employers_hint', "Réglage unique, appliqué en une seule fois aux trois sources ci-dessous.")}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+                            <input
+                                type="text"
+                                value={excludedEmployersValue}
+                                onChange={(e) => setExcludedEmployers(e.target.value)}
+                                placeholder={t('dashboard.admin.jobboard_external.excluded_employers_placeholder', 'Ex: ISCOD,CFA ITIS — vide = aucune exclusion')}
+                                className="flex-1 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
+                            />
+                            <button
+                                onClick={handleSaveExcludedEmployers}
+                                disabled={!excludedEmployersDirty || excludedEmployersMutation.isPending}
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-white disabled:opacity-40 shrink-0"
+                            >
+                                {excludedEmployersMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                {t('dashboard.admin.jobboard_external.save_criteria', 'Enregistrer')}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Onglets — une source à la fois, pleine largeur */}

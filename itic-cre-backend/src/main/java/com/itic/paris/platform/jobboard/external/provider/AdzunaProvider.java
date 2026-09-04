@@ -5,6 +5,7 @@ import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.dto.ReferenceOptionDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +48,11 @@ public class AdzunaProvider extends AbstractJobProvider {
     public AdzunaProvider(ExternalSourceConfigRepository sourceConfigRepository,
                           ContractTypeRepository contractTypeRepository,
                           AppConfigurationService appConfigurationService,
+                          JobboardSyncSettingsRepository syncSettingsRepository,
                           @Value("${jobboard.adzuna.enabled:true}") boolean enabled,
                           @Value("${jobboard.adzuna.app-id:}") String appId,
                           @Value("${jobboard.adzuna.api-key:}") String apiKey) {
-        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, syncSettingsRepository, enabled);
         this.appId = appId;
         this.apiKey = apiKey;
         this.restClient = buildRestClient();
@@ -119,7 +121,7 @@ public class AdzunaProvider extends AbstractJobProvider {
                 : categories;
         // "departments" est reutilise comme localisation libre (ex: "Paris"), format attendu par "where".
         String location = config.getDepartments() != null ? config.getDepartments().trim() : null;
-        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+        List<String> excludedEmployers = currentExcludedEmployers();
 
         int maxOffers = currentMaxOffers();
         List<ExternalJobOfferDTO> offers = new ArrayList<>();

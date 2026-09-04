@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +40,12 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
     public LaBonneAlternanceProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                      ContractTypeRepository contractTypeRepository,
                                      AppConfigurationService appConfigurationService,
+                                     JobboardSyncSettingsRepository syncSettingsRepository,
                                      FranceTravailProvider franceTravailProvider,
                                      @Value("${jobboard.bonnealternance.enabled:true}") boolean enabled,
                                      @Value("${jobboard.bonnealternance.api-key:}") String apiKey,
                                      @Value("${jobboard.bonnealternance.partners-to-exclude:Indeed}") String partnersToExclude) {
-        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, enabled);
+        super(sourceConfigRepository, contractTypeRepository, appConfigurationService, syncSettingsRepository, enabled);
         this.franceTravailProvider = franceTravailProvider;
         this.apiKey = apiKey;
         this.partnersToExclude = partnersToExclude;
@@ -76,7 +78,7 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
         var config = currentConfig();
         List<String> romes = resolveCsvCriteria(config.getRomeCodes());
         List<String> departments = resolveCsvCriteria(config.getDepartments());
-        List<String> excludedEmployers = resolveCsvCriteria(config.getExcludedEmployers());
+        List<String> excludedEmployers = currentExcludedEmployers();
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
                 .queryParam("caller", "ITIC")

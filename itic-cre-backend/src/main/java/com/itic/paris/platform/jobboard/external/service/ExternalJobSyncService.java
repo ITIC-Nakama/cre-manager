@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.jobboard.external.AbstractJobProvider;
 import com.itic.paris.platform.jobboard.external.dto.ContractTypeCountDTO;
+import com.itic.paris.platform.jobboard.external.dto.ExcludedEmployersDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobOfferDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
@@ -80,6 +81,16 @@ public class ExternalJobSyncService {
         settings.setScheduledSyncEnabled(nowEnabled);
         syncSettingsRepository.save(settings);
         log.info("[JOBOARD SYNC] Synchronisation planifiée {} par l'admin", nowEnabled ? "activée" : "désactivée");
+        return getStats();
+    }
+
+    /** Liste noire globale d'employeurs exclus, appliquée aux trois sources — réglage unique
+      * plutôt que ressaisi séparément pour chacune (voir AbstractJobProvider.currentExcludedEmployers). */
+    public ExternalJobboardStatsDTO updateExcludedEmployers(ExcludedEmployersDTO dto) {
+        JobboardSyncSettings settings = getOrCreateSyncSettings();
+        settings.setExcludedEmployers(dto.excludedEmployers());
+        syncSettingsRepository.save(settings);
+        log.info("[JOBOARD SYNC] Liste noire globale des employeurs mise à jour");
         return getStats();
     }
 
@@ -234,8 +245,7 @@ public class ExternalJobSyncService {
                             config != null ? config.getDepartments() : null,
                             config != null ? config.getRegions() : null,
                             config != null ? config.getKeywords() : null,
-                            config != null ? config.getCategory() : null,
-                            config != null ? config.getExcludedEmployers() : null);
+                            config != null ? config.getCategory() : null);
                 })
                 .toList();
 
@@ -244,7 +254,9 @@ public class ExternalJobSyncService {
                         l.getInsertedCount(), l.getSkippedCount(), l.getExpiredCount(), l.getDeletedCount()))
                 .orElse(null);
 
-        return new ExternalJobboardStatsDTO(isSyncInProgress(), isScheduledSyncEnabled(), lastSync, sources);
+        JobboardSyncSettings settings = getOrCreateSyncSettings();
+        return new ExternalJobboardStatsDTO(isSyncInProgress(), settings.getScheduledSyncEnabled(),
+                settings.getExcludedEmployers(), lastSync, sources);
     }
 
     /** Répartition des offres actives d'une source par type de contrat, pour vérifier en direct
@@ -286,7 +298,6 @@ public class ExternalJobSyncService {
         config.setRegions(criteria.regions());
         config.setKeywords(criteria.keywords());
         config.setCategory(criteria.category());
-        config.setExcludedEmployers(criteria.excludedEmployers());
         sourceConfigRepository.save(config);
         log.info("[JOBOARD SYNC] Critères mis à jour pour la source {}", source);
         return getStats();

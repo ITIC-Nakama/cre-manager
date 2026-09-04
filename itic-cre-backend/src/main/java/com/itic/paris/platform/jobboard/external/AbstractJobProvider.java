@@ -2,7 +2,9 @@ package com.itic.paris.platform.jobboard.external;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.itic.paris.platform.jobboard.external.model.ExternalSourceConfig;
+import com.itic.paris.platform.jobboard.external.model.JobboardSyncSettings;
 import com.itic.paris.platform.jobboard.external.repository.ExternalSourceConfigRepository;
+import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
@@ -34,6 +36,7 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
     protected final ExternalSourceConfigRepository sourceConfigRepository;
     protected final ContractTypeRepository contractTypeRepository;
     protected final AppConfigurationService appConfigurationService;
+    protected final JobboardSyncSettingsRepository syncSettingsRepository;
 
     /** Flag d'activation issu de la configuration (jobboard.<source>.enabled). */
     private final boolean enabledByConfig;
@@ -41,10 +44,12 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
     protected AbstractJobProvider(ExternalSourceConfigRepository sourceConfigRepository,
                                   ContractTypeRepository contractTypeRepository,
                                   AppConfigurationService appConfigurationService,
+                                  JobboardSyncSettingsRepository syncSettingsRepository,
                                   boolean enabledByConfig) {
         this.sourceConfigRepository = sourceConfigRepository;
         this.contractTypeRepository = contractTypeRepository;
         this.appConfigurationService = appConfigurationService;
+        this.syncSettingsRepository = syncSettingsRepository;
         this.enabledByConfig = enabledByConfig;
     }
 
@@ -88,6 +93,16 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
     /** Fenêtre d'expiration (en jours) d'une offre depuis sa dernière date connue, éditable par un admin. */
     protected int currentOfferExpirationDays() {
         return appConfigurationService.getJobboardOfferExpirationDays();
+    }
+
+    /**
+     * Liste noire d'employeurs éditable par l'admin — réglage global (JobboardSyncSettings),
+     * partagé par les trois sources plutôt que ressaisi séparément pour chacune.
+     */
+    protected List<String> currentExcludedEmployers() {
+        return resolveCsvCriteria(syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID)
+                .map(JobboardSyncSettings::getExcludedEmployers)
+                .orElse(null));
     }
 
     /**

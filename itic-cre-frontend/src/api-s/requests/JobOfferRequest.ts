@@ -103,6 +103,12 @@ export function updateExternalSourceCriteria(source: string, criteria: ExternalS
         .then((response) => unwrap<ExternalJobboardStats>(response));
 }
 
+export function updateExcludedEmployers(excludedEmployers: string): Promise<ExternalJobboardStats> {
+    return apiClient
+        .put('/jobboard/admin/external/excluded-employers', { excludedEmployers })
+        .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
 export function fetchRomeCodesReference(): Promise<ReferenceOption[]> {
     return apiClient
         .get('/jobboard/admin/external/reference/rome-codes')

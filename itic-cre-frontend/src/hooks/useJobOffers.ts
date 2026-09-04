@@ -19,6 +19,7 @@ import {
     toggleExternalJobboardSource,
     toggleScheduledSync,
     updateExternalSourceCriteria,
+    updateExcludedEmployers,
     fetchRomeCodesReference,
     fetchRegionsReference,
     fetchAdzunaCategoriesReference,
@@ -187,6 +188,14 @@ export function useUpdateExternalSourceCriteria() {
     return useMutation({
         mutationFn: ({ source, criteria }: { source: string; criteria: ExternalSourceCriteriaPayload }) =>
             updateExternalSourceCriteria(source, criteria),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
+export function useUpdateExcludedEmployers() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (excludedEmployers: string) => updateExcludedEmployers(excludedEmployers),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
     });
 }

@@ -9,7 +9,6 @@ export interface CriteriaForm {
     regions: string;
     keywords: string;
     category: string;
-    excludedEmployers: string;
 }
 
 /** ADZUNA n'a pas de taxonomie ROME (contrairement à FRANCE_TRAVAIL/BONNE_ALTERNANCE) — critères différents. */
@@ -203,18 +202,6 @@ export default function ExternalSourceDetail({
                         </div>
                     </>
                 )}
-                <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
-                        {t('dashboard.admin.jobboard_external.field_excluded_employers', 'Employeurs exclus')}
-                    </label>
-                    <input
-                        type="text"
-                        value={form.excludedEmployers}
-                        onChange={(e) => onFieldChange('excludedEmployers', e.target.value)}
-                        placeholder={t('dashboard.admin.jobboard_external.field_excluded_employers_placeholder', 'Ex: ISCOD,CFA ITIS — vide = aucune exclusion')}
-                        className="w-full rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
-                    />
-                </div>
             </div>
 
             <button
