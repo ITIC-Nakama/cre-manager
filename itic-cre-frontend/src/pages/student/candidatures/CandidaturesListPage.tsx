@@ -85,7 +85,7 @@ export default function CandidaturesListPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 py-4 animate-fadeIn">
+        <div className="flex flex-col gap-6 animate-fadeIn">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
