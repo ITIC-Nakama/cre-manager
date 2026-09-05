@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
+import { getTimeGreetingPeriod } from '../../../utils/greeting';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
@@ -49,7 +50,8 @@ export default function AdvisorDashboard() {
             <LayoutDashboard className="h-7 w-7 text-[#E2762F] shrink-0" />
             {// Gradient sur le prénom
               renderTitleWithGradient(
-                t('dashboard.home.greeting', 'Bonjour, {{name}} 👋', {
+                t('dashboard.home.greeting', '{{greeting}}, {{name}} 👋', {
+                  greeting: t(`common.time_greeting.${getTimeGreetingPeriod()}`),
                   name: firstName,
                 }),
                 'itic-gradient-blue',

@@ -8,6 +8,11 @@
     },
     "admin_tag": "(Admin)",
     "me_option": "Moi",
+    "time_greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bonjour",
+      "evening": "Bonsoir"
+    },
     "offline_banner": {
       "text": "Vous êtes actuellement hors-ligne. Consultation des données en cache."
     },
@@ -122,7 +127,7 @@
     "home": {
       "title": "Tableau de bord",
       "subtitle": "Bienvenue {{name}}.",
-      "greeting": "Bonjour, {{name}} 👋",
+      "greeting": "{{greeting}}, {{name}} 👋",
       "desc": "Voici un aperçu de vos candidatures et de votre activité récente.",
       "stats": {
         "sent": "Candidatures envoyées",

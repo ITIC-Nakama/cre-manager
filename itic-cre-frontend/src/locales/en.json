@@ -8,6 +8,11 @@
     },
     "admin_tag": "(Admin)",
     "me_option": "Me",
+    "time_greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
     "offline_banner": {
       "text": "You are currently offline. Viewing cached data."
     },
@@ -122,7 +127,7 @@
     "home": {
       "title": "Dashboard",
       "subtitle": "Welcome {{name}}.",
-      "greeting": "Hello, {{name}} 👋",
+      "greeting": "{{greeting}}, {{name}} 👋",
       "desc": "Here is an overview of your applications and recent activity.",
       "stats": {
         "sent": "Applications sent",
