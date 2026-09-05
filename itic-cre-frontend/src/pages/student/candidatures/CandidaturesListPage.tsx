@@ -2,11 +2,12 @@ import { useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { Briefcase, Loader2, Plus, Search } from 'lucide-react';
+import { Briefcase, FileSignature, Loader2, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useMyCandidaturesInfinite, useCreateCandidature } from '../../../hooks/useCandidatures';
 import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CustomSelect from '../../../components/basics/CustomSelect';
+import FiltersPopover from '../../../components/basics/FiltersPopover';
 import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -70,6 +71,13 @@ export default function CandidaturesListPage() {
         setContractTypeFilter(val);
     };
 
+    const activeFilterCount = [statusFilter, contractTypeFilter].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setStatusFilter('');
+        setContractTypeFilter('');
+    };
+
     const handleCreate = async (payload: CandidaturePayload) => {
         await createMutation.mutateAsync(payload);
         toast.success(t('dashboard.candidatures.student.toast.created'));
@@ -114,19 +122,32 @@ export default function CandidaturesListPage() {
                         />
                     </div>
 
-                    <CustomSelect
-                        value={statusFilter}
-                        options={statusOptions}
-                        onChange={handleStatusChange}
-                        className="w-44 text-sm"
-                    />
-
-                    <CustomSelect
-                        value={contractTypeFilter}
-                        options={contractTypeOptions}
-                        onChange={handleContractTypeChange}
-                        className="w-44 text-sm"
-                    />
+                    <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                        <div className="py-3 first:pt-3 last:pb-3">
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                                {t('dashboard.candidatures.filter_status_label', 'Statut')}
+                            </label>
+                            <CustomSelect
+                                value={statusFilter}
+                                options={statusOptions}
+                                onChange={handleStatusChange}
+                                icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="py-3 first:pt-3 last:pb-3">
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                                {t('dashboard.candidatures.detail.contract', 'Type de contrat')}
+                            </label>
+                            <CustomSelect
+                                value={contractTypeFilter}
+                                options={contractTypeOptions}
+                                onChange={handleContractTypeChange}
+                                icon={<FileSignature className="h-4 w-4 text-slate-400" />}
+                                className="w-full"
+                            />
+                        </div>
+                    </FiltersPopover>
                 </div>
 
                 {/* Tabs */}

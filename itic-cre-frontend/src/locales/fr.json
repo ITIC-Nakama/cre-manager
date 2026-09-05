@@ -442,6 +442,7 @@
       "subtitle_other": "{{count}} candidatures au total",
       "search_placeholder": "Rechercher (étudiant, entreprise, poste)…",
       "filter_all_statuses": "Tous les statuts",
+      "filter_status_label": "Statut",
       "filter_all_promotions": "Toutes les promotions",
       "filter_all_contracts": "Tous les types de contrat",
       "promotion_search_placeholder": "Rechercher une promotion…",
@@ -1020,6 +1021,9 @@
         "correct_count": "{{correct}}/{{total}} correctes",
         "question_correct": "Correct",
         "question_incorrect": "Incorrect",
+        "your_answer_badge": "Votre réponse",
+        "correct_answer_badge": "Bonne réponse",
+        "no_answer_given": "Vous n'avez pas répondu à cette question.",
         "submit_error": "Erreur lors de la soumission du quiz.",
         "loading": "Chargement du quiz...",
         "load_error": "Impossible de charger le quiz."

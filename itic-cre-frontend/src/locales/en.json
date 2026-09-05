@@ -442,6 +442,7 @@
       "subtitle_other": "{{count}} applications total",
       "search_placeholder": "Search (student, company, position)…",
       "filter_all_statuses": "All statuses",
+      "filter_status_label": "Status",
       "filter_all_promotions": "All cohorts",
       "promotion_search_placeholder": "Search a cohort…",
       "promotion_no_results": "No cohort found",
@@ -1020,6 +1021,9 @@
         "correct_count": "{{correct}}/{{total}} correct",
         "question_correct": "Correct",
         "question_incorrect": "Incorrect",
+        "your_answer_badge": "Your answer",
+        "correct_answer_badge": "Correct answer",
+        "no_answer_given": "You did not answer this question.",
         "submit_error": "Error while submitting the quiz.",
         "loading": "Loading the quiz...",
         "load_error": "Unable to load the quiz."

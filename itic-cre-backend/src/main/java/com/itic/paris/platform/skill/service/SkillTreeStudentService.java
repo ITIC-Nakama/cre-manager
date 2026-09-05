@@ -134,20 +134,20 @@ public class SkillTreeStudentService {
         // answers marked estCorrecte=true — no more, no less (supports questions
         // with one or several correct answers).
         for (Question question : quiz.getQuestions()) {
+            List<UUID> correctAnswerIds = question.getReponses().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getEstCorrecte()))
+                    .map(Answer::getId)
+                    .toList();
+
             Set<UUID> submittedAnswerIds = submitted.get(question.getId());
             if (submittedAnswerIds == null || !validQuestionIds.contains(question.getId())) {
-                questionResults.add(new QuestionResultDTO(question.getId(), false));
+                questionResults.add(new QuestionResultDTO(question.getId(), false, correctAnswerIds));
                 continue;
             }
 
-            Set<UUID> correctAnswerIds = question.getReponses().stream()
-                    .filter(a -> Boolean.TRUE.equals(a.getEstCorrecte()))
-                    .map(Answer::getId)
-                    .collect(Collectors.toSet());
-
-            boolean isCorrect = correctAnswerIds.equals(submittedAnswerIds);
+            boolean isCorrect = new HashSet<>(correctAnswerIds).equals(submittedAnswerIds);
             if (isCorrect) correct++;
-            questionResults.add(new QuestionResultDTO(question.getId(), isCorrect));
+            questionResults.add(new QuestionResultDTO(question.getId(), isCorrect, correctAnswerIds));
         }
 
         int score = total > 0 ? Math.round((correct * 100f) / total) : 0;

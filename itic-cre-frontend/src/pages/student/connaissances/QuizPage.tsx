@@ -154,6 +154,7 @@ export default function QuizPage() {
           result={result}
           showAlreadyValidated={showAlreadyValidated}
           sortedQuestions={sortedQuestions}
+          selected={selected}
           articlePath={articlePath}
           categoryId={categoryId}
           nextArticle={nextArticle}

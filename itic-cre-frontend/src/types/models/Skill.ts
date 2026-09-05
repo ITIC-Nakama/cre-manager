@@ -114,6 +114,7 @@ export interface StudentQuiz {
 export interface QuestionResult {
   questionId: string;
   correct: boolean;
+  correctAnswerIds: string[];
 }
 
 export interface QuizResult {

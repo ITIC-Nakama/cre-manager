@@ -121,7 +121,11 @@ export default function QuizQuestionCard({
           type="button"
           onClick={handleNext}
           disabled={!currentAnswered || isSubmitting}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+            !currentAnswered || isSubmitting
+              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
+          }`}
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {isLastQuestion

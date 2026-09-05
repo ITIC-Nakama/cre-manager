@@ -9,6 +9,7 @@ interface QuizResultViewProps {
   result: QuizResult | null;
   showAlreadyValidated: boolean;
   sortedQuestions: StudentQuestion[];
+  selected: Record<string, Set<string>>;
   articlePath: string;
   categoryId: string;
   nextArticle: { id: string; titre: string } | null;
@@ -20,6 +21,7 @@ export default function QuizResultView({
   result,
   showAlreadyValidated,
   sortedQuestions,
+  selected,
   articlePath,
   categoryId,
   nextArticle,
@@ -101,27 +103,82 @@ export default function QuizResultView({
         {sortedQuestions.map((q, idx) => {
           const qResult = result.questionResults.find((r) => r.questionId === q.id);
           const correct = qResult?.correct ?? false;
+          const correctIds = new Set(qResult?.correctAnswerIds ?? []);
+          const studentIds = selected[q.id] ?? new Set<string>();
           return (
             <div
               key={q.id}
-              className="animate-fade-in-up flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-3"
+              className={`animate-fade-in-up rounded-xl border px-4 py-3 ${
+                correct
+                  ? 'border-slate-200 dark:border-slate-800'
+                  : 'border-red-200 dark:border-red-900/50 bg-red-50/40 dark:bg-red-950/10'
+              }`}
               style={{ animationDelay: `${idx * 60}ms` }}
             >
-              <span className="animate-check-pop flex-shrink-0 mt-0.5">
-                {correct ? (
-                  <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
-                ) : (
-                  <XCircle className="h-4.5 w-4.5 text-red-500" />
-                )}
-              </span>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{q.texte}</p>
-                <span className={`text-xs font-semibold ${correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {correct
-                    ? t('dashboard.connaissances.quiz.question_correct')
-                    : t('dashboard.connaissances.quiz.question_incorrect')}
+              <div className="flex items-start gap-3">
+                <span className="animate-check-pop flex-shrink-0 mt-0.5">
+                  {correct ? (
+                    <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                  ) : (
+                    <XCircle className="h-4.5 w-4.5 text-red-500" />
+                  )}
                 </span>
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{q.texte}</p>
+                  <span className={`text-xs font-semibold ${correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {correct
+                      ? t('dashboard.connaissances.quiz.question_correct')
+                      : t('dashboard.connaissances.quiz.question_incorrect')}
+                  </span>
+                </div>
               </div>
+
+              {/* Detail des reponses — uniquement pour les questions ratees, pour ne pas
+                * alourdir l'ecran avec ce qui est deja acquis (surtout sur mobile). */}
+              {!correct && (
+                <div className="mt-3 flex flex-col gap-1.5 pl-7">
+                  {q.answers.map((a) => {
+                    const isCorrectAnswer = correctIds.has(a.id);
+                    const isStudentPick = studentIds.has(a.id);
+                    return (
+                      <div
+                        key={a.id}
+                        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+                          isCorrectAnswer
+                            ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
+                            : isStudentPick
+                              ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400'
+                              : 'border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {isCorrectAnswer ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                        ) : isStudentPick ? (
+                          <XCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        ) : (
+                          <span className="h-3.5 w-3.5 flex-shrink-0" />
+                        )}
+                        <span className="flex-1 min-w-0">{a.texte}</span>
+                        {isStudentPick && !isCorrectAnswer && (
+                          <span className="text-[10px] font-bold uppercase tracking-wide flex-shrink-0">
+                            {t('dashboard.connaissances.quiz.your_answer_badge')}
+                          </span>
+                        )}
+                        {isCorrectAnswer && (
+                          <span className="text-[10px] font-bold uppercase tracking-wide flex-shrink-0">
+                            {t('dashboard.connaissances.quiz.correct_answer_badge')}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {studentIds.size === 0 && (
+                    <p className="text-xs italic text-slate-400 dark:text-slate-500">
+                      {t('dashboard.connaissances.quiz.no_answer_given')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
