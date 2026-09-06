@@ -64,6 +64,12 @@ export function useDeleteCandidature() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => deleteCandidature(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY }),
+        onSuccess: (_data, id) => {
+            queryClient.removeQueries({ queryKey: [...MY_CANDIDATURES_KEY, 'detail', id] });
+            queryClient.invalidateQueries({
+                queryKey: MY_CANDIDATURES_KEY,
+                predicate: (query) => query.queryKey[1] !== 'detail',
+            });
+        },
     });
 }
