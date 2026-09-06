@@ -4,6 +4,7 @@ import { FileText, ShieldAlert, FileSignature } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import TruncatedText from '../../../../components/shared/TruncatedText';
+import UserAvatar from '../../../../components/shared/UserAvatar';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
 
 const col = createColumnHelper<StudentRow>();
@@ -68,32 +69,41 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
             cell: ({ row }) => {
                 const isAnon = isAnonymizedStudent(row.original);
                 return (
-                    <div className="max-w-[220px]">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <TruncatedText
-                                text={`${row.original.firstName} ${row.original.lastName}`}
-                                className={isAnon ? "font-semibold text-slate-500 dark:text-slate-400" : "font-semibold text-slate-900 dark:text-white"}
-                            />
-                            {isAnon && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    <ShieldAlert className="h-3 w-3" />
-                                    {t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}
-                                </span>
-                            )}
-                            {row.original.underContract && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                    <FileSignature className="h-3 w-3" />
-                                    {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
-                                </span>
-                            )}
-                            {row.original.contractNeedsVerification && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    <ShieldAlert className="h-2.5 w-2.5" />
-                                    {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
-                                </span>
-                            )}
+                    <div className="flex items-center gap-2.5 max-w-[260px]">
+                        <UserAvatar
+                            profilePicture={row.original.profilePicture}
+                            firstName={row.original.firstName}
+                            lastName={row.original.lastName}
+                            className="h-8 w-8 flex-shrink-0"
+                            enlargeOnClick
+                        />
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <TruncatedText
+                                    text={`${row.original.firstName} ${row.original.lastName}`}
+                                    className={isAnon ? "font-semibold text-slate-500 dark:text-slate-400" : "font-semibold text-slate-900 dark:text-white"}
+                                />
+                                {isAnon && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                        <ShieldAlert className="h-3 w-3" />
+                                        {t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}
+                                    </span>
+                                )}
+                                {row.original.underContract && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                        <FileSignature className="h-3 w-3" />
+                                        {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
+                                    </span>
+                                )}
+                                {row.original.contractNeedsVerification && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                        <ShieldAlert className="h-2.5 w-2.5" />
+                                        {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
+                                    </span>
+                                )}
+                            </div>
+                            <TruncatedText text={row.original.email} className="text-xs text-slate-400 font-mono" />
                         </div>
-                        <TruncatedText text={row.original.email} className="text-xs text-slate-400 font-mono" />
                     </div>
                 );
             },

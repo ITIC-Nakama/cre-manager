@@ -43,6 +43,7 @@ export interface StudentRow {
   id: string;
   firstName: string;
   lastName: string;
+  profilePicture: string | null;
   email: string;
   promotion: { id: string; nom: string } | null;
   advisor: { id: string; firstName: string; lastName: string } | null;
