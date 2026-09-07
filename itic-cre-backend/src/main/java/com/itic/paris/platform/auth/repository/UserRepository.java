@@ -48,6 +48,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> findAllStaffBySearch(@Param("search") String search, Pageable pageable);
+
+    /** Admins actifs affectes comme conseiller referent d'au moins un etudiant — a inclure dans
+      * l'annuaire conseillers cote etudiant (voir V8__widen_student_advisor_to_any_staff.sql),
+      * sans pour autant y lister tous les admins (seuls ceux qui jouent reellement ce role). */
+    @Query("SELECT DISTINCT u FROM User u WHERE u.role.name = com.itic.paris.platform.auth.model.enums.RoleEnum.ADMIN " +
+            "AND u.active = true " +
+            "AND EXISTS (SELECT 1 FROM Student s WHERE s.advisor = u)")
+    List<User> findActiveAdminsWithAssignedStudents();
 }
 
 

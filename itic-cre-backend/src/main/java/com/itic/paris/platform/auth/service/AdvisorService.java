@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -130,12 +131,21 @@ public class AdvisorService {
         return String.join(", ", labels);
     }
 
+    /** Inclut aussi les admins actifs affectes comme conseiller referent d'au moins un etudiant
+      * — le "conseiller referent" n'est pas reserve au role ADVISOR (voir Student.advisor,
+      * V8__widen_student_advisor_to_any_staff.sql). Cote frontend, ces admins restent affiches
+      * avec le meme libelle "Conseiller" que les ADVISOR, sans mention de leur role reel. */
     public List<AdvisorDirectoryDTO> getActiveAdvisorDirectory() {
-        return advisorRepository.findAllByFilter(null, Pageable.unpaged())
+        List<AdvisorDirectoryDTO> advisors = advisorRepository.findAllByFilter(null, Pageable.unpaged())
                 .stream()
                 .filter(User::isActive)
                 .map(this::toDirectoryDTO)
                 .toList();
+        List<AdvisorDirectoryDTO> adminsWithStudents = userRepository.findActiveAdminsWithAssignedStudents()
+                .stream()
+                .map(this::toDirectoryDTO)
+                .toList();
+        return Stream.concat(advisors.stream(), adminsWithStudents.stream()).toList();
     }
 
     /** User plutot que Advisor : le "conseiller referent" d'un etudiant peut aussi etre un ADMIN. */
