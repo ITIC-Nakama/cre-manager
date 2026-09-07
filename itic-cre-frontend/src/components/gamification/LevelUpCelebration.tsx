@@ -10,7 +10,7 @@ interface LevelUpCelebrationProps {
 }
 
 const CONFETTI_COLORS = ['#3B71FF', '#FFFFFF', '#93C5FD', '#FBBF24', '#FDBA74'];
-const AUTO_DISMISS_MS = 5000;
+const AUTO_DISMISS_MS = 7000;
 
 export default function LevelUpCelebration({ grade, onClose }: LevelUpCelebrationProps) {
   const { t } = useTranslation();

@@ -78,7 +78,7 @@ export default function StudentDashboard() {
   return (
     <div className="flex flex-col gap-8  animate-fadeIn">
       {/* Welcome header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col items-start sm:flex-row justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />

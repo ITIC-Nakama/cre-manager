@@ -1,12 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { Briefcase, Loader2, Mail, Users } from 'lucide-react';
+import { Briefcase, Loader2, Mail, Star, Users } from 'lucide-react';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAdvisorDirectory } from '../../../hooks/useAdvisors';
+import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
 import UserAvatar from '../../../components/shared/UserAvatar';
 
 export default function ConseillersPage() {
   const { t } = useTranslation();
   const { data: advisors, isLoading } = useAdvisorDirectory();
+  const { data: dashboard } = useMyDashboardSummary();
+  const myAdvisorId = dashboard?.advisor?.id;
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -33,7 +36,9 @@ export default function ConseillersPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {advisors.map((advisor) => (
+          {advisors.map((advisor) => {
+            const isMine = advisor.id === myAdvisorId;
+            return (
             <div
               key={advisor.id}
               className="relative overflow-hidden bg-white dark:bg-slate-900 border border-indigo-200/60 dark:border-indigo-900/50 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40 transition-all duration-300 ease-out hover:-translate-y-1.5 flex flex-col gap-3.5"
@@ -63,6 +68,13 @@ export default function ConseillersPage() {
                 </div>
               </div>
 
+              {isMine && (
+                <span className="relative z-10 self-start inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] leading-none font-bold uppercase tracking-wide bg-primary-50 dark:bg-primary-900/30 text-primary border border-primary-100 dark:border-primary-900/40">
+                  <Star className="h-3 w-3 shrink-0 fill-current" />
+                  <span className="translate-y-[0.5px]">{t('dashboard.conseillers_directory.mine_badge', 'Mon conseiller')}</span>
+                </span>
+              )}
+
               {/* Tags */}
               {advisor.jobTitle && (
                 <div className="flex flex-wrap items-center gap-2 relative z-10">
@@ -81,7 +93,8 @@ export default function ConseillersPage() {
                 <span className="truncate">{advisor.email}</span>
               </a>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

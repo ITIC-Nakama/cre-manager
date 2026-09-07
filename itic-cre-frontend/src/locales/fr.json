@@ -1209,7 +1209,8 @@
       "title": "Conseillers",
       "subtitle": "Retrouvez l'ensemble des conseillers de la plateforme et leurs coordonnées.",
       "empty": "Aucun conseiller disponible pour le moment.",
-      "role_badge": "Conseiller"
+      "role_badge": "Conseiller",
+      "mine_badge": "Mon conseiller"
     },
     "audit_page": {
       "title": "Journal d'audit",

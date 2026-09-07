@@ -1209,7 +1209,8 @@
       "title": "Advisors",
       "subtitle": "Find all advisors on the platform and their contact details.",
       "empty": "No advisor available at the moment.",
-      "role_badge": "Advisor"
+      "role_badge": "Advisor",
+      "mine_badge": "My advisor"
     },
     "audit_page": {
       "title": "Audit Log",
