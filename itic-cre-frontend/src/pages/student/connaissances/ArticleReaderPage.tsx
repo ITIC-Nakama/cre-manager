@@ -134,28 +134,28 @@ export default function ArticleReaderPage() {
         />
 
         {/* Header card */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-violet-950/20 p-6 sm:p-8 shadow-sm">
-          <div className="flex items-start gap-4">
-            <span className="text-4xl select-none leading-none flex-shrink-0" role="img" aria-label={article.categoryNom}>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-violet-950/20 p-4 sm:p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-3xl select-none leading-none flex-shrink-0" role="img" aria-label={article.categoryNom}>
               {displayIcon}
             </span>
-            <div className="flex-1 min-w-0 flex flex-col gap-3">
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 {article.completed && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" />
                     {t('dashboard.connaissances.article.completed_badge')}
                   </span>
                 )}
                 {article.hasQuiz && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
-                    <HelpCircle className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                    <HelpCircle className="h-3 w-3" />
                     {t('dashboard.connaissances.category.quiz_available')}
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
                 {article.titre}
               </h1>
 
@@ -194,17 +194,12 @@ export default function ArticleReaderPage() {
 
       {/* Quiz CTA */}
       {article.hasQuiz && (
-        <div className="animate-fade-in-up anim-delay-200 flex items-center justify-between gap-4 rounded-2xl border border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/60 dark:bg-indigo-950/20 p-5">
-          <div className="flex flex-col gap-0.5">
-            <p className="font-bold text-slate-900 dark:text-white">{t('dashboard.connaissances.quiz.title')}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('dashboard.connaissances.article.take_quiz')}
-            </p>
-          </div>
+        <div className="animate-fade-in-up anim-delay-200 flex items-center justify-between gap-4 rounded-xl border border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/60 dark:bg-indigo-950/20 px-4 py-3">
+          <p className="font-bold text-sm text-slate-900 dark:text-white">{t('dashboard.connaissances.quiz.title')}</p>
           <button
             type="button"
             onClick={() => navigate(`/student/connaissances/${categoryId}/${articleId}/quiz`)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer shadow-sm hover:shadow-md flex-shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer shadow-sm hover:shadow-md flex-shrink-0"
           >
             {t('dashboard.connaissances.article.take_quiz')}
             <ArrowRight className="h-4 w-4" />
