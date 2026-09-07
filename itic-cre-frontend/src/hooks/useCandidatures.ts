@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
+import { PENDING_LEVEL_UP_KEY } from './useGamification';
 import {
     fetchMyCandidatures,
     fetchCandidatureById,
@@ -35,7 +36,10 @@ export function useCreateCandidature() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (payload: CandidaturePayload) => createCandidature(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
+            queryClient.invalidateQueries({ queryKey: PENDING_LEVEL_UP_KEY });
+        },
     });
 }
 
@@ -56,6 +60,7 @@ export function useChangeCandidatureStatus() {
             queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
             queryClient.invalidateQueries({ queryKey: ['me'] });
             queryClient.invalidateQueries({ queryKey: ['gamification'] });
+            queryClient.invalidateQueries({ queryKey: PENDING_LEVEL_UP_KEY });
         },
     });
 }

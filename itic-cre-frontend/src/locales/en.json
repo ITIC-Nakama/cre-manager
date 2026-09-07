@@ -138,7 +138,11 @@
       "gamification": {
         "title": "Progression",
         "next_grade": "{{xp}} XP before {{name}}",
-        "max_grade": "Maximum grade reached 🎉"
+        "max_grade": "Maximum grade reached 🎉",
+        "level_up": {
+          "title": "New level reached!",
+          "subtitle": "You're now {{grade}}"
+        }
       },
       "ranking": {
         "title": "Ranking: {{scope}}",

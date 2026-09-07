@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Formula;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -29,6 +30,13 @@ public class Student extends User {
 
     @Column(name = "study_year")
     private Integer studyYear;
+
+    // Grade atteint par le dernier gain d'XP mais pas encore "consomme" par le frontend (voir
+    // GamificationService.awardXP / GamificationStudentService.consumePendingLevelUp) — permet
+    // de declencher l'animation de changement de niveau de maniere fiable meme si l'action qui a
+    // fait gagner l'XP (quiz, candidature...) n'est pas celle qui affiche l'animation.
+    @Column(name = "pending_level_up_grade_id")
+    private UUID pendingLevelUpGradeId;
 
     // Le proxy Hibernate lazy expose des proprietes internes (hibernateLazyInitializer,
     // handler) que Jackson ne sait pas serialiser quand cette entite est renvoyee

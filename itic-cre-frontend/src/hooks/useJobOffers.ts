@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
+import { PENDING_LEVEL_UP_KEY } from './useGamification';
 import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
@@ -132,6 +133,7 @@ export function useApplyToJobOffer() {
             queryClient.invalidateQueries({ queryKey: ['job-applications'] });
             queryClient.invalidateQueries({ queryKey: ['applications'] });
             queryClient.invalidateQueries({ queryKey: ['my-candidatures'] });
+            queryClient.invalidateQueries({ queryKey: PENDING_LEVEL_UP_KEY });
         },
     });
 }

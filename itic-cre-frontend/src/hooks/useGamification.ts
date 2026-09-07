@@ -6,7 +6,23 @@ import {
   createGrade,
   updateGrade,
   deleteGrade,
+  consumePendingLevelUp,
 } from '../api-s/requests/GamificationRequest';
+
+export const PENDING_LEVEL_UP_KEY = ['pending-level-up'] as const;
+
+// Verifie (et efface cote serveur) un passage de niveau en attente. Invalidee directement
+// depuis le onSuccess de chaque mutation qui peut attribuer de l'XP (voir useSkills.ts,
+// useCandidatures.ts, useJobOffers.ts), et refetch aussi au montage de LevelUpWatcher pour
+// couvrir le cas ou l'XP a ete accordee hors session (ex: action cote conseiller).
+export function usePendingLevelUp() {
+  return useQuery({
+    queryKey: PENDING_LEVEL_UP_KEY,
+    queryFn: consumePendingLevelUp,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+}
 
 export function useGamificationConfigs() {
   return useQuery({

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PENDING_LEVEL_UP_KEY } from './useGamification';
 import {
   fetchAdminCategories,
   createCategory,
@@ -197,6 +198,7 @@ export function useSubmitQuiz() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['skill-tree-progress'] });
       queryClient.invalidateQueries({ queryKey: ['student-quiz', variables.articleId] });
+      queryClient.invalidateQueries({ queryKey: PENDING_LEVEL_UP_KEY });
     },
   });
 }

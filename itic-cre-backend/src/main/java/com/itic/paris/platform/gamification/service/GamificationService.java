@@ -46,7 +46,12 @@ public class GamificationService {
         xp.setApplicationId(application != null ? application.getId() : null);
         xpHistoryRepository.save(xp);
 
+        Grade gradeBefore = getCurrentGrade(student.getXpTotal());
         student.setXpTotal(student.getXpTotal() + points);
+        Grade gradeAfter = getCurrentGrade(student.getXpTotal());
+        if (gradeAfter != null && (gradeBefore == null || gradeAfter.getOrdre() > gradeBefore.getOrdre())) {
+            student.setPendingLevelUpGradeId(gradeAfter.getId());
+        }
         student.setLastActivity(Instant.now());
         studentRepository.save(student);
     }

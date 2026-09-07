@@ -34,4 +34,11 @@ public class GamificationStudentController {
     public ResponseEntity<GradeDTO> getMyGrade() {
         return ResponseEntity.ok(gamificationStudentService.getMyGrade());
     }
+
+    @GetMapping("/level-up")
+    @Operation(summary = "Consomme (une seule fois) le passage de niveau en attente, s'il y en a un")
+    public ResponseEntity<GradeDTO> consumePendingLevelUp() {
+        GradeDTO grade = gamificationStudentService.consumePendingLevelUp();
+        return grade != null ? ResponseEntity.ok(grade) : ResponseEntity.noContent().build();
+    }
 }

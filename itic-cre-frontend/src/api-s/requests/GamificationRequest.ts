@@ -33,3 +33,9 @@ export function updateGrade(id: string, data: { nom?: string; xpMinimum?: number
 export function deleteGrade(id: string): Promise<void> {
   return apiClient.delete(`/api/admin/gamification/grades/${id}`).then(() => undefined);
 }
+
+// ─── MY GRADE ───────────────────────────────────────────────────────────────
+
+export function consumePendingLevelUp(): Promise<Grade | null> {
+  return apiClient.get('/api/me/gamification/level-up').then((r) => (r.status === 204 ? null : unwrap<Grade>(r)));
+}
