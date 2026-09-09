@@ -3,13 +3,16 @@ package com.itic.paris.platform.reclamation.service;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.reclamation.model.Reclamation;
 import com.itic.paris.platform.reclamation.model.dtos.CreateReclamationRequest;
 import com.itic.paris.platform.reclamation.model.dtos.ReclamationDTO;
 import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ public class ReclamationService {
 
     private final ReclamationRepository reclamationRepository;
     private final StudentRepository studentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** Si l'etudiant n'a pas encore de numero enregistre, celui fourni ici est sauvegarde sur
       * son profil (une seule fois — les fois suivantes, le champ n'est plus demande cote front).
@@ -48,7 +52,17 @@ public class ReclamationService {
         reclamation.setStudent(student);
         reclamation.setMessage(request.getMessage());
 
-        return mapToDTO(reclamationRepository.saveAndFlush(reclamation));
+        ReclamationDTO dto = mapToDTO(reclamationRepository.saveAndFlush(reclamation));
+
+        User advisor = student.getAdvisor();
+        if (advisor != null) {
+            eventPublisher.publishEvent(new ReclamationCreatedEvent(
+                    advisor.getEmail(), advisor.getLang(),
+                    student.getFirstName() + " " + student.getLastName(),
+                    student.getPhoneNumber(), reclamation.getMessage()));
+        }
+
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -74,6 +88,6 @@ public class ReclamationService {
     }
 
     private ReclamationDTO mapToDTO(Reclamation r) {
-        return new ReclamationDTO(r.getId(), r.getMessage(), r.isResolved(), r.getResolvedAt(), r.getDateCreation());
+        return new ReclamationDTO(r.getId(), r.getMessage(), r.getStatus(), r.getClosedAt(), r.getDateCreation());
     }
 }

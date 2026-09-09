@@ -2,17 +2,24 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, X } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, X, XCircle } from 'lucide-react';
 import { useUserStore } from '../../store/UserStore';
 import { useCreateReclamation, useDeleteReclamation, useMyReclamationsInfinite } from '../../hooks/useReclamations';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import InfiniteScrollSentinel from '../shared/InfiniteScrollSentinel';
+import type { ReclamationStatus } from '../../types/models/Reclamation';
 
 interface Props {
     onClose: () => void;
 }
 
 type Tab = 'new' | 'history';
+
+const STATUS_STYLES: Record<ReclamationStatus, string> = {
+    PENDING: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
+    RESOLVED: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
+    REFUSED: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400',
+};
 
 export default function ReclamationModal({ onClose }: Props) {
     const { t, i18n } = useTranslation();
@@ -192,17 +199,13 @@ export default function ReclamationModal({ onClose }: Props) {
                                     className="rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 flex flex-col gap-2"
                                 >
                                     <div className="flex items-center justify-between gap-2">
-                                        <span
-                                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                                r.resolved
-                                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'
-                                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
-                                            }`}
-                                        >
-                                            {r.resolved ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                                            {r.resolved
-                                                ? t('dashboard.reclamations.history.status_resolved', 'Résolu')
-                                                : t('dashboard.reclamations.history.status_pending', 'En attente')}
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_STYLES[r.status]}`}>
+                                            {r.status === 'RESOLVED' && <CheckCircle2 className="h-3 w-3" />}
+                                            {r.status === 'REFUSED' && <XCircle className="h-3 w-3" />}
+                                            {r.status === 'PENDING' && <Clock className="h-3 w-3" />}
+                                            {r.status === 'RESOLVED' && t('dashboard.reclamations.history.status_resolved', 'Résolu')}
+                                            {r.status === 'REFUSED' && t('dashboard.reclamations.history.status_refused', 'Refusé')}
+                                            {r.status === 'PENDING' && t('dashboard.reclamations.history.status_pending', 'En attente')}
                                         </span>
                                         <div className="flex items-center gap-2 shrink-0">
                                             <span className="text-[11px] text-slate-400 dark:text-slate-500">{formatDate(r.dateCreation)}</span>

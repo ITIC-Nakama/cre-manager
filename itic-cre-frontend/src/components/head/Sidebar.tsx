@@ -20,6 +20,7 @@ export interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   to: string;
+  badge?: number;
 }
 
 interface SidebarProps {
@@ -106,14 +107,14 @@ function SidebarContent({
 
       {/* Nav items */}
       <nav className={`flex-1 py-4 space-y-0.5 overflow-y-auto ${collapsed ? 'px-2' : 'px-3'}`}>
-        {navItems.map(({ label, icon: Icon, to }) => (
+        {navItems.map(({ label, icon: Icon, to, badge }) => (
           <NavLink
             key={to}
             to={to}
             onClick={onNavClick}
             title={collapsed ? label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl text-sm font-medium transition-colors ${
+              `relative flex items-center gap-3 rounded-xl text-sm font-medium transition-colors ${
                 collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'
               } ${
                 isActive
@@ -122,8 +123,18 @@ function SidebarContent({
               }`
             }
           >
-            <Icon className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && <span>{label}</span>}
+            <span className="relative shrink-0">
+              <Icon className="h-[18px] w-[18px]" />
+              {!!badge && collapsed && (
+                <span className="absolute -top-1.5 -right-1.5 h-2 w-2 rounded-full bg-rose-500" />
+              )}
+            </span>
+            {!collapsed && <span className="flex-1">{label}</span>}
+            {!collapsed && !!badge && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

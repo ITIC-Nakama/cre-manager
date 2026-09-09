@@ -116,6 +116,7 @@
       "cv_validation": "CV Validation",
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
+      "reclamations": "Reports",
       "conseillers": "Corporate Relations",
       "conseillers_directory": "Advisors",
       "promotions": "Cohorts",
@@ -977,9 +978,29 @@
         "empty": "You haven't made any reports.",
         "status_resolved": "Resolved",
         "status_pending": "Pending",
+        "status_refused": "Refused",
         "withdraw": "Withdraw",
         "withdraw_error": "Couldn't withdraw this report, please try again."
       }
+    },
+    "reclamations_advisor": {
+      "title": "Reports",
+      "subtitle": "{{count}} report(s)",
+      "filter_pending": "Pending",
+      "filter_resolved": "Resolved",
+      "filter_refused": "Refused",
+      "filter_all": "All",
+      "empty": "No reports.",
+      "status_resolved": "Resolved",
+      "status_pending": "Pending",
+      "status_refused": "Refused",
+      "resolve_button": "Mark resolved",
+      "refuse_button": "Refuse",
+      "reopen_button": "Reopen",
+      "toast_resolved": "Report marked as resolved.",
+      "toast_refused": "Report refused.",
+      "toast_reopened": "Report reopened.",
+      "toast_error": "Something went wrong, please try again."
     },
     "connaissances": {
       "tree": {

@@ -7,17 +7,19 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings
+  ScrollText, User, Settings, MessageCircleWarning
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
+import { usePendingReclamationsCount } from '../hooks/useReclamations';
 
 export default function SupervisorLayout() {
   const { t } = useTranslation();
   const { user } = useUserStore();
   const mainRef = useRef<HTMLElement>(null);
   useResetScrollOnNavigate(mainRef);
+  const { data: pendingReclamationsCount } = usePendingReclamationsCount();
 
   const isAdmin = user?.role === Role.ADMIN;
 
@@ -29,6 +31,7 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv' },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
+    { label: t('dashboard.sidebar.reclamations', 'Réclamations'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
   ];
 
   const adminItems: NavItem[] = [

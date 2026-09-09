@@ -1,7 +1,10 @@
 import { apiClient } from '../AxiosApiClient';
-import type { Reclamation, ReclamationPage, CreateReclamationPayload, FetchReclamationsParams } from '../../types/models/Reclamation';
+import type {
+    Reclamation, ReclamationPage, CreateReclamationPayload, FetchReclamationsParams,
+    AdvisorReclamation, AdvisorReclamationPage, FetchAdvisorReclamationsParams,
+} from '../../types/models/Reclamation';
 
-export type { FetchReclamationsParams };
+export type { FetchReclamationsParams, FetchAdvisorReclamationsParams };
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
@@ -20,4 +23,28 @@ export function fetchMyReclamations(params: FetchReclamationsParams = {}): Promi
 
 export function deleteReclamation(id: string): Promise<void> {
     return apiClient.delete(`/reclamations/${id}`).then(() => undefined);
+}
+
+// ─── Conseiller / admin ─────────────────────────────────────────────────────
+
+export function fetchAdvisorReclamations(params: FetchAdvisorReclamationsParams = {}): Promise<AdvisorReclamationPage> {
+    const query: Record<string, unknown> = { page: params.page ?? 0, size: params.size ?? 15 };
+    if (params.status !== undefined) query.status = params.status;
+    return apiClient.get('/dashboard/reclamations', { params: query }).then((response) => unwrap<AdvisorReclamationPage>(response));
+}
+
+export function fetchPendingReclamationsCount(): Promise<number> {
+    return apiClient.get('/dashboard/reclamations/pending-count').then((response) => unwrap<number>(response));
+}
+
+export function resolveReclamation(id: string): Promise<AdvisorReclamation> {
+    return apiClient.patch(`/dashboard/reclamations/${id}/resolve`).then((response) => unwrap<AdvisorReclamation>(response));
+}
+
+export function refuseReclamation(id: string): Promise<AdvisorReclamation> {
+    return apiClient.patch(`/dashboard/reclamations/${id}/refuse`).then((response) => unwrap<AdvisorReclamation>(response));
+}
+
+export function reopenReclamation(id: string): Promise<AdvisorReclamation> {
+    return apiClient.patch(`/dashboard/reclamations/${id}/reopen`).then((response) => unwrap<AdvisorReclamation>(response));
 }

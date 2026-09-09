@@ -11,11 +11,16 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReclamationDTO {
+public class AdvisorReclamationDTO {
 
     private UUID id;
     private String message;
     private ReclamationStatus status;
     private Instant closedAt;
     private Instant dateCreation;
+    private UUID studentId;
+    private String studentFirstName;
+    private String studentLastName;
+    private String studentEmail;
+    private String studentPhoneNumber;
 }

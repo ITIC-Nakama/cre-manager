@@ -116,6 +116,7 @@
       "cv_validation": "Validation CV",
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
+      "reclamations": "Réclamations",
       "conseillers": "Relations Entreprises",
       "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
@@ -977,9 +978,29 @@
         "empty": "Vous n'avez fait aucun signalement.",
         "status_resolved": "Résolu",
         "status_pending": "En attente",
+        "status_refused": "Refusé",
         "withdraw": "Retirer",
         "withdraw_error": "Impossible de retirer ce signalement, réessayez."
       }
+    },
+    "reclamations_advisor": {
+      "title": "Réclamations",
+      "subtitle": "{{count}} signalement(s)",
+      "filter_pending": "En attente",
+      "filter_resolved": "Résolues",
+      "filter_refused": "Refusées",
+      "filter_all": "Toutes",
+      "empty": "Aucun signalement.",
+      "status_resolved": "Résolu",
+      "status_pending": "En attente",
+      "status_refused": "Refusé",
+      "resolve_button": "Marquer résolu",
+      "refuse_button": "Refuser",
+      "reopen_button": "Rouvrir",
+      "toast_resolved": "Signalement marqué comme résolu.",
+      "toast_refused": "Signalement refusé.",
+      "toast_reopened": "Signalement rouvert.",
+      "toast_error": "Une erreur est survenue, réessayez."
     },
     "connaissances": {
       "tree": {

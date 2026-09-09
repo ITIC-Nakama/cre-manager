@@ -6,6 +6,9 @@ import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import com.itic.paris.platform.shared.notification.event.ContractDeclarationRejectedEvent;
 import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
+import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
+import com.itic.paris.platform.shared.notification.event.ReclamationRefusedEvent;
+import com.itic.paris.platform.shared.notification.event.ReclamationResolvedEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +67,39 @@ public class NotificationEmailService {
         String subject = "en".equals(event.studentLang())
                 ? "Your advisor has been assigned — ITIC CRE"
                 : "Votre conseiller a été assigné — ITIC CRE";
+        sendHtml(event.studentEmail(), subject, html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onReclamationCreated(ReclamationCreatedEvent event) {
+        String html = emailTemplateService.renderReclamationCreatedEmail(
+                event.advisorLang(), event.studentFullName(), event.studentPhoneNumber(), event.message());
+        String subject = "en".equals(event.advisorLang())
+                ? "A student needs your help — ITIC CRE"
+                : "Un étudiant a besoin de vous — ITIC CRE";
+        sendHtml(event.advisorEmail(), subject, html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onReclamationResolved(ReclamationResolvedEvent event) {
+        String html = emailTemplateService.renderReclamationResolvedEmail(
+                event.studentLang(), event.studentFirstName(), event.message());
+        String subject = "en".equals(event.studentLang())
+                ? "Your report has been resolved — ITIC CRE"
+                : "Votre signalement a été résolu — ITIC CRE";
+        sendHtml(event.studentEmail(), subject, html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onReclamationRefused(ReclamationRefusedEvent event) {
+        String html = emailTemplateService.renderReclamationRefusedEmail(
+                event.studentLang(), event.studentFirstName(), event.message());
+        String subject = "en".equals(event.studentLang())
+                ? "Your report has been closed — ITIC CRE"
+                : "Votre signalement a été clos — ITIC CRE";
         sendHtml(event.studentEmail(), subject, html);
     }
 

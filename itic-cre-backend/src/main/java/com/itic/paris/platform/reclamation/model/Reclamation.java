@@ -27,14 +27,16 @@ public class Reclamation {
     @Column(nullable = false, columnDefinition = "text")
     private String message;
 
-    /** null = en attente, non-null = resolue (et a quel moment) — pas de booleen separe pour
-      * eviter un etat incoherent (resolved=true avec resolvedAt=null ou l'inverse). */
-    @Column(name = "resolved_at")
-    private Instant resolvedAt;
+    /** PENDING/RESOLVED/REFUSED — le conseiller peut soit resoudre (probleme traite) soit
+      * refuser (signalement clos sans suite), les deux notifient l'etudiant par email mais avec
+      * un message et une couleur differents (voir NotificationEmailService). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ReclamationStatus status = ReclamationStatus.PENDING;
 
-    public boolean isResolved() {
-        return resolvedAt != null;
-    }
+    /** Renseigne des que le statut quitte PENDING (resolu ou refuse) — remis a null si rouvert. */
+    @Column(name = "closed_at")
+    private Instant closedAt;
 
     @CreationTimestamp
     @Column(name = "date_creation", updatable = false)
