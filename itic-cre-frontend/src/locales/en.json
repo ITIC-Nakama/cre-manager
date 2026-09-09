@@ -52,7 +52,7 @@
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
-    "banner_title": "Install ITIC Paris CRE",
+    "banner_title": "Install your apprenticeship space",
     "banner_subtitle": "Quick access & offline mode",
     "banner_button": "Install",
     "ios_title": "Install on iPhone / iPad",
@@ -1525,7 +1525,7 @@
       "help_title": "Need help?",
       "help_contact": "Contact us:",
       "help_email": "pole.entreprises@iticparis.com",
-      "register_title": "Create an account",
+      "register_title": "Create an apprenticeship account",
       "register_subtitle": "Fill in the form to get started.",
       "first_name_label": "First name",
       "first_name_placeholder": "John",

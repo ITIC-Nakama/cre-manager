@@ -52,7 +52,7 @@
   },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
-    "banner_title": "Installer ITIC Paris CRE",
+    "banner_title": "Installer votre espace alternance",
     "banner_subtitle": "Accès rapide & mode hors-ligne",
     "banner_button": "Installer",
     "ios_title": "Installer sur iPhone / iPad",
@@ -1525,7 +1525,7 @@
       "help_title": "Besoin d'aide ?",
       "help_contact": "Contactez-nous :",
       "help_email": "pole.entreprises@iticparis.com",
-      "register_title": "Créer un compte",
+      "register_title": "Créer un compte alternance",
       "register_subtitle": "Remplissez le formulaire pour commencer.",
       "first_name_label": "Prénom",
       "first_name_placeholder": "Jean",
