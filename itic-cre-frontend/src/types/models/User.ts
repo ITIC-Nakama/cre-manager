@@ -8,6 +8,7 @@ export interface UserProfileDTO {
     role: Role;
     mustChangePassword: boolean;
     profilePicture?: string | null;
+    phoneNumber?: string | null;
     jobTitle?: string | null;
     lang?: string;
     pendingEmail?: string | null;
@@ -43,6 +44,7 @@ export function toUserProfileDTO(apiUser: any): UserProfileDTO {
         role,
         mustChangePassword: Boolean(apiUser.mustChangePassword),
         profilePicture: apiUser.profilePicture,
+        phoneNumber: apiUser.phoneNumber ?? null,
         jobTitle: apiUser.jobTitle,
         lang: apiUser.lang,
         pendingEmail: apiUser.pendingEmail,

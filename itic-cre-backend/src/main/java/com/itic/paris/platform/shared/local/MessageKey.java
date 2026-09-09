@@ -159,7 +159,12 @@ public enum MessageKey {
             "Resetting or modifying another administrator's password is forbidden."),
     ANONYMIZED_USER_CANNOT_BE_REACTIVATED("anonymized-user-cannot-be-reactivated",
             "Un compte anonymisé RGPD ne peut pas être réactivé.",
-            "An anonymized GDPR account cannot be reactivated.");
+            "An anonymized GDPR account cannot be reactivated."),
+    // Réclamations
+    RECLAMATION_PHONE_REQUIRED("reclamation-phone-required",
+            "Merci de renseigner votre numéro de téléphone.",
+            "Please provide your phone number."),
+    RECLAMATION_NOT_FOUND("reclamation-not-found", "Réclamation introuvable", "Complaint not found");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

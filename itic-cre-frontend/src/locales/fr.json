@@ -956,6 +956,31 @@
       "toast_question_too_long": "La question est trop longue.",
       "toast_question_option_too_long": "Une option de réponse est trop longue."
     },
+    "reclamations": {
+      "floating_button": "Signaler un problème",
+      "title": "Un problème ? Contactez votre conseiller",
+      "tab_new": "Nouveau signalement",
+      "tab_history": "Mes signalements",
+      "form": {
+        "subtitle": "Expliquez votre problème, votre conseiller sera prévenu et vous recontactera directement.",
+        "message_label": "Votre message",
+        "message_placeholder": "Décrivez ce qui ne va pas...",
+        "message_too_short": "Décrivez un peu plus votre problème.",
+        "phone_label": "Votre numéro de téléphone",
+        "phone_hint": "Pour que votre conseiller puisse vous rappeler.",
+        "phone_required": "Merci de renseigner votre numéro de téléphone.",
+        "submit": "Envoyer",
+        "success": "Votre conseiller a été prévenu, il vous recontactera bientôt.",
+        "error": "Une erreur est survenue, réessayez."
+      },
+      "history": {
+        "empty": "Vous n'avez fait aucun signalement.",
+        "status_resolved": "Résolu",
+        "status_pending": "En attente",
+        "withdraw": "Retirer",
+        "withdraw_error": "Impossible de retirer ce signalement, réessayez."
+      }
+    },
     "connaissances": {
       "tree": {
         "title": "Connaissances",

@@ -7,6 +7,7 @@ import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User, Users }
 import { useTranslation } from 'react-i18next';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
 import LevelUpWatcher from '../components/gamification/LevelUpWatcher';
+import HelpFloatingButton from '../components/reclamation/HelpFloatingButton';
 
 export default function StudentLayout() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export default function StudentLayout() {
   return (
     <RequireAuthMiddleware allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <LevelUpWatcher />
+      <HelpFloatingButton />
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main ref={mainRef} className="flex-1 overflow-y-auto h-full lg:pl-0 pt-14 lg:pt-0">

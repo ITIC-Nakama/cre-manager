@@ -956,6 +956,31 @@
       "toast_question_too_long": "Question is too long.",
       "toast_question_option_too_long": "An answer option is too long."
     },
+    "reclamations": {
+      "floating_button": "Report a problem",
+      "title": "Having an issue? Contact your advisor",
+      "tab_new": "New report",
+      "tab_history": "My reports",
+      "form": {
+        "subtitle": "Explain your problem — your advisor will be notified and will contact you directly.",
+        "message_label": "Your message",
+        "message_placeholder": "Describe what's wrong...",
+        "message_too_short": "Please describe your problem in a bit more detail.",
+        "phone_label": "Your phone number",
+        "phone_hint": "So your advisor can call you back.",
+        "phone_required": "Please provide your phone number.",
+        "submit": "Send",
+        "success": "Your advisor has been notified and will contact you soon.",
+        "error": "Something went wrong, please try again."
+      },
+      "history": {
+        "empty": "You haven't made any reports.",
+        "status_resolved": "Resolved",
+        "status_pending": "Pending",
+        "withdraw": "Withdraw",
+        "withdraw_error": "Couldn't withdraw this report, please try again."
+      }
+    },
     "connaissances": {
       "tree": {
         "title": "Knowledge",
