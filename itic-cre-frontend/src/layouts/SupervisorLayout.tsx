@@ -32,9 +32,9 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures', badge: contractPendingCount },
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
+    { label: t('dashboard.sidebar.reclamations', 'Réclamations'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
-    { label: t('dashboard.sidebar.reclamations', 'Réclamations'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
   ];
 
   const adminItems: NavItem[] = [
