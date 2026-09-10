@@ -31,12 +31,15 @@ public class NotificationEmailService {
     @Value("${app.mail.from:no-reply@itic-cre.fr}")
     private String mailFrom;
 
+    @Value("${app.brand.name:ITIC Paris CRE}")
+    private String brandName;
+
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCVStatusChanged(CVStatusChangedEvent event) {
         String html = emailTemplateService.renderCVStatusChangeEmail(
                 event.studentFirstName(), event.statutNom(), event.couleur());
-        sendHtml(event.studentEmail(), "Mise à jour de votre CV — " + event.statutNom(), html);
+        sendHtml(event.studentEmail(), "Mise à jour de votre CV : " + event.statutNom(), html);
     }
 
     @Async
@@ -53,8 +56,8 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderContractDeclarationRejectedEmail(
                 event.studentLang(), event.studentFirstName(), event.entreprise(), event.poste());
         String subject = "en".equals(event.studentLang())
-                ? "Contract declaration rejected — ITIC CRE"
-                : "Déclaration de contrat refusée — ITIC CRE";
+                ? "Contract declaration rejected"
+                : "Déclaration de contrat refusée";
         sendHtml(event.studentEmail(), subject, html);
     }
 
@@ -65,8 +68,8 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderAdvisorAssignedEmail(
                 event.studentLang(), event.studentFirstName(), advisorName, event.advisorJobTitle());
         String subject = "en".equals(event.studentLang())
-                ? "Your advisor has been assigned — ITIC CRE"
-                : "Votre conseiller a été assigné — ITIC CRE";
+                ? "Your advisor has been assigned"
+                : "Votre conseiller a été assigné";
         sendHtml(event.studentEmail(), subject, html);
     }
 
@@ -76,8 +79,8 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderReclamationCreatedEmail(
                 event.advisorLang(), event.studentFullName(), event.studentPhoneNumber(), event.message());
         String subject = "en".equals(event.advisorLang())
-                ? "A student needs your help — ITIC CRE"
-                : "Un étudiant a besoin de vous — ITIC CRE";
+                ? "A student needs your help"
+                : "Un étudiant a besoin de vous";
         sendHtml(event.advisorEmail(), subject, html);
     }
 
@@ -87,8 +90,8 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderReclamationResolvedEmail(
                 event.studentLang(), event.studentFirstName(), event.message());
         String subject = "en".equals(event.studentLang())
-                ? "Your report has been resolved — ITIC CRE"
-                : "Votre signalement a été résolu — ITIC CRE";
+                ? "Your report has been resolved"
+                : "Votre signalement a été résolu";
         sendHtml(event.studentEmail(), subject, html);
     }
 
@@ -98,8 +101,8 @@ public class NotificationEmailService {
         String html = emailTemplateService.renderReclamationRefusedEmail(
                 event.studentLang(), event.studentFirstName(), event.message());
         String subject = "en".equals(event.studentLang())
-                ? "Your report has been closed — ITIC CRE"
-                : "Votre signalement a été clos — ITIC CRE";
+                ? "Your report has been closed"
+                : "Votre signalement a été clos";
         sendHtml(event.studentEmail(), subject, html);
     }
 
@@ -111,12 +114,12 @@ public class NotificationEmailService {
         String subject;
         if (event.isEmailChange()) {
             subject = "en".equals(event.lang())
-                    ? "Confirm your new email address — ITIC CRE"
-                    : "Confirmation de votre nouvel email — ITIC CRE";
+                    ? "Confirm your new email address"
+                    : "Confirmation de votre nouvel email";
         } else {
             subject = "en".equals(event.lang())
-                    ? "Verify your ITIC CRE account"
-                    : "Vérification de votre compte ITIC CRE";
+                    ? "Verify your " + brandName + " account"
+                    : "Vérification de votre compte " + brandName;
         }
         sendHtml(event.email(), subject, html);
     }
@@ -125,7 +128,7 @@ public class NotificationEmailService {
     public void sendStudentReminder(String studentEmail, String studentFirstName,
                                     String advisorName, String message) {
         String html = emailTemplateService.renderStudentReminderEmail(studentFirstName, advisorName, message);
-        sendHtml(studentEmail, "Rappel de votre conseiller — ITIC CRE", html);
+        sendHtml(studentEmail, "Rappel de votre conseiller", html);
     }
 
     @Async
@@ -135,9 +138,9 @@ public class NotificationEmailService {
                 lang, firstName, email, temporaryPassword, isNewAccount);
         String subject;
         if (isNewAccount) {
-            subject = "en".equals(lang) ? "Your ITIC CRE account is ready" : "Votre compte ITIC CRE est prêt";
+            subject = "en".equals(lang) ? "Your " + brandName + " account is ready" : "Votre compte " + brandName + " est prêt";
         } else {
-            subject = "en".equals(lang) ? "Your ITIC CRE password has been reset" : "Votre mot de passe ITIC CRE a été réinitialisé";
+            subject = "en".equals(lang) ? "Your " + brandName + " password has been reset" : "Votre mot de passe " + brandName + " a été réinitialisé";
         }
         sendHtml(email, subject, html);
     }

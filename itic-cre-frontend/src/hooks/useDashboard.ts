@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     fetchDashboardOverview,
+    fetchCvPendingCount,
+    fetchContractPendingCount,
     fetchPromotionStudentCounts,
     fetchPromotionYearCounts,
     fetchStudentList,
@@ -16,6 +18,23 @@ export function useDashboardOverview(advisorId?: string) {
     return useQuery({
         queryKey: ['dashboard', 'overview', advisorId ?? null],
         queryFn: () => fetchDashboardOverview(advisorId),
+    });
+}
+
+// Poll toutes les minutes + refetch au focus de l'onglet (defaut React Query) — meme pattern que usePendingReclamationsCount.
+export function useCvPendingCount() {
+    return useQuery({
+        queryKey: ['dashboard', 'cv', 'pending-count'],
+        queryFn: fetchCvPendingCount,
+        refetchInterval: 60000,
+    });
+}
+
+export function useContractPendingCount() {
+    return useQuery({
+        queryKey: ['dashboard', 'applications', 'pending-contract-count'],
+        queryFn: fetchContractPendingCount,
+        refetchInterval: 60000,
     });
 }
 

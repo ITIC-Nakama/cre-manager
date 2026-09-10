@@ -184,6 +184,20 @@ public class DashboardOverviewService {
         return overview;
     }
 
+    /** Nombre de CVs en attente de validation — pour badge sidebar conseiller. advisorId null = vue globale (admin). */
+    public long getCvsPendingCount(UUID advisorId) {
+        if (advisorId == null) return cvRepository.countNotInFinalStatut();
+        List<UUID> studentIds = studentRepository.findIdsByAdvisorId(advisorId);
+        return studentIds.isEmpty() ? 0 : cvRepository.countNotInFinalStatutForStudents(studentIds);
+    }
+
+    /** Nombre d'etudiants avec une declaration "sous contrat" non encore verifiee — pour badge sidebar conseiller. */
+    public long getContractsPendingVerificationCount(UUID advisorId) {
+        if (advisorId == null) return applicationRepository.countStudentsWithUnverifiedContract();
+        List<UUID> studentIds = studentRepository.findIdsByAdvisorId(advisorId);
+        return studentIds.isEmpty() ? 0 : applicationRepository.countStudentsWithUnverifiedContractForStudents(studentIds);
+    }
+
     /** Portefeuille vide (aucun etudiant affecte) — evite d'executer des requetes "IN ()" invalides. */
     private Map<String, Object> emptyOverview(List<Grade> allGrades) {
         Map<String, Object> overview = new LinkedHashMap<>();

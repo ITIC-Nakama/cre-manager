@@ -20,7 +20,7 @@ public class EmailTemplateService {
 
     private final SpringTemplateEngine templateEngine;
 
-    @Value("${app.brand.name:ITIC CRE}")
+    @Value("${app.brand.name:ITIC Paris CRE}")
     private String brandName;
 
     @Value("${app.frontend.url:http://localhost:5173}")

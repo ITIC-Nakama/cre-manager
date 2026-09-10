@@ -58,7 +58,7 @@ export default function AdvisorDashboard() {
                 firstName
               )}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
             {isAdmin ? t('dashboard.advisor.subtitle') : t('dashboard.advisor.subtitle_advisor')}
           </p>
           {isAdmin && (

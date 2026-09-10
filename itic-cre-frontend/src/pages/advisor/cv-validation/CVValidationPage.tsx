@@ -203,7 +203,7 @@ export default function CVValidationPage() {
                     <FileCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
                     {renderTitleWithGradient(t('dashboard.cv_validation.title', 'Validation des CVs'), 'itic-gradient-blue')}
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
                     {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
                 </p>
             </div>

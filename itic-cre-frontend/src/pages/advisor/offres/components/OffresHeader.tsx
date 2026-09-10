@@ -23,7 +23,7 @@ export default function OffresHeader({
                     <Building2 className="h-7 w-7 text-[#E2762F] shrink-0" />
                     {renderTitleWithGradient(t('dashboard.offres.title', "Gestion des Offres d'Emploi"), 'itic-gradient-blue')}
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {t('dashboard.offres.subtitle', { count: totalElements })}
                 </p>
             </div>

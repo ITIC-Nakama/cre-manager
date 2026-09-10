@@ -188,7 +188,7 @@ export default function CandidaturesPage() {
                         <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
                         {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                         <Users className="h-4 w-4" />
                         {t('dashboard.candidatures.student_count', { count: totalStudents, defaultValue: '{{count}} étudiant' })}
                         {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}

@@ -13,8 +13,8 @@ export default function MyAdvisorCard({ advisor }: Props) {
   if (!advisor) return null;
 
   return (
-    <div className="relative overflow-hidden flex items-center gap-2 shrink-0 rounded-xl pl-2 pr-1.5 py-1.5">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500" />
+    <div className="relative overflow-hidden flex items-center gap-2 shrink-0 rounded-xl pl-3 pr-2 py-2.5">
+      <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500" />
       <UserAvatar
         profilePicture={advisor.profilePicture}
         firstName={advisor.firstName}

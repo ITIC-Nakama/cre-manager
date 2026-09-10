@@ -6,6 +6,7 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.reclamation.model.Reclamation;
+import com.itic.paris.platform.reclamation.model.ReclamationStatus;
 import com.itic.paris.platform.reclamation.model.dtos.CreateReclamationRequest;
 import com.itic.paris.platform.reclamation.model.dtos.ReclamationDTO;
 import com.itic.paris.platform.reclamation.model.dtos.ReclamationFormContextDTO;
@@ -20,15 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ReclamationService {
-
-    private static final Duration CREATE_COOLDOWN = Duration.ofMinutes(1200);
 
     private final ReclamationRepository reclamationRepository;
     private final StudentRepository studentRepository;
@@ -42,9 +39,8 @@ public class ReclamationService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.RECLAMATION_NO_ADVISOR_ASSIGNED);
         }
 
-        if (reclamationRepository.existsByStudentIdAndDateCreationAfter(
-                student.getId(), Instant.now().minus(CREATE_COOLDOWN))) {
-            throw new AppException(HttpStatus.TOO_MANY_REQUESTS, MessageKey.RECLAMATION_RATE_LIMITED);
+        if (reclamationRepository.existsByStudentIdAndStatus(student.getId(), ReclamationStatus.PENDING)) {
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.RECLAMATION_ALREADY_PENDING);
         }
 
         String providedPhone = request.getPhoneNumber();

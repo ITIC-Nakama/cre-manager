@@ -59,8 +59,8 @@ export default function ReclamationsPage() {
         try {
             await mutateAsync(id);
             toast.success(t(successKey, successDefault));
-        } catch {
-            toast.error(t('dashboard.reclamations_advisor.toast_error', 'Une erreur est survenue, réessayez.'));
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || t('dashboard.reclamations_advisor.toast_error', 'Une erreur est survenue, réessayez.'));
         } finally {
             setActingId(null);
         }
@@ -78,7 +78,7 @@ export default function ReclamationsPage() {
                         <MessageCircleWarning className="h-7 w-7 text-[#E2762F] shrink-0" />
                         {renderTitleWithGradient(t('dashboard.reclamations_advisor.title', 'Réclamations'), 'itic-gradient-blue')}
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {t('dashboard.reclamations_advisor.subtitle', { count: totalElements, defaultValue: '{{count}} signalement(s)' })}
                     </p>
                 </div>

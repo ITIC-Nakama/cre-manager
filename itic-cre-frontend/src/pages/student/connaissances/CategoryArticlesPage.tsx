@@ -47,7 +47,7 @@ export default function CategoryArticlesPage() {
             {categoryName}
           </h1>
           {articles && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {articles.length} {articles.length === 1 ? 'article' : 'articles'}
             </p>
           )}

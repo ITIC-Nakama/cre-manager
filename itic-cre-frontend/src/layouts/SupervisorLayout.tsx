@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
 import { usePendingReclamationsCount } from '../hooks/useReclamations';
+import { useCvPendingCount, useContractPendingCount } from '../hooks/useDashboard';
 
 export default function SupervisorLayout() {
   const { t } = useTranslation();
@@ -20,15 +21,17 @@ export default function SupervisorLayout() {
   const mainRef = useRef<HTMLElement>(null);
   useResetScrollOnNavigate(mainRef);
   const { data: pendingReclamationsCount } = usePendingReclamationsCount();
+  const { data: cvPendingCount } = useCvPendingCount();
+  const { data: contractPendingCount } = useContractPendingCount();
 
   const isAdmin = user?.role === Role.ADMIN;
 
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
     { label: t('dashboard.sidebar.etudiants'),          icon: Users,           to: '/supervisor/etudiants' },
-    { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures' },
+    { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures', badge: contractPendingCount },
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
-    { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv' },
+    { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
     { label: t('dashboard.sidebar.reclamations', 'Réclamations'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },

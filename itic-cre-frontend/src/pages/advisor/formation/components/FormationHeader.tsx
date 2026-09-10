@@ -69,7 +69,7 @@ export default function FormationHeader() {
             {t('dashboard.formation.badge')}
           </span>
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           {t('dashboard.formation.subtitle')}
         </p>
       </div>

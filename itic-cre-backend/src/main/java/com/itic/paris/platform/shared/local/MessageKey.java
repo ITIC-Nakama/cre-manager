@@ -171,9 +171,9 @@ public enum MessageKey {
     RECLAMATION_NOT_ASSIGNED("reclamation-not-assigned",
             "Cette réclamation concerne un étudiant qui ne vous est pas affecté.",
             "This report concerns a student who is not assigned to you."),
-    RECLAMATION_RATE_LIMITED("reclamation-rate-limited",
-            "Vous avez déjà envoyé un signalement récemment. Merci de patienter avant d'en envoyer un nouveau.",
-            "You already sent a report recently. Please wait before sending another one.");
+    RECLAMATION_ALREADY_PENDING("reclamation-already-pending",
+            "Vous avez déjà une réclamation en cours. Merci d'attendre qu'elle soit traitée avant d'en envoyer une nouvelle.",
+            "You already have an ongoing report. Please wait until it's handled before sending a new one.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

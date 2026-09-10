@@ -19,7 +19,7 @@ class EmailTemplateServiceTest {
         assertTrue(html.contains("#3B71FF"));
         assertTrue(html.contains("482910"));
         assertTrue(html.contains("Bonjour"));
-        assertTrue(html.contains("ITIC CRE"));
+        assertTrue(html.contains("ITIC Paris CRE"));
     }
 
     @Test

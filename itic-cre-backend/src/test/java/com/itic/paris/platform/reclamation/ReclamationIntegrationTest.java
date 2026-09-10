@@ -263,19 +263,34 @@ public class ReclamationIntegrationTest {
         }
 
         @Test
-        @DisplayName("Second create within the cooldown window is rate limited")
-        void create_secondWithinCooldown_isRateLimited() throws Exception {
+        @DisplayName("Create while another reclamation is still pending is rejected")
+        void create_whileOnePending_isRejected() throws Exception {
             persistReclamation(studentWithPhone, ReclamationStatus.PENDING);
 
             mockMvc.perform(post("/reclamations")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"message\":\"Un autre probleme\"}"))
-                    .andExpect(status().isTooManyRequests())
-                    .andExpect(jsonPath("$.messageKey").value("reclamation-rate-limited"));
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.messageKey").value("reclamation-already-pending"));
 
             assertThat(reclamationRepository.findByStudentId(studentWithPhone.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
                     .isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Create is allowed again once the previous reclamation is resolved")
+        void create_afterPreviousResolved_isAllowed() throws Exception {
+            persistReclamation(studentWithPhone, ReclamationStatus.RESOLVED);
+
+            mockMvc.perform(post("/reclamations")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"message\":\"Nouveau probleme\"}"))
+                    .andExpect(status().isCreated());
+
+            assertThat(reclamationRepository.findByStudentId(studentWithPhone.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
+                    .isEqualTo(2);
         }
 
         @Test

@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +17,7 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, UUID> 
 
     Optional<Reclamation> findByIdAndStudentId(UUID id, UUID studentId);
 
-    boolean existsByStudentIdAndDateCreationAfter(UUID studentId, Instant since);
+    boolean existsByStudentIdAndStatus(UUID studentId, ReclamationStatus status);
 
     /** advisorId null = tous les etudiants (vue admin) ; status null = tous statuts. */
     @Query("SELECT r FROM Reclamation r " +

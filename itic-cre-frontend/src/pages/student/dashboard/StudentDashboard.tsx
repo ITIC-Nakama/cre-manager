@@ -84,7 +84,7 @@ export default function StudentDashboard() {
             <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
             {renderTitleWithGradient(t('dashboard.home.greeting', '{{greeting}}, {{name}} 👋', { greeting: t(`common.time_greeting.${getTimeGreetingPeriod()}`), name: firstName }), 'itic-gradient-blue', firstName)}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
             {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}
           </p>
         </div>

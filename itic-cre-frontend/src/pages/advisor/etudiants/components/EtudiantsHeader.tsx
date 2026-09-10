@@ -18,7 +18,7 @@ export default function EtudiantsHeader({ totalElements, exporting, onExport }: 
                     <Users className="h-7 w-7 text-[#E2762F] shrink-0" />
                     {renderTitleWithGradient(t('dashboard.etudiants.title', 'Gestion des Étudiants'), 'itic-gradient-blue')}
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
                     {t('dashboard.etudiants.subtitle', { count: totalElements })}
                 </p>
             </div>

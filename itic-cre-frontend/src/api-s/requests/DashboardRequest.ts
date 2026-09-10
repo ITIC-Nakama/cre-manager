@@ -16,6 +16,14 @@ export function fetchDashboardOverview(advisorId?: string): Promise<DashboardOve
     return apiClient.get('/dashboard/overview', { params: { advisorId } }).then(unwrap<DashboardOverview>);
 }
 
+export function fetchCvPendingCount(): Promise<number> {
+    return apiClient.get('/dashboard/cv/pending-count').then(unwrap<number>);
+}
+
+export function fetchContractPendingCount(): Promise<number> {
+    return apiClient.get('/dashboard/applications/pending-contract-count').then(unwrap<number>);
+}
+
 export function fetchPromotionStudentCounts(): Promise<Record<string, number>> {
     return apiClient.get('/dashboard/promotions/student-counts').then(unwrap<Record<string, number>>);
 }

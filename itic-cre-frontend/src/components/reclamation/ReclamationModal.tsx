@@ -42,8 +42,8 @@ export default function ReclamationModal({ onClose }: Props) {
         setDeletingId(id);
         try {
             await deleteMutation.mutateAsync(id);
-        } catch {
-            toast.error(t('dashboard.reclamations.history.withdraw_error', "Impossible de retirer ce signalement, réessayez."));
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || t('dashboard.reclamations.history.withdraw_error', "Impossible de retirer ce signalement, réessayez."));
         } finally {
             setDeletingId(null);
         }
@@ -71,8 +71,8 @@ export default function ReclamationModal({ onClose }: Props) {
             setMessage('');
             setPhoneNumber('');
             setTab('history');
-        } catch {
-            setError(t('dashboard.reclamations.form.error', "Une erreur est survenue, réessayez."));
+        } catch (err: any) {
+            setError(err?.response?.data?.message || t('dashboard.reclamations.form.error', "Une erreur est survenue, réessayez."));
         }
     };
 

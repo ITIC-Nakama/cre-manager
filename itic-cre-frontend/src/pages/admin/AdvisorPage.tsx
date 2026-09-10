@@ -258,7 +258,7 @@ export default function AdvisorPage() {
             <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
             {renderTitleWithGradient(t(isAdminsTab ? 'dashboard.admins.title' : 'dashboard.advisors.title', isAdminsTab ? 'Gestion des Administrateurs' : 'Gestion des Conseillers'), 'itic-gradient-blue')}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
             {t('dashboard.conseillers.subtitle', { count: totalElements })}
           </p>
         </div>

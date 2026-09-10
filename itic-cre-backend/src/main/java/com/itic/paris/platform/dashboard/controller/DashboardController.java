@@ -55,6 +55,22 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardOverviewService.getOverview(scopeId));
     }
 
+    @GetMapping("/cv/pending-count")
+    @Operation(summary = "Nombre de CVs en attente de validation — limite au portefeuille du conseiller connecte, vue globale pour un admin.")
+    public ResponseEntity<Long> cvPendingCount() {
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
+        return ResponseEntity.ok(dashboardOverviewService.getCvsPendingCount(scopeId));
+    }
+
+    @GetMapping("/applications/pending-contract-count")
+    @Operation(summary = "Nombre d'etudiants avec une declaration de contrat non verifiee — limite au portefeuille du conseiller connecte, vue globale pour un admin.")
+    public ResponseEntity<Long> contractPendingCount() {
+        boolean isAdvisor = "ADVISOR".equals(SecurityContextHelper.currentUserRole());
+        UUID scopeId = isAdvisor ? SecurityContextHelper.currentUserId() : null;
+        return ResponseEntity.ok(dashboardOverviewService.getContractsPendingVerificationCount(scopeId));
+    }
+
     @GetMapping("/students/needing-attention")
     @Operation(summary = "Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés par pertinence. " +
             "Limité au portefeuille du conseiller connecté (role ADVISOR) ; vue globale plateforme pour un ADMIN, sauf s'il precise advisorId.")

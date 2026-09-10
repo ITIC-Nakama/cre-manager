@@ -92,7 +92,7 @@ export default function ParametresPage() {
           <Settings className="h-7 w-7 text-[#E2762F] shrink-0" />
           {renderTitleWithGradient(t('dashboard.pages.parametres.title', 'Paramètres du Compte'), 'itic-gradient-blue')}
         </h1>
-        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-0.5">
+        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
           {t('dashboard.pages.parametres.description')}
         </p>
       </div>
