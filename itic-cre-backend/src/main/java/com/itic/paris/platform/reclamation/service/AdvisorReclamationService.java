@@ -25,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.UUID;
 
-/** Vue conseiller/admin des reclamations etudiantes — pas de chat, juste un signalement suivi
-  * d'un rappel telephonique direct (voir ReclamationService cote etudiant). */
+/** Vue conseiller/admin des reclamations etudiantes. */
 @Service
 @RequiredArgsConstructor
 public class AdvisorReclamationService {
@@ -35,8 +34,7 @@ public class AdvisorReclamationService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** Un ADVISOR ne voit que les reclamations de ses propres etudiants affectes ; un ADMIN voit
-      * tout (coherent avec le reste de l'espace admin). */
+    /** ADVISOR = ses etudiants affectes uniquement ; ADMIN = tout. */
     @Transactional(readOnly = true)
     public Page<AdvisorReclamationDTO> getReclamations(ReclamationStatus status, Pageable pageable) {
         UUID advisorScope = advisorScope();
@@ -44,21 +42,25 @@ public class AdvisorReclamationService {
                 .map(this::mapToDTO);
     }
 
-    /** Nombre de reclamations en attente dans le perimetre de l'acteur — sert au badge de la
-      * sidebar conseiller. */
     @Transactional(readOnly = true)
     public long getPendingCount() {
         return reclamationRepository.countForAdvisorView(advisorScope(), ReclamationStatus.PENDING);
     }
 
-    /** Ouvert a tout conseiller/admin, pas seulement celui affecte a l'etudiant — meme logique
-      * de couverture mutuelle que les autres actions cote conseiller de cette plateforme.
-      * RESOLU et REFUSE notifient tous deux l'etudiant par email, avec un message different
-      * (voir NotificationEmailService) : resolu = probleme traite, refuse = clos sans suite. */
+    /** Seul le conseiller affecte a l'etudiant (ou un admin) peut agir sur sa reclamation. */
     @Transactional
     public AdvisorReclamationDTO updateStatus(UUID id, ReclamationStatus newStatus) {
+        User actor = currentActor();
         Reclamation reclamation = reclamationRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.RECLAMATION_NOT_FOUND));
+
+        if (UserMapper.roleOf(actor) != RoleEnum.ADMIN) {
+            User assignedAdvisor = reclamation.getStudent().getAdvisor();
+            if (assignedAdvisor == null || !assignedAdvisor.getId().equals(actor.getId())) {
+                throw new AppException(HttpStatus.FORBIDDEN, MessageKey.RECLAMATION_NOT_ASSIGNED);
+            }
+        }
+
         reclamation.setStatus(newStatus);
         reclamation.setClosedAt(newStatus == ReclamationStatus.PENDING ? null : Instant.now());
         AdvisorReclamationDTO dto = mapToDTO(reclamationRepository.save(reclamation));
@@ -87,8 +89,11 @@ public class AdvisorReclamationService {
 
     private AdvisorReclamationDTO mapToDTO(Reclamation r) {
         Student s = r.getStudent();
+        User assignedAdvisor = s.getAdvisor();
         return new AdvisorReclamationDTO(
                 r.getId(), r.getMessage(), r.getStatus(), r.getClosedAt(), r.getDateCreation(),
-                s.getId(), s.getFirstName(), s.getLastName(), s.getEmail(), s.getPhoneNumber());
+                s.getId(), s.getFirstName(), s.getLastName(), s.getEmail(), s.getPhoneNumber(),
+                s.getPromotion() != null ? s.getPromotion().getName() : null,
+                assignedAdvisor != null ? assignedAdvisor.getFirstName() + " " + assignedAdvisor.getLastName() : null);
     }
 }

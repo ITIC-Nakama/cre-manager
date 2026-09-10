@@ -23,4 +23,6 @@ public class AdvisorReclamationDTO {
     private String studentLastName;
     private String studentEmail;
     private String studentPhoneNumber;
+    private String studentPromotionName;
+    private String assignedAdvisorName;
 }

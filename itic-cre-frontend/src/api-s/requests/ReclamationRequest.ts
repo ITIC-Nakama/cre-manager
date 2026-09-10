@@ -1,6 +1,6 @@
 import { apiClient } from '../AxiosApiClient';
 import type {
-    Reclamation, ReclamationPage, CreateReclamationPayload, FetchReclamationsParams,
+    Reclamation, ReclamationPage, CreateReclamationPayload, FetchReclamationsParams, ReclamationFormContext,
     AdvisorReclamation, AdvisorReclamationPage, FetchAdvisorReclamationsParams,
 } from '../../types/models/Reclamation';
 
@@ -9,6 +9,10 @@ export type { FetchReclamationsParams, FetchAdvisorReclamationsParams };
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
     return (d?.data ?? d) as T;
+}
+
+export function fetchReclamationFormContext(): Promise<ReclamationFormContext> {
+    return apiClient.get('/reclamations/form-context').then((response) => unwrap<ReclamationFormContext>(response));
 }
 
 export function createReclamation(payload: CreateReclamationPayload): Promise<Reclamation> {

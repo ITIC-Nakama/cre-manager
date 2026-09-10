@@ -20,6 +20,11 @@ export interface CreateReclamationPayload {
   phoneNumber?: string;
 }
 
+export interface ReclamationFormContext {
+  hasAdvisor: boolean;
+  phoneNumber: string | null;
+}
+
 export interface FetchReclamationsParams {
   page?: number;
   size?: number;
@@ -36,6 +41,8 @@ export interface AdvisorReclamation {
   studentLastName: string;
   studentEmail: string;
   studentPhoneNumber: string | null;
+  studentPromotionName: string | null;
+  assignedAdvisorName: string | null;
 }
 
 export interface AdvisorReclamationPage {

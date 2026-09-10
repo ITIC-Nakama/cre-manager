@@ -2,9 +2,8 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, X, XCircle } from 'lucide-react';
-import { useUserStore } from '../../store/UserStore';
-import { useCreateReclamation, useDeleteReclamation, useMyReclamationsInfinite } from '../../hooks/useReclamations';
+import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, UserRoundX, X, XCircle } from 'lucide-react';
+import { useCreateReclamation, useDeleteReclamation, useMyReclamationsInfinite, useReclamationFormContext } from '../../hooks/useReclamations';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import InfiniteScrollSentinel from '../shared/InfiniteScrollSentinel';
 import type { ReclamationStatus } from '../../types/models/Reclamation';
@@ -23,8 +22,6 @@ const STATUS_STYLES: Record<ReclamationStatus, string> = {
 
 export default function ReclamationModal({ onClose }: Props) {
     const { t, i18n } = useTranslation();
-    const user = useUserStore((state) => state.user);
-    const setUser = useUserStore((state) => state.setUser);
     const [tab, setTab] = useState<Tab>('new');
     const [message, setMessage] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -32,7 +29,8 @@ export default function ReclamationModal({ onClose }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
     useLockBodyScroll(scrollRef, true);
 
-    const needsPhone = !user?.phoneNumber;
+    const { data: formContext, isLoading: formContextLoading } = useReclamationFormContext();
+    const needsPhone = !formContext?.phoneNumber;
     const createMutation = useCreateReclamation();
     const deleteMutation = useDeleteReclamation();
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -69,11 +67,6 @@ export default function ReclamationModal({ onClose }: Props) {
                 message: message.trim(),
                 phoneNumber: needsPhone ? phoneNumber.trim() : undefined,
             });
-            // Le numero vient d'etre sauvegarde cote serveur — sans ca, le store garde la
-            // valeur vide chargee au login et redemande le numero a chaque signalement.
-            if (needsPhone && user) {
-                setUser({ ...user, phoneNumber: phoneNumber.trim() });
-            }
             toast.success(t('dashboard.reclamations.form.success', 'Votre conseiller a été prévenu, il vous recontactera bientôt.'));
             setMessage('');
             setPhoneNumber('');
@@ -127,7 +120,21 @@ export default function ReclamationModal({ onClose }: Props) {
                 </div>
 
                 <div ref={scrollRef} className="p-5 overflow-y-auto overscroll-contain flex-1 min-w-0">
-                    {tab === 'new' ? (
+                    {tab === 'new' && formContextLoading ? (
+                        <div className="flex items-center justify-center py-10">
+                            <Loader2 className="h-5 w-5 text-slate-400 animate-spin" />
+                        </div>
+                    ) : tab === 'new' && !formContext?.hasAdvisor ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+                            <UserRoundX className="h-8 w-8 text-slate-300 dark:text-slate-700" />
+                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                {t('dashboard.reclamations.form.no_advisor_title', "Pas encore de conseiller")}
+                            </p>
+                            <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs">
+                                {t('dashboard.reclamations.form.no_advisor_description', "Vous n'avez pas encore de conseiller assigné. Merci de patienter, un conseiller vous sera bientôt attribué.")}
+                            </p>
+                        </div>
+                    ) : tab === 'new' ? (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {t('dashboard.reclamations.form.subtitle', 'Expliquez votre problème, votre conseiller sera prévenu et vous recontactera directement.')}

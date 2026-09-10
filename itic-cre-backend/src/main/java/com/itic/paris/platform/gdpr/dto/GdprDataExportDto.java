@@ -21,6 +21,7 @@ public class GdprDataExportDto {
     private List<QuizValidationData> quizValidations;
     private List<ArticleReadData> articlesRead;
     private List<XpHistoryData> xpHistory;
+    private List<ReclamationData> reclamations;
 
     @Data
     @Builder
@@ -112,5 +113,16 @@ public class GdprDataExportDto {
         private String action;
         private String description;
         private Instant dateObtention;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReclamationData {
+        private String id;
+        private String message;
+        private String status;
+        private Instant dateCreation;
     }
 }

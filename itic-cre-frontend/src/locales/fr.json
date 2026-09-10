@@ -972,7 +972,9 @@
         "phone_required": "Merci de renseigner votre numéro de téléphone.",
         "submit": "Envoyer",
         "success": "Votre conseiller a été prévenu, il vous recontactera bientôt.",
-        "error": "Une erreur est survenue, réessayez."
+        "error": "Une erreur est survenue, réessayez.",
+        "no_advisor_title": "Pas encore de conseiller",
+        "no_advisor_description": "Vous n'avez pas encore de conseiller assigné. Merci de patienter, un conseiller vous sera bientôt attribué."
       },
       "history": {
         "empty": "Vous n'avez fait aucun signalement.",

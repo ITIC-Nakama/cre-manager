@@ -2,6 +2,7 @@ package com.itic.paris.platform.reclamation.controller;
 
 import com.itic.paris.platform.reclamation.model.dtos.CreateReclamationRequest;
 import com.itic.paris.platform.reclamation.model.dtos.ReclamationDTO;
+import com.itic.paris.platform.reclamation.model.dtos.ReclamationFormContextDTO;
 import com.itic.paris.platform.reclamation.service.ReclamationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,12 @@ import java.util.UUID;
 public class ReclamationController {
 
     private final ReclamationService reclamationService;
+
+    @GetMapping("/form-context")
+    @Operation(summary = "État nécessaire au formulaire (conseiller affecté ? numéro déjà enregistré ?)")
+    public ResponseEntity<ReclamationFormContextDTO> getFormContext() {
+        return ResponseEntity.ok(reclamationService.getFormContext());
+    }
 
     @PostMapping
     @Operation(summary = "Créer une réclamation")

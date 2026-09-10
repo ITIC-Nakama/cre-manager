@@ -972,7 +972,9 @@
         "phone_required": "Please provide your phone number.",
         "submit": "Send",
         "success": "Your advisor has been notified and will contact you soon.",
-        "error": "Something went wrong, please try again."
+        "error": "Something went wrong, please try again.",
+        "no_advisor_title": "No advisor yet",
+        "no_advisor_description": "You don't have an assigned advisor yet. Please wait, one will be assigned to you shortly."
       },
       "history": {
         "empty": "You haven't made any reports.",

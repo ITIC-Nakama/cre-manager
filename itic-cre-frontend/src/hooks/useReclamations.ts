@@ -1,17 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
-    createReclamation, deleteReclamation, fetchMyReclamations,
+    createReclamation, deleteReclamation, fetchMyReclamations, fetchReclamationFormContext,
     fetchAdvisorReclamations, fetchPendingReclamationsCount, resolveReclamation, refuseReclamation, reopenReclamation,
 } from '../api-s/requests/ReclamationRequest';
 import type { CreateReclamationPayload, FetchReclamationsParams, FetchAdvisorReclamationsParams } from '../types/models/Reclamation';
 
 const MY_RECLAMATIONS_KEY = ['my-reclamations'] as const;
+const RECLAMATION_FORM_CONTEXT_KEY = ['reclamation-form-context'] as const;
 const ADVISOR_RECLAMATIONS_KEY = ['advisor-reclamations'] as const;
 const PENDING_RECLAMATIONS_COUNT_KEY = ['advisor-reclamations', 'pending-count'] as const;
 
 export function useMyReclamationsInfinite(params: FetchReclamationsParams = {}) {
     return useInfiniteListQuery([...MY_RECLAMATIONS_KEY, 'infinite', params], fetchMyReclamations, params);
+}
+
+export function useReclamationFormContext() {
+    return useQuery({
+        queryKey: RECLAMATION_FORM_CONTEXT_KEY,
+        queryFn: fetchReclamationFormContext,
+        staleTime: 0,
+    });
 }
 
 export function useCreateReclamation() {
@@ -20,6 +29,7 @@ export function useCreateReclamation() {
         mutationFn: (payload: CreateReclamationPayload) => createReclamation(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: MY_RECLAMATIONS_KEY });
+            queryClient.invalidateQueries({ queryKey: RECLAMATION_FORM_CONTEXT_KEY });
         },
     });
 }
@@ -40,13 +50,12 @@ export function useAdvisorReclamationsInfinite(params: FetchAdvisorReclamationsP
     return useInfiniteListQuery([...ADVISOR_RECLAMATIONS_KEY, 'infinite', params], fetchAdvisorReclamations, params);
 }
 
-// Rafraichi toutes les 30s (comme useExternalJobboardStats) pour que le badge sidebar reste a
-// jour meme si l'etudiant a soumis la reclamation dans une autre session que celle du conseiller.
+// Poll toutes les minutes + refetch au focus de l'onglet (defaut React Query).
 export function usePendingReclamationsCount() {
     return useQuery({
         queryKey: PENDING_RECLAMATIONS_COUNT_KEY,
         queryFn: fetchPendingReclamationsCount,
-        refetchInterval: 30000,
+        refetchInterval: 60000,
     });
 }
 

@@ -16,8 +16,7 @@ public class CreateReclamationRequest {
     @Size(max = 2000)
     private String message;
 
-    /** Fourni uniquement si l'etudiant n'a pas encore de numero enregistre (voir
-      * ReclamationService.create) — sinon laisser vide, le numero deja enregistre est utilise. */
+    /** Optionnel, seulement si le numero n'est pas deja enregistre. */
     @Pattern(regexp = "^$|\\+?[0-9]{7,15}")
     private String phoneNumber;
 }

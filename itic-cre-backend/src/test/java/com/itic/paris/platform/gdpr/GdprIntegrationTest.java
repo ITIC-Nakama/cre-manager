@@ -34,6 +34,9 @@ import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.reclamation.model.Reclamation;
+import com.itic.paris.platform.reclamation.model.ReclamationStatus;
+import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -60,6 +63,9 @@ public class GdprIntegrationTest {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private ReclamationRepository reclamationRepository;
 
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
@@ -120,6 +126,36 @@ public class GdprIntegrationTest {
         assertThat(updatedUser.getFirstName()).isEqualTo("Anonyme");
         assertThat(updatedUser.getLastName()).isEqualTo("Utilisateur RGPD");
         assertThat(updatedUser.getEmail()).startsWith("deleted_");
+    }
+
+    @Test
+    public void testDeleteMyAccount_ShouldDeleteReclamations() throws Exception {
+        Reclamation reclamation = new Reclamation();
+        reclamation.setStudent(testStudent);
+        reclamation.setMessage("Message sensible");
+        reclamation.setStatus(ReclamationStatus.PENDING);
+        reclamation = reclamationRepository.save(reclamation);
+
+        mockMvc.perform(delete("/gdpr/delete-account")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        assertThat(reclamationRepository.findById(reclamation.getId())).isEmpty();
+    }
+
+    @Test
+    public void testExportMyData_IncludesReclamations() throws Exception {
+        Reclamation reclamation = new Reclamation();
+        reclamation.setStudent(testStudent);
+        reclamation.setMessage("J'ai un probleme");
+        reclamation.setStatus(ReclamationStatus.PENDING);
+        reclamationRepository.save(reclamation);
+
+        mockMvc.perform(get("/gdpr/export")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.reclamations.length()").value(1))
+                .andExpect(jsonPath("$.data.reclamations[0].message").value("J'ai un probleme"));
     }
 
     @Test

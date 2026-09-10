@@ -8,6 +8,7 @@ import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.reclamation.model.Reclamation;
 import com.itic.paris.platform.reclamation.model.dtos.CreateReclamationRequest;
 import com.itic.paris.platform.reclamation.model.dtos.ReclamationDTO;
+import com.itic.paris.platform.reclamation.model.dtos.ReclamationFormContextDTO;
 import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
@@ -29,13 +30,13 @@ public class ReclamationService {
     private final StudentRepository studentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** Si l'etudiant n'a pas encore de numero enregistre, celui fourni ici est sauvegarde sur
-      * son profil (une seule fois — les fois suivantes, le champ n'est plus demande cote front).
-      * Sans numero au final (ni deja enregistre, ni fourni), la reclamation est refusee : c'est
-      * le seul moyen pour le conseiller de rappeler l'etudiant. */
     @Transactional
     public ReclamationDTO create(CreateReclamationRequest request) {
         Student student = getCurrentStudent();
+
+        if (student.getAdvisor() == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.RECLAMATION_NO_ADVISOR_ASSIGNED);
+        }
 
         String providedPhone = request.getPhoneNumber();
         if (providedPhone != null && !providedPhone.isBlank()
@@ -55,14 +56,18 @@ public class ReclamationService {
         ReclamationDTO dto = mapToDTO(reclamationRepository.saveAndFlush(reclamation));
 
         User advisor = student.getAdvisor();
-        if (advisor != null) {
-            eventPublisher.publishEvent(new ReclamationCreatedEvent(
-                    advisor.getEmail(), advisor.getLang(),
-                    student.getFirstName() + " " + student.getLastName(),
-                    student.getPhoneNumber(), reclamation.getMessage()));
-        }
+        eventPublisher.publishEvent(new ReclamationCreatedEvent(
+                advisor.getEmail(), advisor.getLang(),
+                student.getFirstName() + " " + student.getLastName(),
+                student.getPhoneNumber(), reclamation.getMessage()));
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public ReclamationFormContextDTO getFormContext() {
+        Student student = getCurrentStudent();
+        return new ReclamationFormContextDTO(student.getAdvisor() != null, student.getPhoneNumber());
     }
 
     @Transactional(readOnly = true)
@@ -72,8 +77,6 @@ public class ReclamationService {
                 .map(this::mapToDTO);
     }
 
-    /** L'etudiant peut retirer sa propre reclamation a tout moment, resolue ou non (ex: envoyee
-      * par erreur, ou probleme regle entre-temps sans passer par le conseiller). */
     @Transactional
     public void delete(UUID id) {
         Student student = getCurrentStudent();

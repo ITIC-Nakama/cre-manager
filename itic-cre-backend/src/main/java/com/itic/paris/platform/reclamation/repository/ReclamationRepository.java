@@ -18,11 +18,14 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, UUID> 
     Optional<Reclamation> findByIdAndStudentId(UUID id, UUID studentId);
 
     /** advisorId null = tous les etudiants (vue admin) ; status null = tous statuts. */
-    @Query("SELECT r FROM Reclamation r WHERE (:advisorId IS NULL OR r.student.advisor.id = :advisorId) " +
+    @Query("SELECT r FROM Reclamation r " +
+            "JOIN FETCH r.student s " +
+            "LEFT JOIN FETCH s.promotion " +
+            "LEFT JOIN FETCH s.advisor " +
+            "WHERE (:advisorId IS NULL OR s.advisor.id = :advisorId) " +
             "AND (:status IS NULL OR r.status = :status)")
     Page<Reclamation> findForAdvisorView(@Param("advisorId") UUID advisorId, @Param("status") ReclamationStatus status, Pageable pageable);
 
-    /** Utilise pour le badge de la sidebar conseiller — advisorId null = tous les etudiants. */
     @Query("SELECT COUNT(r) FROM Reclamation r WHERE (:advisorId IS NULL OR r.student.advisor.id = :advisorId) " +
             "AND r.status = :status")
     long countForAdvisorView(@Param("advisorId") UUID advisorId, @Param("status") ReclamationStatus status);

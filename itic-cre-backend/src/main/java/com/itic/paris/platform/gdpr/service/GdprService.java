@@ -17,12 +17,14 @@ import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
+import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import com.itic.paris.platform.skill.repository.ArticleReadRepository;
 import com.itic.paris.platform.skill.repository.QuizValidationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class GdprService {
     private final UserRepository userRepository;
     private final CVRepository cvRepository;
     private final CVCommentaireRepository cvCommentaireRepository;
+    private final ReclamationRepository reclamationRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final QuizValidationRepository quizValidationRepository;
@@ -74,6 +77,7 @@ public class GdprService {
         List<GdprDataExportDto.QuizValidationData> quizValidations = List.of();
         List<GdprDataExportDto.ArticleReadData> articlesRead = List.of();
         List<GdprDataExportDto.XpHistoryData> xpHistory = List.of();
+        List<GdprDataExportDto.ReclamationData> reclamations = List.of();
 
         if (user instanceof Student student) {
             userProfile.setPromotion(student.getPromotion() != null ? student.getPromotion().getName() : null);
@@ -142,6 +146,15 @@ public class GdprService {
                     .description(xph.getDescription())
                     .dateObtention(xph.getDateAttribution())
                     .build()).collect(Collectors.toList());
+
+            // Reclamations
+            var reclamationList = reclamationRepository.findByStudentId(student.getId(), Pageable.unpaged()).getContent();
+            reclamations = reclamationList.stream().map(r -> GdprDataExportDto.ReclamationData.builder()
+                    .id(r.getId().toString())
+                    .message(r.getMessage())
+                    .status(r.getStatus().name())
+                    .dateCreation(r.getDateCreation())
+                    .build()).collect(Collectors.toList());
         }
 
         return GdprDataExportDto.builder()
@@ -152,6 +165,7 @@ public class GdprService {
                 .quizValidations(quizValidations)
                 .articlesRead(articlesRead)
                 .xpHistory(xpHistory)
+                .reclamations(reclamations)
                 .build();
     }
 
@@ -195,6 +209,9 @@ public class GdprService {
                 app.setLienOffre(null);
             }
             applicationRepository.saveAll(apps);
+
+            reclamationRepository.deleteAll(
+                    reclamationRepository.findByStudentId(student.getId(), Pageable.unpaged()).getContent());
         }
 
         userRepository.save(user);

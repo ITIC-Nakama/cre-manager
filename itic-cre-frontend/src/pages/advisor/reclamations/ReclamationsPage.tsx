@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, Loader2, Mail, MessageCircleWarning, Phone, RotateCcw, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, GraduationCap, Loader2, Mail, MessageCircleWarning, Phone, RotateCcw, UserCog, XCircle } from 'lucide-react';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import UserAvatar from '../../../components/shared/UserAvatar';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import { useAdvisorReclamationsInfinite, useResolveReclamation, useRefuseReclamation, useReopenReclamation } from '../../../hooks/useReclamations';
+import { useUserStore } from '../../../store/UserStore';
+import { Role } from '../../../types/models/Auth';
 import type { ReclamationStatus } from '../../../types/models/Reclamation';
 
 type StatusFilter = 'all' | ReclamationStatus;
@@ -19,6 +21,7 @@ const STATUS_STYLES: Record<ReclamationStatus, string> = {
 
 export default function ReclamationsPage() {
     const { t, i18n } = useTranslation();
+    const isAdmin = useUserStore((state) => state.user?.role) === Role.ADMIN;
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('PENDING');
     const [actingId, setActingId] = useState<string | null>(null);
 
@@ -127,6 +130,18 @@ export default function ReclamationsPage() {
                                                     <Phone className="h-3 w-3" />
                                                     {r.studentPhoneNumber}
                                                 </a>
+                                            )}
+                                            {r.studentPromotionName && (
+                                                <span className="inline-flex items-center gap-1">
+                                                    <GraduationCap className="h-3 w-3" />
+                                                    {r.studentPromotionName}
+                                                </span>
+                                            )}
+                                            {isAdmin && r.assignedAdvisorName && (
+                                                <span className="inline-flex items-center gap-1">
+                                                    <UserCog className="h-3 w-3" />
+                                                    {r.assignedAdvisorName}
+                                                </span>
                                             )}
                                         </div>
                                     </div>

@@ -164,7 +164,13 @@ public enum MessageKey {
     RECLAMATION_PHONE_REQUIRED("reclamation-phone-required",
             "Merci de renseigner votre numéro de téléphone.",
             "Please provide your phone number."),
-    RECLAMATION_NOT_FOUND("reclamation-not-found", "Réclamation introuvable", "Complaint not found");
+    RECLAMATION_NOT_FOUND("reclamation-not-found", "Réclamation introuvable", "Complaint not found"),
+    RECLAMATION_NO_ADVISOR_ASSIGNED("reclamation-no-advisor-assigned",
+            "Vous n'avez pas encore de conseiller assigné. Merci de patienter, un conseiller vous sera bientôt attribué.",
+            "You don't have an assigned advisor yet. Please wait, one will be assigned to you shortly."),
+    RECLAMATION_NOT_ASSIGNED("reclamation-not-assigned",
+            "Cette réclamation concerne un étudiant qui ne vous est pas affecté.",
+            "This report concerns a student who is not assigned to you.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));
