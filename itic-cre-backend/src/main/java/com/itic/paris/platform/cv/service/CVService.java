@@ -195,7 +195,8 @@ public class CVService {
 
         CVCommentaire saved = commentaireRepository.save(commentaire);
         auditLogService.log(AuditAction.CV_COMMENTED, actor, cv.getId(),
-                "Commentaire ajouté sur le CV de l'étudiant " + cv.getStudent().getId());
+                "Commentaire ajouté sur le CV de l'étudiant "
+                        + cv.getStudent().getFirstName() + " " + cv.getStudent().getLastName());
 
         eventPublisher.publishEvent(new CVCommentAddedEvent(
                 cv.getStudent().getEmail(),
@@ -230,7 +231,8 @@ public class CVService {
         commentaireRepository.delete(comment);
 
         auditLogService.log(AuditAction.OTHER, actor, comment.getCv().getId(),
-                "Commentaire supprimé sur le CV de l'étudiant " + comment.getCv().getStudent().getId());
+                "Commentaire supprimé sur le CV de l'étudiant "
+                        + comment.getCv().getStudent().getFirstName() + " " + comment.getCv().getStudent().getLastName());
     }
 
     private Map<String, Object> buildCommentResponse(CVCommentaire comment) {

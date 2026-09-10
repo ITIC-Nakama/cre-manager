@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.shared.local.MessageKey;
@@ -91,13 +92,11 @@ public class JWTAuthProvider {
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decoded = verifier.verify(token);
 
-            if (decoded.getExpiresAt().before(new Date())) {
-                throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.TOKEN_EXPIRED);
-            }
-
             Map<String, Object> userData = buildUserData(decoded);
             UserDetails userDetails = customUserDetails.loadUserByUsername(decoded.getIssuer());
             return new UsernamePasswordAuthenticationToken(userData, userDetails.getPassword(), userDetails.getAuthorities());
+        } catch (TokenExpiredException e) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.TOKEN_EXPIRED);
         } catch (JWTVerificationException e) {
             throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.TOKEN_INVALID);
         }
@@ -109,10 +108,6 @@ public class JWTAuthProvider {
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decoded = verifier.verify(refreshToken);
 
-            if (decoded.getExpiresAt().before(new Date())) {
-                throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.REFRESH_TOKEN_EXPIRED);
-            }
-
             if (!"refresh".equals(decoded.getClaim("tokenType").asString())) {
                 throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.INVALID_TOKEN_TYPE);
             }
@@ -120,6 +115,8 @@ public class JWTAuthProvider {
             Map<String, Object> userData = buildUserData(decoded);
             UserDetails userDetails = customUserDetails.loadUserByUsername(decoded.getIssuer());
             return new UsernamePasswordAuthenticationToken(userData, userDetails.getPassword(), userDetails.getAuthorities());
+        } catch (TokenExpiredException e) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.REFRESH_TOKEN_EXPIRED);
         } catch (JWTVerificationException e) {
             throw new AppException(HttpStatus.UNAUTHORIZED, MessageKey.INVALID_REFRESH_TOKEN);
         }
