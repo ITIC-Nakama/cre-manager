@@ -3,25 +3,9 @@ import Footer from '../components/footer/Footer';
 import { useUserStore } from '../store/UserStore';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-// import { useState } from 'react';
-// import { Sun, Moon } from 'lucide-react';
-// import { ThemeStorageKey } from '../types/storage-keys';
 
 function AuthControls() {
   const { i18n } = useTranslation();
-
-  /*
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains('dark')
-  );
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem(ThemeStorageKey, next ? 'dark' : 'light');
-  };
-  */
 
   const toggleLang = () => {
     const next = (i18n.language || 'fr').startsWith('fr') ? 'en' : 'fr';
@@ -39,17 +23,6 @@ function AuthControls() {
         <Globe className="h-3.5 w-3.5" />
         {lang}
       </button>
-      {/* Bouton de changement de thème désactivé — Mode Dark fixe par défaut */}
-      {/*
-      <div className="w-px h-4 bg-slate-200 dark:bg-[#333a51]" />
-      <button
-        onClick={toggleTheme}
-        className="p-1.5 rounded-lg text-slate-600 dark:text-[#9aa0a6] hover:bg-slate-100 dark:hover:bg-[#1e2130] transition-colors cursor-pointer"
-        aria-label={isDark ? 'Mode clair' : 'Mode sombre'}
-      >
-        {isDark ? <Sun className="h-4 w-4 text-[#00F5A0]" /> : <Moon className="h-4 w-4" />}
-      </button>
-      */}
     </div>
   );
 }

@@ -18,8 +18,6 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
 
     Optional<CV> findByStudentId(UUID studentId);
 
-    List<CV> findAllByStatut(CVStatut statut);
-
     boolean existsByStudentId(UUID studentId);
 
     long countByStudentIdIn(List<UUID> studentIds);

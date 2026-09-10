@@ -11,5 +11,4 @@ import java.util.UUID;
 @Repository
 public interface GamificationConfigRepository extends JpaRepository<GamificationConfig, UUID> {
     Optional<GamificationConfig> findByAction(ActionXP action);
-    boolean existsByAction(ActionXP action);
 }

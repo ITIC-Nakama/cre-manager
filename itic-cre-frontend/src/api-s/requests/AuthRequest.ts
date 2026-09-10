@@ -45,16 +45,6 @@ export function ValidateOtpRequest(otpData: OtpValidateDTO) {
         });
 }
 
-// Renouveler le token d'accès — le cookie refreshToken est envoyé automatiquement
-export function RefreshTokenRequest() {
-    return apiClient.post('/auth/refresh-token', {})
-        .then(response => response.data)
-        .catch(error => {
-            console.error('Échec du refresh token :', error);
-            throw error;
-        });
-}
-
 // Demande de réinitialisation de mot de passe (envoi du code OTP)
 export function ResetPasswordRequest(email: string) {
     return SendOtpRequest({ email })

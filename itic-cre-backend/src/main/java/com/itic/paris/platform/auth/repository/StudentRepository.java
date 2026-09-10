@@ -17,9 +17,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     boolean existsByEmailIgnoreCase(String email);
 
-    @Query("SELECT s FROM Student s WHERE s.promotion.id = :promotionId AND s.email NOT LIKE '%@rgpd.deleted'")
-    List<Student> findAllByPromotionId(UUID promotionId);
-
     @Query("SELECT COUNT(s) FROM Student s WHERE s.promotion.id = :promotionId AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByPromotionId(UUID promotionId);
 
@@ -44,10 +41,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
     @Query("SELECT COUNT(s) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByActiveTrue();
 
-    List<Student> findAllByLastActivityBefore(Instant threshold);
-
-    List<Student> findAllByActiveTrueAndLastActivityBefore(Instant threshold);
-
     @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     double averageXp();
 
@@ -56,8 +49,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
 
     @Query("SELECT COUNT(s) FROM Student s WHERE s.lastActivity > :since AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByLastActivityAfterAndNonAnonymized(Instant since);
-
-    long countByLastActivityAfter(Instant since);
 
     @Query("SELECT s FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted' ORDER BY s.xpTotal DESC LIMIT 5")
     List<Student> findTop5ByActiveTrueOrderByXpTotalDesc();

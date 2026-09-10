@@ -17,14 +17,6 @@ import {
 import type { CVListParams } from '../types/models/CV';
 import type { CVStatut } from '../types/models/CV';
 
-export function useAllCVs(params: CVListParams = {}) {
-    return useQuery({
-        queryKey: ['cvs', 'all', params],
-        queryFn: () => fetchAllCVs(params),
-        placeholderData: (prev) => prev,
-    });
-}
-
 export function useAllCVsInfinite(params: CVListParams = {}) {
     return useInfiniteListQuery(['cvs', 'all', 'infinite', params], fetchAllCVs, params);
 }

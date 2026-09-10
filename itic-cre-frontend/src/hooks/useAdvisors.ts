@@ -30,13 +30,6 @@ export function useAllAdvisors() {
   });
 }
 
-export function useAdmins(params: AdvisorListParams = {}) {
-  return useQuery({
-    queryKey: ['admins', params],
-    queryFn: () => fetchAdmins(params),
-  });
-}
-
 export function useAdvisorsInfinite(params: AdvisorListParams = {}) {
   return useInfiniteListQuery(['advisors', 'infinite', params], fetchAdvisors, params);
 }

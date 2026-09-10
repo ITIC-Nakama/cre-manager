@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
-// import { Sun, Moon } from 'lucide-react';
 import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import { useTranslation } from 'react-i18next';
-// import { ThemeStorageKey } from '../../types/storage-keys';
 import { SidebarCollapsedStorageKey } from '../../types/storage-keys';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';

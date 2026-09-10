@@ -4,7 +4,6 @@ import {
     RegisterRequest,
     SendOtpRequest,
     ValidateOtpRequest,
-    RefreshTokenRequest,
     ResetPasswordRequest,
     ResetPasswordConfirmRequest,
     UpdatePasswordRequest,
@@ -30,10 +29,6 @@ export const useSendOtp = () => {
 
 export const useValidateOtp = () => {
     return useMutation({ mutationFn: ValidateOtpRequest });
-};
-
-export const useRefreshToken = () => {
-    return useMutation({ mutationFn: RefreshTokenRequest });
 };
 
 export const useResetPassword = () => {

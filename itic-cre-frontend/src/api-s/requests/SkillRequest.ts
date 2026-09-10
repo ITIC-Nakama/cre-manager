@@ -89,14 +89,6 @@ export function deleteQuiz(id: string): Promise<void> {
   return apiClient.delete(`/api/admin/skill-tree/quizzes/${id}`).then(() => undefined);
 }
 
-export function addQuestionToQuiz(quizId: string, data: Omit<Question, 'id'>): Promise<Quiz> {
-  return apiClient.post(`/api/admin/skill-tree/quizzes/${quizId}/questions`, data).then((r) => unwrap<Quiz>(r));
-}
-
-export function deleteQuestion(id: string): Promise<void> {
-  return apiClient.delete(`/api/admin/skill-tree/questions/${id}`).then(() => undefined);
-}
-
 // ─── STUDENT SKILL TREE ─────────────────────────────────────────────────────
 
 export function fetchSkillTreeProgress(): Promise<SkillTreeProgress> {

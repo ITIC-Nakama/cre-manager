@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useUserStore } from '../store/UserStore';
 
 const apiBaseUrl = import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
 
@@ -50,10 +49,16 @@ function processQueue(error: any) {
   failedQueue = [];
 }
 
+// Injecté par UserStore.ts au démarrage — évite un import circulaire (UserStore -> AuthRequest -> AxiosApiClient -> UserStore)
+let clearUserOnForceLogout: (() => void) | null = null;
+export function registerForceLogoutHandler(handler: () => void) {
+  clearUserOnForceLogout = handler;
+}
+
 // Vide le store utilisateur et redirige vers /login
 function forceLogout() {
   sessionInvalidated = true;
-  useUserStore.getState().clearUser();
+  clearUserOnForceLogout?.();
   if (!window.location.pathname.startsWith('/login')) {
     window.location.href = '/login';
   }

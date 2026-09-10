@@ -263,6 +263,22 @@ public class ReclamationIntegrationTest {
         }
 
         @Test
+        @DisplayName("Second create within the cooldown window is rate limited")
+        void create_secondWithinCooldown_isRateLimited() throws Exception {
+            persistReclamation(studentWithPhone, ReclamationStatus.PENDING);
+
+            mockMvc.perform(post("/reclamations")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"message\":\"Un autre probleme\"}"))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.messageKey").value("reclamation-rate-limited"));
+
+            assertThat(reclamationRepository.findByStudentId(studentWithPhone.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
+                    .isEqualTo(1);
+        }
+
+        @Test
         @DisplayName("Advisor role cannot use student endpoints")
         void advisorRole_cannotUseStudentEndpoints() throws Exception {
             mockMvc.perform(get("/reclamations")

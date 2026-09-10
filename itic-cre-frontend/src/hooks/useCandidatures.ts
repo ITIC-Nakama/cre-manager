@@ -13,13 +13,6 @@ import type { CandidaturePayload, FetchMyCandidaturesParams } from '../types/mod
 
 const MY_CANDIDATURES_KEY = ['my-candidatures'] as const;
 
-export function useMyCandidatures(params?: FetchMyCandidaturesParams) {
-    return useQuery({
-        queryKey: [...MY_CANDIDATURES_KEY, params],
-        queryFn: () => fetchMyCandidatures(params),
-    });
-}
-
 export function useMyCandidaturesInfinite(params: FetchMyCandidaturesParams = {}) {
     return useInfiniteListQuery([...MY_CANDIDATURES_KEY, 'infinite', params], fetchMyCandidatures, params);
 }

@@ -27,22 +27,6 @@ import {
 } from '../api-s/requests/JobOfferRequest';
 import type { JobOfferListParams, JobOfferPayload, ExternalSourceCriteriaPayload } from '../types/models/JobOffer';
 
-export function useAllJobOffers(params: JobOfferListParams = {}) {
-    return useQuery({
-        queryKey: ['job-offers', 'all', params],
-        queryFn: () => fetchAllJobOffers(params),
-        placeholderData: (prev) => prev,
-    });
-}
-
-export function useActiveJobOffers(params: JobOfferListParams = {}) {
-    return useQuery({
-        queryKey: ['job-offers', 'active', params],
-        queryFn: () => fetchActiveJobOffers(params),
-        placeholderData: (prev) => prev,
-    });
-}
-
 export function useAllJobOffersInfinite(params: JobOfferListParams = {}) {
     return useInfiniteListQuery(['job-offers', 'all', 'infinite', params], fetchAllJobOffers, params);
 }

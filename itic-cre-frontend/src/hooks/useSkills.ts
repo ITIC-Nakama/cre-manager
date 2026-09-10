@@ -6,11 +6,9 @@ import {
   updateCategory,
   deleteCategory,
   fetchAdminArticles,
-  fetchAdminArticleById,
   createArticle,
   updateArticle,
   deleteArticle,
-  fetchQuizByArticle,
   createQuizForArticle,
   updateQuiz,
   deleteQuiz,
@@ -60,14 +58,6 @@ export function useAdminArticles(categoryId?: string) {
   });
 }
 
-export function useAdminArticleById(id: string, enabled = true) {
-  return useQuery({
-    queryKey: ['skill-article', id],
-    queryFn: () => fetchAdminArticleById(id),
-    enabled: !!id && enabled,
-  });
-}
-
 export function useCreateArticle() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -97,15 +87,6 @@ export function useDeleteArticle() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['skill-articles'] });
     },
-  });
-}
-
-export function useQuizByArticle(articleId: string, enabled = true) {
-  return useQuery({
-    queryKey: ['skill-quiz-article', articleId],
-    queryFn: () => fetchQuizByArticle(articleId),
-    enabled: !!articleId && enabled,
-    retry: false,
   });
 }
 

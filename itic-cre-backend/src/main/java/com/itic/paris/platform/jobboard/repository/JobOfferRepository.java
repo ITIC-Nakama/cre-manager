@@ -19,8 +19,6 @@ import java.util.UUID;
 @Repository
 public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSpecificationExecutor<JobOffer> {
 
-    List<JobOffer> findByActiveTrue();
-
     boolean existsByCreatedById(UUID createdById);
 
     boolean existsBySourceId(String sourceId);

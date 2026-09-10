@@ -1,23 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
-import { fetchApplicationList, fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, verifyApplicationContract, rejectApplicationContract } from '../api-s/requests/ApplicationRequest';
+import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, verifyApplicationContract, rejectApplicationContract } from '../api-s/requests/ApplicationRequest';
 import type { ApplicationListParams } from '../types/models/Application';
-
-export function useApplicationList(params: ApplicationListParams = {}) {
-    return useQuery({
-        queryKey: ['applications', params],
-        queryFn: () => fetchApplicationList(params),
-        placeholderData: (prev) => prev,
-    });
-}
-
-export function useApplicationGroupedList(params: ApplicationListParams = {}) {
-    return useQuery({
-        queryKey: ['applications-grouped', params],
-        queryFn: () => fetchApplicationGroupedList(params),
-        placeholderData: (prev) => prev,
-    });
-}
 
 export function useApplicationGroupedListInfinite(params: ApplicationListParams = {}) {
     return useInfiniteListQuery(['applications-grouped', 'infinite', params], fetchApplicationGroupedList, params);

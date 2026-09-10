@@ -170,7 +170,10 @@ public enum MessageKey {
             "You don't have an assigned advisor yet. Please wait, one will be assigned to you shortly."),
     RECLAMATION_NOT_ASSIGNED("reclamation-not-assigned",
             "Cette réclamation concerne un étudiant qui ne vous est pas affecté.",
-            "This report concerns a student who is not assigned to you.");
+            "This report concerns a student who is not assigned to you."),
+    RECLAMATION_RATE_LIMITED("reclamation-rate-limited",
+            "Vous avez déjà envoyé un signalement récemment. Merci de patienter avant d'en envoyer un nouveau.",
+            "You already sent a report recently. Please wait before sending another one.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

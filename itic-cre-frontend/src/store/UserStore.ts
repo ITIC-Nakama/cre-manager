@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { UserProfileDTO } from '../types/models/User';
-import { apiClient } from '../api-s/AxiosApiClient';
+import { LogoutRequest } from '../api-s/requests/AuthRequest';
+import { registerForceLogoutHandler } from '../api-s/AxiosApiClient';
 import { queryClient } from '../queryClient';
 
 type UserStore = {
@@ -26,7 +27,7 @@ export const useUserStore = create<UserStore>()(
                 set({ user: null });
                 queryClient.clear();
                 try {
-                    await apiClient.post('/auth/logout', {});
+                    await LogoutRequest();
                 } catch (error) {
                     console.error("Failed to log out from server:", error);
                 }
@@ -37,3 +38,5 @@ export const useUserStore = create<UserStore>()(
         }
     )
 )
+
+registerForceLogoutHandler(() => useUserStore.getState().clearUser());
