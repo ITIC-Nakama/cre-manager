@@ -125,6 +125,7 @@ export default function ReclamationModal({ onClose }: Props) {
                 </div>
 
                 <div ref={scrollRef} className="p-5 overflow-y-auto overscroll-contain flex-1 min-w-0">
+                <div key={tab} className="animate-fade-in-up">
                     {tab === 'new' && formContextLoading ? (
                         <div className="flex items-center justify-center py-10">
                             <Loader2 className="h-5 w-5 text-slate-400 animate-spin" />
@@ -242,6 +243,7 @@ export default function ReclamationModal({ onClose }: Props) {
                             />
                         </div>
                     )}
+                </div>
                 </div>
             </div>
         </div>,
