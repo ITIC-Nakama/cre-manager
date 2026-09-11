@@ -91,8 +91,8 @@ export default function ReclamationModal({ onClose }: Props) {
                 className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
             >
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <MessageCircleWarning className="h-4 w-4 text-indigo-500" />
+                    <div className="flex items-start gap-2">
+                        <MessageCircleWarning className="h-4 w-4 text-indigo-500 shrink-0 mt-1" />
                         <p className="text-base font-bold text-slate-900 dark:text-white">
                             {t('dashboard.reclamations.title', 'Un problème ? Contactez votre conseiller')}
                         </p>

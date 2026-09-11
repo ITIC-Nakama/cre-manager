@@ -83,6 +83,11 @@ html, body {
   font-family: 'Roboto', sans-serif;
   background-color: #F5F5F5;
   color: #333333;
+  /* Empeche le rebond natif iOS Safari (rubber-band) qui, quand une modale bloque le scroll
+     via JS (useLockBodyScroll), reste visible au niveau du document : le geste tire toute
+     la page au-dela de ses bords et revele du noir derriere. touchmove/wheel en JS ne suffit
+     pas a le supprimer, c'est un comportement natif WebKit — d'ou ce fix CSS. */
+  overscroll-behavior-y: none;
 }
 
 /* iOS Safari zoome automatiquement au focus sur un champ dont la font-size est < 16px,
