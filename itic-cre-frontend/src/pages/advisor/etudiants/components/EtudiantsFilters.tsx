@@ -1,4 +1,4 @@
-import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users, Handshake } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users, Handshake, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
@@ -30,6 +30,7 @@ interface EtudiantsFiltersProps {
     contractFilterOptions: FilterOption[];
     activeFilterCount: number;
     onSearchChange: (value: string) => void;
+    onClearSearch: () => void;
     onFilterChange: (value: FilterStatus) => void;
     onPromotionChange: (value: string) => void;
     onStudyYearChange: (value: string) => void;
@@ -58,6 +59,7 @@ export default function EtudiantsFilters({
     contractFilterOptions,
     activeFilterCount,
     onSearchChange,
+    onClearSearch,
     onFilterChange,
     onPromotionChange,
     onStudyYearChange,
@@ -78,8 +80,18 @@ export default function EtudiantsFilters({
                     value={search}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder={t('dashboard.etudiants.search_placeholder')}
-                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {search && (
+                    <button
+                        type="button"
+                        onClick={onClearSearch}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        aria-label={t('common.clear', 'Effacer')}
+                    >
+                        <X className="h-3.5 w-3.5" />
+                    </button>
+                )}
             </div>
 
             {/* Status select — reste visible, filtre le plus consulte */}

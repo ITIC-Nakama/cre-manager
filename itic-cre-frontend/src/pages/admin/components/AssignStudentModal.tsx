@@ -39,6 +39,12 @@ export default function AssignStudentModal({ isOpen, promotion, yearSelectOption
     searchTimer.current = setTimeout(() => setDebouncedSearch(val), 400);
   };
 
+  const handleClearSearch = () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    setSearch('');
+    setDebouncedSearch('');
+  };
+
   const handleAssign = async (student: StudentRow) => {
     setAssigningId(student.id);
     try {
@@ -111,8 +117,18 @@ export default function AssignStudentModal({ isOpen, promotion, yearSelectOption
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={t('dashboard.promotions.placeholder_add_student', 'Rechercher par nom, prénom ou email...')}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label={t('common.clear', 'Effacer')}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
 

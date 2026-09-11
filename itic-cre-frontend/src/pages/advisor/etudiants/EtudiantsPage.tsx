@@ -242,6 +242,13 @@ export default function EtudiantsPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleClearSearch = () => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        setSearch('');
+        setDebouncedSearch('');
+        clearSelection();
+    };
+
     const handleFilterChange = (value: FilterStatus) => {
         setFilterStatus(value);
         clearSelection();
@@ -392,6 +399,7 @@ export default function EtudiantsPage() {
                     contractFilterOptions={contractFilterOptions}
                     activeFilterCount={activeFilterCount}
                     onSearchChange={handleSearch}
+                    onClearSearch={handleClearSearch}
                     onFilterChange={handleFilterChange}
                     onPromotionChange={handlePromotionFilterChange}
                     onStudyYearChange={handleStudyYearFilterChange}

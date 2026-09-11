@@ -324,7 +324,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
         String lowerTitle = title.toLowerCase(Locale.ROOT);
         if (lowerTitle.contains("stage") || lowerTitle.contains("stagiaire")) {
             contractTypeLabel = "Stage";
-        } else if (lowerTitle.contains("alternance") || lowerTitle.contains("apprenti") || lowerTitle.contains("professionnalisation")) {
+        } else if (lowerTitle.contains("alternance") || lowerTitle.contains("alternant") || lowerTitle.contains("apprenti") || lowerTitle.contains("professionnalisation")) {
             contractTypeLabel = "Alternance";
         } else {
             contractTypeLabel = textOrNull(offre.get("typeContratLibelle"));

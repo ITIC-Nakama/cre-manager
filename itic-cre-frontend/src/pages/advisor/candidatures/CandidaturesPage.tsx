@@ -3,7 +3,7 @@ import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
     GraduationCap, FileSignature, Handshake, Users, Star,
-    Download,
+    Download, X,
 } from 'lucide-react';
 import type { ContractFilter } from '../etudiants/components/EtudiantsFilters';
 import { useTranslation } from 'react-i18next';
@@ -143,6 +143,12 @@ export default function CandidaturesPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleClearSearch = () => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        setSearch('');
+        setDebouncedSearch('');
+    };
+
     const handleStatusChange = (value: string) => {
         setStatusFilter(value);
     };
@@ -213,8 +219,18 @@ export default function CandidaturesPage() {
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder={t('dashboard.candidatures.search_placeholder')}
-                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full pl-9 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={handleClearSearch}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            aria-label={t('common.clear', 'Effacer')}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    )}
                 </div>
                 <CustomSelect
                     value={statusFilter}

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../utils/titleUtils';
-import { Plus, Search, Loader2, Shield, ShieldCheck } from 'lucide-react';
+import { Plus, Search, Loader2, Shield, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -139,6 +139,12 @@ export default function AdvisorPage() {
     setSearch(value);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
+  };
+
+  const handleClearSearch = () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    setSearch('');
+    setDebouncedSearch('');
   };
 
   const handleSave = async (data: {
@@ -299,8 +305,18 @@ export default function AdvisorPage() {
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder={t('dashboard.conseillers.search_placeholder')}
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label={t('common.clear', 'Effacer')}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
           {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
         </div>

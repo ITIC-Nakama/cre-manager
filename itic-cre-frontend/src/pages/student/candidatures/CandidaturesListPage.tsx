@@ -2,7 +2,7 @@ import { useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { Briefcase, FileSignature, Loader2, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { Briefcase, FileSignature, Loader2, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useMyCandidaturesInfinite, useCreateCandidature } from '../../../hooks/useCandidatures';
 import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
@@ -63,6 +63,12 @@ export default function CandidaturesListPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 350);
     };
 
+    const handleClearSearch = () => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        setSearch('');
+        setDebouncedSearch('');
+    };
+
     const handleStatusChange = (val: string) => {
         setStatusFilter(val);
     };
@@ -118,8 +124,18 @@ export default function CandidaturesListPage() {
                             value={search}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder={t('dashboard.candidatures.search_placeholder', 'Rechercher entreprise, poste...')}
-                            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full pl-9 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={handleClearSearch}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                aria-label={t('common.clear', 'Effacer')}
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
 
                     <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>

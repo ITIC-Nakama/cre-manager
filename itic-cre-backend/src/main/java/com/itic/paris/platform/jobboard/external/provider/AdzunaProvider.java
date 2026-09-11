@@ -266,7 +266,7 @@ public class AdzunaProvider extends AbstractJobProvider {
         String contractTypeLabel;
         if (lowerTitle.contains("stage") || lowerTitle.contains("stagiaire")) {
             contractTypeLabel = "Stage";
-        } else if (lowerTitle.contains("alternance") || lowerTitle.contains("apprenti") || lowerTitle.contains("professionnalisation")) {
+        } else if (lowerTitle.contains("alternance") || lowerTitle.contains("alternant") || lowerTitle.contains("apprenti") || lowerTitle.contains("professionnalisation")) {
             contractTypeLabel = "Alternance";
         } else {
             // Adzuna : "permanent" -> CDI, "contract" -> CDD

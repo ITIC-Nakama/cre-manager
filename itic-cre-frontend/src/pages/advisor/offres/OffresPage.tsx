@@ -151,6 +151,12 @@ export default function OffresPage() {
         searchTimer.current = setTimeout(() => setDebouncedSearch(value), 400);
     };
 
+    const handleClearSearch = () => {
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        setSearch('');
+        setDebouncedSearch('');
+    };
+
     const handleLocationChange = (value: string) => {
         setLocationFilter(value);
         if (locationTimer.current) clearTimeout(locationTimer.current);
@@ -251,6 +257,7 @@ export default function OffresPage() {
                 <OffresFiltersBar
                     search={search}
                     onSearchChange={handleSearch}
+                    onClearSearch={handleClearSearch}
                     sourceFilter={sourceFilter}
                     sourceOptions={sourceOptions}
                     onSourceChange={handleSourceChange}
