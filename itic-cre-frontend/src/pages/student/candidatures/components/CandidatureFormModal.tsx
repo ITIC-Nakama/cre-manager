@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
+import { useModalClose } from '../../../../hooks/useModalClose';
 import type { Candidature, CandidaturePayload } from '../../../../types/models/Application';
 
 interface Props {
@@ -36,6 +37,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const panelRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLFormElement>(null);
     useLockBodyScroll(scrollRef, true);
+    const { isClosing, handleClose } = useModalClose(onClose);
 
     const contractTypeOptions = [
         { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },
@@ -85,8 +87,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60">
-            <div ref={panelRef} className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+        <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+            <div ref={panelRef} className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}>
 
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-2">
@@ -96,7 +98,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                         </p>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={saving}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
                     >
@@ -246,7 +248,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     <div className="flex items-center justify-end gap-2 pt-2">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={handleClose}
                             disabled={saving}
                             className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                         >

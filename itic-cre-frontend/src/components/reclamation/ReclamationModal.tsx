@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useCreateReclamation, useDeleteReclamation, useMyReclamationsInfinite, useReclamationFormContext } from '../../hooks/useReclamations';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { useModalClose } from '../../hooks/useModalClose';
 import InfiniteScrollSentinel from '../shared/InfiniteScrollSentinel';
 import type { ReclamationStatus } from '../../types/models/Reclamation';
 
@@ -28,6 +29,7 @@ export default function ReclamationModal({ onClose }: Props) {
     const [error, setError] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     useLockBodyScroll(scrollRef, true);
+    const { isClosing, handleClose } = useModalClose(onClose);
 
     const { data: formContext, isLoading: formContextLoading } = useReclamationFormContext();
     const needsPhone = !formContext?.phoneNumber;
@@ -80,10 +82,13 @@ export default function ReclamationModal({ onClose }: Props) {
         new Date(iso).toLocaleDateString(i18n.language, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60" onClick={onClose}>
+        <div
+            className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
+            onClick={handleClose}
+        >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden"
+                className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
             >
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-2">
@@ -93,7 +98,7 @@ export default function ReclamationModal({ onClose }: Props) {
                         </p>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                     >
                         <X className="h-4 w-4" />

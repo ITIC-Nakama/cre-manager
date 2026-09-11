@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { useDelayedUnmount } from '../../hooks/useModalClose';
 import type { JobOffer } from '../../types/models/JobOffer';
 
 interface Props {
@@ -31,7 +32,7 @@ function formatDate(iso: string | null | undefined, locale = 'fr-FR') {
 }
 
 export default function JobOfferDetailModal({
-    offer,
+    offer: offerProp,
     onClose,
     isApplied = false,
     onApply,
@@ -56,20 +57,24 @@ export default function JobOfferDetailModal({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    useLockBodyScroll(scrollRef, !!offer);
+    const { shouldRender, isClosing } = useDelayedUnmount(!!offerProp);
+    useLockBodyScroll(scrollRef, shouldRender);
+    const lastOfferRef = useRef<JobOffer | null>(null);
+    if (offerProp) lastOfferRef.current = offerProp;
 
-    if (!offer) return null;
+    if (!shouldRender || !lastOfferRef.current) return null;
+    const offer = lastOfferRef.current;
 
     const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR';
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 animate-fadeIn"
+            className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div
                 ref={panelRef}
-                className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden"
+                className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
             >
                 
                 {/* Header */}

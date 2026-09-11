@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { AlertTriangle, Loader2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { useDelayedUnmount } from '../../hooks/useModalClose';
 
 interface Props {
   isOpen: boolean;
@@ -29,13 +30,14 @@ export default function ConfirmDialog({
   // Rien dans ce dialogue n'est scrollable : on passe une ref jamais attachee
   // pour que useLockBodyScroll bloque tout, y compris les touches a l'interieur du panneau.
   const noScrollRef = useRef<HTMLDivElement>(null);
-  useLockBodyScroll(noScrollRef, isOpen);
+  const { shouldRender, isClosing } = useDelayedUnmount(isOpen);
+  useLockBodyScroll(noScrollRef, shouldRender);
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 bg-black/60">
-      <div ref={panelRef} className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 dark:border-slate-800 animate-fadeIn">
+    <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+      <div ref={panelRef} className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 dark:border-slate-800 ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">

@@ -463,11 +463,34 @@ html.dark body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* ─── Modal open/close ──────────────────────────────────────────────── */
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes scaleDown {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.95) translateY(8px); }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .animate-fadeIn {
   animation: fadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fadeOut {
+  animation: fadeOut 0.18s ease-out both;
+}
+.animate-scale-up {
+  animation: scaleUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-scale-down {
+  animation: scaleDown 0.18s cubic-bezier(0.4, 0, 1, 1) both;
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
