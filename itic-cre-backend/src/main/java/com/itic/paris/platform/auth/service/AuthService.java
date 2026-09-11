@@ -287,12 +287,19 @@ public class AuthService {
         return response;
     }
 
+    public Map<String, Object> getMyProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        return sanitizeUser(user);
+    }
+
     public Map<String, Object> sanitizeUser(User user) {
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", user.getId());
         profile.put("email", user.getEmail());
         profile.put("firstName", user.getFirstName());
         profile.put("lastName", user.getLastName());
+        profile.put("phoneNumber", user.getPhoneNumber());
         profile.put("lang", user.getLang());
         profile.put("emailVerified", user.isEmailVerified());
         profile.put("pendingEmail", user.getPendingEmail());

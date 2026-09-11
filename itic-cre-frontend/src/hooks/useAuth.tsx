@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     AuthRequest,
     RegisterRequest,
@@ -8,6 +8,7 @@ import {
     ResetPasswordConfirmRequest,
     UpdatePasswordRequest,
     ChangePasswordRequest,
+    MyProfileRequest,
     UpdateProfileRequest,
     UploadProfilePictureRequest,
     ConfirmEmailChangeRequest,
@@ -45,6 +46,12 @@ export const useUpdatePassword = () => {
 
 export const useChangePassword = () => {
     return useMutation({ mutationFn: ChangePasswordRequest });
+};
+
+// Profil frais, lu directement en base — le store Zustand peut etre desynchronise par un
+// changement fait ailleurs (ex : numero de telephone renseigne via une reclamation).
+export const useMyProfile = () => {
+    return useQuery({ queryKey: ['my-profile'], queryFn: MyProfileRequest, staleTime: 0 });
 };
 
 export const useUpdateProfile = () => {

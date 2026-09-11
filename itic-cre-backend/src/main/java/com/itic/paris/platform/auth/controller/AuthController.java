@@ -93,6 +93,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.sanitizeUser(saved));
     }
 
+    @GetMapping("/users/me")
+    @Operation(summary = "Profil de l'utilisateur connecté, lu directement en base (pas depuis le token JWT)")
+    public ResponseEntity<?> getCurrentUser() {
+        return ResponseEntity.ok(authService.getMyProfile(SecurityContextHelper.currentUserId()));
+    }
+
     @PutMapping("/users/me")
     @Operation(summary = "Mettre à jour le profil de l'utilisateur connecté")
     public ResponseEntity<?> updateCurrentUser(@RequestBody @Valid UserUpdateDto updateDto,

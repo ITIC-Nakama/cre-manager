@@ -45,6 +45,7 @@ export interface StudentRow {
   lastName: string;
   profilePicture: string | null;
   email: string;
+  phoneNumber?: string | null;
   promotion: { id: string; nom: string } | null;
   advisor: { id: string; firstName: string; lastName: string } | null;
   studyYear?: number | null;

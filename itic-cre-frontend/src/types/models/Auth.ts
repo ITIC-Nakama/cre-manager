@@ -51,6 +51,7 @@ export interface UpdateProfileData {
     firstName?: string;
     lastName?: string;
     email?: string;
+    phoneNumber?: string;
     jobTitle?: string;
     lang?: string;
     promotionId?: string;

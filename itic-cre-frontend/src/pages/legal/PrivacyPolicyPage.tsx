@@ -5,7 +5,8 @@ import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 
 export default function PrivacyPolicyPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const lastUpdatedDate = i18n.language === 'en' ? 'September 11, 2026' : '11 Septembre 2026';
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 py-10 px-4 sm:px-6 lg:px-8">
@@ -35,7 +36,7 @@ export default function PrivacyPolicyPage() {
                         {t('legal.privacy.title')}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {t('legal.privacy.last_updated', { date: '21 Juillet 2026' })} — {t('legal.privacy.gdpr_compliance')}
+                        {t('legal.privacy.last_updated', { date: lastUpdatedDate })} — {t('legal.privacy.gdpr_compliance')}
                     </p>
                 </div>
 
@@ -64,6 +65,7 @@ export default function PrivacyPolicyPage() {
                         </p>
                         <ul className="list-disc pl-5 text-sm text-slate-600 dark:text-slate-300 space-y-1.5">
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item1_label')}</strong> {t('legal.privacy.sec2_item1_val')}</li>
+                            <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item1b_label')}</strong> {t('legal.privacy.sec2_item1b_val')}</li>
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item2_label')}</strong> {t('legal.privacy.sec2_item2_val')}</li>
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item3_label')}</strong> {t('legal.privacy.sec2_item3_val')}</li>
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item4_label')}</strong> {t('legal.privacy.sec2_item4_val')}</li>

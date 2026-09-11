@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, UserX, UserCheck, Pencil, Check, Loader2, Handshake } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -106,6 +106,12 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 {student.firstName} {student.lastName}
                             </p>
                             <p className="text-sm text-slate-500 dark:text-slate-400">{student.email}</p>
+                            {student.phoneNumber && (
+                                <p className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                                    <Phone className="h-3.5 w-3.5" />
+                                    {student.phoneNumber}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <button

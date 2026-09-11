@@ -133,6 +133,7 @@ public class StudentReportingService {
                     ? cloudStorage.getFile(student.getProfilePicture())
                     : null);
             row.put("email", student.getEmail());
+            row.put("phoneNumber", student.getPhoneNumber());
             row.put("promotion", student.getPromotion() != null
                     ? Map.of("id", student.getPromotion().getId(), "nom", student.getPromotion().getName())
                     : null);

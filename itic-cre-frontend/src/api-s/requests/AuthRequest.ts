@@ -96,6 +96,16 @@ export function ChangePasswordRequest(data: ChangePasswordDTO) {
         });
 }
 
+// Profil de l'utilisateur connecté, lu directement en base (contourne le cache Zustand)
+export function MyProfileRequest() {
+    return apiClient.get('/auth/users/me')
+        .then(response => response.data.data ?? response.data)
+        .catch(error => {
+            console.error('Échec de la récupération du profil :', error);
+            throw error;
+        });
+}
+
 // Mettre à jour le profil de l'utilisateur connecté (nom, prénom, fonction)
 export function UpdateProfileRequest(data: UpdateProfileData) {
     return apiClient.put('/auth/users/me', data)

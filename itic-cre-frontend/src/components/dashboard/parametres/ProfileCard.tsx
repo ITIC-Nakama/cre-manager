@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import {
+  useMyProfile,
   useUpdateProfile,
   useUploadProfilePicture,
   useConfirmEmailChange,
@@ -33,10 +34,14 @@ export default function ProfileCard() {
   const isAdvisor = user?.role === Role.ADVISOR;
   const { data: dashboardSummary } = useMyDashboardSummary(isStudent);
   const { data: promotions } = usePromotions();
+  // Le numero de telephone peut avoir ete renseigne ailleurs (ex : formulaire de reclamation)
+  // sans passer par ce composant — le store Zustand ne le saurait pas, d'ou cette lecture fraiche.
+  const { data: myProfile } = useMyProfile();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [jobTitle, setJobTitle] = useState(user?.jobTitle ?? '');
   const [promotionId, setPromotionId] = useState(user?.promotion?.id ?? '');
   const [studyYear, setStudyYear] = useState<number | null>(user?.studyYear ?? null);
@@ -51,6 +56,10 @@ export default function ProfileCard() {
     setPromotionId(user?.promotion?.id ?? '');
     setStudyYear(user?.studyYear ?? null);
   }, [user]);
+
+  useEffect(() => {
+    setPhoneNumber(myProfile?.phoneNumber ?? '');
+  }, [myProfile]);
 
   const selectedPromotion = useMemo(() => {
     return promotions?.find((p) => p.id === promotionId);
@@ -80,6 +89,7 @@ export default function ProfileCard() {
     firstName !== user.firstName ||
     lastName !== user.lastName ||
     email !== user.email ||
+    phoneNumber !== (myProfile?.phoneNumber ?? '') ||
     (isAdvisor && jobTitle !== (user.jobTitle ?? '')) ||
     (isStudent &&
       (promotionId !== (user.promotion?.id ?? '') || studyYear !== (user.studyYear ?? null)));
@@ -91,6 +101,7 @@ export default function ProfileCard() {
         firstName,
         lastName,
         email,
+        phoneNumber,
         jobTitle: isAdvisor ? jobTitle : undefined,
         promotionId: isStudent ? (promotionId || undefined) : undefined,
         studyYear: isStudent && selectedPromotion?.hasYears && studyYear ? studyYear : undefined,
@@ -98,11 +109,13 @@ export default function ProfileCard() {
 
       const selectedPromo = promotions?.find((p) => p.id === promotionId);
 
+      setPhoneNumber(updated.phoneNumber ?? phoneNumber);
       setUser({
         ...user,
         firstName: updated.firstName ?? firstName,
         lastName: updated.lastName ?? lastName,
         email: updated.email ?? email,
+        phoneNumber: updated.phoneNumber ?? phoneNumber,
         profilePicture: updated.profilePicture ?? user.profilePicture,
         jobTitle: updated.jobTitle ?? user.jobTitle,
         pendingEmail: updated.pendingEmail ?? null,
@@ -303,6 +316,23 @@ export default function ProfileCard() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+            {t('dashboard.parametres.profile.label_phone', 'Numéro de téléphone')}
+          </label>
+          <input
+            type="tel"
+            pattern="^$|\+?[0-9]{7,15}"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="06 12 34 56 78"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
+          />
+          <p className="text-xs text-slate-400 mt-1">
+            {t('dashboard.parametres.profile.phone_hint', 'Utilisé par votre conseiller pour vous recontacter en cas de signalement.')}
+          </p>
         </div>
 
         {/* Student: Promotion & Study Year Selector */}
