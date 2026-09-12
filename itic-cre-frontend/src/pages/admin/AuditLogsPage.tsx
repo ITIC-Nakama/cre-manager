@@ -91,19 +91,19 @@ export default function AuditLogsPage() {
   return (
     <div className="flex flex-col gap-6  animate-fadeIn text-slate-800 dark:text-slate-100">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-          <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
-          {renderTitleWithGradient(t('dashboard.audit_page.title', "Journaux d'Audit"), 'itic-gradient-blue')}
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
-          {t('dashboard.audit_page.subtitle', { count: totalElements })}
-        </p>
-      </div>
+      {/* Header + Filters (sticky ensemble) */}
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+            {renderTitleWithGradient(t('dashboard.audit_page.title', "Journaux d'Audit"), 'itic-gradient-blue')}
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
+            {t('dashboard.audit_page.subtitle', { count: totalElements })}
+          </p>
+        </div>
 
-      {/* Filters */}
-      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48 max-w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
@@ -154,6 +154,7 @@ export default function AuditLogsPage() {
           />
         </div>
         {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
+      </div>
       </div>
 
       {/* Table */}

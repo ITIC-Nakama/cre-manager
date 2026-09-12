@@ -203,30 +203,33 @@ export default function ContenuPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn text-slate-800 dark:text-slate-100">
-      <FormationHeader />
+      {/* Header + Tabs (sticky ensemble) */}
+      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+        <FormationHeader />
 
-      {/* Tabs Selector */}
-      <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex border-b border-slate-200 dark:border-slate-800">
-        <button
-          onClick={() => setActiveTab('articles')}
-          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'articles'
-              ? 'border-[#E2762F] text-[#E2762F]'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-        >
-          <BookOpen className="h-4 w-4" />
-          {t('dashboard.formation.tab_articles')}
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'categories'
-              ? 'border-[#E2762F] text-[#E2762F]'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-        >
-          <Folder className="h-4 w-4" />
-          {t('dashboard.formation.tab_categories')}
-        </button>
+        {/* Tabs Selector */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800">
+          <button
+            onClick={() => setActiveTab('articles')}
+            className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'articles'
+                ? 'border-[#E2762F] text-[#E2762F]'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            {t('dashboard.formation.tab_articles')}
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-5 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${activeTab === 'categories'
+                ? 'border-[#E2762F] text-[#E2762F]'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              }`}
+          >
+            <Folder className="h-4 w-4" />
+            {t('dashboard.formation.tab_categories')}
+          </button>
+        </div>
       </div>
 
       {/* Main Content Container */}

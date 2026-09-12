@@ -244,16 +244,16 @@ export default function OffresPage() {
 
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
-            <OffresHeader
-                totalElements={totalElements}
-                isAdmin={isAdmin}
-                onExternalSyncClick={() => navigate('/supervisor/offres/synchronisation-externe')}
-                onWipeClick={() => setWipeDialogOpen(true)}
-                onCategoriesClick={() => navigate('/supervisor/offres/categories')}
-                onCreateClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
-            />
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+                <OffresHeader
+                    totalElements={totalElements}
+                    isAdmin={isAdmin}
+                    onExternalSyncClick={() => navigate('/supervisor/offres/synchronisation-externe')}
+                    onWipeClick={() => setWipeDialogOpen(true)}
+                    onCategoriesClick={() => navigate('/supervisor/offres/categories')}
+                    onCreateClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
+                />
 
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2">
                 <OffresFiltersBar
                     search={search}
                     onSearchChange={handleSearch}

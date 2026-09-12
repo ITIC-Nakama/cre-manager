@@ -187,31 +187,31 @@ export default function CandidaturesPage() {
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-                        <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
-                        {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
-                    </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        {t('dashboard.candidatures.student_count', { count: totalStudents, defaultValue: '{{count}} étudiant' })}
-                        {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
-                    </p>
+            {/* Header + Filters (sticky ensemble) */}
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                            <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
+                            {renderTitleWithGradient(t('dashboard.candidatures.title', 'Gestion des Candidatures'), 'itic-gradient-blue')}
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {t('dashboard.candidatures.student_count', { count: totalStudents, defaultValue: '{{count}} étudiant' })}
+                            {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleExport}
+                        disabled={isExporting}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
+                    >
+                        {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                        {t('dashboard.candidatures.export_csv', 'Exporter CSV')}
+                    </button>
                 </div>
-                <button
-                    onClick={handleExport}
-                    disabled={isExporting}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
-                >
-                    {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {t('dashboard.candidatures.export_csv', 'Exporter CSV')}
-                </button>
-            </div>
 
-            {/* Filters */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-48 max-w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
@@ -322,6 +322,7 @@ export default function CandidaturesPage() {
                         </label>
                     </div>
                 </FiltersPopover>
+            </div>
             </div>
 
             {/* Grid */}

@@ -197,18 +197,18 @@ export default function CVValidationPage() {
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
 
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <FileCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
-                    {renderTitleWithGradient(t('dashboard.cv_validation.title', 'Validation des CVs'), 'itic-gradient-blue')}
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
-                    {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
-                </p>
-            </div>
-
+            {/* Header + Filters (sticky ensemble) */}
             <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-3">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <FileCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+                        {renderTitleWithGradient(t('dashboard.cv_validation.title', 'Validation des CVs'), 'itic-gradient-blue')}
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
+                        {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
+                    </p>
+                </div>
+
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-48 max-w-72">

@@ -72,7 +72,7 @@ export default function ReclamationsPage() {
 
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                         <MessageCircleWarning className="h-7 w-7 text-[#E2762F] shrink-0" />

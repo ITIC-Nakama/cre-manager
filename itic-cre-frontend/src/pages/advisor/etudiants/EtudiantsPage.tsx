@@ -371,15 +371,14 @@ export default function EtudiantsPage() {
 
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
-            {/* Header */}
-            <EtudiantsHeader
-                totalElements={totalElements}
-                exporting={exporting}
-                onExport={handleExportCsv}
-            />
+            {/* Header + Filters (sticky ensemble) */}
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+                <EtudiantsHeader
+                    totalElements={totalElements}
+                    exporting={exporting}
+                    onExport={handleExportCsv}
+                />
 
-            {/* Filters */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2">
                 <EtudiantsFilters
                     search={search}
                     filterStatus={filterStatus}

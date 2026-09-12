@@ -257,29 +257,29 @@ export default function AdvisorPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn text-slate-800 dark:text-slate-100">
-      {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
-            {renderTitleWithGradient(t(isAdminsTab ? 'dashboard.admins.title' : 'dashboard.advisors.title', isAdminsTab ? 'Gestion des Administrateurs' : 'Gestion des Conseillers'), 'itic-gradient-blue')}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
-            {t('dashboard.conseillers.subtitle', { count: totalElements })}
-          </p>
-        </div>
-        <button
-          onClick={() => setModal({ isOpen: true, mode: 'create' })}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          {isAdminsTab
-            ? t('dashboard.conseillers.create_admin_button')
-            : t('dashboard.conseillers.create_advisor_button')}
-        </button>
-      </div>
-
+      {/* ── Header + Tabs/Filtres (sticky ensemble) ── */}
       <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+              <ShieldCheck className="h-7 w-7 text-[#E2762F] shrink-0" />
+              {renderTitleWithGradient(t(isAdminsTab ? 'dashboard.admins.title' : 'dashboard.advisors.title', isAdminsTab ? 'Gestion des Administrateurs' : 'Gestion des Conseillers'), 'itic-gradient-blue')}
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
+              {t('dashboard.conseillers.subtitle', { count: totalElements })}
+            </p>
+          </div>
+          <button
+            onClick={() => setModal({ isOpen: true, mode: 'create' })}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            {isAdminsTab
+              ? t('dashboard.conseillers.create_admin_button')
+              : t('dashboard.conseillers.create_advisor_button')}
+          </button>
+        </div>
+
         {/* ── Tabs Admin / Conseiller ── */}
         <AdvisorTabs
           activeTab={activeTab}
