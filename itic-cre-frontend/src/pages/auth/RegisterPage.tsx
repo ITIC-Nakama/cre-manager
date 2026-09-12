@@ -141,12 +141,12 @@ export default function RegisterPage() {
             </div>
 
             {/* ── Right panel ────────────────────────────────────────── */}
-            <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 lg:px-8 lg:py-12 overflow-y-auto relative bg-[#020203]">
+            <div className="flex-1 flex flex-col items-center justify-center px-5 py-5 lg:px-8 lg:py-12 overflow-y-auto relative bg-[#020203]">
 
                 <div className="w-full max-w-xl relative z-10
                     bg-white dark:bg-[#15171f]
                     rounded-2xl shadow-xl
-                    p-8 lg:p-12">
+                    p-6 lg:p-12">
 
                     {/* Mobile logo */}
                     <div className="flex lg:hidden justify-center mb-10">
@@ -174,7 +174,7 @@ export default function RegisterPage() {
                         )}
 
                         {/* First name + Last name */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     {t('auth.register.first_name_label')} <span className="text-rose-500">*</span>
