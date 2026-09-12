@@ -11,6 +11,7 @@ import FiltersPopover from '../../../components/basics/FiltersPopover';
 import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
+import { useScrollTopOnChange } from '../../../hooks/useScrollTopOnChange';
 import { isCompleted } from './utils';
 
 type Tab = 'in_progress' | 'completed';
@@ -19,6 +20,7 @@ const PAGE_SIZE = 12;
 export default function CandidaturesListPage() {
     const { t } = useTranslation();
     const [tab, setTab] = useState<Tab>('in_progress');
+    useScrollTopOnChange(tab);
     const [formOpen, setFormOpen] = useState(false);
 
     const [search, setSearch] = useState('');
@@ -93,29 +95,29 @@ export default function CandidaturesListPage() {
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
 
-            {/* Header + Filters (sticky ensemble) */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-                            <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
-                            {renderTitleWithGradient(t('dashboard.candidatures.student.title', 'Mes Candidatures'), 'itic-gradient-blue')}
-                        </h1>
-                        <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1 flex items-center gap-2">
-                            {t('dashboard.candidatures.student.subtitle', { count: totalElements, defaultValue: '{{count}} candidature(s)' })}
-                            {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setFormOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-semibold transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
-                    >
-                        <Plus className="h-4 w-4" />
-                        <span>{t('dashboard.candidatures.student.add_button')}</span>
-                    </button>
+            {/* Header (scrolle normalement) */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <Briefcase className="h-7 w-7 text-[#E2762F] shrink-0" />
+                        {renderTitleWithGradient(t('dashboard.candidatures.student.title', 'Mes Candidatures'), 'itic-gradient-blue')}
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1 flex items-center gap-2">
+                        {t('dashboard.candidatures.student.subtitle', { count: totalElements, defaultValue: '{{count}} candidature(s)' })}
+                        {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+                    </p>
                 </div>
+                <button
+                    onClick={() => setFormOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-semibold transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
+                >
+                    <Plus className="h-4 w-4" />
+                    <span>{t('dashboard.candidatures.student.add_button')}</span>
+                </button>
+            </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Search + Filtres + Tabs (sticky) */}
+            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3 flex-1">
                     <div className="relative flex-1 min-w-48 max-w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -184,7 +186,6 @@ export default function CandidaturesListPage() {
                             </span>
                         </button>
                     ))}
-                </div>
                 </div>
             </div>
 

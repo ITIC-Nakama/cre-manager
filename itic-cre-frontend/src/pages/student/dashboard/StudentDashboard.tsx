@@ -25,7 +25,7 @@ function formatDate(iso: string) {
 export default function StudentDashboard() {
   const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
-  const firstName = user?.firstName || 'Étudiant';
+  const firstName = (user?.firstName || 'Étudiant').trim().split(/\s+/)[0];
   const { data, isLoading } = useMyDashboardSummary();
 
   const total = data?.candidatures.total ?? 0;
@@ -80,9 +80,11 @@ export default function StudentDashboard() {
       {/* Welcome header */}
       <div className="flex flex-col items-start sm:flex-row justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5 min-w-0">
             <Sparkles className="h-7 w-7 text-[#E2762F] shrink-0" />
-            {renderTitleWithGradient(t('dashboard.home.greeting', '{{greeting}}, {{name}} 👋', { greeting: t(`common.time_greeting.${getTimeGreetingPeriod()}`), name: firstName }), 'itic-gradient-blue', firstName)}
+            <span className="truncate min-w-0">
+              {renderTitleWithGradient(t('dashboard.home.greeting', '{{greeting}}, {{name}} 👋', { greeting: t(`common.time_greeting.${getTimeGreetingPeriod()}`), name: firstName }), 'itic-gradient-blue', firstName)}
+            </span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
             {t('dashboard.home.desc', 'Voici un aperçu de vos candidatures et de votre activité récente.')}
