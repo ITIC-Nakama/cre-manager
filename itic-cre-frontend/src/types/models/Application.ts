@@ -70,6 +70,15 @@ export interface CandidaturePayload {
     endDate?: string;
 }
 
+/** Déclaration directe d'un contrat déjà obtenu, sans passer par le pipeline normal de candidature. */
+export interface DeclareContractPayload {
+    entreprise: string;
+    poste: string;
+    contractTypeId: string;
+    startDate: string;
+    endDate?: string;
+}
+
 export interface ApplicationStudent {
     id: string;
     firstName: string;

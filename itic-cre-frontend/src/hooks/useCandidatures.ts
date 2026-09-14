@@ -7,9 +7,10 @@ import {
     createCandidature,
     updateCandidature,
     changeCandidatureStatus,
+    declareContract,
     deleteCandidature,
 } from '../api-s/requests/CandidatureRequest';
-import type { CandidaturePayload, FetchMyCandidaturesParams } from '../types/models/Application';
+import type { CandidaturePayload, DeclareContractPayload, FetchMyCandidaturesParams } from '../types/models/Application';
 
 const MY_CANDIDATURES_KEY = ['my-candidatures'] as const;
 
@@ -47,8 +48,21 @@ export function useUpdateCandidature() {
 export function useChangeCandidatureStatus() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, statusId, startDate, endDate }: { id: string; statusId: string; startDate?: string; endDate?: string }) =>
-            changeCandidatureStatus(id, statusId, startDate, endDate),
+        mutationFn: ({ id, statusId, startDate, endDate, contractTypeId }: { id: string; statusId: string; startDate?: string; endDate?: string; contractTypeId?: string }) =>
+            changeCandidatureStatus(id, statusId, startDate, endDate, contractTypeId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
+            queryClient.invalidateQueries({ queryKey: ['me'] });
+            queryClient.invalidateQueries({ queryKey: ['gamification'] });
+            queryClient.invalidateQueries({ queryKey: PENDING_LEVEL_UP_KEY });
+        },
+    });
+}
+
+export function useDeclareContract() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: DeclareContractPayload) => declareContract(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: MY_CANDIDATURES_KEY });
             queryClient.invalidateQueries({ queryKey: ['me'] });

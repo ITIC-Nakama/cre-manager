@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
 import { Briefcase, FileSignature, Loader2, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useMyCandidaturesInfinite, useCreateCandidature } from '../../../hooks/useCandidatures';
+import { useMyCandidaturesInfinite, useCreateCandidature, useDeclareContract } from '../../../hooks/useCandidatures';
 import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CustomSelect from '../../../components/basics/CustomSelect';
@@ -44,6 +44,7 @@ export default function CandidaturesListPage() {
     } = useMyCandidaturesInfinite(params);
 
     const createMutation = useCreateCandidature();
+    const declareContractMutation = useDeclareContract();
 
     const inProgress = useMemo(() => candidatures.filter((c) => !isCompleted(c)), [candidatures]);
     const completed = useMemo(() => candidatures.filter((c) => isCompleted(c)), [candidatures]);
@@ -86,9 +87,20 @@ export default function CandidaturesListPage() {
         setContractTypeFilter('');
     };
 
-    const handleCreate = async (payload: CandidaturePayload) => {
-        await createMutation.mutateAsync(payload);
-        toast.success(t('dashboard.candidatures.student.toast.created'));
+    const handleCreate = async (payload: CandidaturePayload, declareContractNow?: boolean) => {
+        if (declareContractNow) {
+            await declareContractMutation.mutateAsync({
+                entreprise: payload.entreprise,
+                poste: payload.poste,
+                contractTypeId: payload.typeContratId as string,
+                startDate: payload.startDate as string,
+                endDate: payload.endDate,
+            });
+            toast.success(t('dashboard.candidatures.student.toast.contract_declared', 'Contrat déclaré — en attente de confirmation par votre conseiller'));
+        } else {
+            await createMutation.mutateAsync(payload);
+            toast.success(t('dashboard.candidatures.student.toast.created'));
+        }
         setFormOpen(false);
     };
 
@@ -217,7 +229,7 @@ export default function CandidaturesListPage() {
 
             {formOpen && (
                 <CandidatureFormModal
-                    saving={createMutation.isPending}
+                    saving={createMutation.isPending || declareContractMutation.isPending}
                     onClose={() => setFormOpen(false)}
                     onSave={handleCreate}
                 />

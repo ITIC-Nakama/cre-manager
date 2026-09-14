@@ -152,6 +152,9 @@ public class ApplicationService {
         }
         if (request.getStartDate() != null) application.setStartDate(request.getStartDate());
         if (request.getEndDate() != null) application.setEndDate(request.getEndDate());
+        if (request.getContractTypeId() != null) {
+            application.setTypeContrat(resolveContractType(request.getContractTypeId()));
+        }
 
         // Nouvelle declaration "sous contrat" par l'etudiant lui-meme — purement declaratif tant
         // qu'un conseiller/admin ne l'a pas confirmee (verifyContractDeclaration) ou n'a pas touche
@@ -436,6 +439,74 @@ public class ApplicationService {
                 saved.getEntreprise(), saved.getPoste()));
 
         return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
+    }
+
+    /**
+     * Déclaration directe d'un contrat par l'étudiant lui-même, sans passer par le pipeline normal
+     * de candidature — purement déclaratif (contractVerified=false), même workflow de vérification
+     * conseiller que le pipeline normal (verifyContractDeclaration/rejectContractDeclaration).
+     */
+    @Transactional
+    public ApplicationDTO declareContract(DeclareContractRequest request) {
+        Application saved = buildDirectContractApplication(getCurrentStudent(), request, false);
+        return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
+    }
+
+    /**
+     * Déclaration d'un contrat par un conseiller/admin au nom d'un étudiant — confirmée
+     * immédiatement (pas d'étape de vérification, c'est le conseiller/admin qui confirme), ouvert
+     * à tout conseiller/admin quel que soit son portefeuille (même précédent que
+     * updateContractDatesAsAdvisor/verifyContractDeclaration).
+     */
+    @Transactional
+    public ApplicationDTO declareContractForStudent(UUID studentId, DeclareContractRequest request) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+        Application saved = buildDirectContractApplication(student, request, true);
+
+        auditLogService.log(AuditAction.APPLICATION_CONTRACT_DECLARED_BY_ADVISOR, getCurrentUser(), "APPLICATION", saved.getId(),
+                saved.getStatus().getNom() + " — " + saved.getEntreprise() + " (étudiant : "
+                        + student.getFirstName() + " " + student.getLastName() + ")");
+
+        return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
+    }
+
+    /**
+     * Coeur commun aux deux déclarations directes ci-dessus — crée une candidature déjà au statut
+     * "sous contrat" (ex: Offre reçue), sans passer par les étapes intermédiaires. Ne crédite QUE
+     * l'XP du statut cible (pas de cumul des étapes sautées comme le ferait changeStatus Cas 3) :
+     * un seul historique (null -> statut contrat) est enregistré, ce qui garantit qu'un refus
+     * ultérieur (rejectContractDeclaration) reprend exactement et entièrement cette XP.
+     */
+    private Application buildDirectContractApplication(Student student, DeclareContractRequest request, boolean verified) {
+        if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
+        }
+
+        ApplicationStatus contractStatus = statusRepository.findFirstByCompteCommeContratTrue()
+                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.APPLICATION_STATUS_NOT_FOUND));
+        ContractType contractType = resolveContractType(request.getContractTypeId());
+
+        Application application = new Application();
+        application.setStudent(student);
+        application.setEntreprise(request.getEntreprise());
+        application.setPoste(request.getPoste());
+        application.setTypeContrat(contractType);
+        application.setStartDate(request.getStartDate());
+        application.setEndDate(request.getEndDate());
+        application.setStatus(contractStatus);
+        application.setContractVerified(verified);
+
+        Application saved = applicationRepository.save(application);
+        recordHistory(saved, null, contractStatus);
+
+        if (contractStatus.getGainXP() != null && contractStatus.getGainXP() > 0) {
+            gamificationService.awardXP(student, ActionXP.CANDIDATURE_STATUS_CHANGED, contractStatus.getGainXP(),
+                    contractStatus.getNom() + " — " + request.getEntreprise(), saved);
+        }
+        updateLastActivity(student);
+
+        return saved;
     }
 
     private User getCurrentUser() {

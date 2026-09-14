@@ -1,5 +1,5 @@
 import { apiClient } from '../AxiosApiClient';
-import type { Candidature, CandidaturePayload, CandidaturePage, FetchMyCandidaturesParams } from '../../types/models/Application';
+import type { Candidature, CandidaturePayload, CandidaturePage, DeclareContractPayload, FetchMyCandidaturesParams } from '../../types/models/Application';
 
 export type { FetchMyCandidaturesParams };
 
@@ -37,8 +37,13 @@ export function changeCandidatureStatus(
     statusId: string,
     startDate?: string,
     endDate?: string,
+    contractTypeId?: string,
 ): Promise<Candidature> {
-    return apiClient.patch(`/applications/${id}/status`, { statusId, startDate, endDate }).then((response) => unwrap<Candidature>(response));
+    return apiClient.patch(`/applications/${id}/status`, { statusId, startDate, endDate, contractTypeId }).then((response) => unwrap<Candidature>(response));
+}
+
+export function declareContract(payload: DeclareContractPayload): Promise<Candidature> {
+    return apiClient.post('/applications/declare-contract', payload).then((response) => unwrap<Candidature>(response));
 }
 
 export function deleteCandidature(id: string): Promise<{ xpRevoked: number }> {

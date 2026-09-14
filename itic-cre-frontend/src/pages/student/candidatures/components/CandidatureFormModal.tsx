@@ -11,7 +11,7 @@ interface Props {
     candidature?: Candidature | null;
     saving: boolean;
     onClose: () => void;
-    onSave: (payload: CandidaturePayload) => Promise<void>;
+    onSave: (payload: CandidaturePayload, declareContractNow?: boolean) => Promise<void>;
 }
 
 const LIMITS = {
@@ -32,6 +32,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const [notes, setNotes] = useState(candidature?.notes ?? '');
     const [startDate, setStartDate] = useState(candidature?.startDate ?? '');
     const [endDate, setEndDate] = useState(candidature?.endDate ?? '');
+    const [declareContractNow, setDeclareContractNow] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
@@ -55,6 +56,14 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
         if (startDate && endDate && endDate < startDate) {
             errors.endDate = t('dashboard.candidatures.student.form.invalid_dates', 'La date de fin doit être postérieure à la date de début');
         }
+        if (!candidature && declareContractNow) {
+            if (!typeContratId) {
+                errors.typeContratId = t('dashboard.candidatures.student.form.contract_type_required', 'Le type de contrat est requis');
+            }
+            if (!startDate) {
+                errors.startDate = t('dashboard.candidatures.student.contract_gate.start_date_required', 'La date de début est requise');
+            }
+        }
         return errors;
     };
 
@@ -75,7 +84,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                 notes: notes.trim() || undefined,
                 startDate: startDate || undefined,
                 endDate: endDate || undefined,
-            });
+            }, !candidature && declareContractNow);
         } catch (err: any) {
             const serverFieldErrors = err?.response?.data?.data;
             if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
@@ -151,6 +160,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     <div className="space-y-1.5">
                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                             {t('dashboard.candidatures.student.form.contract_label')}
+                            {!candidature && declareContractNow && <span className="text-rose-500"> *</span>}
                         </label>
                         <CustomSelect
                             value={typeContratId}
@@ -159,25 +169,46 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                             disabled={saving}
                             className="w-full"
                         />
+                        {fieldErrors.typeContratId && <p className="text-xs text-rose-500">{fieldErrors.typeContratId}</p>}
                     </div>
 
-                    {/* Uniquement pertinent une fois l'offre reçue — une candidature vient toujours
-                        d'être créée au statut "À postuler" (forcé côté backend), donc jamais affiché
-                        à la création. Permet à un étudiant de préciser une alternance/stage déjà en cours,
-                        obtenue hors plateforme, une fois sa candidature avancée jusqu'à "Offre reçue". */}
-                    {candidature && candidature.status.ordre >= 5 && (
+                    {/* Case à cocher visible uniquement à la création — permet de créer directement
+                        une candidature au statut "sous contrat" (ex: Offre reçue), sans passer par le
+                        pipeline normal (À postuler -> ... -> Offre reçue). Voir ApplicationService.declareContract. */}
+                    {!candidature && (
+                        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={declareContractNow}
+                                disabled={saving}
+                                onChange={(e) => setDeclareContractNow(e.target.checked)}
+                                className="h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700 cursor-pointer"
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-300">
+                                {t('dashboard.candidatures.student.form.declare_contract_checkbox', "J'ai déjà obtenu ce contrat")}
+                            </span>
+                        </label>
+                    )}
+
+                    {/* Affiché une fois l'offre reçue (candidature déjà avancée jusque-là) OU en mode
+                        déclaration directe à la création — voir case à cocher ci-dessus. */}
+                    {((candidature && candidature.status.ordre >= 5) || (!candidature && declareContractNow)) && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.candidatures.student.form.start_date_label', 'Date de début du contrat')}
+                                    {!candidature && declareContractNow && <span className="text-rose-500"> *</span>}
                                 </label>
                                 <input
                                     type="date"
                                     value={startDate}
                                     disabled={saving}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70"
+                                    className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                        fieldErrors.startDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+                                    }`}
                                 />
+                                {fieldErrors.startDate && <p className="text-xs text-rose-500">{fieldErrors.startDate}</p>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">

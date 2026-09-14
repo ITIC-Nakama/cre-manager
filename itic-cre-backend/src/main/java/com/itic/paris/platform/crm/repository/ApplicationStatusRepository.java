@@ -12,4 +12,7 @@ public interface ApplicationStatusRepository extends JpaRepository<ApplicationSt
     Optional<ApplicationStatus> findByOrdre(int ordre);
     java.util.List<ApplicationStatus> findByOrdreBetweenAndActifTrueOrderByOrdreAsc(int minOrdre, int maxOrdre);
     boolean existsByNom(String nom);
+
+    /** Le statut "sous contrat" (ex: Offre reçue) — jamais recherché par nom en dur ailleurs dans le code. */
+    Optional<ApplicationStatus> findFirstByCompteCommeContratTrue();
 }

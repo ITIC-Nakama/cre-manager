@@ -322,6 +322,10 @@ public class StudentSpecification {
             cvSubquery.where(cb.equal(cvRoot.get("student"), root));
             Predicate noCv = cb.not(cb.exists(cvSubquery));
 
+            // Un etudiant confirme sous contrat actif n'a plus besoin d'attention, meme si une
+            // vieille candidature est encore stale ou son CV absent (voir underContractPredicate).
+            predicates.add(underContractPredicate(root, query, cb, false));
+
             predicates.add(cb.or(hasStale, noCv));
 
             Expression<Integer> staleScore = cb.<Integer>selectCase().when(hasStale, 2).otherwise(0);

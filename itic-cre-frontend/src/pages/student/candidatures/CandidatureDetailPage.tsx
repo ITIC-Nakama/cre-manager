@@ -35,10 +35,10 @@ export default function CandidatureDetailPage() {
     const [notesValue, setNotesValue] = useState<string | null>(null);
     const notesHaveChanged = notesValue !== null && notesValue !== (candidature?.notes ?? '');
 
-    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string) => {
+    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string, contractTypeId?: string) => {
         if (!candidature) return;
         try {
-            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate });
+            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate, contractTypeId });
             if (result.xpAwarded > 0) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed_xp', { xp: result.xpAwarded }));
             } else if (result.xpAwarded < 0) {
@@ -353,8 +353,9 @@ export default function CandidatureDetailPage() {
             {pendingContractStatusId && (
                 <ContractDateGateModal
                     saving={changeStatusMutation.isPending}
+                    currentContractTypeId={candidature?.typeContrat?.id}
                     onClose={() => setPendingContractStatusId(null)}
-                    onConfirm={(startDate, endDate) => applyStatusChange(pendingContractStatusId, startDate, endDate)}
+                    onConfirm={(startDate, contractTypeId, endDate) => applyStatusChange(pendingContractStatusId, startDate, endDate, contractTypeId)}
                 />
             )}
 

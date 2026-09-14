@@ -1,28 +1,44 @@
 import { useRef, useState } from 'react';
 import { X, Loader2, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import CustomSelect from '../../../../components/basics/CustomSelect';
+import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../../../hooks/useModalClose';
 
 interface Props {
     saving: boolean;
+    currentContractTypeId?: string;
     onClose: () => void;
-    onConfirm: (startDate: string, endDate?: string) => Promise<void>;
+    onConfirm: (startDate: string, contractTypeId: string, endDate?: string) => Promise<void>;
 }
 
-/** Bloque le passage à un statut "sous contrat" (ex: Offre reçue) tant qu'une date de début
-  * n'est pas renseignée — sans elle, la candidature ne remonterait jamais comme sous contrat
-  * dans les filtres/stats conseiller (voir StudentSpecification.underContractPredicate). */
-export default function ContractDateGateModal({ saving, onClose, onConfirm }: Props) {
+/** Bloque le passage à un statut "sous contrat" (ex: Offre reçue) tant qu'une date de début et un
+  * type de contrat ne sont pas renseignés — sans date de début, la candidature ne remonterait
+  * jamais comme sous contrat dans les filtres/stats conseiller (voir
+  * StudentSpecification.underContractPredicate) ; le type de contrat est capturé/confirmé ici car
+  * c'est le moment le plus pertinent pour le préciser (alternance/stage/...). */
+export default function ContractDateGateModal({ saving, currentContractTypeId, onClose, onConfirm }: Props) {
     const { t } = useTranslation();
+    const { data: contractTypes } = useContractTypes();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [contractTypeId, setContractTypeId] = useState(currentContractTypeId ?? '');
     const [error, setError] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     useLockBodyScroll(panelRef, true);
     const { isClosing, handleClose } = useModalClose(onClose);
 
+    const contractTypeOptions = [
+        { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },
+        ...(contractTypes ?? []).map((c) => ({ value: c.id, label: c.label })),
+    ];
+
     const handleConfirm = async () => {
+        if (!contractTypeId) {
+            setError(t('dashboard.candidatures.student.form.contract_type_required', 'Le type de contrat est requis'));
+            return;
+        }
         if (!startDate) {
             setError(t('dashboard.candidatures.student.contract_gate.start_date_required', 'La date de début est requise'));
             return;
@@ -32,7 +48,7 @@ export default function ContractDateGateModal({ saving, onClose, onConfirm }: Pr
             return;
         }
         setError(null);
-        await onConfirm(startDate, endDate || undefined);
+        await onConfirm(startDate, contractTypeId, endDate || undefined);
     };
 
     return (
@@ -64,6 +80,19 @@ export default function ContractDateGateModal({ saving, onClose, onConfirm }: Pr
                             {error}
                         </p>
                     )}
+
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                            {t('dashboard.candidatures.student.form.contract_label')} <span className="text-rose-500">*</span>
+                        </label>
+                        <CustomSelect
+                            value={contractTypeId}
+                            options={contractTypeOptions}
+                            onChange={setContractTypeId}
+                            disabled={saving}
+                            className="w-full"
+                        />
+                    </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
@@ -104,7 +133,7 @@ export default function ContractDateGateModal({ saving, onClose, onConfirm }: Pr
                         <button
                             type="button"
                             onClick={handleConfirm}
-                            disabled={saving || !startDate}
+                            disabled={saving || !startDate || !contractTypeId}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
                         >
                             {saving && <Loader2 className="h-4 w-4 animate-spin" />}

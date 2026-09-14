@@ -52,6 +52,7 @@ public enum AuditAction {
     // --- Actions de validation des contrats étudiants (déclaratif) ---
     APPLICATION_CONTRACT_VERIFIED,
     APPLICATION_CONTRACT_REJECTED,
+    APPLICATION_CONTRACT_DECLARED_BY_ADVISOR,
 
     // --- Autre / Action générique ---
     OTHER

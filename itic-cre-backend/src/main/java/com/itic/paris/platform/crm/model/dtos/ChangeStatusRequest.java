@@ -20,4 +20,7 @@ public class ChangeStatusRequest {
     private LocalDate startDate;
 
     private LocalDate endDate;
+
+    /** Optionnel — type de contrat à confirmer/mettre à jour au moment de la déclaration (ex: alternance/stage). */
+    private UUID contractTypeId;
 }

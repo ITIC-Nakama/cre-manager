@@ -13,6 +13,7 @@ interface Props {
     onClose: () => void;
     onNotify?: (student: StudentRow) => void;
     onToggleActive?: (student: StudentRow) => void;
+    onDeclareContract?: (student: StudentRow) => void;
 }
 
 function formatDateTime(iso: string | null) {
@@ -23,7 +24,7 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract }: Props) {
     const { t } = useTranslation();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
@@ -319,9 +320,20 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 </div>
                             );
                         }
-                        if (!onNotify && !onToggleActive) return null;
+                        if (!onNotify && !onToggleActive && !onDeclareContract) return null;
                         return (
                             <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                {onDeclareContract && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onDeclareContract(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                                    >
+                                        <Handshake className="h-3.5 w-3.5" />
+                                        <span>{t('dashboard.etudiants.actions.declare_contract', 'Déclarer un contrat')}</span>
+                                    </button>
+                                )}
+
                                 {onNotify && (
                                     <button
                                         type="button"

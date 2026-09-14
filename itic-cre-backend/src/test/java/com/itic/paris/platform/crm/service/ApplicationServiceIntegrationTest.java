@@ -7,10 +7,12 @@ import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.crm.model.Application;
+import com.itic.paris.platform.crm.model.ApplicationHistory;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
 import com.itic.paris.platform.crm.model.dtos.ChangeStatusRequest;
 import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
+import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
 import com.itic.paris.platform.crm.repository.ApplicationHistoryRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
@@ -346,5 +348,107 @@ public class ApplicationServiceIntegrationTest {
         // (le seuil hebdomadaire anti-farming ne compte que les lignes encore existantes).
         Student afterWithdrawal = studentRepository.findById(testStudent.getId()).orElseThrow();
         assertThat(afterWithdrawal.getXpTotal()).isEqualTo(0);
+    }
+
+    @Test
+    public void testDeclareContract_ShouldCreateApplicationDirectlyAtContractStatus_Unverified() {
+        // Given
+        testStudent.setXpTotal(0);
+        studentRepository.save(testStudent);
+
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Spotify");
+        request.setPoste("Alternant Data");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+
+        // When: declaration directe, sans passer par le pipeline normal
+        ApplicationDTO dto = applicationService.declareContract(request);
+
+        // Then: creee directement au statut "sous contrat", purement declarative (non verifiee)
+        assertThat(dto.getStatus().getId()).isEqualTo(offreRecueStatus.getId());
+        assertThat(dto.getContractVerified()).isFalse();
+        assertThat(dto.getTypeContrat().getId()).isEqualTo(cdiContract.getId());
+
+        // Un seul historique (previousStatus = null) — pas de saut d'etapes intermediaires simule
+        ApplicationHistory history = historyRepository
+                .findTopByApplicationIdAndNewStatusIdOrderByDateChangementDesc(dto.getId(), offreRecueStatus.getId())
+                .orElseThrow();
+        assertThat(history.getPreviousStatus()).isNull();
+
+        // Une seule ligne d'XP creditee, pour le statut cible uniquement (pas de cumul d'etapes)
+        Student afterDeclare = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(afterDeclare.getXpTotal()).isEqualTo(offreRecueStatus.getGainXP());
+    }
+
+    @Test
+    public void testDeclareContract_ThenReject_ShouldFullyRevertXP() {
+        // Given
+        testStudent.setXpTotal(0);
+        studentRepository.save(testStudent);
+
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Airbnb");
+        request.setPoste("Alternant Backend");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+        ApplicationDTO declared = applicationService.declareContract(request);
+
+        int xpAfterDeclare = studentRepository.findById(testStudent.getId()).orElseThrow().getXpTotal();
+        assertThat(xpAfterDeclare).isEqualTo(offreRecueStatus.getGainXP());
+
+        // When: la declaration est refusee par un conseiller
+        applicationService.rejectContractDeclaration(declared.getId());
+
+        // Then: l'XP creditee par la declaration est integralement reprise — net zero par rapport
+        // a avant la declaration, precisement parce qu'un seul historique/une seule XP existaient
+        // (voir buildDirectContractApplication : pas de saut d'etapes simule comme changeStatus Cas 3).
+        Student afterReject = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(afterReject.getXpTotal()).isEqualTo(0);
+
+        Application reverted = applicationRepository.findById(declared.getId()).orElseThrow();
+        assertThat(reverted.getContractVerified()).isFalse();
+    }
+
+    @Test
+    public void testDeclareContract_WithEndDateBeforeStartDate_ShouldBeRejected() {
+        // Given
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Uber");
+        request.setPoste("Alternant QA");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+        request.setEndDate(LocalDate.now().minusDays(5));
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.declareContract(request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
+        assertThat(applicationRepository.findByStudentIdOrderByDateCreationDesc(testStudent.getId())).isEmpty();
+    }
+
+    @Test
+    public void testChangeStatus_WithContractTypeId_ShouldSetContractType() {
+        // Given: candidature sans type de contrat renseigne
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Booking");
+        app.setPoste("Alternant Frontend");
+        app.setStatus(entretienStatus);
+        app = applicationRepository.save(app);
+        assertThat(app.getTypeContrat()).isNull();
+
+        // When: declaration "sous contrat" avec type de contrat precise au meme moment
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+        request.setContractTypeId(cdiContract.getId());
+
+        ApplicationDTO dto = applicationService.changeStatus(app.getId(), request);
+
+        // Then
+        assertThat(dto.getTypeContrat().getId()).isEqualTo(cdiContract.getId());
+        Application persisted = applicationRepository.findById(app.getId()).orElseThrow();
+        assertThat(persisted.getTypeContrat().getId()).isEqualTo(cdiContract.getId());
     }
 }

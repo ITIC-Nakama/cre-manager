@@ -16,6 +16,7 @@ import { formatStaffLabel } from '../../../utils/staffUtils';
 import { fetchAllStudents } from '../../../api-s/requests/DashboardRequest';
 import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import StudentDetailModal from '../../../components/shared/StudentDetailModal';
+import DeclareContractModal from '../../../components/shared/DeclareContractModal';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useUserStore } from '../../../store/UserStore';
@@ -72,6 +73,7 @@ export default function EtudiantsPage() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
+    const [declaringContractFor, setDeclaringContractFor] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
     const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -458,6 +460,14 @@ export default function EtudiantsPage() {
                     onClose={() => setViewingStudent(null)}
                     onNotify={(s) => setSelectedStudent(s)}
                     onToggleActive={(s) => s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)}
+                    onDeclareContract={(s) => setDeclaringContractFor(s)}
+                />
+            )}
+
+            {declaringContractFor && (
+                <DeclareContractModal
+                    student={declaringContractFor}
+                    onClose={() => setDeclaringContractFor(null)}
                 />
             )}
 

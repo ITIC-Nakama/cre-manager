@@ -117,7 +117,7 @@
       "cv_validation": "Validation CV",
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
-      "reclamations": "Réclamations",
+      "reclamations": "Messages",
       "conseillers": "Relations Entreprises",
       "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
@@ -396,7 +396,10 @@
         "no_promotion": "Aucune",
         "toast_promo_updated": "Affectation mise à jour avec succès !",
         "toast_promo_update_error": "Erreur lors de la mise à jour de la promotion.",
-        "not_under_contract": "Pas sous contrat"
+        "not_under_contract": "Pas sous contrat",
+        "declare_contract_title": "Déclarer un contrat",
+        "declare_contract_explanation": "Cette déclaration est confirmée immédiatement, sans étape de vérification supplémentaire.",
+        "declare_contract_success": "Contrat déclaré pour {{name}}"
       },
       "pagination": {
         "info_one": "Page {{current}} sur {{total}} — {{count}} étudiant",
@@ -404,9 +407,10 @@
       },
       "actions": {
         "view": "Consulter le dossier",
-        "notify": "Envoyer un rappel",
+        "notify": "Envoyer un message",
         "deactivate": "Désactiver",
         "reactivate": "Réactiver",
+        "declare_contract": "Déclarer un contrat",
         "view_wip": "Dossier de {{name}} — en cours de développement",
         "export_success_one": "{{count}} étudiant exporté.",
         "export_success_other": "{{count}} étudiants exportés.",
@@ -543,7 +547,9 @@
           "cancel": "Annuler",
           "save": "Enregistrer",
           "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
-          "save_error": "Échec de l'enregistrement de la candidature."
+          "save_error": "Échec de l'enregistrement de la candidature.",
+          "declare_contract_checkbox": "J'ai déjà obtenu ce contrat",
+          "contract_type_required": "Le type de contrat est requis"
         },
         "toast": {
           "created": "Candidature ajoutée.",
@@ -553,7 +559,8 @@
           "status_changed": "Statut mis à jour.",
           "status_changed_xp": "Statut mis à jour — +{{xp}} XP !",
           "action_error": "Une erreur est survenue.",
-          "status_rollback_xp": "Statut révisé (points XP réajustés)"
+          "status_rollback_xp": "Statut révisé (points XP réajustés)",
+          "contract_declared": "Contrat déclaré — en attente de confirmation par votre conseiller"
         },
         "detail": {
           "back": "Retour aux candidatures",
@@ -787,10 +794,10 @@
       "message_label": "Message personnalisé",
       "message_optional": "(optionnel)",
       "message_placeholder": "Merci de mettre à jour vos candidatures et de déposer votre CV…",
-      "message_hint": "Si vide, un message de relance par défaut sera utilisé.",
+      "message_hint": "Si vide, un message par défaut sera utilisé.",
       "cancel": "Annuler",
-      "send": "Envoyer le rappel",
-      "success": "Email de rappel envoyé à {{name}}",
+      "send": "Envoyer le message",
+      "success": "Message envoyé à {{name}}",
       "error": "Impossible d'envoyer l'email à {{email}}"
     },
     "formation": {
@@ -959,50 +966,52 @@
       "toast_question_option_too_long": "Une option de réponse est trop longue."
     },
     "reclamations": {
-      "floating_button": "Signaler un problème",
-      "title": "Un problème ? Contactez votre conseiller",
-      "tab_new": "Nouveau signalement",
-      "tab_history": "Mes signalements",
+      "floating_button": "Contacter l'équipe",
+      "title": "Contacter l'équipe",
+      "tab_new": "Nouveau message",
+      "tab_history": "Mes messages",
       "form": {
-        "subtitle": "Expliquez votre problème, votre conseiller sera prévenu et vous recontactera directement.",
-        "message_label": "Votre message",
-        "message_placeholder": "Décrivez ce qui ne va pas...",
+        "intro_p1": "Cet espace vous permet d'échanger directement avec votre CRE et de nous contacter en cas de question, de difficulté ou de situation particulière rencontrée au sein de votre entreprise.",
+        "intro_p2": "N'hésitez pas à nous écrire, nous sommes là pour vous accompagner et vous aider tout au long de votre parcours.",
+        "intro_p3": "Votre message sera transmis à l'équipe concernée, qui pourra revenir vers vous directement.",
+        "message_label": "Expliquez votre problème ou votre message",
+        "message_placeholder": "Écrivez votre message ici...",
         "message_too_short": "Décrivez un peu plus votre problème.",
         "phone_label": "Votre numéro de téléphone",
         "phone_hint": "Pour que votre conseiller puisse vous rappeler.",
         "phone_required": "Merci de renseigner votre numéro de téléphone.",
         "submit": "Envoyer",
-        "success": "Votre conseiller a été prévenu, il vous recontactera bientôt.",
+        "success": "Votre message a été envoyé, vous serez recontacté bientôt.",
         "error": "Une erreur est survenue, réessayez.",
         "no_advisor_title": "Pas encore de conseiller",
         "no_advisor_description": "Vous n'avez pas encore de conseiller assigné. Merci de patienter, un conseiller vous sera bientôt attribué."
       },
       "history": {
-        "empty": "Vous n'avez fait aucun signalement.",
+        "empty": "Vous n'avez envoyé aucun message.",
         "status_resolved": "Résolu",
         "status_pending": "En attente",
         "status_refused": "Refusé",
         "withdraw": "Retirer",
-        "withdraw_error": "Impossible de retirer ce signalement, réessayez."
+        "withdraw_error": "Impossible de retirer ce message, réessayez."
       }
     },
     "reclamations_advisor": {
-      "title": "Réclamations",
-      "subtitle": "{{count}} signalement(s)",
+      "title": "Messages des étudiants",
+      "subtitle": "{{count}} message(s)",
       "filter_pending": "En attente",
-      "filter_resolved": "Résolues",
-      "filter_refused": "Refusées",
-      "filter_all": "Toutes",
-      "empty": "Aucun signalement.",
+      "filter_resolved": "Résolus",
+      "filter_refused": "Refusés",
+      "filter_all": "Tous",
+      "empty": "Aucun message.",
       "status_resolved": "Résolu",
       "status_pending": "En attente",
       "status_refused": "Refusé",
       "resolve_button": "Marquer résolu",
       "refuse_button": "Refuser",
       "reopen_button": "Rouvrir",
-      "toast_resolved": "Signalement marqué comme résolu.",
-      "toast_refused": "Signalement refusé.",
-      "toast_reopened": "Signalement rouvert.",
+      "toast_resolved": "Message marqué comme résolu.",
+      "toast_refused": "Message refusé.",
+      "toast_reopened": "Message rouvert.",
       "toast_error": "Une erreur est survenue, réessayez."
     },
     "connaissances": {
@@ -1340,7 +1349,7 @@
         "btn_cancel": "Annuler",
         "label_email": "Adresse email",
         "label_phone": "Numéro de téléphone",
-        "phone_hint": "Utilisé par votre conseiller pour vous recontacter en cas de signalement.",
+        "phone_hint": "Utilisé par votre conseiller pour vous recontacter si vous nous contactez.",
         "label_promotion": "Promotion",
         "modal_otp_title": "Validation de la nouvelle adresse email",
         "modal_otp_desc": "Entrez le code à 6 chiffres envoyé à votre nouvelle adresse.",

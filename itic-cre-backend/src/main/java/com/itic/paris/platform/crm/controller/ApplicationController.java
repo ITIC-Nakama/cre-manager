@@ -56,6 +56,13 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.update(id, request));
     }
 
+    @PostMapping("/declare-contract")
+    @Operation(summary = "Déclarer directement un contrat déjà obtenu",
+            description = "Crée une candidature directement au statut \"sous contrat\" (ex: Offre reçue), sans passer par le pipeline normal — reste déclaratif tant qu'un conseiller/admin ne l'a pas confirmé.")
+    public ResponseEntity<ApplicationDTO> declareContract(@Valid @RequestBody DeclareContractRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.declareContract(request));
+    }
+
     @PatchMapping("/{id}/status")
     @Operation(summary = "Changer le statut d'une candidature")
     public ResponseEntity<ApplicationDTO> changeStatus(

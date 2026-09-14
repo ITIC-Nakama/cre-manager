@@ -45,7 +45,7 @@ export default function ReclamationModal({ onClose }: Props) {
         try {
             await deleteMutation.mutateAsync(id);
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || t('dashboard.reclamations.history.withdraw_error', "Impossible de retirer ce signalement, réessayez."));
+            toast.error(err?.response?.data?.message || t('dashboard.reclamations.history.withdraw_error', "Impossible de retirer ce message, réessayez."));
         } finally {
             setDeletingId(null);
         }
@@ -69,7 +69,7 @@ export default function ReclamationModal({ onClose }: Props) {
                 message: message.trim(),
                 phoneNumber: needsPhone ? phoneNumber.trim() : undefined,
             });
-            toast.success(t('dashboard.reclamations.form.success', 'Votre conseiller a été prévenu, il vous recontactera bientôt.'));
+            toast.success(t('dashboard.reclamations.form.success', 'Votre message a été envoyé, vous serez recontacté bientôt.'));
             setMessage('');
             setPhoneNumber('');
             setTab('history');
@@ -94,7 +94,7 @@ export default function ReclamationModal({ onClose }: Props) {
                     <div className="flex items-start gap-2">
                         <MessageCircleWarning className="h-4 w-4 text-indigo-500 shrink-0 mt-1" />
                         <p className="text-base font-bold text-slate-900 dark:text-white">
-                            {t('dashboard.reclamations.title', 'Un problème ? Contactez votre conseiller')}
+                            {t('dashboard.reclamations.title', "Contacter l'équipe")}
                         </p>
                     </div>
                     <button
@@ -118,8 +118,8 @@ export default function ReclamationModal({ onClose }: Props) {
                             }`}
                         >
                             {tabKey === 'new'
-                                ? t('dashboard.reclamations.tab_new', 'Nouveau signalement')
-                                : t('dashboard.reclamations.tab_history', 'Mes signalements')}
+                                ? t('dashboard.reclamations.tab_new', 'Nouveau message')
+                                : t('dashboard.reclamations.tab_history', 'Mes messages')}
                         </button>
                     ))}
                 </div>
@@ -142,9 +142,17 @@ export default function ReclamationModal({ onClose }: Props) {
                         </div>
                     ) : tab === 'new' ? (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {t('dashboard.reclamations.form.subtitle', 'Expliquez votre problème, votre conseiller sera prévenu et vous recontactera directement.')}
-                            </p>
+                            <div className="flex flex-col gap-2.5 text-sm text-slate-500 dark:text-slate-400">
+                                <p>
+                                    {t('dashboard.reclamations.form.intro_p1', "Cet espace vous permet d'échanger directement avec votre CRE et de nous contacter en cas de question, de difficulté ou de situation particulière rencontrée au sein de votre entreprise.")}
+                                </p>
+                                <p>
+                                    {t('dashboard.reclamations.form.intro_p2', "N'hésitez pas à nous écrire, nous sommes là pour vous accompagner et vous aider tout au long de votre parcours.")}
+                                </p>
+                                <p>
+                                    {t('dashboard.reclamations.form.intro_p3', "Votre message sera transmis à l'équipe concernée, qui pourra revenir vers vous directement.")}
+                                </p>
+                            </div>
 
                             {error && (
                                 <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
@@ -154,14 +162,14 @@ export default function ReclamationModal({ onClose }: Props) {
 
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                    {t('dashboard.reclamations.form.message_label', 'Votre message')} <span className="text-rose-500">*</span>
+                                    {t('dashboard.reclamations.form.message_label', 'Expliquez votre problème ou votre message')} <span className="text-rose-500">*</span>
                                 </label>
                                 <textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     rows={5}
                                     maxLength={2000}
-                                    placeholder={t('dashboard.reclamations.form.message_placeholder', 'Décrivez ce qui ne va pas...')}
+                                    placeholder={t('dashboard.reclamations.form.message_placeholder', 'Écrivez votre message ici...')}
                                     className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                                 />
                             </div>
@@ -201,7 +209,7 @@ export default function ReclamationModal({ onClose }: Props) {
                         <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
                             <MessageCircleWarning className="h-8 w-8 text-slate-300 dark:text-slate-700" />
                             <p className="text-sm text-slate-400 dark:text-slate-500">
-                                {t('dashboard.reclamations.history.empty', "Vous n'avez fait aucun signalement.")}
+                                {t('dashboard.reclamations.history.empty', "Vous n'avez envoyé aucun message.")}
                             </p>
                         </div>
                     ) : (

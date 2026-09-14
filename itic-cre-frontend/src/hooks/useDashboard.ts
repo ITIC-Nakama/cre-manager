@@ -11,8 +11,10 @@ import {
     notifyStudent,
     deactivateStudent,
     reactivateStudent,
+    declareContractForStudent,
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../types/models/Dashboard';
+import type { DeclareContractPayload } from '../types/models/Application';
 
 export function useDashboardOverview(advisorId?: string) {
     return useQuery({
@@ -96,6 +98,18 @@ export function useReactivateStudent() {
         mutationFn: (studentId: string) => reactivateStudent(studentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
+    });
+}
+
+export function useDeclareContractForStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ studentId, payload }: { studentId: string; payload: DeclareContractPayload }) =>
+            declareContractForStudent(studentId, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
         },
     });
 }

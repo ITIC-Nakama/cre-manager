@@ -40,9 +40,9 @@ export default function ReclamationsPage() {
 
     const statusOptions = [
         { value: 'PENDING', label: t('dashboard.reclamations_advisor.filter_pending', 'En attente') },
-        { value: 'RESOLVED', label: t('dashboard.reclamations_advisor.filter_resolved', 'Résolues') },
-        { value: 'REFUSED', label: t('dashboard.reclamations_advisor.filter_refused', 'Refusées') },
-        { value: 'all', label: t('dashboard.reclamations_advisor.filter_all', 'Toutes') },
+        { value: 'RESOLVED', label: t('dashboard.reclamations_advisor.filter_resolved', 'Résolus') },
+        { value: 'REFUSED', label: t('dashboard.reclamations_advisor.filter_refused', 'Refusés') },
+        { value: 'all', label: t('dashboard.reclamations_advisor.filter_all', 'Tous') },
     ];
 
     const statusLabel = (status: ReclamationStatus) => ({
@@ -66,9 +66,9 @@ export default function ReclamationsPage() {
         }
     };
 
-    const handleResolve = (id: string) => runAction(id, resolveMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_resolved', 'Signalement marqué comme résolu.');
-    const handleRefuse = (id: string) => runAction(id, refuseMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_refused', 'Signalement refusé.');
-    const handleReopen = (id: string) => runAction(id, reopenMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_reopened', 'Signalement rouvert.');
+    const handleResolve = (id: string) => runAction(id, resolveMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_resolved', 'Message marqué comme résolu.');
+    const handleRefuse = (id: string) => runAction(id, refuseMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_refused', 'Message refusé.');
+    const handleReopen = (id: string) => runAction(id, reopenMutation.mutateAsync, 'dashboard.reclamations_advisor.toast_reopened', 'Message rouvert.');
 
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
@@ -76,10 +76,10 @@ export default function ReclamationsPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                         <MessageCircleWarning className="h-7 w-7 text-[#E2762F] shrink-0" />
-                        {renderTitleWithGradient(t('dashboard.reclamations_advisor.title', 'Réclamations'), 'itic-gradient-blue')}
+                        {renderTitleWithGradient(t('dashboard.reclamations_advisor.title', 'Messages des étudiants'), 'itic-gradient-blue')}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        {t('dashboard.reclamations_advisor.subtitle', { count: totalElements, defaultValue: '{{count}} signalement(s)' })}
+                        {t('dashboard.reclamations_advisor.subtitle', { count: totalElements, defaultValue: '{{count}} message(s)' })}
                     </p>
                 </div>
                 <CustomSelect
@@ -98,7 +98,7 @@ export default function ReclamationsPage() {
                 <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
                     <MessageCircleWarning className="h-10 w-10 text-slate-300 dark:text-slate-700" />
                     <p className="text-sm text-slate-400 dark:text-slate-500">
-                        {t('dashboard.reclamations_advisor.empty', 'Aucun signalement.')}
+                        {t('dashboard.reclamations_advisor.empty', 'Aucun message.')}
                     </p>
                 </div>
             ) : (

@@ -29,6 +29,12 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
     /** Contrat encore actif : pas de date de fin, ou date de fin pas encore atteinte. */
     String CONTRACT_STILL_ACTIVE = "(a.endDate IS NULL OR a.endDate >= CURRENT_DATE)";
 
+    /** Contrat confirme et actif — meme condition que countStudentsUnderContract, appliquee ici a
+      * une candidature individuelle plutot qu'a un etudiant distinct, pour exclure ces candidatures
+      * des compteurs de "charge active" (Candidatures, En retard) du dashboard conseiller. */
+    String CONFIRMED_ACTIVE_CONTRACT = "(a.status.compteCommeContrat = true AND a.contractVerified = true AND "
+            + LATEST_CONTRACT_START_DATE + " AND " + CONTRACT_STILL_ACTIVE + ")";
+
     Page<Application> findByStudentId(UUID studentId, Pageable pageable);
 
     Optional<Application> findByIdAndStudentId(UUID id, UUID studentId);
@@ -72,6 +78,21 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     @Query("SELECT COUNT(a) FROM Application a WHERE a.student.id IN :studentIds AND a.status.declencheAlerte = true AND a.dateModification < :threshold")
     long countStaleApplicationsForStudents(List<UUID> studentIds, Instant threshold);
+
+    /** Variantes de count()/countByStudentIdIn()/countStaleApplications*() excluant les candidatures
+      * dont le contrat est confirme et actif — ces candidatures n'ont plus besoin d'attention
+      * conseiller, voir DashboardOverviewService (tuiles "Candidatures"/"En retard"). */
+    @Query("SELECT COUNT(a) FROM Application a WHERE NOT " + CONFIRMED_ACTIVE_CONTRACT)
+    long countExcludingConfirmedContract();
+
+    @Query("SELECT COUNT(a) FROM Application a WHERE a.student.id IN :studentIds AND NOT " + CONFIRMED_ACTIVE_CONTRACT)
+    long countExcludingConfirmedContractForStudents(List<UUID> studentIds);
+
+    @Query("SELECT COUNT(a) FROM Application a WHERE a.status.declencheAlerte = true AND a.dateModification < :threshold AND NOT " + CONFIRMED_ACTIVE_CONTRACT)
+    long countStaleApplicationsExcludingConfirmedContract(Instant threshold);
+
+    @Query("SELECT COUNT(a) FROM Application a WHERE a.student.id IN :studentIds AND a.status.declencheAlerte = true AND a.dateModification < :threshold AND NOT " + CONFIRMED_ACTIVE_CONTRACT)
+    long countStaleApplicationsForStudentsExcludingConfirmedContract(List<UUID> studentIds, Instant threshold);
 
     long countByDateCreationAfterAndStudentIdIn(Instant since, List<UUID> studentIds);
 

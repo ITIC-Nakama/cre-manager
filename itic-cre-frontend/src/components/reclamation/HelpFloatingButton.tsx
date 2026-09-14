@@ -12,8 +12,8 @@ export default function HelpFloatingButton() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                aria-label={t('dashboard.reclamations.floating_button', 'Signaler un problème')}
-                title={t('dashboard.reclamations.floating_button', 'Signaler un problème')}
+                aria-label={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
+                title={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
                 className="fixed bottom-5 right-5 z-40 h-12 w-12 rounded-full bg-[#E2762F] hover:bg-[#D2651E] text-white shadow-lg shadow-orange-500/30 flex items-center justify-center transition-colors cursor-pointer"
             >
                 <MessageCircleWarning className="h-5 w-5" />

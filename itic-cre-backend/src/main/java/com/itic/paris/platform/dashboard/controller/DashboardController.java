@@ -5,6 +5,7 @@ import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
+import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
 import com.itic.paris.platform.crm.model.dtos.UpdateContractDatesRequest;
 import com.itic.paris.platform.crm.service.ApplicationService;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -231,6 +233,15 @@ public class DashboardController {
             + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
     public ResponseEntity<ApplicationDTO> rejectContract(@PathVariable UUID id) {
         return ResponseEntity.ok(applicationService.rejectContractDeclaration(id));
+    }
+
+    @PostMapping("/students/{studentId}/declare-contract")
+    @Operation(summary = "Déclarer un contrat pour un étudiant au nom du conseiller/admin — confirmé immédiatement, "
+            + "aucune vérification requise, ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> declareContractForStudent(
+            @PathVariable UUID studentId,
+            @Valid @RequestBody DeclareContractRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.declareContractForStudent(studentId, request));
     }
 
     @GetMapping("/students/{studentId}")

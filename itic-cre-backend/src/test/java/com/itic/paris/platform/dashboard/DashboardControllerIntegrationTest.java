@@ -19,6 +19,7 @@ import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.repository.CVRepository;
@@ -87,6 +88,9 @@ public class DashboardControllerIntegrationTest {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private ContractTypeRepository contractTypeRepository;
 
     @Autowired
     private AuditLogRepository auditLogRepository;
@@ -936,6 +940,194 @@ public class DashboardControllerIntegrationTest {
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content[0].status.compteCommeContrat").value(true));
+        }
+
+        @Test
+        @DisplayName("POST /dashboard/students/{studentId}/declare-contract as ADMIN creates a confirmed contract directly")
+        void adminCanDeclareContractForStudent() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Map<String, Object> body = Map.of(
+                    "entreprise", "Declared Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-01-15"
+            );
+
+            mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.entreprise").value("Declared Corp"))
+                    .andExpect(jsonPath("$.data.status.id").value(contractStatus.getId().toString()))
+                    .andExpect(jsonPath("$.data.contractVerified").value(true));
+
+            boolean logged = auditLogRepository.findAll().stream()
+                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_DECLARED_BY_ADVISOR
+                            && log.getDescription() != null && log.getDescription().contains("Declared Corp"));
+            assertThat(logged).isTrue();
+        }
+
+        @Test
+        @DisplayName("POST .../declare-contract as an advisor NOT assigned to the student still succeeds (open access, any advisor can act)")
+        void nonOwningAdvisorCanDeclareContractForStudent() throws Exception {
+            // activeStudent volontairement non affecte a `advisor` dans ce test.
+            Map<String, Object> body = Map.of(
+                    "entreprise", "Cross Portfolio Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-01-15"
+            );
+
+            mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.contractVerified").value(true));
+        }
+
+        @Test
+        @DisplayName("POST .../declare-contract awards only the target status's XP, not a cumulative multi-step amount")
+        void declareContractForStudentAwardsSingleStepXpOnly() throws Exception {
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Map<String, Object> body = Map.of(
+                    "entreprise", "XP Check Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-01-15"
+            );
+
+            mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isCreated());
+
+            Student afterDeclare = studentRepository.findById(activeStudent.getId()).orElseThrow();
+            assertThat(afterDeclare.getXpTotal()).isEqualTo(250 + contractStatus.getGainXP());
+        }
+
+        @Test
+        @DisplayName("POST .../declare-contract then .../reject-contract fully reverts the XP it awarded")
+        void declareContractForStudentThenRejectRevertsXpToZeroDelta() throws Exception {
+            Map<String, Object> body = Map.of(
+                    "entreprise", "Reversible Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-01-15"
+            );
+
+            String response = mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isCreated())
+                    .andReturn().getResponse().getContentAsString();
+            String declaredId = objectMapper.readTree(response).path("data").path("id").asText();
+
+            mockMvc.perform(post("/dashboard/applications/" + declaredId + "/reject-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.contractVerified").value(false));
+
+            Student afterReject = studentRepository.findById(activeStudent.getId()).orElseThrow();
+            assertThat(afterReject.getXpTotal()).isEqualTo(250);
+        }
+
+        @Test
+        @DisplayName("POST .../declare-contract for an unknown student id returns 404 Not Found")
+        void declareContractForUnknownStudentReturns404() throws Exception {
+            Map<String, Object> body = Map.of(
+                    "entreprise", "Ghost Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-01-15"
+            );
+
+            mockMvc.perform(post("/dashboard/students/" + UUID.randomUUID() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("POST .../declare-contract with an end date before the start date returns 400 Bad Request")
+        void declareContractWithInvalidDateRangeReturns400() throws Exception {
+            Map<String, Object> body = Map.of(
+                    "entreprise", "Invalid Dates Corp",
+                    "poste", "Alternant",
+                    "contractTypeId", contractTypeRepository.findAll().get(0).getId().toString(),
+                    "startDate", "2026-06-01",
+                    "endDate", "2026-01-01"
+            );
+
+            mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/declare-contract")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/overview excludes a confirmed active contract from totalApplications and staleApplicationsCount")
+        void overviewExcludesConfirmedActiveContractFromActiveCounts() throws Exception {
+            // Baseline avant ajout : sampleApplication + staleApplication (2 candidatures actives).
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalApplications").value(2));
+
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Application confirmedContract = new Application();
+            confirmedContract.setStudent(activeStudent);
+            confirmedContract.setEntreprise("Excluded Corp");
+            confirmedContract.setPoste("Alternant");
+            confirmedContract.setStatus(contractStatus);
+            confirmedContract.setStartDate(LocalDate.now().minusMonths(1));
+            confirmedContract.setContractVerified(true);
+            applicationRepository.save(confirmedContract);
+
+            // Le total brut de candidatures est bien passe a 3, mais la candidature confirmee sous
+            // contrat n'a plus besoin d'attention conseiller donc n'est pas comptee comme "active".
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalApplications").value(2))
+                    .andExpect(jsonPath("$.data.studentsUnderContractCount").value(1));
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students/needing-attention excludes a student with a confirmed active contract, even with a stale application and no CV")
+        void needingAttentionExcludesStudentWithConfirmedActiveContract() throws Exception {
+            // inactiveStudent a deja 0 CV et 0 candidature -> qualifierait normalement pour la liste.
+            ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
+                    .findFirst().orElseThrow();
+
+            Application confirmedContract = new Application();
+            confirmedContract.setStudent(inactiveStudent);
+            confirmedContract.setEntreprise("Settled Corp");
+            confirmedContract.setPoste("Alternant");
+            confirmedContract.setStatus(contractStatus);
+            confirmedContract.setStartDate(LocalDate.now().minusMonths(1));
+            confirmedContract.setContractVerified(true);
+            applicationRepository.save(confirmedContract);
+
+            mockMvc.perform(get("/dashboard/students/needing-attention")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data[*].id", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem(inactiveStudent.getId().toString()))));
         }
     }
 }

@@ -39,7 +39,7 @@ public class DashboardOverviewService {
         long nonAnonymizedStudents = studentRepository.countNonAnonymizedStudents();
         long anonymizedStudents = studentRepository.countAnonymizedStudents();
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
-        long totalApplications = applicationRepository.count();
+        long totalApplications = applicationRepository.countExcludingConfirmedContract();
         long totalCvs = cvRepository.count();
         double averageXp = studentRepository.averageXp();
 
@@ -51,7 +51,7 @@ public class DashboardOverviewService {
         long studentsWithoutCv = Math.max(0, nonAnonymizedStudents - studentsWithCvCount);
 
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
-        long staleApplicationsCount = applicationRepository.countStaleApplications(staleThreshold);
+        long staleApplicationsCount = applicationRepository.countStaleApplicationsExcludingConfirmedContract(staleThreshold);
         long studentsUnderContractCount = applicationRepository.countStudentsUnderContract();
         long studentsNeedingContractVerificationCount = applicationRepository.countStudentsWithUnverifiedContract();
 
@@ -118,7 +118,7 @@ public class DashboardOverviewService {
         long nonAnonymizedStudents = studentRepository.countNonAnonymizedByIdIn(studentIds);
         long anonymizedStudents = studentRepository.countAnonymizedByIdIn(studentIds);
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
-        long totalApplications = applicationRepository.countByStudentIdIn(studentIds);
+        long totalApplications = applicationRepository.countExcludingConfirmedContractForStudents(studentIds);
         long totalCvs = cvRepository.countByStudentIdIn(studentIds);
         double averageXp = studentRepository.averageXpByIdIn(studentIds);
 
@@ -130,7 +130,7 @@ public class DashboardOverviewService {
         long studentsWithoutCv = Math.max(0, nonAnonymizedStudents - studentsWithCvCount);
 
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
-        long staleApplicationsCount = applicationRepository.countStaleApplicationsForStudents(studentIds, staleThreshold);
+        long staleApplicationsCount = applicationRepository.countStaleApplicationsForStudentsExcludingConfirmedContract(studentIds, staleThreshold);
         long studentsUnderContractCount = applicationRepository.countStudentsUnderContractForStudents(studentIds);
         long studentsNeedingContractVerificationCount = applicationRepository.countStudentsWithUnverifiedContractForStudents(studentIds);
 

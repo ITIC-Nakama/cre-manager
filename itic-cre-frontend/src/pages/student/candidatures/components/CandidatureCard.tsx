@@ -29,9 +29,9 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
         : undefined;
     const nextStatusGrantsXp = !!nextStatus && nextStatus.gainXP > 0 && !candidature.reachedStatusIds.includes(nextStatus.id);
 
-    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string) => {
+    const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string, contractTypeId?: string) => {
         try {
-            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate });
+            const result = await changeStatusMutation.mutateAsync({ id: candidature.id, statusId, startDate, endDate, contractTypeId });
             if (result.xpAwarded > 0) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed_xp', { xp: result.xpAwarded }));
             } else {
@@ -123,8 +123,9 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                 <div onClick={(e) => e.stopPropagation()}>
                     <ContractDateGateModal
                         saving={changeStatusMutation.isPending}
+                        currentContractTypeId={candidature.typeContrat?.id}
                         onClose={() => setShowContractGate(false)}
-                        onConfirm={(startDate, endDate) => applyStatusChange(nextStatus.id, startDate, endDate)}
+                        onConfirm={(startDate, contractTypeId, endDate) => applyStatusChange(nextStatus.id, startDate, endDate, contractTypeId)}
                     />
                 </div>,
                 document.body

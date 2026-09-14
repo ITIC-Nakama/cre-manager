@@ -331,7 +331,7 @@ export default function ProfileCard() {
             className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-white"
           />
           <p className="text-xs text-slate-400 mt-1">
-            {t('dashboard.parametres.profile.phone_hint', 'Utilisé par votre conseiller pour vous recontacter en cas de signalement.')}
+            {t('dashboard.parametres.profile.phone_hint', 'Utilisé par votre conseiller pour vous recontacter si vous nous contactez.')}
           </p>
         </div>
 

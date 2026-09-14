@@ -6,6 +6,7 @@ import type {
     StudentPage,
     StudentListParams,
 } from '../../types/models/Dashboard';
+import type { Candidature, DeclareContractPayload } from '../../types/models/Application';
 
 function unwrap<T>(response: { data: unknown }): T {
     const d = response.data as Record<string, unknown>;
@@ -102,4 +103,8 @@ export function deactivateStudent(studentId: string): Promise<void> {
 
 export function reactivateStudent(studentId: string): Promise<void> {
     return apiClient.patch(`/auth/users/${studentId}/reactivate`).then(() => undefined);
+}
+
+export function declareContractForStudent(studentId: string, payload: DeclareContractPayload): Promise<Candidature> {
+    return apiClient.post(`/dashboard/students/${studentId}/declare-contract`, payload).then(unwrap<Candidature>);
 }
