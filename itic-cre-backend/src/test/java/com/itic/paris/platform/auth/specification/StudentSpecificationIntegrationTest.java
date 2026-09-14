@@ -371,4 +371,79 @@ class StudentSpecificationIntegrationTest {
         );
         assertThat(afterExpiryResult.getContent()).isEmpty();
     }
+
+    @Test
+    @DisplayName("An older VERIFIED+active declaration still counts as underContract even when a newer declaration exists but is not yet verified")
+    void testUnderContractFilterConsidersMostRecentVerifiedDeclarationOnly() {
+        // Reproduit exactement le bug trouve en direct le 2026-09-14 (etudiant fd5ca616.../
+        // ousseynou781227@gmail.com) : une candidature verifiee mais plus ancienne ("Air France")
+        // etait masquee par une candidature plus recente mais non verifiee ("Veepee"), parce que le
+        // MAX(startDate) portait sur TOUTES les candidatures compteCommeContrat, verifiees ou non.
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue verif test");
+        contractStatus.setOrdre(104);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        Application olderVerifiedApp = new Application();
+        olderVerifiedApp.setStudent(student1);
+        olderVerifiedApp.setEntreprise("Air France");
+        olderVerifiedApp.setPoste("Alternant verifie");
+        olderVerifiedApp.setStatus(contractStatus);
+        olderVerifiedApp.setStartDate(LocalDate.now().minusMonths(1));
+        olderVerifiedApp.setContractVerified(true);
+        applicationRepository.save(olderVerifiedApp);
+
+        Application newerUnverifiedApp = new Application();
+        newerUnverifiedApp.setStudent(student1);
+        newerUnverifiedApp.setEntreprise("Veepee");
+        newerUnverifiedApp.setPoste("Alternant non verifie");
+        newerUnverifiedApp.setStatus(contractStatus);
+        newerUnverifiedApp.setStartDate(LocalDate.now().minusDays(1));
+        // contractVerified reste false (valeur par defaut) — declaration en attente.
+        applicationRepository.save(newerUnverifiedApp);
+
+        Page<Student> underContractResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().underContract(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(underContractResult.getContent()).hasSize(1);
+        assertThat(underContractResult.getContent().get(0).getId()).isEqualTo(student1.getId());
+    }
+
+    @Test
+    @DisplayName("needsContractVerification still detects the newer unverified declaration even when an older verified one also exists for the same student")
+    void testNeedsContractVerificationFilterUnaffectedByOlderVerifiedDeclaration() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue verif+attente test");
+        contractStatus.setOrdre(105);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        Application olderVerifiedApp = new Application();
+        olderVerifiedApp.setStudent(student1);
+        olderVerifiedApp.setEntreprise("Air France");
+        olderVerifiedApp.setPoste("Alternant verifie");
+        olderVerifiedApp.setStatus(contractStatus);
+        olderVerifiedApp.setStartDate(LocalDate.now().minusMonths(1));
+        olderVerifiedApp.setContractVerified(true);
+        applicationRepository.save(olderVerifiedApp);
+
+        Application newerUnverifiedApp = new Application();
+        newerUnverifiedApp.setStudent(student1);
+        newerUnverifiedApp.setEntreprise("Veepee");
+        newerUnverifiedApp.setPoste("Alternant non verifie");
+        newerUnverifiedApp.setStatus(contractStatus);
+        newerUnverifiedApp.setStartDate(LocalDate.now().minusDays(1));
+        applicationRepository.save(newerUnverifiedApp);
+
+        Page<Student> needsVerificationResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().needsContractVerification(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(needsVerificationResult.getContent()).hasSize(1);
+        assertThat(needsVerificationResult.getContent().get(0).getId()).isEqualTo(student1.getId());
+    }
 }

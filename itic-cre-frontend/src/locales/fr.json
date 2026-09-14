@@ -503,8 +503,8 @@
         "contract_unverified_hint": "L'étudiant a lui-même indiqué avoir reçu cette offre. Vérifiez l'information (contrat, e-mail de l'entreprise...) avant de confirmer, ou refusez si l'offre n'a pas été reçue.",
         "contract_needs_verification_badge": "À vérifier",
         "verify_button": "Marquer comme vérifié",
-        "reject_button": "Refuser l'offre",
-        "reject_confirm_title": "Refuser l'offre reçue",
+        "reject_button": "Contester la déclaration",
+        "reject_confirm_title": "Contester cette déclaration de contrat",
         "reject_confirm_message": "Revenir au statut précédent pour \"{{poste}}\" chez {{entreprise}} ? L'XP associé sera repris."
       },
       "student": {
@@ -575,6 +575,7 @@
           "created_at": "Créée le {{date}}",
           "updated_at": "Mise à jour le {{date}}",
           "edit_button": "Modifier",
+          "locked_hint": "Vérifiée par votre conseiller — contactez-le pour la modifier",
           "delete_button": "Supprimer",
           "confirm_delete_title": "Supprimer la candidature",
           "confirm_delete_message": "Supprimer la candidature « {{poste}} » chez {{entreprise}} ? Cette action est irréversible.",

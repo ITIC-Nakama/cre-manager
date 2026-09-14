@@ -195,7 +195,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 <XCircle className="h-3 w-3" />
-                                {t('dashboard.candidatures.detail.reject_button', "Refuser l'offre")}
+                                {t('dashboard.candidatures.detail.reject_button', "Contester la déclaration")}
                             </button>
                         </div>
                     </div>
@@ -258,9 +258,9 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
 
             <ConfirmDialog
                 isOpen={rejectConfirmOpen}
-                title={t('dashboard.candidatures.detail.reject_confirm_title', "Refuser l'offre reçue")}
+                title={t('dashboard.candidatures.detail.reject_confirm_title', "Contester cette déclaration de contrat")}
                 message={t('dashboard.candidatures.detail.reject_confirm_message', { poste: app.poste, entreprise: app.entreprise, defaultValue: 'Revenir au statut précédent pour "{{poste}}" chez {{entreprise}} ? L\'XP associé sera repris.' })}
-                confirmLabel={t('dashboard.candidatures.detail.reject_button', "Refuser l'offre")}
+                confirmLabel={t('dashboard.candidatures.detail.reject_button', "Contester la déclaration")}
                 loading={rejectMutation.isPending}
                 onConfirm={handleReject}
                 onClose={() => setRejectConfirmOpen(false)}

@@ -110,6 +110,14 @@ public class ApplicationService {
     public ApplicationDTO update(UUID id, UpdateApplicationRequest request) {
         Application application = getOwnedApplication(id);
 
+        // Une fois confirmee par un conseiller, seul lui peut encore faire evoluer cette candidature
+        // (updateContractDatesAsAdvisor/verifyContractDeclaration/rejectContractDeclaration) — sans
+        // ce verrou, l'etudiant pourrait modifier entreprise/poste/dates sans jamais repasser par une
+        // revalidation (ex: rouvrir un contrat termine en effacant sa date de fin).
+        if (Boolean.TRUE.equals(application.getContractVerified())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+        }
+
         if (request.getStartDate() != null && request.getEndDate() != null
                 && request.getEndDate().isBefore(request.getStartDate())) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
@@ -133,6 +141,14 @@ public class ApplicationService {
     public ApplicationDTO changeStatus(UUID id, ChangeStatusRequest request) {
         Application application = getOwnedApplication(id);
         ApplicationStatus currentStatus = application.getStatus();
+
+        // Meme verrou que update() — une candidature deja verifiee par un conseiller ne peut plus
+        // etre deplacee (en avant, en arriere, ou vers "Refuse") par l'etudiant via ce endpoint ;
+        // seul le conseiller peut encore agir dessus (reject-contract, qui remet correctement
+        // contractVerified=false et revient au statut precedent).
+        if (Boolean.TRUE.equals(application.getContractVerified())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+        }
 
         ApplicationStatus newStatus = statusRepository.findById(request.getStatusId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_STATUS_NOT_FOUND));
@@ -254,6 +270,14 @@ public class ApplicationService {
     @Transactional
     public int delete(UUID id) {
         Application application = getOwnedApplication(id);
+
+        // Meme verrou que update()/changeStatus() — supprimer purement et simplement une candidature
+        // deja verifiee serait un contournement encore plus direct de la confirmation du conseiller
+        // que la modifier ou en changer le statut.
+        if (Boolean.TRUE.equals(application.getContractVerified())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+        }
+
         int xpRevoked = revokeApplicationXP(application);
         historyRepository.deleteByApplicationId(application.getId());
         applicationRepository.delete(application);
@@ -375,6 +399,9 @@ public class ApplicationService {
 
         if (!Boolean.TRUE.equals(application.getStatus().getCompteCommeContrat())) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_NOT_UNDER_CONTRACT);
+        }
+        if (application.getStartDate() == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_START_DATE_REQUIRED);
         }
 
         application.setContractVerified(true);

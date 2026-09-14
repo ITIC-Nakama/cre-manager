@@ -128,6 +128,9 @@ export default function CandidatureDetailPage() {
     const refusedStatus = statuses?.find((s) => s.ordre === 6);
     const postuleStatus = statuses?.find((s) => s.ordre === 2);
     const isRefused = candidature.status.ordre === 6;
+    // Verrouillee cote etudiant une fois confirmee par un conseiller — seul lui peut encore la
+    // faire evoluer (voir ApplicationService.update/changeStatus/delete, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED).
+    const isLocked = candidature.contractVerified === true;
 
     return (
         <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn">
@@ -167,12 +170,14 @@ export default function CandidatureDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     onClick={() => setFormOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    disabled={isLocked}
+                    title={isLocked ? t('dashboard.candidatures.student.detail.locked_hint', 'Vérifiée par votre conseiller — contactez-le pour la modifier') : undefined}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 >
                     <Pencil className="h-3.5 w-3.5" />
                     {t('dashboard.candidatures.student.detail.edit_button')}
                 </button>
-                {!isRefused && refusedStatus && (
+                {!isRefused && !isLocked && refusedStatus && (
                     <button
                         onClick={() => handleChangeStatus(refusedStatus.id)}
                         disabled={changeStatusMutation.isPending}
@@ -184,7 +189,9 @@ export default function CandidatureDetailPage() {
                 )}
                 <button
                     onClick={() => setDeleteConfirmOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                    disabled={isLocked}
+                    title={isLocked ? t('dashboard.candidatures.student.detail.locked_hint', 'Vérifiée par votre conseiller — contactez-le pour la modifier') : undefined}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 >
                     <Trash2 className="h-3.5 w-3.5" />
                     {t('dashboard.candidatures.student.detail.delete_button')}
@@ -236,7 +243,7 @@ export default function CandidatureDetailPage() {
                     candidature={candidature}
                     statuses={statuses ?? []}
                     changing={changeStatusMutation.isPending}
-                    readOnly={isRefused}
+                    readOnly={isRefused || isLocked}
                     onChangeStatus={handleChangeStatus}
                 />
             </div>
@@ -313,7 +320,7 @@ export default function CandidatureDetailPage() {
                             <NotebookPen className="h-3.5 w-3.5" />
                             {t('dashboard.candidatures.student.detail.notes')}
                         </p>
-                        {notesHaveChanged && (
+                        {notesHaveChanged && !isLocked && (
                             <button
                                 onClick={handleSaveNotes}
                                 disabled={updateMutation.isPending}
@@ -328,10 +335,11 @@ export default function CandidatureDetailPage() {
                     </div>
                     <textarea
                         rows={4}
+                        disabled={isLocked}
                         placeholder={t('dashboard.candidatures.student.detail.no_notes')}
                         value={notesValue ?? (candidature.notes ?? '')}
                         onChange={(e) => setNotesValue(e.target.value)}
-                        className="w-full text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors placeholder:text-slate-400"
+                        className="w-full text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors placeholder:text-slate-400 disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                 </div>
 

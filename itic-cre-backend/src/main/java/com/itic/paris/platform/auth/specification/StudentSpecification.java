@@ -233,7 +233,7 @@ public class StudentSpecification {
         Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
         LocalDate today = LocalDate.now();
 
-        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(contractSubquery, cb, appRoot.get("student"));
+        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(contractSubquery, cb, appRoot.get("student"), true);
 
         contractSubquery.select(appRoot.get("id"));
         contractSubquery.where(
@@ -259,7 +259,7 @@ public class StudentSpecification {
         Root<Application> appRoot = subquery.from(Application.class);
         Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
 
-        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(subquery, cb, appRoot.get("student"));
+        Subquery<LocalDate> latestStartDateSubquery = latestContractStartDateSubquery(subquery, cb, appRoot.get("student"), false);
 
         subquery.select(appRoot.get("id"));
         subquery.where(
@@ -277,16 +277,27 @@ public class StudentSpecification {
      * recente compteCommeContrat=true) pour l'etudiant du sous-arbre appele — partagee par
      * underContractPredicate et needsContractVerificationPredicate, qui ne different que sur les
      * conditions appliquees a cette "derniere" candidature (verifiee vs non verifiee, date de fin).
+     *
+     * verifiedOnly=true restreint le MAX aux declarations deja verifiees — indispensable pour
+     * underContractPredicate, sans quoi une declaration plus recente mais non verifiee masquerait une
+     * declaration plus ancienne mais reellement verifiee et active (aucune des deux ne remplirait
+     * alors toutes les conditions en meme temps — bug confirme en direct le 2026-09-14). Doit rester
+     * false pour needsContractVerificationPredicate, qui doit au contraire detecter une declaration en
+     * attente meme quand une autre (verifiee ou non) existe pour le meme etudiant.
      */
-    private static Subquery<LocalDate> latestContractStartDateSubquery(AbstractQuery<?> parentQuery, CriteriaBuilder cb, Path<?> studentPath) {
+    private static Subquery<LocalDate> latestContractStartDateSubquery(AbstractQuery<?> parentQuery, CriteriaBuilder cb, Path<?> studentPath, boolean verifiedOnly) {
         Subquery<LocalDate> latestStartDateSubquery = parentQuery.subquery(LocalDate.class);
         Root<Application> latestAppRoot = latestStartDateSubquery.from(Application.class);
         Join<Application, ApplicationStatus> latestStatusJoin = latestAppRoot.join("status", JoinType.INNER);
         latestStartDateSubquery.select(cb.greatest(latestAppRoot.<LocalDate>get("startDate")));
-        latestStartDateSubquery.where(
+        List<Predicate> predicates = new ArrayList<>(List.of(
                 cb.equal(latestAppRoot.get("student"), studentPath),
                 cb.isTrue(latestStatusJoin.get("compteCommeContrat"))
-        );
+        ));
+        if (verifiedOnly) {
+            predicates.add(cb.isTrue(latestAppRoot.get("contractVerified")));
+        }
+        latestStartDateSubquery.where(predicates.toArray(new Predicate[0]));
         return latestStartDateSubquery;
     }
 

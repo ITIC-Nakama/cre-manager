@@ -26,6 +26,18 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
     String LATEST_CONTRACT_START_DATE = "a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 " +
             "WHERE a2.student = a.student AND a2.status.compteCommeContrat = true)";
 
+    /** Meme regle que LATEST_CONTRACT_START_DATE, mais le MAX ne porte que sur les declarations deja
+      * VERIFIEES par un conseiller — a utiliser partout ou "sous contrat" est calcule (jamais pour
+      * detecter une declaration "a verifier", qui doit au contraire scanner toutes les declarations
+      * sans filtrer par contractVerified, sans quoi une declaration en attente ne serait plus jamais
+      * detectee des qu'une autre declaration, verifiee ou non, existe pour le meme etudiant).
+      * Sans cette distinction, une declaration plus recente mais non verifiee masque une declaration
+      * plus ancienne mais reellement verifiee et active — aucune des deux ne remplit alors toutes les
+      * conditions de underContractPredicate/countStudentsUnderContract en meme temps (bug confirme en
+      * direct le 2026-09-14, voir memoire projet). */
+    String LATEST_VERIFIED_CONTRACT_START_DATE = "a.startDate = (SELECT MAX(a2.startDate) FROM Application a2 " +
+            "WHERE a2.student = a.student AND a2.status.compteCommeContrat = true AND a2.contractVerified = true)";
+
     /** Contrat encore actif : pas de date de fin, ou date de fin pas encore atteinte. */
     String CONTRACT_STILL_ACTIVE = "(a.endDate IS NULL OR a.endDate >= CURRENT_DATE)";
 
@@ -33,7 +45,7 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
       * une candidature individuelle plutot qu'a un etudiant distinct, pour exclure ces candidatures
       * des compteurs de "charge active" (Candidatures, En retard) du dashboard conseiller. */
     String CONFIRMED_ACTIVE_CONTRACT = "(a.status.compteCommeContrat = true AND a.contractVerified = true AND "
-            + LATEST_CONTRACT_START_DATE + " AND " + CONTRACT_STILL_ACTIVE + ")";
+            + LATEST_VERIFIED_CONTRACT_START_DATE + " AND " + CONTRACT_STILL_ACTIVE + ")";
 
     Page<Application> findByStudentId(UUID studentId, Pageable pageable);
 
@@ -109,21 +121,21 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
       * Ne considere que la derniere en date (startDate le plus recent) : pas de cumul de postes. */
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + LATEST_VERIFIED_CONTRACT_START_DATE + " " +
             "AND " + CONTRACT_STILL_ACTIVE)
     long countStudentsUnderContract();
 
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + LATEST_VERIFIED_CONTRACT_START_DATE + " " +
             "AND " + CONTRACT_STILL_ACTIVE)
     long countStudentsUnderContractForStudents(List<UUID> studentIds);
 
     @Query("SELECT DISTINCT a.student.id FROM Application a WHERE a.student.id IN :studentIds " +
             "AND a.status.compteCommeContrat = true " +
             "AND a.contractVerified = true " +
-            "AND " + LATEST_CONTRACT_START_DATE + " " +
+            "AND " + LATEST_VERIFIED_CONTRACT_START_DATE + " " +
             "AND " + CONTRACT_STILL_ACTIVE)
     List<UUID> findStudentIdsUnderContract(List<UUID> studentIds);
 

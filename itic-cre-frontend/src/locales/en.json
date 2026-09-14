@@ -503,8 +503,8 @@
         "contract_unverified_hint": "The student reported receiving this offer themselves. Verify it (contract, employer email...) before confirming, or reject it if the offer was not actually received.",
         "contract_needs_verification_badge": "Needs verification",
         "verify_button": "Mark as verified",
-        "reject_button": "Reject offer",
-        "reject_confirm_title": "Reject the received offer",
+        "reject_button": "Dispute declaration",
+        "reject_confirm_title": "Dispute this contract declaration",
         "reject_confirm_message": "Revert to the previous status for \"{{poste}}\" at {{entreprise}}? The associated XP will be taken back."
       },
       "student": {
@@ -575,6 +575,7 @@
           "created_at": "Created on {{date}}",
           "updated_at": "Updated on {{date}}",
           "edit_button": "Edit",
+          "locked_hint": "Verified by your advisor — contact them to make changes",
           "delete_button": "Delete",
           "confirm_delete_title": "Delete application",
           "confirm_delete_message": "Delete the application \"{{poste}}\" at {{entreprise}}? This action is irreversible.",

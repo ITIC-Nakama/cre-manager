@@ -13,6 +13,7 @@ import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
 import com.itic.paris.platform.crm.model.dtos.ChangeStatusRequest;
 import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
 import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
+import com.itic.paris.platform.crm.model.dtos.UpdateApplicationRequest;
 import com.itic.paris.platform.crm.repository.ApplicationHistoryRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
@@ -450,5 +451,100 @@ public class ApplicationServiceIntegrationTest {
         assertThat(dto.getTypeContrat().getId()).isEqualTo(cdiContract.getId());
         Application persisted = applicationRepository.findById(app.getId()).orElseThrow();
         assertThat(persisted.getTypeContrat().getId()).isEqualTo(cdiContract.getId());
+    }
+
+    @Test
+    public void testUpdate_OnVerifiedContract_ShouldBeLocked() {
+        // Given: candidature deja verifiee par un conseiller
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant verifie");
+        app.setStatus(offreRecueStatus);
+        app.setStartDate(LocalDate.now().minusMonths(1));
+        app.setContractVerified(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When: l'etudiant tente de modifier cette candidature verifiee
+        UpdateApplicationRequest request = new UpdateApplicationRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Alternant modifie");
+
+        // Then: refuse, rien n'a change
+        AppException ex = assertThrows(AppException.class, () -> applicationService.update(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+
+        Application unchanged = applicationRepository.findById(appId).orElseThrow();
+        assertThat(unchanged.getEntreprise()).isEqualTo("Air France");
+    }
+
+    @Test
+    public void testChangeStatus_OnVerifiedContract_ShouldBeLocked() {
+        // Given
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant verifie");
+        app.setStatus(offreRecueStatus);
+        app.setStartDate(LocalDate.now().minusMonths(1));
+        app.setContractVerified(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When: l'etudiant tente de revenir en arriere sur une candidature verifiee
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(entretienStatus.getId());
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatus(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+
+        Application unchanged = applicationRepository.findById(appId).orElseThrow();
+        assertThat(unchanged.getStatus().getId()).isEqualTo(offreRecueStatus.getId());
+        assertThat(unchanged.getContractVerified()).isTrue();
+    }
+
+    @Test
+    public void testDelete_OnVerifiedContract_ShouldBeLocked() {
+        // Given
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant verifie");
+        app.setStatus(offreRecueStatus);
+        app.setStartDate(LocalDate.now().minusMonths(1));
+        app.setContractVerified(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When / Then: supprimer une candidature verifiee est refuse
+        AppException ex = assertThrows(AppException.class, () -> applicationService.delete(appId));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+        assertThat(applicationRepository.findById(appId)).isPresent();
+    }
+
+    @Test
+    public void testVerifyContractDeclaration_WithoutStartDate_ShouldBeRejected() {
+        // Given: candidature "sous contrat" sans date de debut (ne devrait pas arriver via le
+        // parcours normal, changeStatus l'exige deja — garde-fou defensif cote verification elle-meme)
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant sans date");
+        app.setStatus(offreRecueStatus);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.verifyContractDeclaration(appId));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_START_DATE_REQUIRED);
+
+        Application unchanged = applicationRepository.findById(appId).orElseThrow();
+        assertThat(unchanged.getContractVerified()).isFalse();
     }
 }
