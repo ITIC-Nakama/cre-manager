@@ -169,13 +169,25 @@ public class GdprService {
                 .build();
     }
 
+    public enum DeletionTrigger {
+        /** L'utilisateur a lui-meme declenche la suppression (DELETE /gdpr/delete-account). */
+        SELF,
+        /** Purge automatique planifiee (comptes desactives depuis plus que la duree legale). */
+        SCHEDULED_PURGE
+    }
+
     @Transactional
-    public void anonymizeAndDeactivateUser(User user) {
+    public void anonymizeAndDeactivateUser(User user, DeletionTrigger trigger) {
         if (UserMapper.roleOf(user) == RoleEnum.ADMIN) {
             throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CANNOT_BE_DELETED);
         }
 
         log.info("Démarrage anonymisation RGPD pour l'utilisateur ID: {}", user.getId());
+
+        // Capture l'identite d'origine avant l'anonymisation ci-dessous — une fois le nom/email
+        // ecrases, une recherche sur le nom/email de l'etudiant dans le journal d'audit ne trouve
+        // plus rien ; la garder dans la description du log permet de retrouver la ligne apres coup.
+        String originalIdentity = String.format("%s (%s %s)", user.getEmail(), user.getFirstName(), user.getLastName());
 
         user.setFirstName("Anonyme");
         user.setLastName("Utilisateur RGPD");
@@ -216,8 +228,13 @@ public class GdprService {
 
         userRepository.save(user);
 
-        auditLogService.log(AuditAction.USER_DEACTIVATED, user, user.getId(),
-                "Anonymisation et effacement RGPD du compte : " + user.getId());
+        if (trigger == DeletionTrigger.SELF) {
+            auditLogService.log(AuditAction.STUDENT_SELF_DELETED_GDPR, user, user.getId(),
+                    "Auto-suppression du compte par l'étudiant (RGPD) — Identité d'origine : " + originalIdentity);
+        } else {
+            auditLogService.log(AuditAction.USER_DEACTIVATED, user, user.getId(),
+                    "Anonymisation automatique RGPD (purge légale, compte désactivé depuis trop longtemps) — Identité d'origine : " + originalIdentity);
+        }
 
         log.info("Anonymisation RGPD terminée avec succès pour l'utilisateur ID: {}", user.getId());
     }

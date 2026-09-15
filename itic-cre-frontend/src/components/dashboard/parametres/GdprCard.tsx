@@ -11,6 +11,14 @@ export default function GdprCard() {
     const navigate = useNavigate();
     const clearUser = useUserStore((state) => state.clearUser);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [confirmText, setConfirmText] = useState('');
+    const confirmWord = t('dashboard.parametres.gdpr.modal_confirm_word', 'SUPPRIMER');
+    const isConfirmValid = confirmText.trim().toUpperCase() === confirmWord.toUpperCase();
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setConfirmText('');
+    };
 
     const exportMutation = useExportGdprData();
     const deleteAccountMutation = useDeleteGdprAccount();
@@ -36,6 +44,7 @@ export default function GdprCard() {
     };
 
     const handleDeleteAccount = async () => {
+        if (!isConfirmValid) return;
         try {
             await deleteAccountMutation.mutateAsync();
             toast.success(t('dashboard.parametres.gdpr.toast_delete_success'));
@@ -45,7 +54,7 @@ export default function GdprCard() {
             console.error("Delete account failed:", error);
             toast.error(t('dashboard.parametres.gdpr.toast_delete_error'));
         } finally {
-            setDeleteModalOpen(false);
+            closeDeleteModal();
         }
     };
 
@@ -139,7 +148,7 @@ export default function GdprCard() {
                                 <h3>{t('dashboard.parametres.gdpr.modal_title')}</h3>
                             </div>
                             <button
-                                onClick={() => setDeleteModalOpen(false)}
+                                onClick={closeDeleteModal}
                                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <X className="h-5 w-5" />
@@ -150,10 +159,25 @@ export default function GdprCard() {
                             {t('dashboard.parametres.gdpr.modal_warning')}
                         </p>
 
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                {t('dashboard.parametres.gdpr.modal_confirm_instructions', { word: confirmWord })}
+                            </label>
+                            <input
+                                type="text"
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value)}
+                                placeholder={t('dashboard.parametres.gdpr.modal_confirm_placeholder')}
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
+                        </div>
+
                         <div className="flex gap-2 pt-2">
                             <button
                                 type="button"
-                                onClick={() => setDeleteModalOpen(false)}
+                                onClick={closeDeleteModal}
                                 className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
                             >
                                 {t('dashboard.parametres.gdpr.modal_cancel')}
@@ -161,8 +185,8 @@ export default function GdprCard() {
                             <button
                                 type="button"
                                 onClick={handleDeleteAccount}
-                                disabled={deleteAccountMutation.isPending}
-                                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50"
+                                disabled={deleteAccountMutation.isPending || !isConfirmValid}
+                                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {deleteAccountMutation.isPending ? t('dashboard.parametres.gdpr.modal_deleting') : t('dashboard.parametres.gdpr.modal_confirm')}
                             </button>

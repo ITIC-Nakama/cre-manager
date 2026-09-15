@@ -66,7 +66,7 @@ public class GdprPurgeScheduler {
             List<User> studentsToAnonymize = userRepository.findDeactivatedStudentsForAnonymization(cutoffInactive);
 
             for (User student : studentsToAnonymize) {
-                gdprService.anonymizeAndDeactivateUser(student);
+                gdprService.anonymizeAndDeactivateUser(student, GdprService.DeletionTrigger.SCHEDULED_PURGE);
             }
             log.info("[RGPD SCHEDULER] Étudiants anonymisés (désactivés depuis > {} jours): {}",
                     inactiveStudentRetentionDays, studentsToAnonymize.size());

@@ -50,7 +50,11 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Navigation & Interface Admin** : Dans le menu principal (sidebar), l'entrée est nommée **"Paramètres"** (avec icône de configuration) pour le rôle `ADMIN` au lieu de "Profil", donnant accès au sous-menu bilingue "Paramètres du Compte" et "Configuration Applicative".
 
 ### Anonymisation RGPD & Distinction Portefeuille vs Activité
-- **Effacement nominatif** : L'anonymisation RGPD (`GdprService`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
+- **Effacement nominatif** : L'anonymisation RGPD (`GdprService.anonymizeAndDeactivateUser`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
+- **Traçabilité de l'origine de la suppression (`GdprService.DeletionTrigger`)** : la méthode distingue deux déclencheurs pour rester auditable après coup, alors même que l'email/nom sont déjà écrasés au moment où le log est écrit — l'identité d'origine est donc capturée en mémoire **avant** l'anonymisation et injectée dans la description du log :
+  - **`SELF`** (auto-suppression, `DELETE /gdpr/delete-account`, toujours initiée par l'utilisateur connecté lui-même — cette route ne résout jamais un `userId` fourni par un tiers) : action d'audit dédiée `STUDENT_SELF_DELETED_GDPR`, distincte de toute désactivation manuelle par un admin.
+  - **`SCHEDULED_PURGE`** (purge légale automatique par `GdprPurgeScheduler`, comptes désactivés depuis plus de `GDPR_INACTIVE_STUDENT_RETENTION_DAYS`) : reste loggée sous `USER_DEACTIVATED` avec une description explicite mentionnant la purge automatique.
+  - Confirmation renforcée côté étudiant avant l'auto-suppression : le bouton "Oui, supprimer mon compte" reste désactivé tant que l'utilisateur n'a pas retapé le mot de confirmation ("SUPPRIMER" / "DELETE" selon la langue) dans la modale.
 - **Règle de filtrage selon le type de statistique** :
   - **1. Statistiques "Portefeuille" & Comptage de Personnes** (`email NOT LIKE '%@rgpd.deleted'`) :
     - S'applique aux listings d'étudiants, à la recherche par promotion, au total d'étudiants à coacher et au portefeuille actif d'un conseiller.

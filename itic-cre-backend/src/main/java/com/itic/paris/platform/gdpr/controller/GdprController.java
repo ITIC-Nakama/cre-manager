@@ -45,7 +45,7 @@ public class GdprController {
                 .orElseThrow(() -> new com.itic.paris.platform.auth.core.exception.AppException(
                         org.springframework.http.HttpStatus.NOT_FOUND,
                         com.itic.paris.platform.shared.local.MessageKey.USER_NOT_FOUND));
-        gdprService.anonymizeAndDeactivateUser(user);
+        gdprService.anonymizeAndDeactivateUser(user, GdprService.DeletionTrigger.SELF);
 
         return ResponseEntity.ok(Map.of(
                 "message", "Votre compte a été anonymisé et désactivé conformément au RGPD.",
