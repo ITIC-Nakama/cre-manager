@@ -2,20 +2,21 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { CookieConsentStorageKey } from '../../types/storage-keys';
 
 export default function CookieBanner() {
     const { t } = useTranslation();
     const [accepted, setAccepted] = useState(true);
 
     useEffect(() => {
-        const consent = localStorage.getItem('cookie_consent_accepted');
+        const consent = localStorage.getItem(CookieConsentStorageKey);
         if (!consent) {
             setAccepted(false);
         }
     }, []);
 
     const handleAccept = () => {
-        localStorage.setItem('cookie_consent_accepted', 'true');
+        localStorage.setItem(CookieConsentStorageKey, 'true');
         setAccepted(true);
     };
 

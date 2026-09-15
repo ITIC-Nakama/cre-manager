@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Download, X, Share, PlusSquare, Smartphone, MoreVertical, Monitor, DownloadCloud } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PwaBannerDismissedUntilStorageKey, PwaInstalledStorageKey } from '../../types/storage-keys';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -24,13 +25,13 @@ export default function PwaInstallBanner() {
       window.matchMedia('(display-mode: window-controls-overlay)').matches ||
       window.matchMedia('(display-mode: minimal-ui)').matches ||
       window.matchMedia('(display-mode: fullscreen)').matches ||
-      localStorage.getItem('pwa_installed') === 'true' ||
+      localStorage.getItem(PwaInstalledStorageKey) === 'true' ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
     if (isStandalone) return;
 
     // 2. Check 7-day dismissal cooldown
-    const dismissedUntil = localStorage.getItem('pwa_banner_dismissed_until');
+    const dismissedUntil = localStorage.getItem(PwaBannerDismissedUntilStorageKey);
     if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
       return;
     }
@@ -53,7 +54,7 @@ export default function PwaInstallBanner() {
 
     // 5. Successful installation listener
     const handleAppInstalled = () => {
-      localStorage.setItem('pwa_installed', 'true');
+      localStorage.setItem(PwaInstalledStorageKey, 'true');
       setShowBanner(false);
       setDeferredPrompt(null);
     };
@@ -78,7 +79,7 @@ export default function PwaInstallBanner() {
         await deferredPrompt.prompt();
         const choiceResult = await deferredPrompt.userChoice;
         if (choiceResult.outcome === 'accepted') {
-          localStorage.setItem('pwa_installed', 'true');
+          localStorage.setItem(PwaInstalledStorageKey, 'true');
           setShowBanner(false);
         }
         setDeferredPrompt(null);
@@ -102,7 +103,7 @@ export default function PwaInstallBanner() {
   const handleDismiss = () => {
     setShowBanner(false);
     const sevenDays = Date.now() + 7 * 24 * 60 * 60 * 1000;
-    localStorage.setItem('pwa_banner_dismissed_until', sevenDays.toString());
+    localStorage.setItem(PwaBannerDismissedUntilStorageKey, sevenDays.toString());
   };
 
   if (!showBanner) return null;
