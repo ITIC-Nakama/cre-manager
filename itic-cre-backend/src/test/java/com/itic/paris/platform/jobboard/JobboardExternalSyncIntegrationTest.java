@@ -14,6 +14,7 @@ import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
 import com.itic.paris.platform.jobboard.external.model.JobboardSyncSettings;
+import com.itic.paris.platform.jobboard.external.model.SyncLog;
 import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
 import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettingsRepository;
 import com.itic.paris.platform.jobboard.external.repository.SyncLogRepository;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -548,6 +550,86 @@ class JobboardExternalSyncIntegrationTest {
                 .orElseGet(JobboardSyncSettings::new);
         settings.setScheduledSyncEnabled(enabled);
         syncSettingsRepository.saveAndFlush(settings);
+    }
+
+    private void setSyncIntervalDays(int days) {
+        JobboardSyncSettings settings = syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID)
+                .orElseGet(JobboardSyncSettings::new);
+        settings.setSyncIntervalDays(days);
+        syncSettingsRepository.saveAndFlush(settings);
+    }
+
+    private void createSyncLogFinishedAt(Instant finishedAt) {
+        SyncLog syncLog = new SyncLog();
+        syncLog.setStartedAt(finishedAt);
+        syncLog.setFinishedAt(finishedAt);
+        syncLog.setStatus(SyncLog.STATUS_SUCCESS);
+        syncLog.setInsertedCount(0);
+        syncLog.setSkippedCount(0);
+        syncLogRepository.saveAndFlush(syncLog);
+    }
+
+    @Test
+    void updateSyncIntervalEndpointIsAdminOnlyAndPersists() throws Exception {
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/interval")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"days\":3}"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/interval")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"days\":3}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.syncIntervalDays").value(3));
+
+        assertThat(syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID).orElseThrow().getSyncIntervalDays())
+                .isEqualTo(3);
+    }
+
+    @Test
+    void updateSyncIntervalRejectsValuesBelowOne() throws Exception {
+        mockMvc.perform(put("/jobboard/admin/external/scheduled-sync/interval")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"days\":0}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value("invalid-sync-interval-days"));
+    }
+
+    /**
+     * scheduledSync() ne doit pas relancer syncAll() tant que l'intervalle configure (jours) n'est
+     * pas ecoule depuis la fin de la derniere synchro — verifie via l'absence de nouveau SyncLog.
+     */
+    @Test
+    void scheduledSyncSkipsWhenIntervalNotYetElapsed() {
+        setScheduledSyncEnabled(true);
+        setSyncIntervalDays(3);
+        createSyncLogFinishedAt(Instant.now().minus(1, ChronoUnit.DAYS));
+        long before = syncLogRepository.count();
+
+        externalJobSyncService.scheduledSync();
+
+        assertThat(syncLogRepository.count()).isEqualTo(before);
+    }
+
+    /**
+     * A l'inverse, une fois l'intervalle ecoule, scheduledSync() doit relancer syncAll() — verifie
+     * via l'apparition d'un nouveau SyncLog (syncAll() en cree toujours un, meme si les providers
+     * externes se rapportent "disabled" faute de credentials en config de test, voir
+     * scheduledSyncSkipsWhenDisabledByAdmin ci-dessus pour la meme remarque).
+     */
+    @Test
+    void scheduledSyncRunsWhenIntervalHasElapsed() {
+        setScheduledSyncEnabled(true);
+        setSyncIntervalDays(3);
+        createSyncLogFinishedAt(Instant.now().minus(5, ChronoUnit.DAYS));
+        long before = syncLogRepository.count();
+
+        externalJobSyncService.scheduledSync();
+
+        assertThat(syncLogRepository.count()).isEqualTo(before + 1);
     }
 
     @Test

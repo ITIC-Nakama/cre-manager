@@ -32,12 +32,14 @@ import com.itic.paris.platform.shared.config.AppConfigurationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -184,6 +186,56 @@ public class JobOfferIntegrationTest {
         Page<JobOfferDTO> searchResult = jobOfferService.getActiveOffers("React", null, PageRequest.of(0, 10));
         assertThat(searchResult.getContent()).hasSize(1);
         assertThat(searchResult.getContent().get(0).getTitle()).contains("React");
+    }
+
+    /**
+     * Sort.by("effectiveDate") s'appuie sur le champ calcule JobOffer.effectiveDate
+     * (@Formula "coalesce(published_at, created_at)") — verifie que le tri entrelace correctement
+     * une offre MANUAL (published_at toujours null, created_at fait foi) avec des offres externes
+     * a published_at explicite, plutot que de les regrouper par lot d'insertion comme le ferait
+     * un tri sur created_at seul (voir JobOfferController, sort par defaut de /jobboard/offers).
+     */
+    @Test
+    public void testActiveOffersSortedByEffectiveDateDescInterleavesManualAndExternalOffers() {
+        Instant now = Instant.now();
+
+        JobOffer oldExternal = new JobOffer();
+        oldExternal.setTitle("Offre externe ancienne");
+        oldExternal.setCompany("Externe SA");
+        oldExternal.setDescription("Description externe ancienne");
+        oldExternal.setContractType(cdiContract);
+        oldExternal.setSource("ADZUNA");
+        oldExternal.setSourceId("adzuna:sort-old");
+        oldExternal.setPublishedAt(now.minus(10, ChronoUnit.DAYS));
+        jobOfferRepository.saveAndFlush(oldExternal);
+
+        CreateJobOfferRequest manualRequest = new CreateJobOfferRequest();
+        manualRequest.setTitle("Offre manuelle recente");
+        manualRequest.setCompany("ITIC");
+        manualRequest.setDescription("Description manuelle recente");
+        manualRequest.setContractTypeId(cdiContract.getId());
+        jobOfferService.create(manualRequest);
+
+        // Publiee il y a seulement 1 jour cote source externe — doit se classer entre les deux
+        // autres, malgre un created_at (date d'insertion en base) tres proche de l'offre ancienne.
+        JobOffer recentExternal = new JobOffer();
+        recentExternal.setTitle("Offre externe recente");
+        recentExternal.setCompany("Externe SA");
+        recentExternal.setDescription("Description externe recente");
+        recentExternal.setContractType(cdiContract);
+        recentExternal.setSource("ADZUNA");
+        recentExternal.setSourceId("adzuna:sort-recent");
+        recentExternal.setPublishedAt(now.minus(1, ChronoUnit.DAYS));
+        jobOfferRepository.saveAndFlush(recentExternal);
+
+        // source="ALL" : sans ca, JobOfferSpecification.sourcePredicate traite un source null comme
+        // "MANUAL uniquement" (comportement par defaut de /jobboard/offers) et exclurait les deux
+        // offres externes de ce test.
+        Page<JobOfferDTO> page = jobOfferService.getActiveOffers(null, null, null, "ALL", null,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "effectiveDate")));
+
+        assertThat(page.getContent().stream().map(JobOfferDTO::getTitle))
+                .containsExactly("Offre manuelle recente", "Offre externe recente", "Offre externe ancienne");
     }
 
     @Test
