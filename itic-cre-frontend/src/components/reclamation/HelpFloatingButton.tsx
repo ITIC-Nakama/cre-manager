@@ -1,57 +1,95 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Minus, MessageCircleWarning, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageCircleWarning } from 'lucide-react';
 import ReclamationModal from './ReclamationModal';
-import { HelpFloatingButtonMinimizedStorageKey } from '../../types/storage-keys';
+
+type Side = 'left' | 'right';
+
+const MOVE_THRESHOLD_PX = 6;
+const BUTTON_SIZE = 48;
+const EDGE_MARGIN = 20;
+
+function clampY(y: number): number {
+    return Math.min(Math.max(y, 12), window.innerHeight - BUTTON_SIZE - 12);
+}
 
 export default function HelpFloatingButton() {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
-    const [minimized, setMinimized] = useState(() => {
-        try {
-            return localStorage.getItem(HelpFloatingButtonMinimizedStorageKey) === 'true';
-        } catch {
-            return false;
-        }
-    });
+    const [side, setSide] = useState<Side>('right');
+    const [y, setY] = useState(() => window.innerHeight - 68);
+    const [reduced, setReduced] = useState(true);
+    const [isDragging, setIsDragging] = useState(false);
 
-    const toggleMinimized = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setMinimized((prev) => {
-            const next = !prev;
-            try {
-                localStorage.setItem(HelpFloatingButtonMinimizedStorageKey, String(next));
-            } catch {
-                // localStorage indisponible (navigation privée...) — le repli en memoire suffit
-            }
-            return next;
-        });
+    const dragStartRef = useRef<{ startX: number; startY: number; startTop: number } | null>(null);
+    const didDragRef = useRef(false);
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+        didDragRef.current = false;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        dragStartRef.current = { startX: e.clientX, startY: e.clientY, startTop: y };
+        setIsDragging(true);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+        const start = dragStartRef.current;
+        if (!start) return;
+        const dx = e.clientX - start.startX;
+        const dy = e.clientY - start.startY;
+        if (Math.hypot(dx, dy) > MOVE_THRESHOLD_PX) {
+            didDragRef.current = true;
+            setY(clampY(start.startTop + dy));
+        }
+    };
+
+    const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+        const start = dragStartRef.current;
+        dragStartRef.current = null;
+        setIsDragging(false);
+        if (!start || !didDragRef.current) return;
+        if (reduced) return;
+        const nextSide: Side = e.clientX < window.innerWidth / 2 ? 'left' : 'right';
+        setSide(nextSide);
+        setReduced(true);
+    };
+
+    const handleClick = () => {
+        if (didDragRef.current) {
+            didDragRef.current = false;
+            return;
+        }
+        if (reduced) {
+            setReduced(false);
+            return;
+        }
+        setOpen(true);
     };
 
     return (
         <>
-            <div className="fixed bottom-5 right-5 z-40">
-                <button
-                    type="button"
-                    onClick={() => setOpen(true)}
-                    aria-label={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
-                    title={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
-                    className={`rounded-full bg-[#E2762F] hover:bg-[#D2651E] text-white shadow-lg shadow-orange-500/30 flex items-center justify-center transition-all cursor-pointer ${
-                        minimized ? 'h-7 w-7' : 'h-12 w-12'
-                    }`}
-                >
-                    <MessageCircleWarning className={minimized ? 'h-3.5 w-3.5' : 'h-5 w-5'} />
-                </button>
-                <button
-                    type="button"
-                    onClick={toggleMinimized}
-                    aria-label={t(minimized ? 'dashboard.reclamations.floating_button_expand' : 'dashboard.reclamations.floating_button_minimize', minimized ? 'Agrandir' : 'Réduire')}
-                    title={t(minimized ? 'dashboard.reclamations.floating_button_expand' : 'dashboard.reclamations.floating_button_minimize', minimized ? 'Agrandir' : 'Réduire')}
-                    className="absolute -top-1.5 -left-1.5 h-4 w-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white flex items-center justify-center shadow-sm cursor-pointer"
-                >
-                    {minimized ? <Plus className="h-2.5 w-2.5" /> : <Minus className="h-2.5 w-2.5" />}
-                </button>
-            </div>
+            <button
+                type="button"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onClick={handleClick}
+                style={{ position: 'fixed', top: y, [side]: reduced ? 0 : EDGE_MARGIN, zIndex: 40 }}
+                aria-label={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
+                title={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
+                className={`bg-[#E2762F] hover:bg-[#D2651E] text-white shadow-lg shadow-orange-500/30 flex items-center justify-center touch-none cursor-pointer ${
+                    isDragging ? '' : 'transition-all duration-200 ease-out'
+                } ${
+                    reduced
+                        ? `h-12 w-6 ${side === 'right' ? 'rounded-l-full' : 'rounded-r-full'}`
+                        : 'h-12 w-12 rounded-full'
+                }`}
+            >
+                {reduced ? (
+                    side === 'right' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+                ) : (
+                    <MessageCircleWarning className="h-5 w-5" />
+                )}
+            </button>
 
             {open && <ReclamationModal onClose={() => setOpen(false)} />}
         </>

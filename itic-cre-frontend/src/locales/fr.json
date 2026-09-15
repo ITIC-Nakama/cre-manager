@@ -509,6 +509,7 @@
         "contract_ended_badge": "Contrat terminé",
         "contract_section": "Contrat",
         "pipeline_section": "Candidatures",
+        "refused_section": "Refusées",
         "contract_conflict_title": "Un contrat est déjà actif pour cet étudiant",
         "contract_conflict_message": "{{poste}} chez {{entreprise}}. Invalidez-le ou marquez-le comme terminé avant de valider celui-ci.",
         "validate_button": "Valider",
@@ -529,6 +530,8 @@
           "in_progress": "En cours",
           "completed": "Terminées"
         },
+        "contract_section": "Contrat",
+        "refused_section": "Refusées",
         "pagination_info": "Page {{current}} sur {{total}}",
         "card": {
           "via_jobboard": "Via le jobboard",
@@ -980,8 +983,6 @@
     },
     "reclamations": {
       "floating_button": "Contacter l'équipe",
-      "floating_button_minimize": "Réduire",
-      "floating_button_expand": "Agrandir",
       "title": "Contacter l'équipe",
       "tab_new": "Nouveau message",
       "tab_history": "Mes messages",

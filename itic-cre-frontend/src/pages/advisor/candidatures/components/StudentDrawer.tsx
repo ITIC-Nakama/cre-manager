@@ -17,20 +17,26 @@ export default function StudentDrawer({ group, onClose }: Props) {
     const { t } = useTranslation();
     const [selectedApp, setSelectedApp] = useState<ApplicationRow | null>(null);
 
-    // Separe les candidatures "sous contrat" (Offre reçue — actif, en attente ou termine) du reste
-    // du pipeline (À postuler, Postulé, Entretien, Refusé) — sans ca, les deux sont mélangés dans
-    // une liste plate et il faut lire chaque carte une par une pour retrouver le contrat.
-    const { contractApplications, pipelineApplications } = useMemo(() => {
+    // Separe le contrat (Offre reçue — actif, en attente ou termine), le reste du pipeline en
+    // cours (À postuler, Postulé, Entretien) et les refus — sans ca, tout est mélangé dans une
+    // liste plate et il faut lire chaque carte une par une pour retrouver le contrat.
+    const { contractApplications, activeApplications, refusedApplications } = useMemo(() => {
         const contract: ApplicationRow[] = [];
-        const pipeline: ApplicationRow[] = [];
+        const active: ApplicationRow[] = [];
+        const refused: ApplicationRow[] = [];
         for (const app of group.applications) {
-            (app.status.compteCommeContrat ? contract : pipeline).push(app);
+            if (app.status.compteCommeContrat) contract.push(app);
+            else if (app.status.ordre === 6) refused.push(app);
+            else active.push(app);
         }
         // Au sein du contrat : actif en premier, puis en attente de validation, puis termine.
         const rank = (app: ApplicationRow) => (isActiveContract(app) ? 0 : !app.contractVerified ? 1 : 2);
         contract.sort((a, b) => rank(a) - rank(b));
-        return { contractApplications: contract, pipelineApplications: pipeline };
+        return { contractApplications: contract, activeApplications: active, refusedApplications: refused };
     }, [group.applications]);
+
+    const visibleSectionCount = [contractApplications, activeApplications, refusedApplications]
+        .filter((section) => section.length > 0).length;
 
     return (
         <>
@@ -103,7 +109,7 @@ export default function StudentDrawer({ group, onClose }: Props) {
                         <div className="space-y-5">
                             {contractApplications.length > 0 && (
                                 <div className="space-y-3">
-                                    {pipelineApplications.length > 0 && (
+                                    {visibleSectionCount > 1 && (
                                         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                             {t('dashboard.candidatures.detail.contract_section', 'Contrat')}
                                         </p>
@@ -117,14 +123,30 @@ export default function StudentDrawer({ group, onClose }: Props) {
                                     ))}
                                 </div>
                             )}
-                            {pipelineApplications.length > 0 && (
+                            {activeApplications.length > 0 && (
                                 <div className="space-y-3">
-                                    {contractApplications.length > 0 && (
+                                    {visibleSectionCount > 1 && (
                                         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                             {t('dashboard.candidatures.detail.pipeline_section', 'Candidatures')}
                                         </p>
                                     )}
-                                    {pipelineApplications.map((app) => (
+                                    {activeApplications.map((app) => (
+                                        <ApplicationCard
+                                            key={app.id}
+                                            app={app}
+                                            onClick={() => setSelectedApp(app)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {refusedApplications.length > 0 && (
+                                <div className="space-y-3">
+                                    {visibleSectionCount > 1 && (
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                            {t('dashboard.candidatures.detail.refused_section', 'Refusées')}
+                                        </p>
+                                    )}
+                                    {refusedApplications.map((app) => (
                                         <ApplicationCard
                                             key={app.id}
                                             app={app}

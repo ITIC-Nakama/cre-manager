@@ -232,6 +232,7 @@ public class ApplicationReportingService {
                         row.put("status", Map.of(
                                 "id", app.getStatus().getId(),
                                 "nom", app.getStatus().getNom(),
+                                "ordre", app.getStatus().getOrdre(),
                                 "couleur", app.getStatus().getCouleur() != null ? app.getStatus().getCouleur() : "#9CA3AF",
                                 "declencheAlerte", app.getStatus().getDeclencheAlerte(),
                                 "compteCommeContrat", app.getStatus().getCompteCommeContrat()

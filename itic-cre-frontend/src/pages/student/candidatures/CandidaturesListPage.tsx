@@ -12,7 +12,8 @@ import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import { useScrollTopOnChange } from '../../../hooks/useScrollTopOnChange';
-import { isCompleted } from './utils';
+import { isActiveContract, isCompleted } from './utils';
+import type { Candidature } from '../../../types/models/Application';
 
 type Tab = 'in_progress' | 'completed';
 const PAGE_SIZE = 12;
@@ -48,7 +49,19 @@ export default function CandidaturesListPage() {
 
     const inProgress = useMemo(() => candidatures.filter((c) => !isCompleted(c)), [candidatures]);
     const completed = useMemo(() => candidatures.filter((c) => isCompleted(c)), [candidatures]);
-    const visible = tab === 'in_progress' ? inProgress : completed;
+
+    // Separe le contrat (Offre reçue — actif, en attente ou termine) des candidatures refusees —
+    // sans ca, un contrat valide se perd visuellement parmi d'eventuels refus dans "Terminees".
+    const { contractCandidatures, refusedCandidatures } = useMemo(() => {
+        const contract: Candidature[] = [];
+        const refused: Candidature[] = [];
+        for (const c of completed) {
+            (c.status.compteCommeContrat ? contract : refused).push(c);
+        }
+        const rank = (c: Candidature) => (isActiveContract(c) ? 0 : !c.contractVerified ? 1 : 2);
+        contract.sort((a, b) => rank(a) - rank(b));
+        return { contractCandidatures: contract, refusedCandidatures: refused };
+    }, [completed]);
 
     const statusOptions = useMemo(() => [
         { value: '', label: t('dashboard.candidatures.filter_all_statuses', 'Tous les statuts') },
@@ -206,20 +219,51 @@ export default function CandidaturesListPage() {
                 <div className="flex items-center justify-center py-16">
                     <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
                 </div>
-            ) : visible.length === 0 ? (
+            ) : (tab === 'in_progress' ? inProgress.length : completed.length) === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-slate-400">
                     <Briefcase className="h-10 w-10 text-slate-300 dark:text-slate-700 mb-2" />
                     {t(tab === 'in_progress' ? 'dashboard.candidatures.student.empty_in_progress' : 'dashboard.candidatures.student.empty_completed')}
                 </div>
-            ) : (
+            ) : tab === 'in_progress' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {visible.map((candidature) => (
+                    {inProgress.map((candidature) => (
                         <CandidatureCard key={candidature.id} candidature={candidature} statuses={statuses ?? []} />
                     ))}
                 </div>
+            ) : (
+                <div className="flex flex-col gap-6">
+                    {contractCandidatures.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                            {refusedCandidatures.length > 0 && (
+                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    {t('dashboard.candidatures.student.contract_section', 'Contrat')}
+                                </p>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {contractCandidatures.map((candidature) => (
+                                    <CandidatureCard key={candidature.id} candidature={candidature} statuses={statuses ?? []} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {refusedCandidatures.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                            {contractCandidatures.length > 0 && (
+                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    {t('dashboard.candidatures.student.refused_section', 'Refusées')}
+                                </p>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {refusedCandidatures.map((candidature) => (
+                                    <CandidatureCard key={candidature.id} candidature={candidature} statuses={statuses ?? []} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
 
-            {!isLoading && visible.length > 0 && (
+            {!isLoading && (tab === 'in_progress' ? inProgress.length : completed.length) > 0 && (
                 <InfiniteScrollSentinel
                     hasMore={!!hasNextPage}
                     isLoadingMore={isFetchingNextPage}

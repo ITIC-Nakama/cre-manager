@@ -38,14 +38,20 @@ export default function ApplicationCard({ app, onClick }: Props) {
             tabIndex={0}
             onClick={onClick}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-            className={`w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group cursor-pointer ${
-                needsVerification
+            className={`relative overflow-hidden w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group cursor-pointer ${
+                isCurrentContract
+                    ? 'bg-white dark:bg-slate-900 border-indigo-200/60 dark:border-indigo-900/50 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40'
+                    : needsVerification
                     ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 hover:border-amber-400'
                     : app.stale
                     ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 hover:border-amber-400'
                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700'
             }`}
         >
+            {isCurrentContract && (
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500" />
+            )}
+
             <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                     <p className="font-semibold text-slate-900 dark:text-white text-sm truncate">{app.poste}</p>

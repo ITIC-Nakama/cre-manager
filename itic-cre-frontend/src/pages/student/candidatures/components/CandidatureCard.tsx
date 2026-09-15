@@ -29,6 +29,7 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
         ? statuses.find((s) => s.ordre === candidature.status.ordre + 1)
         : undefined;
     const nextStatusGrantsXp = !!nextStatus && nextStatus.gainXP > 0 && !candidature.reachedStatusIds.includes(nextStatus.id);
+    const isCurrentContract = isActiveContract(candidature);
 
     const applyStatusChange = async (statusId: string, startDate?: string, endDate?: string, contractTypeId?: string) => {
         try {
@@ -57,10 +58,18 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
     return (
         <div
             onClick={() => navigate(`/student/candidatures/${candidature.id}`)}
-            className={`group cursor-pointer bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 ${
-                candidature.stale ? 'border-l-2 border-l-amber-400 border-y-slate-200 border-r-slate-200 dark:border-y-slate-800 dark:border-r-slate-800' : 'border-slate-200 dark:border-slate-800'
+            className={`group relative overflow-hidden cursor-pointer bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 ${
+                isCurrentContract
+                    ? 'border-indigo-200/60 dark:border-indigo-900/50 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40'
+                    : candidature.stale
+                    ? 'border-l-2 border-l-amber-400 border-y-slate-200 border-r-slate-200 dark:border-y-slate-800 dark:border-r-slate-800'
+                    : 'border-slate-200 dark:border-slate-800'
             }`}
         >
+            {isCurrentContract && (
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#E2762F] via-indigo-500 to-violet-500" />
+            )}
+
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                     <TruncatedText text={candidature.poste} className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
@@ -78,7 +87,7 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                 {candidature.viaJobboard && <JobboardBadge />}
                 {candidature.status.compteCommeContrat && (
                     candidature.contractVerified ? (
-                        isActiveContract(candidature) ? (
+                        isCurrentContract ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400">
                                 <Handshake className="h-3 w-3" />
                                 {t('dashboard.candidatures.student.card.contract_active', 'Contrat actuel')}
