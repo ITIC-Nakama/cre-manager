@@ -1,6 +1,6 @@
 package com.itic.paris.platform.shared.notification.event;
 
-public record ContractDeclarationRejectedEvent(
+public record ContractDeclarationInvalidatedEvent(
         String studentEmail,
         String studentFirstName,
         String studentLang,

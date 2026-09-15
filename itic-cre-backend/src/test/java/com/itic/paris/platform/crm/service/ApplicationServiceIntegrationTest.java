@@ -14,6 +14,7 @@ import com.itic.paris.platform.crm.model.dtos.ChangeStatusRequest;
 import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
 import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
 import com.itic.paris.platform.crm.model.dtos.UpdateApplicationRequest;
+import com.itic.paris.platform.crm.model.dtos.UpdateContractDatesRequest;
 import com.itic.paris.platform.crm.repository.ApplicationHistoryRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
@@ -398,8 +399,8 @@ public class ApplicationServiceIntegrationTest {
         int xpAfterDeclare = studentRepository.findById(testStudent.getId()).orElseThrow().getXpTotal();
         assertThat(xpAfterDeclare).isEqualTo(offreRecueStatus.getGainXP());
 
-        // When: la declaration est refusee par un conseiller
-        applicationService.rejectContractDeclaration(declared.getId());
+        // When: la declaration est invalidee par un conseiller
+        applicationService.invalidateContractDeclaration(declared.getId());
 
         // Then: l'XP creditee par la declaration est integralement reprise — net zero par rapport
         // a avant la declaration, precisement parce qu'un seul historique/une seule XP existaient
@@ -528,9 +529,9 @@ public class ApplicationServiceIntegrationTest {
     }
 
     @Test
-    public void testVerifyContractDeclaration_WithoutStartDate_ShouldBeRejected() {
+    public void testValidateContractDeclaration_WithoutStartDate_ShouldBeRejected() {
         // Given: candidature "sous contrat" sans date de debut (ne devrait pas arriver via le
-        // parcours normal, changeStatus l'exige deja — garde-fou defensif cote verification elle-meme)
+        // parcours normal, changeStatus l'exige deja — garde-fou defensif cote validation elle-meme)
         Application app = new Application();
         app.setStudent(testStudent);
         app.setEntreprise("Air France");
@@ -540,11 +541,210 @@ public class ApplicationServiceIntegrationTest {
         UUID appId = app.getId();
 
         // When / Then
-        AppException ex = assertThrows(AppException.class, () -> applicationService.verifyContractDeclaration(appId));
+        AppException ex = assertThrows(AppException.class, () -> applicationService.validateContractDeclaration(appId));
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_START_DATE_REQUIRED);
 
         Application unchanged = applicationRepository.findById(appId).orElseThrow();
         assertThat(unchanged.getContractVerified()).isFalse();
+    }
+
+    @Test
+    public void testChangeStatus_WithExistingPendingDeclaration_ShouldBeRejected() {
+        // Given: une premiere candidature deja "a verifier" pour cet etudiant
+        Application pending = new Application();
+        pending.setStudent(testStudent);
+        pending.setEntreprise("Airbnb");
+        pending.setPoste("Alternant Backend");
+        pending.setStatus(offreRecueStatus);
+        pending.setStartDate(LocalDate.now());
+        applicationRepository.save(pending);
+
+        // When: une deuxieme candidature tente d'entrer dans un statut "sous contrat"
+        Application other = new Application();
+        other.setStudent(testStudent);
+        other.setEntreprise("Uber");
+        other.setPoste("Alternant QA");
+        other.setStatus(entretienStatus);
+        other = applicationRepository.save(other);
+        UUID otherId = other.getId();
+
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatus(otherId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
+
+        Application unchanged = applicationRepository.findById(otherId).orElseThrow();
+        assertThat(unchanged.getStatus().getId()).isEqualTo(entretienStatus.getId());
+    }
+
+    @Test
+    public void testDeclareContract_WithExistingPendingDeclaration_ShouldBeRejected() {
+        // Given
+        Application pending = new Application();
+        pending.setStudent(testStudent);
+        pending.setEntreprise("Airbnb");
+        pending.setPoste("Alternant Backend");
+        pending.setStatus(offreRecueStatus);
+        pending.setStartDate(LocalDate.now());
+        applicationRepository.save(pending);
+
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Uber");
+        request.setPoste("Alternant QA");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.declareContract(request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
+    }
+
+    @Test
+    public void testChangeStatus_WithExistingActiveContract_ShouldBeRejected() {
+        // Given: un contrat deja valide et actif pour cet etudiant
+        Application active = new Application();
+        active.setStudent(testStudent);
+        active.setEntreprise("Google");
+        active.setPoste("Alternant deja actif");
+        active.setStatus(offreRecueStatus);
+        active.setStartDate(LocalDate.now().minusMonths(2));
+        active.setContractVerified(true);
+        applicationRepository.save(active);
+
+        // When: une autre candidature tente d'entrer dans un statut "sous contrat"
+        Application other = new Application();
+        other.setStudent(testStudent);
+        other.setEntreprise("Amazon");
+        other.setPoste("Alternant QA");
+        other.setStatus(entretienStatus);
+        other = applicationRepository.save(other);
+        UUID otherId = other.getId();
+
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatus(otherId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
+
+        Application unchanged = applicationRepository.findById(otherId).orElseThrow();
+        assertThat(unchanged.getStatus().getId()).isEqualTo(entretienStatus.getId());
+    }
+
+    @Test
+    public void testDeclareContract_WithExistingActiveContract_ShouldBeRejected() {
+        // Given
+        Application active = new Application();
+        active.setStudent(testStudent);
+        active.setEntreprise("Google");
+        active.setPoste("Alternant deja actif");
+        active.setStatus(offreRecueStatus);
+        active.setStartDate(LocalDate.now().minusMonths(2));
+        active.setContractVerified(true);
+        applicationRepository.save(active);
+
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Alternant QA");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.declareContract(request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
+    }
+
+    @Test
+    public void testValidateContractDeclaration_WithExistingActiveContract_ShouldBeRejected() {
+        // Given: un contrat deja valide et actif pour cet etudiant
+        Application active = new Application();
+        active.setStudent(testStudent);
+        active.setEntreprise("Google");
+        active.setPoste("Alternant deja actif");
+        active.setStatus(offreRecueStatus);
+        active.setStartDate(LocalDate.now().minusMonths(2));
+        active.setContractVerified(true);
+        applicationRepository.save(active);
+
+        // When: une autre declaration en attente pour le meme etudiant est validee
+        Application pending = new Application();
+        pending.setStudent(testStudent);
+        pending.setEntreprise("Amazon");
+        pending.setPoste("Alternant en attente");
+        pending.setStatus(offreRecueStatus);
+        pending.setStartDate(LocalDate.now());
+        pending = applicationRepository.save(pending);
+        UUID pendingId = pending.getId();
+
+        // Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.validateContractDeclaration(pendingId));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE);
+
+        Application unchanged = applicationRepository.findById(pendingId).orElseThrow();
+        assertThat(unchanged.getContractVerified()).isFalse();
+    }
+
+    @Test
+    public void testDeclareContractForStudent_WithExistingActiveContract_ShouldBeRejected() {
+        // Given
+        Application active = new Application();
+        active.setStudent(testStudent);
+        active.setEntreprise("Google");
+        active.setPoste("Alternant deja actif");
+        active.setStatus(offreRecueStatus);
+        active.setStartDate(LocalDate.now().minusMonths(2));
+        active.setContractVerified(true);
+        applicationRepository.save(active);
+
+        DeclareContractRequest request = new DeclareContractRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Alternant declare par le conseiller");
+        request.setContractTypeId(cdiContract.getId());
+        request.setStartDate(LocalDate.now());
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class,
+                () -> applicationService.declareContractForStudent(testStudent.getId(), request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE);
+    }
+
+    @Test
+    public void testUpdateContractDatesAsAdvisor_SettingPastEndDate_ShouldMarkContractEnded() {
+        // Given: contrat valide et actif
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Google");
+        app.setPoste("Alternant en poste");
+        app.setStatus(offreRecueStatus);
+        app.setStartDate(LocalDate.now().minusMonths(6));
+        app.setContractVerified(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+        assertThat(applicationRepository.findActiveVerifiedContract(testStudent.getId())).isPresent();
+
+        // When: le conseiller renseigne uniquement une date de fin passee (startDate ré-envoyée
+        // identique, comme doit le faire le futur bouton "Marquer comme termine")
+        UpdateContractDatesRequest request = new UpdateContractDatesRequest();
+        request.setStartDate(app.getStartDate());
+        request.setEndDate(LocalDate.now().minusDays(1));
+
+        applicationService.updateContractDatesAsAdvisor(appId, request);
+
+        // Then: toujours valide, mais ne compte plus comme contrat actif — pas de rollback de statut/XP
+        Application ended = applicationRepository.findById(appId).orElseThrow();
+        assertThat(ended.getContractVerified()).isTrue();
+        assertThat(ended.getStatus().getId()).isEqualTo(offreRecueStatus.getId());
+        assertThat(applicationRepository.findActiveVerifiedContract(testStudent.getId())).isEmpty();
     }
 }

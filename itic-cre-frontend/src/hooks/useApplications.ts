@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
-import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, verifyApplicationContract, rejectApplicationContract } from '../api-s/requests/ApplicationRequest';
+import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract } from '../api-s/requests/ApplicationRequest';
 import type { ApplicationListParams } from '../types/models/Application';
 
 export function useApplicationGroupedListInfinite(params: ApplicationListParams = {}) {
@@ -46,10 +46,10 @@ export function useUpdateContractDates() {
     });
 }
 
-export function useVerifyContract() {
+export function useValidateContract() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => verifyApplicationContract(id),
+        mutationFn: (id: string) => validateApplicationContract(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -57,10 +57,10 @@ export function useVerifyContract() {
     });
 }
 
-export function useRejectContract() {
+export function useInvalidateContract() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => rejectApplicationContract(id),
+        mutationFn: (id: string) => invalidateApplicationContract(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });

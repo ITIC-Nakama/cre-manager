@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowRight, Clock, Loader2, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Handshake, Loader2, ShieldCheck } from 'lucide-react';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import { useChangeCandidatureStatus } from '../../../../hooks/useCandidatures';
+import { getApiErrorMessage } from '../../../../utils/errorHelper';
 import type { ApplicationStatus, Candidature } from '../../../../types/models/Application';
-import { daysAgoLabel } from '../utils';
+import { daysAgoLabel, isActiveContract } from '../utils';
 import JobboardBadge from './JobboardBadge';
 import CandidatureProgressBar from './CandidatureProgressBar';
 import ContractDateGateModal from './ContractDateGateModal';
@@ -38,8 +39,8 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed'));
             }
             setShowContractGate(false);
-        } catch {
-            toast.error(t('dashboard.candidatures.student.toast.action_error'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.student.toast.action_error')));
         }
     };
 
@@ -77,10 +78,17 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                 {candidature.viaJobboard && <JobboardBadge />}
                 {candidature.status.compteCommeContrat && (
                     candidature.contractVerified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400">
-                            <ShieldCheck className="h-3 w-3" />
-                            {t('dashboard.candidatures.student.card.contract_verified', 'Vérifié')}
-                        </span>
+                        isActiveContract(candidature) ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400">
+                                <Handshake className="h-3 w-3" />
+                                {t('dashboard.candidatures.student.card.contract_active', 'Contrat actuel')}
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                <ShieldCheck className="h-3 w-3" />
+                                {t('dashboard.candidatures.student.card.contract_ended', 'Contrat terminé')}
+                            </span>
+                        )
                     ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400">
                             <Clock className="h-3 w-3" />

@@ -17,7 +17,7 @@ public interface ApplicationHistoryRepository extends JpaRepository<ApplicationH
     boolean existsByApplicationIdAndNewStatusId(UUID applicationId, UUID newStatusId);
 
     /** Dernier passage de cette candidature vers ce statut — sert a retrouver le statut precedent
-      * (previousStatus) pour un refus conseiller (voir ApplicationService.rejectContractDeclaration). */
+      * (previousStatus) pour une invalidation conseiller (voir ApplicationService.invalidateContractDeclaration). */
     Optional<ApplicationHistory> findTopByApplicationIdAndNewStatusIdOrderByDateChangementDesc(UUID applicationId, UUID newStatusId);
 
     @Query("SELECT DISTINCT h.newStatus.id FROM ApplicationHistory h WHERE h.application.id = :applicationId")

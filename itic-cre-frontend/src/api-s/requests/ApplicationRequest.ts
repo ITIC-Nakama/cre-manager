@@ -41,12 +41,12 @@ export function updateApplicationContractDates(
     return apiClient.patch(`/dashboard/applications/${id}/contract-dates`, payload).then((response) => unwrap<Candidature>(response));
 }
 
-/** Confirme une déclaration "sous contrat" déjà exacte, sans toucher aux dates. */
-export function verifyApplicationContract(id: string): Promise<Candidature> {
-    return apiClient.post(`/dashboard/applications/${id}/verify-contract`).then((response) => unwrap<Candidature>(response));
+/** Valide une déclaration "sous contrat" déjà exacte, sans toucher aux dates. */
+export function validateApplicationContract(id: string): Promise<Candidature> {
+    return apiClient.post(`/dashboard/applications/${id}/validate-contract`).then((response) => unwrap<Candidature>(response));
 }
 
-/** Refuse une déclaration "sous contrat" — revient au statut précédent et annule l'XP devenu invalide. */
-export function rejectApplicationContract(id: string): Promise<Candidature> {
-    return apiClient.post(`/dashboard/applications/${id}/reject-contract`).then((response) => unwrap<Candidature>(response));
+/** Invalide une déclaration "sous contrat" (en attente, ou déjà validée) — revient au statut précédent et annule l'XP devenu invalide. */
+export function invalidateApplicationContract(id: string): Promise<Candidature> {
+    return apiClient.post(`/dashboard/applications/${id}/invalidate-contract`).then((response) => unwrap<Candidature>(response));
 }

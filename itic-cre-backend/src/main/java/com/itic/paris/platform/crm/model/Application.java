@@ -81,7 +81,7 @@ public class Application {
     /** Vrai si un conseiller/admin a confirmé cette déclaration de contrat (purement déclarative
       * de la part de l'étudiant tant que ce champ reste faux) — remis à faux à chaque nouvelle
       * déclaration (changeStatus vers un statut compteCommeContrat), mis à vrai par une action
-      * explicite du conseiller (verifyContractDeclaration ou toute modification des dates). */
+      * explicite du conseiller (validateContractDeclaration ou toute modification des dates). */
     @Column(name = "contract_verified", nullable = false)
     private Boolean contractVerified = false;
 

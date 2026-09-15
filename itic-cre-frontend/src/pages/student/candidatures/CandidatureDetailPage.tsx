@@ -9,12 +9,13 @@ import { useApplicationStatuses } from '../../../hooks/useApplications';
 import {
     useCandidature, useUpdateCandidature, useChangeCandidatureStatus, useDeleteCandidature,
 } from '../../../hooks/useCandidatures';
+import { getApiErrorMessage } from '../../../utils/errorHelper';
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CandidatureStepper from './components/CandidatureStepper';
 import CandidatureFormModal from './components/CandidatureFormModal';
 import ContractDateGateModal from './components/ContractDateGateModal';
 import JobboardBadge from './components/JobboardBadge';
-import { formatDateTime } from './utils';
+import { formatDateTime, isPendingValidation } from './utils';
 
 export default function CandidatureDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -47,8 +48,8 @@ export default function CandidatureDetailPage() {
                 toast.success(t('dashboard.candidatures.student.toast.status_changed'));
             }
             setPendingContractStatusId(null);
-        } catch {
-            toast.error(t('dashboard.candidatures.student.toast.action_error'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.student.toast.action_error')));
         }
     };
 
@@ -86,8 +87,8 @@ export default function CandidatureDetailPage() {
             });
             toast.success(t('dashboard.candidatures.student.toast.updated'));
             setNotesValue(null); // Réinitialise l'état après sauvegarde
-        } catch {
-            toast.error(t('dashboard.candidatures.student.toast.action_error'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.student.toast.action_error')));
         }
     };
 
@@ -101,8 +102,8 @@ export default function CandidatureDetailPage() {
                 toast.success(t('dashboard.candidatures.student.toast.deleted'));
             }
             navigate('/student/candidatures');
-        } catch {
-            toast.error(t('dashboard.candidatures.student.toast.action_error'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.student.toast.action_error')));
         }
     };
 
@@ -198,7 +199,7 @@ export default function CandidatureDetailPage() {
                 </button>
             </div>
 
-            {candidature.status.compteCommeContrat && !candidature.contractVerified && (
+            {isPendingValidation(candidature) && (
                 <div className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4 flex items-center gap-3">
                     <Clock className="h-4.5 w-4.5 text-amber-500 flex-shrink-0" />
                     <div>

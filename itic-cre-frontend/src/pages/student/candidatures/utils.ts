@@ -40,3 +40,17 @@ export function highestReachedOrdre(candidature: Candidature, statuses: Applicat
 export function isCompleted(candidature: Candidature): boolean {
     return candidature.status.ordre >= 5;
 }
+
+/** Contrat validé par un conseiller et encore actif (pas de date de fin, ou date de fin pas
+  * encore atteinte) — même règle que CONTRACT_STILL_ACTIVE côté backend. Sert à distinguer LE
+  * contrat actuel d'un étudiant parmi d'éventuelles autres candidatures validées mais terminées. */
+export function isActiveContract(candidature: Pick<Candidature, 'status' | 'contractVerified' | 'endDate'>): boolean {
+    if (!candidature.status.compteCommeContrat || !candidature.contractVerified) return false;
+    if (!candidature.endDate) return true;
+    return candidature.endDate >= new Date().toISOString().slice(0, 10);
+}
+
+/** Declaration "sous contrat" pas encore validee par un conseiller. */
+export function isPendingValidation(candidature: Pick<Candidature, 'status' | 'contractVerified'>): boolean {
+    return candidature.status.compteCommeContrat && !candidature.contractVerified;
+}

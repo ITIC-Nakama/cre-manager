@@ -221,18 +221,18 @@ public class DashboardController {
         return ResponseEntity.ok(applicationService.updateContractDatesAsAdvisor(id, request));
     }
 
-    @PostMapping("/applications/{id}/verify-contract")
-    @Operation(summary = "Confirmer une déclaration de contrat étudiant déjà exacte — "
+    @PostMapping("/applications/{id}/validate-contract")
+    @Operation(summary = "Valider une déclaration de contrat étudiant déjà exacte — "
             + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
-    public ResponseEntity<ApplicationDTO> verifyContract(@PathVariable UUID id) {
-        return ResponseEntity.ok(applicationService.verifyContractDeclaration(id));
+    public ResponseEntity<ApplicationDTO> validateContract(@PathVariable UUID id) {
+        return ResponseEntity.ok(applicationService.validateContractDeclaration(id));
     }
 
-    @PostMapping("/applications/{id}/reject-contract")
-    @Operation(summary = "Refuser une déclaration de contrat étudiant — revient au statut précédent — "
+    @PostMapping("/applications/{id}/invalidate-contract")
+    @Operation(summary = "Invalider une déclaration de contrat étudiant (en attente, ou déjà validée) — revient au statut précédent — "
             + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
-    public ResponseEntity<ApplicationDTO> rejectContract(@PathVariable UUID id) {
-        return ResponseEntity.ok(applicationService.rejectContractDeclaration(id));
+    public ResponseEntity<ApplicationDTO> invalidateContract(@PathVariable UUID id) {
+        return ResponseEntity.ok(applicationService.invalidateContractDeclaration(id));
     }
 
     @PostMapping("/students/{studentId}/declare-contract")

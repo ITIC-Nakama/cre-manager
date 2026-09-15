@@ -5,6 +5,7 @@ import CustomSelect from '../../../../components/basics/CustomSelect';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../../../hooks/useModalClose';
+import { getApiErrorMessage } from '../../../../utils/errorHelper';
 import type { Candidature, CandidaturePayload } from '../../../../types/models/Application';
 
 interface Props {
@@ -85,12 +86,12 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                 startDate: startDate || undefined,
                 endDate: endDate || undefined,
             }, !candidature && declareContractNow);
-        } catch (err: any) {
-            const serverFieldErrors = err?.response?.data?.data;
+        } catch (err: unknown) {
+            const serverFieldErrors = (err as { response?: { data?: { data?: unknown } } })?.response?.data?.data;
             if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
-                setFieldErrors(serverFieldErrors);
+                setFieldErrors(serverFieldErrors as Record<string, string>);
             } else {
-                setGeneralError(t('dashboard.candidatures.student.form.save_error'));
+                setGeneralError(getApiErrorMessage(err, t('dashboard.candidatures.student.form.save_error')));
             }
         }
     };

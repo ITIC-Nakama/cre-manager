@@ -98,6 +98,9 @@ public enum MessageKey {
     APPLICATION_CONTRACT_START_DATE_REQUIRED("application-contract-start-date-required", "Une date de début est requise pour passer ce statut", "A start date is required to set this status"),
     APPLICATION_NOT_UNDER_CONTRACT("application-not-under-contract", "Cette candidature n'est pas actuellement marquée sous contrat", "This application is not currently marked as under contract"),
     APPLICATION_CONTRACT_VERIFIED_LOCKED("application-contract-verified-locked", "Cette candidature a été vérifiée par votre conseiller, contactez-le pour la modifier", "This application has been verified by your advisor, contact them to make changes"),
+    APPLICATION_CONTRACT_ALREADY_PENDING("application-contract-already-pending", "Vous avez déjà une déclaration en attente de validation", "You already have a pending declaration"),
+    APPLICATION_CONTRACT_ALREADY_ACTIVE("application-contract-already-active", "Un contrat est déjà actif pour cet étudiant, invalidez-le ou renseignez sa date de fin avant de valider celui-ci", "This student already has an active contract, invalidate it or set its end date before validating this one"),
+    APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT("application-student-already-under-contract", "Vous avez déjà un contrat en cours, contactez votre conseiller pour y mettre fin avant d'en déclarer un nouveau", "You already have an active contract, contact your advisor to end it before declaring a new one"),
     SKILL_CATEGORY_NOT_FOUND("skill-category-not-found", "Catégorie introuvable", "Skill category not found"),
     // Gamification messages
     GRADE_NOT_FOUND("grade-not-found", "Grade introuvable", "Grade not found"),

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertCircle, Briefcase, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import UserAvatar from '../../../../components/shared/UserAvatar';
 import ApplicationCard from './ApplicationCard';
 import ApplicationDetail from './ApplicationDetail';
 import type { StudentGroup } from '../types';
+import { isActiveContract } from '../types';
 import type { ApplicationRow } from '../../../../types/models/Application';
 
 interface Props {
@@ -12,7 +14,23 @@ interface Props {
 }
 
 export default function StudentDrawer({ group, onClose }: Props) {
+    const { t } = useTranslation();
     const [selectedApp, setSelectedApp] = useState<ApplicationRow | null>(null);
+
+    // Separe les candidatures "sous contrat" (Offre reçue — actif, en attente ou termine) du reste
+    // du pipeline (À postuler, Postulé, Entretien, Refusé) — sans ca, les deux sont mélangés dans
+    // une liste plate et il faut lire chaque carte une par une pour retrouver le contrat.
+    const { contractApplications, pipelineApplications } = useMemo(() => {
+        const contract: ApplicationRow[] = [];
+        const pipeline: ApplicationRow[] = [];
+        for (const app of group.applications) {
+            (app.status.compteCommeContrat ? contract : pipeline).push(app);
+        }
+        // Au sein du contrat : actif en premier, puis en attente de validation, puis termine.
+        const rank = (app: ApplicationRow) => (isActiveContract(app) ? 0 : !app.contractVerified ? 1 : 2);
+        contract.sort((a, b) => rank(a) - rank(b));
+        return { contractApplications: contract, pipelineApplications: pipeline };
+    }, [group.applications]);
 
     return (
         <>
@@ -74,6 +92,7 @@ export default function StudentDrawer({ group, onClose }: Props) {
                             app={selectedApp}
                             onBack={() => setSelectedApp(null)}
                             onUpdated={(patch) => setSelectedApp((prev) => prev ? { ...prev, ...patch } : prev)}
+                            siblingApplications={group.applications}
                         />
                     ) : group.applications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center gap-2 text-slate-400">
@@ -81,14 +100,39 @@ export default function StudentDrawer({ group, onClose }: Props) {
                             <p className="text-sm">Aucune candidature</p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {group.applications.map((app) => (
-                                <ApplicationCard
-                                    key={app.id}
-                                    app={app}
-                                    onClick={() => setSelectedApp(app)}
-                                />
-                            ))}
+                        <div className="space-y-5">
+                            {contractApplications.length > 0 && (
+                                <div className="space-y-3">
+                                    {pipelineApplications.length > 0 && (
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                            {t('dashboard.candidatures.detail.contract_section', 'Contrat')}
+                                        </p>
+                                    )}
+                                    {contractApplications.map((app) => (
+                                        <ApplicationCard
+                                            key={app.id}
+                                            app={app}
+                                            onClick={() => setSelectedApp(app)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {pipelineApplications.length > 0 && (
+                                <div className="space-y-3">
+                                    {contractApplications.length > 0 && (
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                            {t('dashboard.candidatures.detail.pipeline_section', 'Candidatures')}
+                                        </p>
+                                    )}
+                                    {pipelineApplications.map((app) => (
+                                        <ApplicationCard
+                                            key={app.id}
+                                            app={app}
+                                            onClick={() => setSelectedApp(app)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

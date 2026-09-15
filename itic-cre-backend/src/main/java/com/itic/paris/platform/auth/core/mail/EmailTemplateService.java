@@ -123,7 +123,7 @@ public class EmailTemplateService {
         return templateEngine.process("email/student-reminder", context);
     }
 
-    public String renderContractDeclarationRejectedEmail(String lang, String firstName, String entreprise, String poste) {
+    public String renderContractDeclarationInvalidatedEmail(String lang, String firstName, String entreprise, String poste) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));
         context.setVariable("firstName", firstName != null ? firstName.trim() : "");
@@ -131,7 +131,7 @@ public class EmailTemplateService {
         context.setVariable("poste", poste != null ? poste.trim() : "");
         context.setVariable("brandName", brandName);
         context.setVariable("frontendUrl", frontendUrl);
-        return templateEngine.process("email/contract-declaration-rejected", context);
+        return templateEngine.process("email/contract-declaration-invalidated", context);
     }
 
     public String renderAccountCredentialsEmail(String lang, String firstName, String email, String password, boolean isNewAccount) {

@@ -40,22 +40,22 @@ class EmailTemplateServiceTest {
     }
 
     @Test
-    void rendersContractDeclarationRejectedEmailWithApplicationDetails() {
-        String html = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
+    void rendersContractDeclarationInvalidatedEmailWithApplicationDetails() {
+        String html = emailTemplateService.renderContractDeclarationInvalidatedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
         assertTrue(html.contains("Jean"));
         assertTrue(html.contains("Acme Corp"));
         assertTrue(html.contains("Alternant Backend"));
-        assertTrue(html.contains("refusée"));
+        assertTrue(html.contains("invalidée"));
     }
 
     @Test
-    void rendersContractDeclarationRejectedEmailInEnglish() {
-        String html = emailTemplateService.renderContractDeclarationRejectedEmail("en", "John", "Acme Corp", "Backend Intern");
+    void rendersContractDeclarationInvalidatedEmailInEnglish() {
+        String html = emailTemplateService.renderContractDeclarationInvalidatedEmail("en", "John", "Acme Corp", "Backend Intern");
 
         assertTrue(html.contains("Hello"));
-        assertTrue(html.contains("rejected"));
-        assertTrue(!html.contains("refusée"));
+        assertTrue(html.contains("invalidated"));
+        assertTrue(!html.contains("invalidée"));
     }
 
     @Test
@@ -68,9 +68,9 @@ class EmailTemplateServiceTest {
         String cvStatus = emailTemplateService.renderCVStatusChangeEmail("Jean", "Validé", "#10B981");
         String cvComment = emailTemplateService.renderCVCommentEmail("Jean", "Bon travail");
         String reminder = emailTemplateService.renderStudentReminderEmail("Jean", "M. Martin", "Relance tes candidatures");
-        String contractRejected = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
+        String contractInvalidated = emailTemplateService.renderContractDeclarationInvalidatedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
-        for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractRejected}) {
+        for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractInvalidated}) {
             assertTrue(html.contains("name=\"color-scheme\" content=\"light dark\""));
             assertTrue(html.contains("name=\"supported-color-schemes\" content=\"light dark\""));
             assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
@@ -78,11 +78,11 @@ class EmailTemplateServiceTest {
     }
 
     @Test
-    void contractDeclarationRejectedUsesDangerAccentNotDefaultBrandColor() {
-        // Email "important" (refus) : l'accent (bordure d'en-tete + encart candidature) doit
+    void contractDeclarationInvalidatedUsesDangerAccentNotDefaultBrandColor() {
+        // Email "important" (invalidation) : l'accent (bordure d'en-tete + encart candidature) doit
         // rester rouge/rose pour se distinguer visuellement des autres emails (confirmation,
         // rappel...) qui utilisent tous le bleu de marque #3B71FF.
-        String html = emailTemplateService.renderContractDeclarationRejectedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
+        String html = emailTemplateService.renderContractDeclarationInvalidatedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
 
         assertTrue(html.contains("#F43F5E"));
         assertTrue(html.contains("#3B71FF"));

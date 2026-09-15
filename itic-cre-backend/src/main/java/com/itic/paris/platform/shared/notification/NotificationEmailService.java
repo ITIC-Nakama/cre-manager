@@ -4,7 +4,7 @@ import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.shared.notification.event.AdvisorAssignedEvent;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
-import com.itic.paris.platform.shared.notification.event.ContractDeclarationRejectedEvent;
+import com.itic.paris.platform.shared.notification.event.ContractDeclarationInvalidatedEvent;
 import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
 import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
 import com.itic.paris.platform.shared.notification.event.ReclamationRefusedEvent;
@@ -52,12 +52,12 @@ public class NotificationEmailService {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onContractDeclarationRejected(ContractDeclarationRejectedEvent event) {
-        String html = emailTemplateService.renderContractDeclarationRejectedEmail(
+    public void onContractDeclarationInvalidated(ContractDeclarationInvalidatedEvent event) {
+        String html = emailTemplateService.renderContractDeclarationInvalidatedEmail(
                 event.studentLang(), event.studentFirstName(), event.entreprise(), event.poste());
         String subject = "en".equals(event.studentLang())
-                ? "Contract declaration rejected"
-                : "Déclaration de contrat refusée";
+                ? "Contract declaration invalidated"
+                : "Déclaration de contrat invalidée";
         sendHtml(event.studentEmail(), subject, html);
     }
 

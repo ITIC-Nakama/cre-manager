@@ -160,4 +160,23 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
             "AND a.status.compteCommeContrat = true AND a.contractVerified = false " +
             "AND " + LATEST_CONTRACT_START_DATE)
     long countStudentsWithUnverifiedContractForStudents(List<UUID> studentIds);
+
+    /** Invariant : un etudiant ne peut jamais avoir deux declarations "a verifier" en meme temps —
+      * appele avant de creer une nouvelle declaration (changeStatus vers un statut compteCommeContrat,
+      * declareContract) pour bloquer plutot que de laisser deux lignes en attente en parallele. */
+    @Query("SELECT COUNT(a) > 0 FROM Application a WHERE a.student.id = :studentId " +
+            "AND a.status.compteCommeContrat = true AND a.contractVerified = false")
+    boolean existsPendingContractDeclaration(UUID studentId);
+
+    /** Invariant : un etudiant ne peut jamais avoir deux contrats confirmes actifs en meme temps —
+      * appele avant de confirmer une declaration (validateContractDeclaration, declareContractForStudent). */
+    @Query("SELECT a FROM Application a WHERE a.student.id = :studentId " +
+            "AND a.status.compteCommeContrat = true AND a.contractVerified = true AND " + CONTRACT_STILL_ACTIVE)
+    Optional<Application> findActiveVerifiedContract(UUID studentId);
+
+    /** Meme regle que findActiveVerifiedContract, en excluant une candidature donnee — utilise quand on
+      * (re)valide cette candidature elle-meme, pour ne pas la comparer avec elle-meme. */
+    @Query("SELECT a FROM Application a WHERE a.student.id = :studentId AND a.id <> :excludeApplicationId " +
+            "AND a.status.compteCommeContrat = true AND a.contractVerified = true AND " + CONTRACT_STILL_ACTIVE)
+    Optional<Application> findOtherActiveVerifiedContract(UUID studentId, UUID excludeApplicationId);
 }

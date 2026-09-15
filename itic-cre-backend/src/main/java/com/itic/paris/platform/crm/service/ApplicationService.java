@@ -24,7 +24,7 @@ import com.itic.paris.platform.jobboard.model.dtos.ContractTypeDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.shared.notification.event.ContractDeclarationRejectedEvent;
+import com.itic.paris.platform.shared.notification.event.ContractDeclarationInvalidatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -111,7 +111,7 @@ public class ApplicationService {
         Application application = getOwnedApplication(id);
 
         // Une fois confirmee par un conseiller, seul lui peut encore faire evoluer cette candidature
-        // (updateContractDatesAsAdvisor/verifyContractDeclaration/rejectContractDeclaration) — sans
+        // (updateContractDatesAsAdvisor/validateContractDeclaration/invalidateContractDeclaration) — sans
         // ce verrou, l'etudiant pourrait modifier entreprise/poste/dates sans jamais repasser par une
         // revalidation (ex: rouvrir un contrat termine en effacant sa date de fin).
         if (Boolean.TRUE.equals(application.getContractVerified())) {
@@ -142,9 +142,9 @@ public class ApplicationService {
         Application application = getOwnedApplication(id);
         ApplicationStatus currentStatus = application.getStatus();
 
-        // Meme verrou que update() — une candidature deja verifiee par un conseiller ne peut plus
+        // Meme verrou que update() — une candidature deja validee par un conseiller ne peut plus
         // etre deplacee (en avant, en arriere, ou vers "Refuse") par l'etudiant via ce endpoint ;
-        // seul le conseiller peut encore agir dessus (reject-contract, qui remet correctement
+        // seul le conseiller peut encore agir dessus (invalidate-contract, qui remet correctement
         // contractVerified=false et revient au statut precedent).
         if (Boolean.TRUE.equals(application.getContractVerified())) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
@@ -173,9 +173,20 @@ public class ApplicationService {
         }
 
         // Nouvelle declaration "sous contrat" par l'etudiant lui-meme — purement declaratif tant
-        // qu'un conseiller/admin ne l'a pas confirmee (verifyContractDeclaration) ou n'a pas touche
+        // qu'un conseiller/admin ne l'a pas confirmee (validateContractDeclaration) ou n'a pas touche
         // les dates (updateContractDatesAsAdvisor). Remis a faux a chaque nouvelle declaration.
+        // Invariants : jamais deux declarations "a valider" en meme temps, et jamais une nouvelle
+        // declaration tant qu'un contrat est deja actif — on n'atteint cette branche que si le
+        // statut courant n'etait pas deja compteCommeContrat, donc cette candidature elle-meme
+        // n'est jamais comptee par erreur dans ces deux verifications.
         if (Boolean.TRUE.equals(newStatus.getCompteCommeContrat())) {
+            UUID studentId = application.getStudent().getId();
+            if (applicationRepository.existsPendingContractDeclaration(studentId)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
+            }
+            if (applicationRepository.findActiveVerifiedContract(studentId).isPresent()) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
+            }
             application.setContractVerified(false);
         }
 
@@ -389,11 +400,14 @@ public class ApplicationService {
     }
 
     /**
-     * Confirmation explicite par un conseiller/admin d'une declaration "sous contrat" deja exacte
+     * Validation explicite par un conseiller/admin d'une declaration "sous contrat" deja exacte
      * (pas besoin de toucher aux dates) — purement declaratif de la part de l'etudiant jusqu'a cet appel.
+     * Invariant : un etudiant ne peut jamais avoir deux contrats actifs en meme temps — si un autre
+     * contrat de cet etudiant est deja valide et actif, il faut d'abord l'invalider ou lui donner
+     * une date de fin (voir invalidateContractDeclaration / updateContractDatesAsAdvisor).
      */
     @Transactional
-    public ApplicationDTO verifyContractDeclaration(UUID applicationId) {
+    public ApplicationDTO validateContractDeclaration(UUID applicationId) {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_NOT_FOUND));
 
@@ -403,11 +417,14 @@ public class ApplicationService {
         if (application.getStartDate() == null) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_START_DATE_REQUIRED);
         }
+        if (applicationRepository.findOtherActiveVerifiedContract(application.getStudent().getId(), applicationId).isPresent()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE);
+        }
 
         application.setContractVerified(true);
         Application saved = applicationRepository.save(application);
 
-        auditLogService.log(AuditAction.APPLICATION_CONTRACT_VERIFIED, getCurrentUser(), "APPLICATION", saved.getId(),
+        auditLogService.log(AuditAction.APPLICATION_CONTRACT_VALIDATED, getCurrentUser(), "APPLICATION", saved.getId(),
                 saved.getStatus().getNom() + " — " + saved.getEntreprise() + " (étudiant : "
                         + saved.getStudent().getFirstName() + " " + saved.getStudent().getLastName() + ")");
 
@@ -415,12 +432,15 @@ public class ApplicationService {
     }
 
     /**
-     * Refus par un conseiller/admin d'une declaration "sous contrat" — revient au statut precedent
-     * (celui d'avant le dernier passage vers le statut actuel), en annulant l'XP devenu invalide,
-     * exactement comme un retour en arriere fait par l'etudiant lui-meme (voir changeStatus, Cas 1).
+     * Invalidation par un conseiller/admin d'une declaration "sous contrat" (en attente, ou deja
+     * validee et donc un contrat reellement en cours) — revient au statut precedent (celui d'avant
+     * le dernier passage vers le statut actuel), en annulant l'XP devenu invalide, exactement comme
+     * un retour en arriere fait par l'etudiant lui-meme (voir changeStatus, Cas 1). A distinguer de
+     * "marquer comme termine" (updateContractDatesAsAdvisor avec une date de fin) qui, elle, ne remet
+     * rien en cause : le contrat etait reel, il s'est simplement termine.
      */
     @Transactional
-    public ApplicationDTO rejectContractDeclaration(UUID applicationId) {
+    public ApplicationDTO invalidateContractDeclaration(UUID applicationId) {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_NOT_FOUND));
 
@@ -445,7 +465,7 @@ public class ApplicationService {
                     application.getStudent(),
                     ActionXP.CANDIDATURE_STATUS_CHANGED,
                     xpToRevoke,
-                    "Offre refusée par le conseiller — " + application.getEntreprise(),
+                    "Contrat invalidé par le conseiller — " + application.getEntreprise(),
                     application);
         }
 
@@ -457,11 +477,11 @@ public class ApplicationService {
         recordHistory(saved, currentStatus, targetStatus);
         updateLastActivity(application.getStudent());
 
-        auditLogService.log(AuditAction.APPLICATION_CONTRACT_REJECTED, getCurrentUser(), "APPLICATION", saved.getId(),
-                currentStatus.getNom() + " refusé → retour à " + targetStatus.getNom() + " — " + saved.getEntreprise()
+        auditLogService.log(AuditAction.APPLICATION_CONTRACT_INVALIDATED, getCurrentUser(), "APPLICATION", saved.getId(),
+                currentStatus.getNom() + " invalidé → retour à " + targetStatus.getNom() + " — " + saved.getEntreprise()
                         + " (étudiant : " + saved.getStudent().getFirstName() + " " + saved.getStudent().getLastName() + ")");
 
-        eventPublisher.publishEvent(new ContractDeclarationRejectedEvent(
+        eventPublisher.publishEvent(new ContractDeclarationInvalidatedEvent(
                 saved.getStudent().getEmail(), saved.getStudent().getFirstName(), saved.getStudent().getLang(),
                 saved.getEntreprise(), saved.getPoste()));
 
@@ -470,12 +490,21 @@ public class ApplicationService {
 
     /**
      * Déclaration directe d'un contrat par l'étudiant lui-même, sans passer par le pipeline normal
-     * de candidature — purement déclaratif (contractVerified=false), même workflow de vérification
-     * conseiller que le pipeline normal (verifyContractDeclaration/rejectContractDeclaration).
+     * de candidature — purement déclaratif (contractVerified=false), même workflow de validation
+     * conseiller que le pipeline normal (validateContractDeclaration/invalidateContractDeclaration).
+     * Invariants : jamais deux déclarations "à valider" en même temps, et jamais une nouvelle
+     * déclaration tant qu'un contrat est déjà actif pour ce même étudiant.
      */
     @Transactional
     public ApplicationDTO declareContract(DeclareContractRequest request) {
-        Application saved = buildDirectContractApplication(getCurrentStudent(), request, false);
+        Student student = getCurrentStudent();
+        if (applicationRepository.existsPendingContractDeclaration(student.getId())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
+        }
+        if (applicationRepository.findActiveVerifiedContract(student.getId()).isPresent()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
+        }
+        Application saved = buildDirectContractApplication(student, request, false);
         return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
     }
 
@@ -483,12 +512,16 @@ public class ApplicationService {
      * Déclaration d'un contrat par un conseiller/admin au nom d'un étudiant — confirmée
      * immédiatement (pas d'étape de vérification, c'est le conseiller/admin qui confirme), ouvert
      * à tout conseiller/admin quel que soit son portefeuille (même précédent que
-     * updateContractDatesAsAdvisor/verifyContractDeclaration).
+     * updateContractDatesAsAdvisor/validateContractDeclaration). Invariant : jamais deux contrats
+     * actifs en même temps pour le même étudiant.
      */
     @Transactional
     public ApplicationDTO declareContractForStudent(UUID studentId, DeclareContractRequest request) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+        if (applicationRepository.findActiveVerifiedContract(studentId).isPresent()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE);
+        }
         Application saved = buildDirectContractApplication(student, request, true);
 
         auditLogService.log(AuditAction.APPLICATION_CONTRACT_DECLARED_BY_ADVISOR, getCurrentUser(), "APPLICATION", saved.getId(),
@@ -503,7 +536,7 @@ public class ApplicationService {
      * "sous contrat" (ex: Offre reçue), sans passer par les étapes intermédiaires. Ne crédite QUE
      * l'XP du statut cible (pas de cumul des étapes sautées comme le ferait changeStatus Cas 3) :
      * un seul historique (null -> statut contrat) est enregistré, ce qui garantit qu'un refus
-     * ultérieur (rejectContractDeclaration) reprend exactement et entièrement cette XP.
+     * ultérieure (invalidateContractDeclaration) reprend exactement et entièrement cette XP.
      */
     private Application buildDirectContractApplication(Student student, DeclareContractRequest request, boolean verified) {
         if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate())) {

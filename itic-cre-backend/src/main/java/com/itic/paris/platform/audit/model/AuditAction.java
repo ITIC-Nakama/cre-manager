@@ -50,9 +50,13 @@ public enum AuditAction {
     JOB_OFFER_WIPED,
 
     // --- Actions de validation des contrats étudiants (déclaratif) ---
+    // APPLICATION_CONTRACT_VERIFIED/REJECTED : conservées uniquement pour la lecture des lignes
+    // audit_logs historiques (renommées en VALIDATED/INVALIDATED ci-dessous, plus jamais écrites).
     APPLICATION_CONTRACT_VERIFIED,
     APPLICATION_CONTRACT_REJECTED,
     APPLICATION_CONTRACT_DECLARED_BY_ADVISOR,
+    APPLICATION_CONTRACT_VALIDATED,
+    APPLICATION_CONTRACT_INVALIDATED,
 
     // --- Autre / Action générique ---
     OTHER

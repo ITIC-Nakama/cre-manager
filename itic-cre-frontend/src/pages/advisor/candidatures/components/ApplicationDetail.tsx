@@ -4,27 +4,35 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
-import { useUpdateContractDates, useVerifyContract, useRejectContract } from '../../../../hooks/useApplications';
-import { formatDateTime } from '../types';
+import { useUpdateContractDates, useValidateContract, useInvalidateContract } from '../../../../hooks/useApplications';
+import { getApiErrorMessage } from '../../../../utils/errorHelper';
+import { formatDate, formatDateTime, isActiveContract, isPendingValidation } from '../types';
 import type { ApplicationRow } from '../../../../types/models/Application';
 
 interface Props {
     app: ApplicationRow;
     onBack: () => void;
     onUpdated: (patch: Partial<ApplicationRow>) => void;
+    /** Autres candidatures du meme etudiant (deja chargees par StudentDrawer) — sert uniquement a
+      * detecter, avant meme d'essayer de valider, qu'un autre contrat est deja actif pour cet
+      * etudiant (voir bandeau d'avertissement plus bas). */
+    siblingApplications?: ApplicationRow[];
 }
 
-export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
+export default function ApplicationDetail({ app, onBack, onUpdated, siblingApplications = [] }: Props) {
     const { t } = useTranslation();
     const updateContractDatesMutation = useUpdateContractDates();
-    const verifyMutation = useVerifyContract();
-    const rejectMutation = useRejectContract();
+    const validateMutation = useValidateContract();
+    const invalidateMutation = useInvalidateContract();
     const [startDate, setStartDate] = useState(app.startDate ?? '');
     const [endDate, setEndDate] = useState(app.endDate ?? '');
     const [dateError, setDateError] = useState<string | null>(null);
-    const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+    const [invalidateConfirmOpen, setInvalidateConfirmOpen] = useState(false);
 
     const hasChanges = startDate !== (app.startDate ?? '') || endDate !== (app.endDate ?? '');
+    const conflictingActiveContract = isPendingValidation(app)
+        ? siblingApplications.find((other) => other.id !== app.id && isActiveContract(other))
+        : undefined;
 
     const handleSaveContractDates = async () => {
         if (startDate && endDate && endDate < startDate) {
@@ -40,29 +48,51 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
             });
             onUpdated({ startDate: updated.startDate, endDate: updated.endDate, contractVerified: updated.contractVerified });
             toast.success(t('dashboard.candidatures.detail.contract_dates_saved', 'Dates du contrat enregistrées'));
-        } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
         }
     };
 
-    const handleVerify = async () => {
+    const handleMarkAsEnded = async () => {
+        if (!endDate) {
+            setDateError(t('dashboard.candidatures.detail.end_date_required', 'Indiquez la date de fin du contrat ci-dessus'));
+            return;
+        }
+        setDateError(null);
         try {
-            const updated = await verifyMutation.mutateAsync(app.id);
+            const updated = await updateContractDatesMutation.mutateAsync({
+                id: app.id,
+                startDate: app.startDate,
+                endDate,
+            });
+            onUpdated({ startDate: updated.startDate, endDate: updated.endDate, contractVerified: updated.contractVerified });
+            const stillActiveToday = endDate >= new Date().toISOString().slice(0, 10);
+            toast.success(stillActiveToday
+                ? t('dashboard.candidatures.detail.contract_ended_still_active_today', { date: formatDate(endDate), defaultValue: 'Contrat marqué comme terminé — reste actif jusqu\'au {{date}} inclus' })
+                : t('dashboard.candidatures.detail.contract_ended', 'Contrat marqué comme terminé'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
+        }
+    };
+
+    const handleValidate = async () => {
+        try {
+            const updated = await validateMutation.mutateAsync(app.id);
             onUpdated({ contractVerified: updated.contractVerified });
-            toast.success(t('dashboard.candidatures.detail.contract_verified', 'Déclaration confirmée'));
-        } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
+            toast.success(t('dashboard.candidatures.detail.contract_validated', 'Déclaration validée'));
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
         }
     };
 
-    const handleReject = async () => {
+    const handleInvalidate = async () => {
         try {
-            const updated = await rejectMutation.mutateAsync(app.id);
+            const updated = await invalidateMutation.mutateAsync(app.id);
             onUpdated({ status: updated.status, startDate: updated.startDate, endDate: updated.endDate, contractVerified: updated.contractVerified });
-            toast.success(t('dashboard.candidatures.detail.contract_rejected', 'Déclaration refusée — statut précédent rétabli'));
-            setRejectConfirmOpen(false);
-        } catch {
-            toast.error(t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer"));
+            toast.success(t('dashboard.candidatures.detail.contract_invalidated', 'Déclaration invalidée — statut précédent rétabli'));
+            setInvalidateConfirmOpen(false);
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
         }
     };
 
@@ -153,27 +183,53 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
                 </div>
                 )}
 
+                {conflictingActiveContract && (
+                    <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 p-3 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                        <div className="text-xs text-rose-700 dark:text-rose-400">
+                            <p className="font-semibold">
+                                {t('dashboard.candidatures.detail.contract_conflict_title', 'Un contrat est déjà actif pour cet étudiant')}
+                            </p>
+                            <p className="mt-0.5">
+                                {t('dashboard.candidatures.detail.contract_conflict_message', {
+                                    poste: conflictingActiveContract.poste,
+                                    entreprise: conflictingActiveContract.entreprise,
+                                    defaultValue: '{{poste}} chez {{entreprise}}. Invalidez-le ou marquez-le comme terminé avant de valider celui-ci.',
+                                })}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {app.status.compteCommeContrat && (
                     <div className={`rounded-xl border p-3 space-y-2.5 ${
                         app.contractVerified
-                            ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40'
+                            ? isActiveContract(app)
+                                ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40'
+                                : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800'
                             : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40'
                     }`}>
                         <div className="flex items-start gap-1.5">
                             {app.contractVerified ? (
-                                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                <ShieldCheck className={`h-4 w-4 shrink-0 mt-0.5 ${isActiveContract(app) ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
                             ) : (
                                 <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                             )}
                             <div>
-                                <p className={`text-xs font-semibold ${app.contractVerified ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                                <p className={`text-xs font-semibold ${
+                                    app.contractVerified
+                                        ? isActiveContract(app) ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'
+                                        : 'text-amber-700 dark:text-amber-400'
+                                }`}>
                                     {app.contractVerified
-                                        ? t('dashboard.candidatures.detail.contract_verified_label', 'Contrat vérifié par un conseiller')
-                                        : t('dashboard.candidatures.detail.contract_unverified_label', 'À vérifier — statut déclaré par l\'étudiant, pas encore confirmé')}
+                                        ? isActiveContract(app)
+                                            ? t('dashboard.candidatures.detail.contract_validated_label', 'Contrat validé par un conseiller')
+                                            : t('dashboard.candidatures.detail.contract_ended_label', 'Contrat validé — terminé')
+                                        : t('dashboard.candidatures.detail.contract_unvalidated_label', 'À vérifier — statut déclaré par l\'étudiant, pas encore confirmé')}
                                 </p>
                                 {!app.contractVerified && (
                                     <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5">
-                                        {t('dashboard.candidatures.detail.contract_unverified_hint', "L'étudiant a lui-même indiqué avoir reçu cette offre. Vérifiez l'information (contrat, e-mail de l'entreprise...) avant de confirmer, ou refusez si l'offre n'a pas été reçue.")}
+                                        {t('dashboard.candidatures.detail.contract_unvalidated_hint', "L'étudiant a lui-même indiqué avoir reçu cette offre. Vérifiez l'information (contrat, e-mail de l'entreprise...) avant de valider, ou invalidez si l'offre n'a pas été reçue.")}
                                     </p>
                                 )}
                             </div>
@@ -181,21 +237,33 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
                         <div className="flex items-center gap-2 flex-wrap">
                             {!app.contractVerified && (
                                 <button
-                                    onClick={handleVerify}
-                                    disabled={verifyMutation.isPending}
+                                    onClick={handleValidate}
+                                    disabled={validateMutation.isPending || !!conflictingActiveContract}
+                                    title={conflictingActiveContract ? t('dashboard.candidatures.detail.contract_conflict_title', 'Un contrat est déjà actif pour cet étudiant') : undefined}
                                     className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                                 >
-                                    {verifyMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
-                                    {t('dashboard.candidatures.detail.verify_button', 'Marquer comme vérifié')}
+                                    {validateMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                                    {t('dashboard.candidatures.detail.validate_button', 'Valider')}
+                                </button>
+                            )}
+                            {app.contractVerified && isActiveContract(app) && (
+                                <button
+                                    onClick={handleMarkAsEnded}
+                                    disabled={updateContractDatesMutation.isPending || !endDate}
+                                    title={!endDate ? t('dashboard.candidatures.detail.end_date_required', 'Indiquez la date de fin du contrat ci-dessus') : undefined}
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                                >
+                                    {updateContractDatesMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Handshake className="h-3 w-3" />}
+                                    {t('dashboard.candidatures.detail.end_contract_button', 'Marquer comme terminé')}
                                 </button>
                             )}
                             <button
-                                onClick={() => setRejectConfirmOpen(true)}
-                                disabled={rejectMutation.isPending}
+                                onClick={() => setInvalidateConfirmOpen(true)}
+                                disabled={invalidateMutation.isPending}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 <XCircle className="h-3 w-3" />
-                                {t('dashboard.candidatures.detail.reject_button', "Contester la déclaration")}
+                                {t('dashboard.candidatures.detail.invalidate_button', 'Invalider')}
                             </button>
                         </div>
                     </div>
@@ -257,13 +325,13 @@ export default function ApplicationDetail({ app, onBack, onUpdated }: Props) {
             </div>
 
             <ConfirmDialog
-                isOpen={rejectConfirmOpen}
-                title={t('dashboard.candidatures.detail.reject_confirm_title', "Contester cette déclaration de contrat")}
-                message={t('dashboard.candidatures.detail.reject_confirm_message', { poste: app.poste, entreprise: app.entreprise, defaultValue: 'Revenir au statut précédent pour "{{poste}}" chez {{entreprise}} ? L\'XP associé sera repris.' })}
-                confirmLabel={t('dashboard.candidatures.detail.reject_button', "Contester la déclaration")}
-                loading={rejectMutation.isPending}
-                onConfirm={handleReject}
-                onClose={() => setRejectConfirmOpen(false)}
+                isOpen={invalidateConfirmOpen}
+                title={t('dashboard.candidatures.detail.invalidate_confirm_title', "Invalider ce contrat")}
+                message={t('dashboard.candidatures.detail.invalidate_confirm_message', { poste: app.poste, entreprise: app.entreprise, defaultValue: 'Revenir au statut précédent pour "{{poste}}" chez {{entreprise}} ? L\'XP associé sera repris.' })}
+                confirmLabel={t('dashboard.candidatures.detail.invalidate_button', "Invalider")}
+                loading={invalidateMutation.isPending}
+                onConfirm={handleInvalidate}
+                onClose={() => setInvalidateConfirmOpen(false)}
             />
         </div>
     );

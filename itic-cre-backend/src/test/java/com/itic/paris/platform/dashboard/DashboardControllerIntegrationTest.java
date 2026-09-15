@@ -804,42 +804,42 @@ public class DashboardControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("POST /dashboard/applications/{id}/verify-contract as ADMIN marks the declaration verified")
-        void adminCanVerifyContract() throws Exception {
+        @DisplayName("POST /dashboard/applications/{id}/validate-contract as ADMIN marks the declaration validated")
+        void adminCanValidateContract() throws Exception {
             ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
                     .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
                     .findFirst().orElseThrow();
 
             Application app = new Application();
             app.setStudent(activeStudent);
-            app.setEntreprise("Verify Corp");
+            app.setEntreprise("Validate Corp");
             app.setPoste("Alternant");
             app.setStatus(contractStatus);
             app.setStartDate(LocalDate.now().minusDays(1));
             app = applicationRepository.save(app);
 
-            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/verify-contract")
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/validate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.contractVerified").value(true));
 
             boolean logged = auditLogRepository.findAll().stream()
-                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_VERIFIED
-                            && log.getDescription() != null && log.getDescription().contains("Verify Corp"));
+                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_VALIDATED
+                            && log.getDescription() != null && log.getDescription().contains("Validate Corp"));
             assertThat(logged).isTrue();
         }
 
         @Test
-        @DisplayName("POST .../verify-contract on an application not currently under contract returns 400 Bad Request")
-        void verifyContractOnNonContractStatusReturns400() throws Exception {
-            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/verify-contract")
+        @DisplayName("POST .../validate-contract on an application not currently under contract returns 400 Bad Request")
+        void validateContractOnNonContractStatusReturns400() throws Exception {
+            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/validate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        @DisplayName("POST .../verify-contract as an advisor NOT assigned to the student still succeeds (open access, any advisor can act)")
-        void nonOwningAdvisorCanVerifyContract() throws Exception {
+        @DisplayName("POST .../validate-contract as an advisor NOT assigned to the student still succeeds (open access, any advisor can act)")
+        void nonOwningAdvisorCanValidateContract() throws Exception {
             // activeStudent volontairement non affecte a `advisor` dans ce test : les conseillers
             // se couvrent mutuellement, l'action n'est pas limitee au conseiller assigne.
             ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
@@ -848,29 +848,29 @@ public class DashboardControllerIntegrationTest {
 
             Application app = new Application();
             app.setStudent(activeStudent);
-            app.setEntreprise("Verify Corp");
+            app.setEntreprise("Validate Corp");
             app.setPoste("Alternant");
             app.setStatus(contractStatus);
             app.setStartDate(LocalDate.now().minusDays(1));
             app = applicationRepository.save(app);
 
-            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/verify-contract")
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/validate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.contractVerified").value(true));
         }
 
         @Test
-        @DisplayName("POST .../reject-contract on an application not currently under contract returns 400 Bad Request")
-        void rejectContractOnNonContractStatusReturns400() throws Exception {
-            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/reject-contract")
+        @DisplayName("POST .../invalidate-contract on an application not currently under contract returns 400 Bad Request")
+        void invalidateContractOnNonContractStatusReturns400() throws Exception {
+            mockMvc.perform(post("/dashboard/applications/" + sampleApplication.getId() + "/invalidate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isBadRequest());
         }
 
         @Test
-        @DisplayName("POST .../reject-contract reverts to the previous status and revokes the XP awarded for reaching the contract status")
-        void rejectContractRevertsStatusAndRevokesXp() throws Exception {
+        @DisplayName("POST .../invalidate-contract reverts to the previous status and revokes the XP awarded for reaching the contract status")
+        void invalidateContractRevertsStatusAndRevokesXp() throws Exception {
             ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
                     .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
                     .findFirst().orElseThrow();
@@ -899,7 +899,7 @@ public class DashboardControllerIntegrationTest {
             int xpBeforeReject = studentRepository.findById(activeStudent.getId()).orElseThrow().getXpTotal();
             assertThat(xpBeforeReject).isEqualTo(250 + contractStatus.getGainXP());
 
-            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/reject-contract")
+            mockMvc.perform(post("/dashboard/applications/" + app.getId() + "/invalidate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.status.id").value(previousStatus.getId().toString()))
@@ -909,13 +909,13 @@ public class DashboardControllerIntegrationTest {
             assertThat(xpAfterReject).isLessThan(xpBeforeReject);
 
             boolean logged = auditLogRepository.findAll().stream()
-                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_REJECTED
+                    .anyMatch(log -> log.getAction() == AuditAction.APPLICATION_CONTRACT_INVALIDATED
                             && log.getDescription() != null && log.getDescription().contains("Real Flow Corp"));
             assertThat(logged).isTrue();
         }
 
         @Test
-        @DisplayName("GET /dashboard/applications/grouped-by-student exposes status.compteCommeContrat (needed by the advisor verify/reject UI)")
+        @DisplayName("GET /dashboard/applications/grouped-by-student exposes status.compteCommeContrat (needed by the advisor validate/invalidate UI)")
         void groupedByStudentExposesCompteCommeContrat() throws Exception {
             ApplicationStatus contractStatus = applicationStatusRepository.findAll().stream()
                     .filter(s -> Boolean.TRUE.equals(s.getCompteCommeContrat()))
@@ -1015,8 +1015,8 @@ public class DashboardControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("POST .../declare-contract then .../reject-contract fully reverts the XP it awarded")
-        void declareContractForStudentThenRejectRevertsXpToZeroDelta() throws Exception {
+        @DisplayName("POST .../declare-contract then .../invalidate-contract fully reverts the XP it awarded")
+        void declareContractForStudentThenInvalidateRevertsXpToZeroDelta() throws Exception {
             Map<String, Object> body = Map.of(
                     "entreprise", "Reversible Corp",
                     "poste", "Alternant",
@@ -1032,7 +1032,7 @@ public class DashboardControllerIntegrationTest {
                     .andReturn().getResponse().getContentAsString();
             String declaredId = objectMapper.readTree(response).path("data").path("id").asText();
 
-            mockMvc.perform(post("/dashboard/applications/" + declaredId + "/reject-contract")
+            mockMvc.perform(post("/dashboard/applications/" + declaredId + "/invalidate-contract")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.contractVerified").value(false));
