@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
 import CustomSelect from '../basics/CustomSelect';
+import DateInput from '../basics/DateInput';
 import { useContractTypes } from '../../hooks/useApplications';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../hooks/useModalClose';
@@ -138,7 +139,8 @@ export default function DeclareContractModal({ student, onClose }: Props) {
                                 disabled={declareMutation.isPending}
                                 onChange={(e) => setEntreprise(e.target.value)}
                                 maxLength={LIMITS.entreprise.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                placeholder={t('dashboard.candidatures.student.form.entreprise_placeholder', 'Ex : Décathlon')}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
                                     fieldErrors.entreprise ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -154,7 +156,8 @@ export default function DeclareContractModal({ student, onClose }: Props) {
                                 disabled={declareMutation.isPending}
                                 onChange={(e) => setPoste(e.target.value)}
                                 maxLength={LIMITS.poste.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                placeholder={t('dashboard.candidatures.student.form.poste_placeholder', 'Ex : Développeur web')}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
                                     fieldErrors.poste ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -181,30 +184,14 @@ export default function DeclareContractModal({ student, onClose }: Props) {
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.candidatures.student.form.start_date_label', 'Date de début du contrat')} <span className="text-rose-500">*</span>
                             </label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                disabled={declareMutation.isPending}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className={`w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
-                                    fieldErrors.startDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                }`}
-                            />
+                            <DateInput value={startDate} onChange={setStartDate} disabled={declareMutation.isPending} error={!!fieldErrors.startDate} />
                             {fieldErrors.startDate && <p className="text-xs text-rose-500">{fieldErrors.startDate}</p>}
                         </div>
                         <div className="space-y-1.5 min-w-0">
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.candidatures.student.form.end_date_label', 'Date de fin du contrat')}
                             </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                disabled={declareMutation.isPending}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className={`w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
-                                    fieldErrors.endDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                }`}
-                            />
+                            <DateInput value={endDate} onChange={setEndDate} disabled={declareMutation.isPending} error={!!fieldErrors.endDate} />
                             {fieldErrors.endDate && <p className="text-xs text-rose-500">{fieldErrors.endDate}</p>}
                         </div>
                     </div>

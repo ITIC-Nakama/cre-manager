@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
+import DateInput from '../../../../components/basics/DateInput';
 import { useUpdateContractDates, useValidateContract, useInvalidateContract } from '../../../../hooks/useApplications';
 import { getApiErrorMessage } from '../../../../utils/errorHelper';
 import { formatDate, formatDateTime, isActiveContract, isPendingValidation } from '../types';
@@ -148,23 +149,13 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                             <label className="block text-[11px] font-medium text-slate-400">
                                 {t('dashboard.candidatures.detail.start_date', 'Début')}
                             </label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full min-w-0 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            />
+                            <DateInput value={startDate} onChange={setStartDate} dense />
                         </div>
                         <div className="space-y-1 min-w-0">
                             <label className="block text-[11px] font-medium text-slate-400">
                                 {t('dashboard.candidatures.detail.end_date', 'Fin')}
                             </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full min-w-0 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            />
+                            <DateInput value={endDate} onChange={setEndDate} dense />
                         </div>
                     </div>
                     {dateError && <p className="text-xs text-rose-500">{dateError}</p>}

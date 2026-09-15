@@ -6,7 +6,7 @@ import ReclamationModal from './ReclamationModal';
 type Side = 'left' | 'right';
 
 const MOVE_THRESHOLD_PX = 6;
-const BUTTON_SIZE = 48;
+const BUTTON_SIZE = 56;
 const EDGE_MARGIN = 20;
 
 function clampY(y: number): number {
@@ -17,7 +17,7 @@ export default function HelpFloatingButton() {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [side, setSide] = useState<Side>('right');
-    const [y, setY] = useState(() => window.innerHeight - 68);
+    const [y, setY] = useState(() => window.innerHeight - 140);
     const [reduced, setReduced] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -76,18 +76,14 @@ export default function HelpFloatingButton() {
                 style={{ position: 'fixed', top: y, [side]: reduced ? 0 : EDGE_MARGIN, zIndex: 40 }}
                 aria-label={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
                 title={t('dashboard.reclamations.floating_button', "Contacter l'équipe")}
-                className={`bg-[#E2762F] hover:bg-[#D2651E] text-white shadow-lg shadow-orange-500/30 flex items-center justify-center touch-none cursor-pointer ${
+                className={`bg-[#E2762F] hover:bg-[#D2651E] text-white shadow-lg shadow-orange-500/30 rounded-full flex items-center justify-center touch-none cursor-pointer ${
                     isDragging ? '' : 'transition-all duration-200 ease-out'
-                } ${
-                    reduced
-                        ? `h-12 w-6 ${side === 'right' ? 'rounded-l-full' : 'rounded-r-full'}`
-                        : 'h-12 w-12 rounded-full'
-                }`}
+                } ${reduced ? 'h-14 w-7 sm:h-12 sm:w-6' : 'h-14 w-14 sm:h-12 sm:w-12'}`}
             >
                 {reduced ? (
                     side === 'right' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
                 ) : (
-                    <MessageCircleWarning className="h-5 w-5" />
+                    <MessageCircleWarning className="h-6 w-6 sm:h-5 sm:w-5" />
                 )}
             </button>
 

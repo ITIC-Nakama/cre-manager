@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { X, Loader2, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
+import DateInput from '../../../../components/basics/DateInput';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../../../hooks/useModalClose';
@@ -99,25 +100,13 @@ export default function ContractDateGateModal({ saving, currentContractTypeId, o
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.candidatures.student.form.start_date_label', 'Date de début du contrat')} <span className="text-rose-500">*</span>
                             </label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                disabled={saving}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70"
-                            />
+                            <DateInput value={startDate} onChange={setStartDate} disabled={saving} />
                         </div>
                         <div className="space-y-1.5 min-w-0">
                             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                 {t('dashboard.candidatures.student.form.end_date_label', 'Date de fin du contrat')}
                             </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                disabled={saving}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70"
-                            />
+                            <DateInput value={endDate} onChange={setEndDate} disabled={saving} />
                         </div>
                     </div>
 

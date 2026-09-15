@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { X, Loader2, Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
+import DateInput from '../../../../components/basics/DateInput';
 import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../../../hooks/useModalClose';
@@ -125,7 +126,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                                 disabled={saving}
                                 onChange={(e) => setEntreprise(e.target.value)}
                                 maxLength={LIMITS.entreprise.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                placeholder={t('dashboard.candidatures.student.form.entreprise_placeholder', 'Ex : Décathlon')}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
                                     fieldErrors.entreprise ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -141,7 +143,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                                 disabled={saving}
                                 onChange={(e) => setPoste(e.target.value)}
                                 maxLength={LIMITS.poste.max}
-                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                                placeholder={t('dashboard.candidatures.student.form.poste_placeholder', 'Ex : Développeur web')}
+                                className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
                                     fieldErrors.poste ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                                 }`}
                             />
@@ -171,30 +174,14 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.candidatures.student.form.start_date_label', 'Date de début du contrat')}
                                 </label>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    disabled={saving}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className={`w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
-                                        fieldErrors.startDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                    }`}
-                                />
+                                <DateInput value={startDate} onChange={setStartDate} disabled={saving} error={!!fieldErrors.startDate} />
                                 {fieldErrors.startDate && <p className="text-xs text-rose-500">{fieldErrors.startDate}</p>}
                             </div>
                             <div className="space-y-1.5 min-w-0">
                                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t('dashboard.candidatures.student.form.end_date_label', 'Date de fin du contrat')}
                                 </label>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    disabled={saving}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className={`w-full min-w-0 rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
-                                        fieldErrors.endDate ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-                                    }`}
-                                />
+                                <DateInput value={endDate} onChange={setEndDate} disabled={saving} error={!!fieldErrors.endDate} />
                                 {fieldErrors.endDate && <p className="text-xs text-rose-500">{fieldErrors.endDate}</p>}
                             </div>
                         </div>
@@ -228,7 +215,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                             disabled={saving}
                             onChange={(e) => setContact(e.target.value)}
                             maxLength={LIMITS.contact.max}
-                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
+                            placeholder={t('dashboard.candidatures.student.form.contact_placeholder', 'Nom, email ou téléphone du recruteur')}
+                            className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 ${
                                 fieldErrors.contact ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
                             }`}
                         />
@@ -244,7 +232,8 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                             disabled={saving}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none disabled:opacity-70"
+                            placeholder={t('dashboard.candidatures.student.form.notes_placeholder', 'Notes personnelles (optionnel)')}
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none disabled:opacity-70"
                         />
                     </div>
 

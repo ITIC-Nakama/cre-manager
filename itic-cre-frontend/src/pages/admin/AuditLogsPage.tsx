@@ -6,6 +6,7 @@ import { Search, Loader2, ShieldCheck, SlidersHorizontal, X } from 'lucide-react
 import { useAuditLogsInfinite } from '../../hooks/useAudit';
 import { AUDIT_ACTIONS, auditActionColor } from '../../utils/auditActionColors';
 import CustomSelect from '../../components/basics/CustomSelect';
+import DateInput from '../../components/basics/DateInput';
 import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
 import SortableTh, { toggleSort, type SortState } from '../../components/basics/SortableTh';
 
@@ -134,24 +135,10 @@ export default function AuditLogsPage() {
         />
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <label htmlFor="audit-from" className="sr-only">{t('dashboard.audit_page.from_date')}</label>
-          <input
-            id="audit-from"
-            type="date"
-            value={fromDate}
-            max={toDate || undefined}
-            onChange={(e) => handleFromDateChange(e.target.value)}
-            className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <DateInput id="audit-from" value={fromDate} max={toDate || undefined} onChange={handleFromDateChange} />
           <span>{t('dashboard.audit_page.date_separator')}</span>
           <label htmlFor="audit-to" className="sr-only">{t('dashboard.audit_page.to_date')}</label>
-          <input
-            id="audit-to"
-            type="date"
-            value={toDate}
-            min={fromDate || undefined}
-            onChange={(e) => handleToDateChange(e.target.value)}
-            className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <DateInput id="audit-to" value={toDate} min={fromDate || undefined} onChange={handleToDateChange} />
         </div>
         {isFetching && !isLoading && <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />}
       </div>
