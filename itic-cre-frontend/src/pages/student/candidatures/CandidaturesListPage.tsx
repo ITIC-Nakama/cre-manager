@@ -2,14 +2,15 @@ import { useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { toast } from 'sonner';
-import { Briefcase, FileSignature, Loader2, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useMyCandidaturesInfinite, useCreateCandidature, useDeclareContract } from '../../../hooks/useCandidatures';
+import { Briefcase, FileSignature, Handshake, Loader2, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useMyCandidaturesInfinite, useCreateCandidature } from '../../../hooks/useCandidatures';
 import { useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
 import type { CandidaturePayload } from '../../../types/models/Application';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../components/basics/FiltersPopover';
 import CandidatureCard from './components/CandidatureCard';
 import CandidatureFormModal from './components/CandidatureFormModal';
+import DeclareContractModal from './components/DeclareContractModal';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import { useScrollTopOnChange } from '../../../hooks/useScrollTopOnChange';
 import { isActiveContract, isCompleted } from './utils';
@@ -23,6 +24,7 @@ export default function CandidaturesListPage() {
     const [tab, setTab] = useState<Tab>('in_progress');
     useScrollTopOnChange(tab);
     const [formOpen, setFormOpen] = useState(false);
+    const [declareOpen, setDeclareOpen] = useState(false);
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -45,7 +47,6 @@ export default function CandidaturesListPage() {
     } = useMyCandidaturesInfinite(params);
 
     const createMutation = useCreateCandidature();
-    const declareContractMutation = useDeclareContract();
 
     const inProgress = useMemo(() => candidatures.filter((c) => !isCompleted(c)), [candidatures]);
     const completed = useMemo(() => candidatures.filter((c) => isCompleted(c)), [candidatures]);
@@ -100,20 +101,9 @@ export default function CandidaturesListPage() {
         setContractTypeFilter('');
     };
 
-    const handleCreate = async (payload: CandidaturePayload, declareContractNow?: boolean) => {
-        if (declareContractNow) {
-            await declareContractMutation.mutateAsync({
-                entreprise: payload.entreprise,
-                poste: payload.poste,
-                contractTypeId: payload.typeContratId as string,
-                startDate: payload.startDate as string,
-                endDate: payload.endDate,
-            });
-            toast.success(t('dashboard.candidatures.student.toast.contract_declared', 'Contrat déclaré — en attente de confirmation par votre conseiller'));
-        } else {
-            await createMutation.mutateAsync(payload);
-            toast.success(t('dashboard.candidatures.student.toast.created'));
-        }
+    const handleCreate = async (payload: CandidaturePayload) => {
+        await createMutation.mutateAsync(payload);
+        toast.success(t('dashboard.candidatures.student.toast.created'));
         setFormOpen(false);
     };
 
@@ -132,13 +122,22 @@ export default function CandidaturesListPage() {
                         {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
                     </p>
                 </div>
-                <button
-                    onClick={() => setFormOpen(true)}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-semibold transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
-                >
-                    <Plus className="h-4 w-4" />
-                    <span>{t('dashboard.candidatures.student.add_button')}</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <button
+                        onClick={() => setDeclareOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer w-full sm:w-auto"
+                    >
+                        <Handshake className="h-4 w-4" />
+                        <span>{t('dashboard.candidatures.student.declare_contract_button', "J'ai déjà un contrat")}</span>
+                    </button>
+                    <button
+                        onClick={() => setFormOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-semibold transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>{t('dashboard.candidatures.student.add_button')}</span>
+                    </button>
+                </div>
             </div>
 
             {/* Search + Filtres + Tabs (sticky) */}
@@ -273,10 +272,14 @@ export default function CandidaturesListPage() {
 
             {formOpen && (
                 <CandidatureFormModal
-                    saving={createMutation.isPending || declareContractMutation.isPending}
+                    saving={createMutation.isPending}
                     onClose={() => setFormOpen(false)}
                     onSave={handleCreate}
                 />
+            )}
+
+            {declareOpen && (
+                <DeclareContractModal onClose={() => setDeclareOpen(false)} />
             )}
         </div>
     );

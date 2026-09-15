@@ -143,8 +143,8 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                         <Handshake className="h-3.5 w-3.5" />
                         {t('dashboard.candidatures.detail.contract_dates', 'Dates du contrat')}
                     </p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1 min-w-0">
                             <label className="block text-[11px] font-medium text-slate-400">
                                 {t('dashboard.candidatures.detail.start_date', 'Début')}
                             </label>
@@ -152,10 +152,10 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full min-w-0 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 min-w-0">
                             <label className="block text-[11px] font-medium text-slate-400">
                                 {t('dashboard.candidatures.detail.end_date', 'Fin')}
                             </label>
@@ -163,7 +163,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full min-w-0 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
                     </div>

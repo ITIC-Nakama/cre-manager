@@ -524,6 +524,9 @@
         "subtitle_one": "{{count}} candidature suivie",
         "subtitle_other": "{{count}} candidatures suivies",
         "add_button": "Ajouter une candidature",
+        "declare_contract_button": "J'ai déjà un contrat",
+        "declare_contract_title": "Déclarer mon contrat",
+        "declare_contract_explanation": "Précisez votre entreprise, votre poste et vos dates de contrat. Votre conseiller devra valider cette déclaration.",
         "empty_in_progress": "Aucune candidature en cours.",
         "empty_completed": "Aucune candidature terminée.",
         "tabs": {
@@ -563,7 +566,6 @@
           "save": "Enregistrer",
           "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
           "save_error": "Échec de l'enregistrement de la candidature.",
-          "declare_contract_checkbox": "J'ai déjà obtenu ce contrat",
           "contract_type_required": "Le type de contrat est requis"
         },
         "toast": {

@@ -524,6 +524,9 @@
         "subtitle_one": "{{count}} application tracked",
         "subtitle_other": "{{count}} applications tracked",
         "add_button": "Add an application",
+        "declare_contract_button": "I already have a contract",
+        "declare_contract_title": "Declare my contract",
+        "declare_contract_explanation": "Enter your company, position, and contract dates. Your advisor will need to validate this declaration.",
         "empty_in_progress": "No applications in progress.",
         "empty_completed": "No completed applications.",
         "tabs": {
@@ -563,7 +566,6 @@
           "save": "Save",
           "length_error": "Must be between {{min}} and {{max}} characters.",
           "save_error": "Failed to save the application.",
-          "declare_contract_checkbox": "I already have this contract",
           "contract_type_required": "Contract type is required"
         },
         "toast": {
