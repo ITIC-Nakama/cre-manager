@@ -97,6 +97,12 @@ export function toggleScheduledSync(): Promise<ExternalJobboardStats> {
         .then((response) => unwrap<ExternalJobboardStats>(response));
 }
 
+export function updateSyncInterval(days: number): Promise<ExternalJobboardStats> {
+    return apiClient
+        .put('/jobboard/admin/external/scheduled-sync/interval', { days })
+        .then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
 export function updateExternalSourceCriteria(source: string, criteria: ExternalSourceCriteriaPayload): Promise<ExternalJobboardStats> {
     return apiClient
         .put(`/jobboard/admin/external/sources/${source}/criteria`, criteria)

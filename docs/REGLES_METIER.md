@@ -154,6 +154,15 @@ l'interface ITIC), soit d'une des 3 sources externes agrégées automatiquement 
 table et sont traitées de façon identique pour la recherche, le filtrage et la candidature ; seule
 la synchronisation et l'expiration diffèrent par source (voir plus bas).
 
+### Tri par défaut
+Les listes d'offres (`/jobboard/offers`, `/jobboard/offers/all` et les endpoints de recherche) sont
+triées par défaut sur `JobOffer.effectiveDate` décroissant (champ calculé,
+`coalesce(published_at, created_at)`) — la date réelle de publication chez la source externe, ou la
+date de création pour une offre `MANUAL` (`published_at` toujours `null` pour celles-ci). Trier sur
+`createdAt` seul aurait regroupé les offres par lot de synchronisation (toutes celles d'une même
+source insérées au même instant se retrouvent contiguës) plutôt que par ordre chronologique réel
+d'apparition, entrelacé entre les sources.
+
 ### Critères de recherche des sources externes — 100% configurables en base, jamais codés en dur
 Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`, `departments`,
 `keywords`, `category`), éditable par un `ADMIN` depuis Offres → Offres externes,
@@ -175,6 +184,12 @@ réglage global unique dans `jobboard_sync_settings` (une ligne `GLOBAL`, comme
 - Déclenchée automatiquement (`jobboard.sync.cron`, tous les jours à 2h par défaut) ou
   manuellement (`POST /jobboard/admin/external/sync`, `ADMIN` uniquement, réponse `202 Accepted` —
   asynchrone).
+- **Fréquence configurable (`jobboard_sync_settings.sync_interval_days`)** : le cron continue de
+  "tick" chaque jour à l'heure configurée, mais `ExternalJobSyncService.scheduledSync()` ne lance
+  réellement `syncAll()` que si au moins `syncIntervalDays` jours se sont écoulés depuis la fin de
+  la dernière synchro (`SyncLog.finishedAt`) — `PUT /jobboard/admin/external/scheduled-sync/interval`
+  (`ADMIN`). Permet une synchro tous les 2, 3, 7 jours... sans reconfigurer le cron Spring lui-même
+  (non modifiable à chaud). N'a pas d'effet si `scheduledSyncEnabled` est désactivé.
 - **Pagination réelle** par provider, jusqu'à `JOBBOARD_SYNC_MAX_PER_PROVIDER` offres par source et
   par synchronisation (config BDD, §11) :
   - `FRANCE_TRAVAIL` : boucle codeROME × nature de contrat × pages de 150 (`range=X-Y`), plafonné à

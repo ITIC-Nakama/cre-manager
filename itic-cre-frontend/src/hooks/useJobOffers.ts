@@ -19,6 +19,7 @@ import {
     triggerExternalJobboardSync,
     toggleExternalJobboardSource,
     toggleScheduledSync,
+    updateSyncInterval,
     updateExternalSourceCriteria,
     updateExcludedEmployers,
     fetchRomeCodesReference,
@@ -165,6 +166,14 @@ export function useToggleScheduledSync() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: () => toggleScheduledSync(),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
+export function useUpdateSyncInterval() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (days: number) => updateSyncInterval(days),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
     });
 }

@@ -126,6 +126,8 @@ export interface ExternalSourceCriteriaPayload {
 export interface ExternalJobboardStats {
     syncInProgress: boolean;
     scheduledSyncEnabled: boolean;
+    /** Nombre de jours entre deux synchronisations planifiées (1 = tous les jours). */
+    syncIntervalDays: number;
     /** Liste noire globale d'employeurs exclus (CSV), appliquée aux trois sources en une seule fois. */
     excludedEmployers: string | null;
     lastSync: ExternalSyncRun | null;

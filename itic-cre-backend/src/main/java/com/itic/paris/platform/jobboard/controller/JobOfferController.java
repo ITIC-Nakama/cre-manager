@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public class JobOfferController {
             @RequestParam(required = false) UUID sectorId,
             @RequestParam(required = false) String source,
             @RequestParam(required = false) String location,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "effectiveDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, source, location, pageable));
     }
 
@@ -76,7 +77,7 @@ public class JobOfferController {
             @RequestParam(required = false) String source,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String location,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "effectiveDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location, pageable));
     }
 
@@ -84,7 +85,7 @@ public class JobOfferController {
     @Operation(summary = "Rechercher des offres par entreprise")
     public ResponseEntity<Page<JobOfferDTO>> searchByCompany(
             @RequestParam String company,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "effectiveDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.searchByCompany(company, pageable));
     }
 
@@ -92,7 +93,7 @@ public class JobOfferController {
     @Operation(summary = "Rechercher des offres par intitulé de poste")
     public ResponseEntity<Page<JobOfferDTO>> searchByTitle(
             @RequestParam String title,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "effectiveDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.searchByTitle(title, pageable));
     }
 
@@ -100,7 +101,7 @@ public class JobOfferController {
     @Operation(summary = "Filtrer les offres par type de contrat")
     public ResponseEntity<Page<JobOfferDTO>> getByContractType(
             @PathVariable UUID contractTypeId,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "effectiveDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getByContractType(contractTypeId, pageable));
     }
 

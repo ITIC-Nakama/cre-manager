@@ -4,6 +4,7 @@ import com.itic.paris.platform.jobboard.external.dto.ExcludedEmployersDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalJobboardStatsDTO;
 import com.itic.paris.platform.jobboard.external.dto.ExternalSourceCriteriaDTO;
 import com.itic.paris.platform.jobboard.external.dto.ReferenceOptionDTO;
+import com.itic.paris.platform.jobboard.external.dto.SyncIntervalRequest;
 import com.itic.paris.platform.jobboard.external.provider.AdzunaProvider;
 import com.itic.paris.platform.jobboard.external.provider.FranceTravailProvider;
 import com.itic.paris.platform.jobboard.external.service.ExternalJobSyncService;
@@ -57,6 +58,12 @@ public class JobboardAdminController {
     @Operation(summary = "Activer/désactiver la synchronisation planifiée (nocturne) — sans effet sur le déclenchement manuel")
     public ResponseEntity<ExternalJobboardStatsDTO> toggleScheduledSync() {
         return ResponseEntity.ok(externalJobSyncService.toggleScheduledSync());
+    }
+
+    @PutMapping("/scheduled-sync/interval")
+    @Operation(summary = "Régler le nombre de jours entre deux synchronisations planifiées (1 = tous les jours)")
+    public ResponseEntity<ExternalJobboardStatsDTO> updateSyncInterval(@RequestBody SyncIntervalRequest request) {
+        return ResponseEntity.ok(externalJobSyncService.updateSyncInterval(request.days()));
     }
 
     @PutMapping("/sources/{source}/criteria")

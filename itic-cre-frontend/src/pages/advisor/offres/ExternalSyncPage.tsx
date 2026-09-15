@@ -9,6 +9,7 @@ import {
     useTriggerExternalJobboardSync,
     useToggleExternalJobboardSource,
     useToggleScheduledSync,
+    useUpdateSyncInterval,
     useUpdateExternalSourceCriteria,
     useUpdateExcludedEmployers,
     useRomeCodesReference,
@@ -16,6 +17,7 @@ import {
     useAdzunaCategoriesReference,
 } from '../../../hooks/useJobOffers';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import CustomSelect from '../../../components/basics/CustomSelect';
 import ExternalSourceDetail, { type CriteriaForm } from './components/ExternalSourceDetail';
 import type { ExternalSourceStat } from '../../../types/models/JobOffer';
 
@@ -47,6 +49,8 @@ export default function ExternalSyncPage() {
     const { data: adzunaCategoriesRef = [], isLoading: adzunaCategoriesRefLoading } = useAdzunaCategoriesReference();
     const toggleScheduledSyncMutation = useToggleScheduledSync();
     const scheduledSyncEnabled = stats?.scheduledSyncEnabled !== false;
+    const updateSyncIntervalMutation = useUpdateSyncInterval();
+    const syncIntervalDays = stats?.syncIntervalDays ?? 1;
     const excludedEmployersMutation = useUpdateExcludedEmployers();
 
     const [forms, setForms] = useState<Record<string, CriteriaForm>>({});
@@ -99,6 +103,22 @@ export default function ExternalSyncPage() {
             toast.success(scheduledSyncEnabled
                 ? t('dashboard.admin.jobboard_external.scheduled_sync_disabled', 'Synchronisation automatique désactivée.')
                 : t('dashboard.admin.jobboard_external.scheduled_sync_enabled', 'Synchronisation automatique activée.'));
+        } catch {
+            toast.error(t('dashboard.admin.jobboard_external.toast_toggle_error'));
+        }
+    };
+
+    const syncIntervalOptions = [1, 2, 3, 5, 7, 14, 30].map((days) => ({
+        value: String(days),
+        label: days === 1
+            ? t('dashboard.admin.jobboard_external.sync_interval_daily', 'Tous les jours')
+            : t('dashboard.admin.jobboard_external.sync_interval_days', { count: days, defaultValue: 'Tous les {{count}} jours' }),
+    }));
+
+    const handleSyncIntervalChange = async (value: string) => {
+        try {
+            await updateSyncIntervalMutation.mutateAsync(Number(value));
+            toast.success(t('dashboard.admin.jobboard_external.sync_interval_updated', 'Fréquence de synchronisation mise à jour.'));
         } catch {
             toast.error(t('dashboard.admin.jobboard_external.toast_toggle_error'));
         }
@@ -206,6 +226,13 @@ export default function ExternalSyncPage() {
                                 />
                             </button>
                         </label>
+                        <CustomSelect
+                            value={String(syncIntervalDays)}
+                            options={syncIntervalOptions}
+                            onChange={handleSyncIntervalChange}
+                            disabled={!scheduledSyncEnabled || updateSyncIntervalMutation.isPending}
+                            className="min-w-40"
+                        />
                         <button
                             onClick={handleSync}
                             disabled={syncing}

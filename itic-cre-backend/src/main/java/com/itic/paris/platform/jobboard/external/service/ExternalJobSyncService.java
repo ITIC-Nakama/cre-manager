@@ -63,11 +63,20 @@ public class ExternalJobSyncService {
 
     /** Sync automatique nocturne (cron configurable via jobboard.sync.cron) — désactivable
       * depuis l'admin (JobboardSyncSettings.scheduledSyncEnabled) sans affecter le déclenchement
-      * manuel, qui appelle syncAllAsync directement. */
+      * manuel, qui appelle syncAllAsync directement. Le cron "tick" tous les jours à l'heure
+      * configurée quoi qu'il arrive ; c'est isScheduledSyncDue() qui décide si l'exécution est
+      * vraiment due, selon l'intervalle en jours choisi par l'admin (JobboardSyncSettings.
+      * syncIntervalDays) — Spring @Scheduled(cron=...) ne peut pas être reconfiguré à chaud pour
+      * représenter directement "tous les N jours" sans dépendance supplémentaire. */
     @Scheduled(cron = "${jobboard.sync.cron:0 0 2 * * *}")
     public void scheduledSync() {
         if (!isScheduledSyncEnabled()) {
             log.info("[JOBOARD SYNC] Synchronisation planifiée désactivée par l'admin, appel ignoré.");
+            return;
+        }
+        if (!isScheduledSyncDue()) {
+            log.info("[JOBOARD SYNC] Intervalle configuré ({} jour(s)) pas encore écoulé depuis la dernière synchro, appel ignoré.",
+                    getOrCreateSyncSettings().getSyncIntervalDays());
             return;
         }
         syncAll();
@@ -77,12 +86,34 @@ public class ExternalJobSyncService {
         return getOrCreateSyncSettings().getScheduledSyncEnabled();
     }
 
+    private boolean isScheduledSyncDue() {
+        int intervalDays = getOrCreateSyncSettings().getSyncIntervalDays();
+        if (intervalDays <= 1) {
+            return true;
+        }
+        return syncLogRepository.findTopByOrderByFinishedAtDesc()
+                .map(lastLog -> lastLog.getFinishedAt() == null
+                        || lastLog.getFinishedAt().isBefore(Instant.now().minus(intervalDays, ChronoUnit.DAYS)))
+                .orElse(true);
+    }
+
     public ExternalJobboardStatsDTO toggleScheduledSync() {
         JobboardSyncSettings settings = getOrCreateSyncSettings();
         boolean nowEnabled = !settings.getScheduledSyncEnabled();
         settings.setScheduledSyncEnabled(nowEnabled);
         syncSettingsRepository.save(settings);
         log.info("[JOBOARD SYNC] Synchronisation planifiée {} par l'admin", nowEnabled ? "activée" : "désactivée");
+        return getStats();
+    }
+
+    public ExternalJobboardStatsDTO updateSyncInterval(int days) {
+        if (days < 1) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_SYNC_INTERVAL_DAYS);
+        }
+        JobboardSyncSettings settings = getOrCreateSyncSettings();
+        settings.setSyncIntervalDays(days);
+        syncSettingsRepository.save(settings);
+        log.info("[JOBOARD SYNC] Intervalle de synchronisation planifiée réglé à {} jour(s) par l'admin", days);
         return getStats();
     }
 
@@ -303,7 +334,7 @@ public class ExternalJobSyncService {
 
         JobboardSyncSettings settings = getOrCreateSyncSettings();
         return new ExternalJobboardStatsDTO(isSyncInProgress(), settings.getScheduledSyncEnabled(),
-                settings.getExcludedEmployers(), lastSync, sources);
+                settings.getSyncIntervalDays(), settings.getExcludedEmployers(), lastSync, sources);
     }
 
     /** Répartition des offres actives d'une source par type de contrat, pour vérifier en direct

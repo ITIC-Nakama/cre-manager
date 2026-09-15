@@ -31,6 +31,14 @@ public class JobOffer {
     @Formula("(select count(*) from job_applications ja where ja.job_offer_id = id)")
     private int applicationCount;
 
+    // Champ calcule en lecture seule, expose uniquement pour permettre de trier les offres par
+    // date reelle (Sort.by("effectiveDate")) sans que les offres MANUAL (published_at toujours
+    // null) se retrouvent artificiellement groupees en tete ou en queue de liste : coalesce vers
+    // created_at pour elles, comme le fait deja le reste du code (voir commentaire sur publishedAt
+    // plus bas).
+    @Formula("coalesce(published_at, created_at)")
+    private Instant effectiveDate;
+
     @NotNull
     @Size(min = 5, max = 200)
     @Column(nullable = false)

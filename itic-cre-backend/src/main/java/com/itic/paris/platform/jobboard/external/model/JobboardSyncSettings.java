@@ -30,6 +30,14 @@ public class JobboardSyncSettings {
     @Column(name = "scheduled_sync_enabled", nullable = false)
     private Boolean scheduledSyncEnabled = true;
 
+    /** Nombre de jours entre deux synchronisations planifiées (1 = chaque jour, la valeur par
+      * défaut historique). Le cron (ExternalJobSyncService.scheduledSync) continue de "tick" tous
+      * les jours à l'heure configurée ; c'est ce compteur qui décide si une exécution est vraiment
+      * due, en comparant à la date de la dernière synchro réussie — pas besoin de reconfigurer le
+      * cron lui-même (Spring @Scheduled ne permet pas de le changer à chaud facilement). */
+    @Column(name = "sync_interval_days", nullable = false)
+    private Integer syncIntervalDays = 1;
+
     /**
      * Noms d'employeurs à exclure (CSV, comparaison insensible à la casse, sous-chaîne), appliqué
      * aux trois sources externes. Réglage global (et non plus par source) : filtrer les officines
