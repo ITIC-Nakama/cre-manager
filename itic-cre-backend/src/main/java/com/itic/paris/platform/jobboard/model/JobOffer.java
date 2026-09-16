@@ -39,6 +39,13 @@ public class JobOffer {
     @Formula("coalesce(published_at, created_at)")
     private Instant effectiveDate;
 
+    // Champ calcule en lecture seule, expose uniquement pour permettre de prioriser Stage/Alternance
+    // dans le tri (Sort.by("priorityContract", "effectiveDate"), les deux en DESC) sans changer le
+    // tri chronologique au sein de chaque groupe — 1 = Stage/Alternance, 0 = tout le reste.
+    @Formula("(select case when ct.label in ('Stage','Alternance') then 1 else 0 end " +
+            "from contract_types ct where ct.id = contract_type_id)")
+    private int priorityContract;
+
     @NotNull
     @Size(min = 5, max = 200)
     @Column(nullable = false)

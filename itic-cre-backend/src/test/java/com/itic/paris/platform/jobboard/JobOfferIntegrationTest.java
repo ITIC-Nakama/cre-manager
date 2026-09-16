@@ -238,6 +238,46 @@ public class JobOfferIntegrationTest {
                 .containsExactly("Offre manuelle recente", "Offre externe recente", "Offre externe ancienne");
     }
 
+    /**
+     * Sort.by("priorityContract", "effectiveDate") — priorityContract (@Formula sur JobOffer)
+     * doit faire passer une offre Stage/Alternance avant une offre CDI/CDD plus recente, tout en
+     * gardant le tri chronologique a l'interieur de chaque groupe (voir JobOfferController, sort
+     * par defaut de /jobboard/offers).
+     */
+    @Test
+    public void testActiveOffersPrioritizeStageAndAlternanceOverMoreRecentOtherContracts() {
+        ContractType stage = contractTypeRepository.findAll().stream()
+                .filter(ct -> ct.getLabel().equals("Stage")).findFirst().orElseThrow();
+
+        Instant now = Instant.now();
+
+        JobOffer recentCdi = new JobOffer();
+        recentCdi.setTitle("Offre CDI recente");
+        recentCdi.setCompany("Externe SA");
+        recentCdi.setDescription("Description CDI recente");
+        recentCdi.setContractType(cdiContract);
+        recentCdi.setSource("ADZUNA");
+        recentCdi.setSourceId("adzuna:priority-cdi");
+        recentCdi.setPublishedAt(now);
+        jobOfferRepository.saveAndFlush(recentCdi);
+
+        JobOffer oldStage = new JobOffer();
+        oldStage.setTitle("Offre stage ancienne");
+        oldStage.setCompany("Externe SA");
+        oldStage.setDescription("Description stage ancienne");
+        oldStage.setContractType(stage);
+        oldStage.setSource("ADZUNA");
+        oldStage.setSourceId("adzuna:priority-stage");
+        oldStage.setPublishedAt(now.minus(30, ChronoUnit.DAYS));
+        jobOfferRepository.saveAndFlush(oldStage);
+
+        Page<JobOfferDTO> page = jobOfferService.getActiveOffers(null, null, null, "ALL", null,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "priorityContract", "effectiveDate")));
+
+        assertThat(page.getContent().stream().map(JobOfferDTO::getTitle))
+                .containsExactly("Offre stage ancienne", "Offre CDI recente");
+    }
+
     @Test
     public void testStudentJobApplication() {
         CreateJobOfferRequest request = new CreateJobOfferRequest();

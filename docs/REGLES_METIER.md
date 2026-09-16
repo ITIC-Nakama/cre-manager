@@ -156,12 +156,18 @@ la synchronisation et l'expiration diffèrent par source (voir plus bas).
 
 ### Tri par défaut
 Les listes d'offres (`/jobboard/offers`, `/jobboard/offers/all` et les endpoints de recherche) sont
-triées par défaut sur `JobOffer.effectiveDate` décroissant (champ calculé,
-`coalesce(published_at, created_at)`) — la date réelle de publication chez la source externe, ou la
-date de création pour une offre `MANUAL` (`published_at` toujours `null` pour celles-ci). Trier sur
-`createdAt` seul aurait regroupé les offres par lot de synchronisation (toutes celles d'une même
-source insérées au même instant se retrouvent contiguës) plutôt que par ordre chronologique réel
-d'apparition, entrelacé entre les sources.
+triées par défaut sur `JobOffer.priorityContract` puis `JobOffer.effectiveDate`, tous deux
+décroissants (`Sort.by(DESC, "priorityContract", "effectiveDate")`, deux champs calculés) :
+- `effectiveDate` = `coalesce(published_at, created_at)` — la date réelle de publication chez la
+  source externe, ou la date de création pour une offre `MANUAL` (`published_at` toujours `null`
+  pour celles-ci). Trier sur `createdAt` seul aurait regroupé les offres par lot de synchronisation
+  (toutes celles d'une même source insérées au même instant se retrouvent contiguës) plutôt que par
+  ordre chronologique réel d'apparition, entrelacé entre les sources.
+- `priorityContract` = `1` si le type de contrat est `Stage` ou `Alternance`, `0` sinon — fait
+  passer ces offres avant toute offre CDI/CDD, même plus récente ; le tri par date reste appliqué
+  à l'intérieur de chaque groupe (le plus récent Stage/Alternance en tête, puis le plus récent
+  CDI/CDD). Reflète la même priorité que celle déjà appliquée côté quota de synchronisation
+  France Travail (2/3 alternance+stage / 1/3 CDI+CDD, voir `FranceTravailProvider.SEARCH_BUCKETS`).
 
 ### Critères de recherche des sources externes — 100% configurables en base, jamais codés en dur
 Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`, `departments`,
