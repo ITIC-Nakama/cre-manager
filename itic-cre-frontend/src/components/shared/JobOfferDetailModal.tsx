@@ -194,22 +194,20 @@ export default function JobOfferDetailModal({
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        {offer.externalLink && (
-                            <a
-                                href={offer.externalLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 active:scale-95 text-sm font-medium transition-all"
-                            >
-                                <ExternalLink className="h-4 w-4 text-slate-400" />
-                                {t('dashboard.offres.actions.view_link', "Voir l'offre originale")}
-                            </a>
-                        )}
-                    </div>
+                <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    {offer.externalLink && (
+                        <a
+                            href={offer.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 active:scale-95 text-sm font-medium transition-all"
+                        >
+                            <ExternalLink className="h-4 w-4 text-slate-400" />
+                            {t('dashboard.offres.actions.view_link', "Voir l'offre originale")}
+                        </a>
+                    )}
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
                         <button
                             onClick={onClose}
                             className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-all cursor-pointer"
