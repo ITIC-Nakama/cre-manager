@@ -277,7 +277,7 @@ export default function ProfileCard() {
               </div>
             </div>
             <div className="inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40">
-              <Zap className="h-11 w-11 text-indigo-600 dark:text-indigo-400 shrink-0" strokeWidth={2} />
+              <Zap className="h-8 w-8 text-indigo-600 dark:text-indigo-400 shrink-0" strokeWidth={2} />
               <div className="flex flex-col leading-tight">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-500/70 dark:text-indigo-500/60">
                   {t('dashboard.parametres.profile.stat_xp_label', 'Expérience')}
@@ -288,7 +288,7 @@ export default function ProfileCard() {
               </div>
             </div>
             <div className="inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40">
-              <Star className="h-11 w-11 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2} />
+              <Star className="h-8 w-8 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2} />
               <div className="flex flex-col leading-tight">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-500/70 dark:text-emerald-500/60">
                   {t('dashboard.parametres.profile.stat_rank_label', 'Classement')}
