@@ -151,7 +151,9 @@ export default function StudentDashboard() {
           {data && (
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-6xl leading-none">{data.gamification.grade.icone}</span>
+                <span className="flex items-center justify-center h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 text-4xl leading-none shrink-0">
+                  {data.gamification.grade.icone}
+                </span>
                 <div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">{data.gamification.grade.nom}</p>
                   <p className="text-xs text-slate-400">{data.gamification.xpTotal} XP</p>

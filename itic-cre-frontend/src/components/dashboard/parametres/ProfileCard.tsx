@@ -256,30 +256,50 @@ export default function ProfileCard() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs text-slate-400">{user.email}</p>
-            {isStudent && dashboardSummary && (
-              <div className="flex flex-wrap items-center gap-2.5 mt-3">
-                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-sm font-bold border border-amber-100 dark:border-amber-900/40">
-                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 text-xl leading-none">
-                    {dashboardSummary.gamification.grade.icone}
-                  </span>
-                  {dashboardSummary.gamification.grade.nom}
-                </span>
-                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 text-sm font-bold border border-indigo-100 dark:border-indigo-900/40">
-                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                    <Zap className="h-5 w-5" />
-                  </span>
-                  {dashboardSummary.gamification.xpTotal} XP
-                </span>
-                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm font-bold border border-emerald-100 dark:border-emerald-900/40">
-                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
-                    <Star className="h-5 w-5" />
-                  </span>
-                  {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
-                </span>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Bloc de texte a deux lignes a droite de l'icone — sa hauteur n'est jamais bridee
+          * par une seule ligne de texte a cote. Chips a largeur de contenu, pas etirees. */}
+        {isStudent && dashboardSummary && (
+          <div className="flex flex-wrap gap-2.5">
+            <div className="inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40">
+              <span className="flex items-center justify-center h-8 w-8 text-2xl leading-none shrink-0">
+                {dashboardSummary.gamification.grade.icone}
+              </span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-500/70 dark:text-amber-500/60">
+                  {t('dashboard.parametres.profile.stat_grade_label', 'Grade')}
+                </span>
+                <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                  {dashboardSummary.gamification.grade.nom}
+                </span>
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40">
+              <Zap className="h-8 w-8 text-indigo-600 dark:text-indigo-400 shrink-0" strokeWidth={2} />
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-500/70 dark:text-indigo-500/60">
+                  {t('dashboard.parametres.profile.stat_xp_label', 'Expérience')}
+                </span>
+                <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
+                  {dashboardSummary.gamification.xpTotal} XP
+                </span>
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40">
+              <Star className="h-8 w-8 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2} />
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-500/70 dark:text-emerald-500/60">
+                  {t('dashboard.parametres.profile.stat_rank_label', 'Classement')}
+                </span>
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                  #{dashboardSummary.ranking.rank} / {dashboardSummary.ranking.totalStudents}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
