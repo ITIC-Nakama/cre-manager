@@ -110,6 +110,15 @@ export default function EtudiantsFilters({
                 className="min-w-48"
             />
 
+            {/* Note (etoiles) — sorti du panneau "Filtres" a la demande de l'utilisateur, reste visible. */}
+            <CustomSelect
+                value={starredFilter}
+                options={starredFilterOptions}
+                onChange={(value) => onStarredFilterChange(value as StarredFilter)}
+                icon={<Star className="h-4 w-4 text-slate-400" />}
+                className="min-w-40"
+            />
+
             {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de
               * surcharger la barre avec 6+ controles affiches en permanence. */}
             <FiltersPopover activeCount={activeFilterCount} onReset={onReset}>
@@ -151,19 +160,6 @@ export default function EtudiantsFilters({
                         options={contractFilterOptions}
                         onChange={(value) => onContractFilterChange(value as ContractFilter)}
                         icon={<Handshake className="h-4 w-4 text-slate-400" />}
-                        className="w-full"
-                    />
-                </div>
-
-                <div className="py-3 first:pt-3 last:pb-3">
-                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-                        {t('dashboard.etudiants.filter_starred_label', 'Note')}
-                    </label>
-                    <CustomSelect
-                        value={starredFilter}
-                        options={starredFilterOptions}
-                        onChange={(value) => onStarredFilterChange(value as StarredFilter)}
-                        icon={<Star className="h-4 w-4 text-slate-400" />}
                         className="w-full"
                     />
                 </div>
