@@ -64,6 +64,13 @@ public class StudentSpecification {
                 subPredicates.add(cb.lessThan(appRoot.get("dateModification"), staleThreshold));
             }
 
+            subquery.where(subPredicates.toArray(new Predicate[0]));
+            predicates.add(cb.exists(subquery));
+
+            // Recherche independante du statut/type/stale : un etudiant peut matcher via une
+            // candidature differente de celle qui satisfait le filtre statut (ex: recherche
+            // "Air France" sur une candidature "Entretien passe" alors que le filtre porte sur
+            // une autre candidature "Offre recue" du meme etudiant).
             String search = criteria.getSearch();
             if (search != null && !search.trim().isEmpty()) {
                 String searchLike = "%" + search.trim().toLowerCase() + "%";
@@ -72,19 +79,25 @@ public class StudentSpecification {
                         cb.lower(root.get("lastName"))
                 );
 
-                Predicate searchPredicate = cb.or(
+                Subquery<UUID> searchSubquery = query.subquery(UUID.class);
+                Root<Application> searchAppRoot = searchSubquery.from(Application.class);
+                searchSubquery.select(searchAppRoot.get("id"));
+                searchSubquery.where(
+                        cb.equal(searchAppRoot.get("student"), root),
+                        cb.or(
+                                cb.like(cb.lower(searchAppRoot.get("entreprise")), searchLike),
+                                cb.like(cb.lower(searchAppRoot.get("poste")), searchLike)
+                        )
+                );
+
+                predicates.add(cb.or(
                         cb.like(cb.lower(root.get("firstName")), searchLike),
                         cb.like(cb.lower(root.get("lastName")), searchLike),
                         cb.like(fullName, searchLike),
                         cb.like(cb.lower(root.get("email")), searchLike),
-                        cb.like(cb.lower(appRoot.get("entreprise")), searchLike),
-                        cb.like(cb.lower(appRoot.get("poste")), searchLike)
-                );
-                subPredicates.add(searchPredicate);
+                        cb.exists(searchSubquery)
+                ));
             }
-
-            subquery.where(subPredicates.toArray(new Predicate[0]));
-            predicates.add(cb.exists(subquery));
 
             if (criteria.getUnderContract() != null) {
                 predicates.add(underContractPredicate(root, query, cb, criteria.getUnderContract()));

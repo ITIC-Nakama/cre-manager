@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
 
-export type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
+export type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'has-cv' | 'no-cv';
 export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | 'needs_verification';
 export type StarredFilter = 'all' | 'starred' | 'unstarred';
 

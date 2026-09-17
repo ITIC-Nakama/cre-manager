@@ -120,6 +120,7 @@ export default function EtudiantsPage() {
         { value: 'active', label: t('dashboard.etudiants.filter_active') },
         { value: 'inactive', label: t('dashboard.etudiants.filter_inactive') },
         { value: 'stale', label: t('dashboard.etudiants.filter_stale') },
+        { value: 'has-cv', label: t('dashboard.etudiants.filter_has_cv') },
         { value: 'no-cv', label: t('dashboard.etudiants.filter_no_cv') },
     ], [t]);
 
@@ -178,7 +179,7 @@ export default function EtudiantsPage() {
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
         isActive: filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : undefined,
-        hasCv: filterStatus === 'no-cv' ? false : undefined,
+        hasCv: filterStatus === 'has-cv' ? true : filterStatus === 'no-cv' ? false : undefined,
         hasStale: filterStatus === 'stale' ? true : undefined,
         promotionId: promotionFilter || undefined,
         studyYear: studyYearFilter ? Number(studyYearFilter) : undefined,

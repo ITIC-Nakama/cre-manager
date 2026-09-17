@@ -354,6 +354,7 @@
       "filter_active": "Active",
       "filter_inactive": "Inactive",
       "filter_stale": "Late applications",
+      "filter_has_cv": "Has CV",
       "filter_no_cv": "No CV",
       "filter_show_anonymized": "Show deleted accounts (GDPR)",
       "filter_all_promotions": "All cohorts",

@@ -354,6 +354,7 @@
       "filter_active": "Actifs",
       "filter_inactive": "Inactifs",
       "filter_stale": "Candidatures en retard",
+      "filter_has_cv": "Avec CV",
       "filter_no_cv": "Sans CV",
       "filter_show_anonymized": "Afficher les comptes supprimés (RGPD)",
       "filter_all_promotions": "Toutes les promotions",
