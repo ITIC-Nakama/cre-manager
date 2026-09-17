@@ -80,7 +80,7 @@ class CVSpecificationIntegrationTest {
     @DisplayName("Should filter CVs by search matching student name")
     void testFilterBySearch() {
         Page<CV> result = cvRepository.findAll(
-                CVSpecification.withFilters(null, "sophie", null),
+                CVSpecification.withFilters(null, "sophie", null, null),
                 PageRequest.of(0, 10)
         );
 
@@ -122,11 +122,48 @@ class CVSpecificationIntegrationTest {
         cvRepository.save(otherCv);
 
         Page<CV> result = cvRepository.findAll(
-                CVSpecification.withFilters(null, null, advisor.getId()),
+                CVSpecification.withFilters(null, null, advisor.getId(), null),
                 PageRequest.of(0, 10)
         );
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getFilePath()).isEqualTo("/uploads/cv_sophie.pdf");
+    }
+
+    @Test
+    @DisplayName("Should filter CVs by whether the owning student is starred")
+    void testFilterByStarred() {
+        student.setStarRating(2);
+        studentRepository.save(student);
+
+        Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);
+        Student unratedStudent = new Student();
+        unratedStudent.setFirstName("Marc");
+        unratedStudent.setLastName("Dupuis");
+        unratedStudent.setEmail("marc.dupuis.cvspec-starred@test.com");
+        unratedStudent.setPassword("Password123!");
+        unratedStudent.setRole(studentRole);
+        unratedStudent.setActive(true);
+        unratedStudent = studentRepository.save(unratedStudent);
+
+        CVStatut statut = cvStatutRepository.findAll().get(0);
+        CV otherCv = new CV();
+        otherCv.setStudent(unratedStudent);
+        otherCv.setFilePath("/uploads/cv_marc_unrated.pdf");
+        otherCv.setStatut(statut);
+        otherCv.setUploadedAt(Instant.now());
+        cvRepository.save(otherCv);
+
+        Page<CV> starred = cvRepository.findAll(
+                CVSpecification.withFilters(null, null, null, true),
+                PageRequest.of(0, 10)
+        );
+        assertThat(starred.getContent()).extracting(CV::getFilePath).containsExactly("/uploads/cv_sophie.pdf");
+
+        Page<CV> unstarred = cvRepository.findAll(
+                CVSpecification.withFilters(null, null, null, false),
+                PageRequest.of(0, 10)
+        );
+        assertThat(unstarred.getContent()).extracting(CV::getFilePath).containsExactly("/uploads/cv_marc_unrated.pdf");
     }
 }

@@ -5,7 +5,7 @@ import {
     GraduationCap, FileSignature, Handshake, Users, Star,
     Download, X,
 } from 'lucide-react';
-import type { ContractFilter } from '../etudiants/components/EtudiantsFilters';
+import type { ContractFilter, StarredFilter } from '../etudiants/components/EtudiantsFilters';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useApplicationGroupedListInfinite, useApplicationStatuses, useContractTypes } from '../../../hooks/useApplications';
@@ -39,6 +39,7 @@ export default function CandidaturesPage() {
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [staleOnly, setStaleOnly] = useState(false);
+    const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
     // Par defaut on ecarte les etudiants deja sous contrat, comme sur la liste des etudiants.
     const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
     // Id plutot que l'objet lui-meme : le drawer doit refleter les donnees a jour (ex: verification
@@ -115,6 +116,12 @@ export default function CandidaturesPage() {
         { value: 'all', label: t('dashboard.etudiants.filter_contract_all', 'Tous') },
     ], [t]);
 
+    const starredFilterOptions = useMemo(() => [
+        { value: 'all', label: t('dashboard.etudiants.filter_starred_all', 'Tous') },
+        { value: 'starred', label: t('dashboard.etudiants.filter_starred_yes', 'Étoilés') },
+        { value: 'unstarred', label: t('dashboard.etudiants.filter_starred_no', 'Non étoilés') },
+    ], [t]);
+
     const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
@@ -126,7 +133,8 @@ export default function CandidaturesPage() {
         advisorId: advisorFilter || undefined,
         underContract: contractFilter === 'under_contract' ? true : contractFilter === 'not_under_contract' ? false : undefined,
         needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
-    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter]);
+        starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter, starredFilter]);
 
     const {
         items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -165,6 +173,10 @@ export default function CandidaturesPage() {
         setAdvisorFilter(value);
     };
 
+    const handleStarredFilterChange = (value: StarredFilter) => {
+        setStarredFilter(value);
+    };
+
     // Filtres regroupes dans le panneau "Filtres" (tout sauf recherche/statut, restes visibles) —
     // "actif" = valeur qui s'ecarte du defaut de ce champ pour le role courant, meme principe
     // qu'EtudiantsPage.
@@ -182,6 +194,7 @@ export default function CandidaturesPage() {
         setContractFilter('not_under_contract');
         setAdvisorFilter(!isAdmin && currentUser ? String(currentUser.id) : '');
         setStaleOnly(false);
+        setStarredFilter('all');
     };
 
     return (
@@ -238,6 +251,16 @@ export default function CandidaturesPage() {
                     onChange={handleStatusChange}
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
                     className="min-w-48"
+                />
+
+                {/* Note (etoiles) — visible directement, comme sur la page Etudiants, pour se
+                  * combiner avec le select Statut sans passer par le panneau. */}
+                <CustomSelect
+                    value={starredFilter}
+                    options={starredFilterOptions}
+                    onChange={(value) => handleStarredFilterChange(value as StarredFilter)}
+                    icon={<Star className="h-4 w-4 text-slate-400" />}
+                    className="min-w-40"
                 />
 
                 {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de

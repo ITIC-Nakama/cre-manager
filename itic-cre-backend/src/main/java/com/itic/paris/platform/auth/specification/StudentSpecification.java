@@ -94,6 +94,13 @@ public class StudentSpecification {
                 predicates.add(needsContractVerificationPredicate(root, query, cb));
             }
 
+            // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
+            if (criteria.getStarred() != null) {
+                predicates.add(Boolean.TRUE.equals(criteria.getStarred())
+                        ? cb.isNotNull(root.get("starRating"))
+                        : cb.isNull(root.get("starRating")));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -182,8 +189,9 @@ public class StudentSpecification {
                 }
             }
 
-            // Has Stale applications filter
-            if (Boolean.TRUE.equals(criteria.getHasStale()) && staleThreshold != null) {
+            // Has Stale applications filter — symetrique au filtre hasCv juste au-dessus
+            // (jusque-la seul le cas TRUE etait gere, un hasStale=false n'avait aucun effet).
+            if (criteria.getHasStale() != null && staleThreshold != null) {
                 Subquery<UUID> staleSubquery = query.subquery(UUID.class);
                 Root<Application> appRoot = staleSubquery.from(Application.class);
                 Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
@@ -194,7 +202,10 @@ public class StudentSpecification {
                         cb.isTrue(statusJoin.get("declencheAlerte")),
                         cb.lessThan(appRoot.get("dateModification"), staleThreshold)
                 );
-                predicates.add(cb.exists(staleSubquery));
+
+                predicates.add(Boolean.TRUE.equals(criteria.getHasStale())
+                        ? cb.exists(staleSubquery)
+                        : cb.not(cb.exists(staleSubquery)));
             }
 
             // Under-contract filter

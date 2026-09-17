@@ -193,11 +193,12 @@ public class DashboardController {
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) Boolean underContract,
             @RequestParam(required = false) Boolean needsContractVerification,
+            @RequestParam(required = false) Boolean starred,
             @PageableDefault(size = 20) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
-                .underContract(underContract).needsContractVerification(needsContractVerification)
+                .underContract(underContract).needsContractVerification(needsContractVerification).starred(starred)
                 .build();
         return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }

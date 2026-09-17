@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class CVSpecification {
 
-    public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId) {
+    public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -36,6 +36,13 @@ public class CVSpecification {
                         cb.like(cb.lower(studentJoin.get("lastName")), searchLike),
                         cb.like(cb.lower(studentJoin.get("email")), searchLike)
                 ));
+            }
+
+            // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
+            if (starred != null) {
+                predicates.add(Boolean.TRUE.equals(starred)
+                        ? cb.isNotNull(studentJoin.get("starRating"))
+                        : cb.isNull(studentJoin.get("starRating")));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

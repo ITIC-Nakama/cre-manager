@@ -196,11 +196,12 @@ export default function EtudiantsPage() {
 
     // Filtres regroupes dans le panneau "Filtres" (tout sauf recherche/statut, restes visibles) —
     // "actif" = valeur qui s'ecarte du defaut de ce champ pour le role courant.
+    // starredFilter n'est plus compte ici : sorti du panneau "Filtres" vers sa propre pastille
+    // toujours visible dans la barre, son propre select porte deja sa valeur active.
     const activeFilterCount = [
         promotionFilter,
         studyYearFilter,
         contractFilter !== 'not_under_contract' ? contractFilter : '',
-        starredFilter !== 'all' ? starredFilter : '',
         isAdmin ? advisorFilter : (advisorFilter !== currentUserId ? advisorFilter : ''),
         includeAnonymized ? 'anon' : '',
     ].filter(Boolean).length;

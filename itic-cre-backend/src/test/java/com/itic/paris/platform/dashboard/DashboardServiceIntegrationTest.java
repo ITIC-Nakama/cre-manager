@@ -14,6 +14,7 @@ import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.dashboard.service.ApplicationReportingService;
 import com.itic.paris.platform.dashboard.service.DashboardOverviewService;
 import com.itic.paris.platform.dashboard.service.StudentReportingService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +54,9 @@ public class DashboardServiceIntegrationTest {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private Student activeStudent;
     private Student inactiveStudent;
@@ -218,6 +223,52 @@ public class DashboardServiceIntegrationTest {
                 org.springframework.data.domain.Pageable.unpaged()
         );
         assertThat(unstarred.getContent()).extracting(row -> row.get("id"))
+                .contains(inactiveStudent.getId())
+                .doesNotContain(activeStudent.getId());
+    }
+
+    /**
+     * hasStale ne gerait jusque-la que le cas TRUE — un hasStale=false n'avait aucun effet
+     * (StudentSpecification). Verifie que les deux sens fonctionnent desormais, symetriquement
+     * a hasCv.
+     */
+    @Test
+    public void testHasStaleFilterSupportsBothTrueAndFalse() {
+        ApplicationStatus alertingStatus = applicationStatusRepository.findAll().stream()
+                .filter(ApplicationStatus::getDeclencheAlerte)
+                .findFirst().orElseThrow();
+
+        // dateModification est @UpdateTimestamp — toute valeur passee a l'insertion est ecrasee
+        // par "maintenant" par Hibernate. On sauvegarde normalement puis on triche par une requete
+        // SQL directe pour la faire reculer dans le temps, comme le ferait une vraie candidature
+        // stagnante depuis des semaines.
+        Application staleApp = new Application();
+        staleApp.setStudent(activeStudent);
+        staleApp.setEntreprise("StaleCorp");
+        staleApp.setPoste("Dev");
+        staleApp.setStatus(alertingStatus);
+        staleApp = applicationRepository.saveAndFlush(staleApp);
+
+        entityManager.createNativeQuery("UPDATE applications SET date_modification = :date WHERE id = :id")
+                .setParameter("date", Instant.now().minus(30, ChronoUnit.DAYS))
+                .setParameter("id", staleApp.getId())
+                .executeUpdate();
+        entityManager.clear();
+        // inactiveStudent n'a qu'une candidature recente (inactiveApp, non stale)
+
+        Page<Map<String, Object>> stale = studentReportingService.getStudentList(
+                StudentFilterCriteria.builder().hasStale(true).build(),
+                org.springframework.data.domain.Pageable.unpaged()
+        );
+        assertThat(stale.getContent()).extracting(row -> row.get("id"))
+                .contains(activeStudent.getId())
+                .doesNotContain(inactiveStudent.getId());
+
+        Page<Map<String, Object>> notStale = studentReportingService.getStudentList(
+                StudentFilterCriteria.builder().hasStale(false).build(),
+                org.springframework.data.domain.Pageable.unpaged()
+        );
+        assertThat(notStale.getContent()).extracting(row -> row.get("id"))
                 .contains(inactiveStudent.getId())
                 .doesNotContain(activeStudent.getId());
     }

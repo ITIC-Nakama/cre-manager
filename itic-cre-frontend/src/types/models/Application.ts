@@ -130,6 +130,7 @@ export interface ApplicationListParams {
     advisorId?: string;
     underContract?: boolean;
     needsContractVerification?: boolean;
+    starred?: boolean;
 }
 
 export interface StudentGroupDTO {

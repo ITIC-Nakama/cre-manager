@@ -134,8 +134,8 @@ public class CVService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Pageable pageable) {
-        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId), pageable);
+    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred, Pageable pageable) {
+        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId, starred), pageable);
         return page.map(this::buildCVResponse);
     }
 

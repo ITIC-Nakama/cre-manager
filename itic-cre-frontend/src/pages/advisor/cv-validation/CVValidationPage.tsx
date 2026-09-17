@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
-    Eye, CheckCircle, Clock, AlertTriangle, Users,
+    Eye, CheckCircle, Clock, AlertTriangle, Users, Star,
     ChevronUp, ChevronDown, ChevronsUpDown, X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSen
 import type { CVRow } from '../../../types/models/CV';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
+import type { StarredFilter } from '../etudiants/components/EtudiantsFilters';
 
 const PAGE_SIZE_LOCAL = 20;
 
@@ -90,6 +91,7 @@ export default function CVValidationPage() {
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
+    const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
     const [sorting, setSorting] = useState<SortingState>([]);
 
     const { data: statuts = [] } = useCVStatuts();
@@ -100,8 +102,9 @@ export default function CVValidationPage() {
         statutId: statutFilter || undefined,
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
+        starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
         sort: toSortParam(sorting),
-    }), [statutFilter, search, advisorFilter, sorting]);
+    }), [statutFilter, search, advisorFilter, starredFilter, sorting]);
 
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -194,6 +197,16 @@ export default function CVValidationPage() {
         setAdvisorFilter(val);
     };
 
+    const handleStarredFilterChange = (val: StarredFilter) => {
+        setStarredFilter(val);
+    };
+
+    const starredFilterOptions = useMemo(() => [
+        { value: 'all', label: t('dashboard.etudiants.filter_starred_all', 'Tous') },
+        { value: 'starred', label: t('dashboard.etudiants.filter_starred_yes', 'Étoilés') },
+        { value: 'unstarred', label: t('dashboard.etudiants.filter_starred_no', 'Non étoilés') },
+    ], [t]);
+
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
 
@@ -237,6 +250,13 @@ export default function CVValidationPage() {
                         onChange={handleStatutChange}
                         icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
                         className="min-w-48"
+                    />
+                    <CustomSelect
+                        value={starredFilter}
+                        options={starredFilterOptions}
+                        onChange={(value) => handleStarredFilterChange(value as StarredFilter)}
+                        icon={<Star className="h-4 w-4 text-slate-400" />}
+                        className="min-w-40"
                     />
                     <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <input

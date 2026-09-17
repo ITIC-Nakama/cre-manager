@@ -23,4 +23,6 @@ public class ApplicationFilterCriteria {
     private final UUID advisorId;
     private final Boolean underContract;
     private final Boolean needsContractVerification;
+    /** true = etudiant note (0 a 3 etoiles) ; false = jamais note. */
+    private final Boolean starred;
 }

@@ -110,7 +110,7 @@ export default function EtudiantsFilters({
                 className="min-w-48"
             />
 
-            {/* Note (etoiles) — sorti du panneau "Filtres" a la demande de l'utilisateur, reste visible. */}
+            {/* Filtre note (etoiles), toujours visible. */}
             <CustomSelect
                 value={starredFilter}
                 options={starredFilterOptions}
