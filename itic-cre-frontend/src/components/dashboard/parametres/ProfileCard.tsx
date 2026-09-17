@@ -257,19 +257,23 @@ export default function ProfileCard() {
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs text-slate-400">{user.email}</p>
             {isStudent && dashboardSummary && (
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold border border-amber-100 dark:border-amber-900/40">
-                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-100 dark:bg-amber-900/50 text-base leading-none">
+              <div className="flex flex-wrap items-center gap-2.5 mt-3">
+                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-sm font-bold border border-amber-100 dark:border-amber-900/40">
+                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 text-xl leading-none">
                     {dashboardSummary.gamification.grade.icone}
                   </span>
                   {dashboardSummary.gamification.grade.nom}
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-100 dark:border-indigo-900/40">
-                  <Zap className="h-3 w-3" />
+                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 text-sm font-bold border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <Zap className="h-5 w-5" />
+                  </span>
                   {dashboardSummary.gamification.xpTotal} XP
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-100 dark:border-emerald-900/40">
-                  <Star className="h-3 w-3" />
+                <span className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm font-bold border border-emerald-100 dark:border-emerald-900/40">
+                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
+                    <Star className="h-5 w-5" />
+                  </span>
                   {t('dashboard.parametres.profile.rank', { rank: dashboardSummary.ranking.rank, total: dashboardSummary.ranking.totalStudents })}
                 </span>
               </div>
