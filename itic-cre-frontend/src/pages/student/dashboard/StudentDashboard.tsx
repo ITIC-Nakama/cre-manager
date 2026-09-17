@@ -151,7 +151,7 @@ export default function StudentDashboard() {
           {data && (
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{data.gamification.grade.icone}</span>
+                <span className="text-5xl leading-none">{data.gamification.grade.icone}</span>
                 <div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">{data.gamification.grade.nom}</p>
                   <p className="text-xs text-slate-400">{data.gamification.xpTotal} XP</p>
@@ -224,7 +224,7 @@ export default function StudentDashboard() {
                         <span className="text-slate-400 w-5 shrink-0">{entry.rank}.</span>
                         <span className="truncate">{entry.firstName} {entry.lastName[0]}.</span>
                         {entry.gradeIcon && (
-                          <span title={entry.gradeLabel ?? undefined} className="shrink-0">{entry.gradeIcon}</span>
+                          <span title={entry.gradeLabel ?? undefined} className="shrink-0 text-lg leading-none">{entry.gradeIcon}</span>
                         )}
                       </span>
                       <span className="text-slate-500 dark:text-slate-400 shrink-0">{entry.xpTotal} XP</span>
