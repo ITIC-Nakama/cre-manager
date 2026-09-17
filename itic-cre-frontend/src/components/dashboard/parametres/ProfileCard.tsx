@@ -258,8 +258,10 @@ export default function ProfileCard() {
             <p className="text-xs text-slate-400">{user.email}</p>
             {isStudent && dashboardSummary && (
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold border border-amber-100 dark:border-amber-900/40">
-                  <span className="text-lg leading-none">{dashboardSummary.gamification.grade.icone}</span>
+                <span className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold border border-amber-100 dark:border-amber-900/40">
+                  <span className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-100 dark:bg-amber-900/50 text-base leading-none">
+                    {dashboardSummary.gamification.grade.icone}
+                  </span>
                   {dashboardSummary.gamification.grade.nom}
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-100 dark:border-indigo-900/40">
