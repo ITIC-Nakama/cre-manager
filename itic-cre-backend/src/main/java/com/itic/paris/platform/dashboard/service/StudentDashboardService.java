@@ -98,11 +98,26 @@ public class StudentDashboardService {
                 ? studentRepository.findTop3ByPromotionIdAndActiveTrueOrderByXpTotalDesc(promotionId)
                 : studentRepository.findTop3ByActiveTrueOrderByXpTotalDesc();
 
-        List<RankingEntryDTO> top3 = top3Pool.stream()
-                .map(s -> new RankingEntryDTO(s.getFirstName(), s.getLastName(), s.getXpTotal(), s.getId().equals(student.getId())))
-                .toList();
+        List<RankingEntryDTO> top3 = new ArrayList<>();
+        for (int i = 0; i < top3Pool.size(); i++) {
+            Student s = top3Pool.get(i);
+            top3.add(toRankingEntry(s, i + 1, s.getId().equals(student.getId())));
+        }
+
+        // L'etudiant connecte n'apparait dans top3 que s'il y est deja (rank <= 3) — sinon on
+        // ajoute sa propre ligne a la suite, avec son vrai rang, pour qu'il se voit dans la liste
+        // elle-meme plutot qu'uniquement dans la phrase au-dessus ("Tu es #6 sur 156").
+        if (rank > 3) {
+            top3.add(toRankingEntry(student, rank, true));
+        }
 
         return new RankingDTO(rank, (int) totalStudents, scopedToPromotion, top3);
+    }
+
+    private RankingEntryDTO toRankingEntry(Student s, int rank, boolean isMe) {
+        Grade grade = gamificationService.getCurrentGrade(s.getXpTotal());
+        return new RankingEntryDTO(s.getFirstName(), s.getLastName(), s.getXpTotal(), isMe, rank,
+                grade != null ? grade.getNom() : null, grade != null ? grade.getIcone() : null);
     }
 
     private GamificationSummaryDTO buildGamificationSummary(Student student) {

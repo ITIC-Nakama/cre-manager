@@ -60,6 +60,7 @@ export interface StudentRow {
   underContract: boolean;
   contractNeedsVerification: boolean;
   isAnonymized?: boolean;
+  starRating: number | null;
 }
 
 export interface StudentPage {
@@ -84,6 +85,7 @@ export interface StudentListParams {
   includeAnonymized?: boolean;
   underContract?: boolean;
   needsContractVerification?: boolean;
+  starred?: boolean;
   sort?: string;
 }
 
@@ -143,6 +145,9 @@ export interface RankingEntry {
   lastName: string;
   xpTotal: number;
   me: boolean;
+  rank: number;
+  gradeLabel: string | null;
+  gradeIcon: string | null;
 }
 
 export interface Ranking {

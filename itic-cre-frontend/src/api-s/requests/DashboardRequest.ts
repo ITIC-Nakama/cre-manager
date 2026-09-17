@@ -47,9 +47,16 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
     if (params.underContract !== undefined) query.underContract = params.underContract;
     if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
+    if (params.starred !== undefined)     query.starred = params.starred;
     if (params.sort)                      query.sort = params.sort;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
+}
+
+export function updateStudentStarRating(studentId: string, starRating: number | null): Promise<{ id: string; starRating: number | null }> {
+    return apiClient
+        .patch(`/dashboard/students/${studentId}/star-rating`, { starRating })
+        .then(unwrap<{ id: string; starRating: number | null }>);
 }
 
 /** Top 5 des étudiants nécessitant une action (candidature stagnante ou CV manquant), triés et scopés côté backend. */
@@ -71,6 +78,7 @@ export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'
     if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
     if (params.underContract !== undefined) query.underContract = params.underContract;
     if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
+    if (params.starred !== undefined)     query.starred = params.starred;
 
     return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);
 }

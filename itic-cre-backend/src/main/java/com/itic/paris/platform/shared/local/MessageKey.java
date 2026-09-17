@@ -90,6 +90,7 @@ public enum MessageKey {
     CONTRACT_TYPE_DELETED("contract-type-deleted", "Type de contrat supprimé", "Contract type deleted"),
     EXTERNAL_SOURCE_NOT_FOUND("external-source-not-found", "Source externe inconnue", "Unknown external source"),
     INVALID_SYNC_INTERVAL_DAYS("invalid-sync-interval-days", "L'intervalle de synchronisation doit être d'au moins 1 jour", "Sync interval must be at least 1 day"),
+    INVALID_STAR_RATING("invalid-star-rating", "La note doit être comprise entre 0 et 3 étoiles", "Rating must be between 0 and 3 stars"),
     APPLICATION_SUBMITTED("application-submitted", "Candidature soumise avec succès", "Application submitted successfully"),
     APPLICATION_WITHDRAWN("application-withdrawn", "Candidature retirée avec succès", "Application withdrawn successfully"),
     // CRM messages

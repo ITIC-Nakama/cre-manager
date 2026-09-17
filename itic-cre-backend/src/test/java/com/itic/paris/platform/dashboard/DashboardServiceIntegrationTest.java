@@ -1,5 +1,6 @@
 package com.itic.paris.platform.dashboard;
 
+import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -178,5 +180,45 @@ public class DashboardServiceIntegrationTest {
 
         assertThat(result.getContent()).isNotEmpty();
         assertThat(result.getContent()).noneMatch(row -> row.get("email").toString().endsWith("@rgpd.deleted"));
+    }
+
+    @Test
+    public void testUpdateStarRatingPersistsAndRejectsOutOfRangeValues() {
+        Map<String, Object> updated = studentReportingService.updateStarRating(activeStudent.getId(), 2);
+        assertThat(updated.get("starRating")).isEqualTo(2);
+
+        Student reloaded = studentRepository.findById(activeStudent.getId()).orElseThrow();
+        assertThat(reloaded.getStarRating()).isEqualTo(2);
+
+        // Effacer la note (retour a "jamais note")
+        studentReportingService.updateStarRating(activeStudent.getId(), null);
+        assertThat(studentRepository.findById(activeStudent.getId()).orElseThrow().getStarRating()).isNull();
+
+        assertThatThrownBy(() -> studentReportingService.updateStarRating(activeStudent.getId(), 4))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> studentReportingService.updateStarRating(activeStudent.getId(), -1))
+                .isInstanceOf(AppException.class);
+    }
+
+    @Test
+    public void testStarredFilterSeparatesRatedFromUnratedStudents() {
+        studentReportingService.updateStarRating(activeStudent.getId(), 0);
+        // inactiveStudent reste jamais note (starRating null)
+
+        Page<Map<String, Object>> starred = studentReportingService.getStudentList(
+                StudentFilterCriteria.builder().starred(true).build(),
+                org.springframework.data.domain.Pageable.unpaged()
+        );
+        assertThat(starred.getContent()).extracting(row -> row.get("id"))
+                .contains(activeStudent.getId())
+                .doesNotContain(inactiveStudent.getId());
+
+        Page<Map<String, Object>> unstarred = studentReportingService.getStudentList(
+                StudentFilterCriteria.builder().starred(false).build(),
+                org.springframework.data.domain.Pageable.unpaged()
+        );
+        assertThat(unstarred.getContent()).extracting(row -> row.get("id"))
+                .contains(inactiveStudent.getId())
+                .doesNotContain(activeStudent.getId());
     }
 }

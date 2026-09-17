@@ -1,10 +1,11 @@
-import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users, Handshake, X } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calendar, Users, Handshake, Star, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
 
 export type FilterStatus = 'all' | 'active' | 'inactive' | 'stale' | 'no-cv';
 export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | 'needs_verification';
+export type StarredFilter = 'all' | 'starred' | 'unstarred';
 
 interface FilterOption {
     value: string;
@@ -18,6 +19,7 @@ interface EtudiantsFiltersProps {
     studyYearFilter: string;
     advisorFilter: string;
     contractFilter: ContractFilter;
+    starredFilter: StarredFilter;
     includeAnonymized: boolean;
     isFetching: boolean;
     isLoading: boolean;
@@ -28,6 +30,7 @@ interface EtudiantsFiltersProps {
     studyYearOptions: FilterOption[];
     advisorOptions: FilterOption[];
     contractFilterOptions: FilterOption[];
+    starredFilterOptions: FilterOption[];
     activeFilterCount: number;
     onSearchChange: (value: string) => void;
     onClearSearch: () => void;
@@ -36,6 +39,7 @@ interface EtudiantsFiltersProps {
     onStudyYearChange: (value: string) => void;
     onAdvisorFilterChange: (value: string) => void;
     onContractFilterChange: (value: ContractFilter) => void;
+    onStarredFilterChange: (value: StarredFilter) => void;
     onIncludeAnonymizedChange: (value: boolean) => void;
     onReset: () => void;
 }
@@ -47,6 +51,7 @@ export default function EtudiantsFilters({
     studyYearFilter,
     advisorFilter,
     contractFilter,
+    starredFilter,
     includeAnonymized,
     isFetching,
     isLoading,
@@ -57,6 +62,7 @@ export default function EtudiantsFilters({
     studyYearOptions,
     advisorOptions,
     contractFilterOptions,
+    starredFilterOptions,
     activeFilterCount,
     onSearchChange,
     onClearSearch,
@@ -65,6 +71,7 @@ export default function EtudiantsFilters({
     onStudyYearChange,
     onAdvisorFilterChange,
     onContractFilterChange,
+    onStarredFilterChange,
     onIncludeAnonymizedChange,
     onReset,
 }: EtudiantsFiltersProps) {
@@ -144,6 +151,19 @@ export default function EtudiantsFilters({
                         options={contractFilterOptions}
                         onChange={(value) => onContractFilterChange(value as ContractFilter)}
                         icon={<Handshake className="h-4 w-4 text-slate-400" />}
+                        className="w-full"
+                    />
+                </div>
+
+                <div className="py-3 first:pt-3 last:pb-3">
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                        {t('dashboard.etudiants.filter_starred_label', 'Note')}
+                    </label>
+                    <CustomSelect
+                        value={starredFilter}
+                        options={starredFilterOptions}
+                        onChange={(value) => onStarredFilterChange(value as StarredFilter)}
+                        icon={<Star className="h-4 w-4 text-slate-400" />}
                         className="w-full"
                     />
                 </div>

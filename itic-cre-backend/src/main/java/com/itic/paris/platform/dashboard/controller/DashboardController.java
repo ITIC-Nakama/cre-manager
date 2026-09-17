@@ -9,6 +9,7 @@ import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
 import com.itic.paris.platform.crm.model.dtos.UpdateContractDatesRequest;
 import com.itic.paris.platform.crm.service.ApplicationService;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
+import com.itic.paris.platform.dashboard.model.dtos.UpdateStarRatingRequest;
 import com.itic.paris.platform.dashboard.service.ApplicationReportingService;
 import com.itic.paris.platform.dashboard.service.DashboardOverviewService;
 import com.itic.paris.platform.dashboard.service.PromotionStatsService;
@@ -107,7 +108,7 @@ public class DashboardController {
     }
 
     @GetMapping("/students")
-    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized/underContract/needsContractVerification")
+    @Operation(summary = "Liste paginée des étudiants — filtres search/isActive/hasCv/hasStale/promotionId/studyYear/studyYearMissing/excludePromotionId/advisorId/includeAnonymized/underContract/needsContractVerification/starred")
     public ResponseEntity<?> students(
             @RequestParam(required = false) UUID promotionId,
             @RequestParam(required = false) Integer studyYear,
@@ -121,12 +122,13 @@ public class DashboardController {
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @RequestParam(required = false) Boolean underContract,
             @RequestParam(required = false) Boolean needsContractVerification,
+            @RequestParam(required = false) Boolean starred,
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
-                .needsContractVerification(needsContractVerification)
+                .needsContractVerification(needsContractVerification).starred(starred)
                 .build();
         return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
     }
@@ -145,15 +147,23 @@ public class DashboardController {
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
             @RequestParam(required = false) Boolean underContract,
-            @RequestParam(required = false) Boolean needsContractVerification) {
+            @RequestParam(required = false) Boolean needsContractVerification,
+            @RequestParam(required = false) Boolean starred) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
-                .needsContractVerification(needsContractVerification)
+                .needsContractVerification(needsContractVerification).starred(starred)
                 .build();
         Page<Map<String, Object>> result = studentReportingService.getStudentList(criteria, Pageable.unpaged());
         return ResponseEntity.ok(result.getContent());
+    }
+
+    @PatchMapping("/students/{studentId}/star-rating")
+    @Operation(summary = "Régler la note manuelle (0 à 3 étoiles) d'un étudiant — null pour effacer, "
+            + "ouvert à tout conseiller/admin, jamais visible côté étudiant")
+    public ResponseEntity<?> updateStarRating(@PathVariable UUID studentId, @RequestBody UpdateStarRatingRequest request) {
+        return ResponseEntity.ok(studentReportingService.updateStarRating(studentId, request.getStarRating()));
     }
 
     @GetMapping("/applications")

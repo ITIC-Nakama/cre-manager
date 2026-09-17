@@ -53,4 +53,11 @@ public class Student extends User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "advisor_id")
     private User advisor;
+
+    // Note manuelle conseiller/admin (0 a 3 etoiles), jamais visible ni modifiable par l'etudiant —
+    // simple champ libre, delibere : pas de calcul automatique ni de referentiel de criteres, pour
+    // eviter les problematiques RGPD/equite d'un score derive du comportement de l'etudiant.
+    // null = jamais note (distinct de 0, une note explicite).
+    @Column(name = "star_rating")
+    private Integer starRating;
 }

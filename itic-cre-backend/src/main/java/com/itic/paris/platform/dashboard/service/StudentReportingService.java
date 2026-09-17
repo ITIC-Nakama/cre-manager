@@ -156,6 +156,7 @@ public class StudentReportingService {
             row.put("underContract", studentIdsUnderContract.contains(student.getId()));
             row.put("contractNeedsVerification", studentIdsNeedingVerification.contains(student.getId()));
             row.put("isAnonymized", student.isAnonymized());
+            row.put("starRating", student.getStarRating());
             return row;
         }).toList();
     }
@@ -230,6 +231,7 @@ public class StudentReportingService {
         detail.put("lastName", student.getLastName());
         detail.put("email", student.getEmail());
         detail.put("isAnonymized", student.isAnonymized());
+        detail.put("starRating", student.getStarRating());
         detail.put("phoneNumber", student.getPhoneNumber());
         detail.put("emailVerified", student.isEmailVerified());
         detail.put("promotion", student.getPromotion() != null
@@ -251,6 +253,23 @@ public class StudentReportingService {
         detail.put("cv", cvData);
         detail.put("recentXpHistory", xpList);
         return detail;
+    }
+
+    /** Note manuelle conseiller/admin (0 a 3 etoiles) — ouvert a tout conseiller/admin, pas
+      * seulement celui affecte a l'etudiant, comme les autres actions de ce controleur. */
+    public Map<String, Object> updateStarRating(UUID studentId, Integer starRating) {
+        if (starRating != null && (starRating < 0 || starRating > 3)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.INVALID_STAR_RATING);
+        }
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+        student.setStarRating(starRating);
+        studentRepository.save(student);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("id", student.getId());
+        result.put("starRating", student.getStarRating());
+        return result;
     }
 
     public void notifyStudent(UUID studentId, String customMessage) {

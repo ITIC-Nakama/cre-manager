@@ -12,6 +12,7 @@ import {
     deactivateStudent,
     reactivateStudent,
     declareContractForStudent,
+    updateStudentStarRating,
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../types/models/Dashboard';
 import type { DeclareContractPayload } from '../types/models/Application';
@@ -79,6 +80,17 @@ export function useNotifyStudent() {
     return useMutation({
         mutationFn: ({ studentId, message }: { studentId: string; message?: string }) =>
             notifyStudent(studentId, message),
+    });
+}
+
+export function useUpdateStudentStarRating() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ studentId, starRating }: { studentId: string; starRating: number | null }) =>
+            updateStudentStarRating(studentId, starRating),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
     });
 }
 

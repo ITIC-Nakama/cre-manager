@@ -135,6 +135,39 @@ public class StudentDashboardIntegrationTest {
 
         assertThat(summary.getRanking().getTop3().get(2).getLastName()).isEqualTo("CC");
         assertThat(summary.getRanking().getTop3().get(2).isMe()).isFalse();
+
+        // Chaque entree porte son grade (label + icone), pas seulement l'XP brut.
+        assertThat(summary.getRanking().getTop3().get(0).getGradeLabel()).isNotNull();
+        assertThat(summary.getRanking().getTop3().get(0).getRank()).isEqualTo(1);
+    }
+
+    /**
+     * Un etudiant hors du top 3 doit tout de meme se voir dans la liste elle-meme (pas seulement
+     * dans la phrase "Tu es #4 sur 4" au-dessus) — une 4e ligne est ajoutee avec son vrai rang.
+     */
+    @Test
+    public void testRankingAddsOwnRowWhenOutsideTop3() {
+        Student studentD = new Student();
+        studentD.setEmail("student.d@itic.fr");
+        studentD.setFirstName("Student");
+        studentD.setLastName("DD");
+        studentD.setPassword("Password123!");
+        studentD.setEmailVerified(true);
+        studentD.setRole(studentRole);
+        studentD.setXpTotal(10);
+        studentD = studentRepository.save(studentD);
+
+        authenticate(studentD);
+
+        StudentDashboardSummaryDTO summary = studentDashboardService.getSummary();
+
+        assertThat(summary.getRanking().getRank()).isEqualTo(4);
+        assertThat(summary.getRanking().getTop3()).hasSize(4);
+        assertThat(summary.getRanking().getTop3().get(3).getLastName()).isEqualTo("DD");
+        assertThat(summary.getRanking().getTop3().get(3).isMe()).isTrue();
+        assertThat(summary.getRanking().getTop3().get(3).getRank()).isEqualTo(4);
+        assertThat(summary.getRanking().getTop3().stream().filter(e -> !e.getLastName().equals("DD")))
+                .allSatisfy(e -> assertThat(e.isMe()).isFalse());
     }
 
     @Test

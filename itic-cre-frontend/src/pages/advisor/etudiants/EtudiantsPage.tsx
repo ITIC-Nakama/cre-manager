@@ -28,7 +28,7 @@ import { isAnonymizedStudent } from '../../../utils/studentUtils';
 import { useStudentColumns } from './hooks/useStudentTableColumn';
 import StudentTable from './components/StudentTable';
 import EtudiantsHeader from './components/EtudiantsHeader';
-import EtudiantsFilters, { type FilterStatus, type ContractFilter } from './components/EtudiantsFilters';
+import EtudiantsFilters, { type FilterStatus, type ContractFilter, type StarredFilter } from './components/EtudiantsFilters';
 import BulkAssignBar from './components/BulkAssignBar';
 
 const PAGE_SIZE = 20;
@@ -67,6 +67,7 @@ export default function EtudiantsPage() {
     // Par defaut on ecarte les etudiants deja sous contrat (alternance/stage/CDI/CDD en cours) —
     // l'utilisateur peut choisir de les inclure ou de n'afficher qu'eux via le select.
     const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
+    const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
     // Un conseiller voit par defaut uniquement ses propres etudiants ("mon portefeuille") ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
@@ -167,6 +168,12 @@ export default function EtudiantsPage() {
         { value: 'all', label: t('dashboard.etudiants.filter_contract_all', 'Tous') },
     ], [t]);
 
+    const starredFilterOptions = useMemo(() => [
+        { value: 'all', label: t('dashboard.etudiants.filter_starred_all', 'Tous') },
+        { value: 'starred', label: t('dashboard.etudiants.filter_starred_yes', 'Étoilés') },
+        { value: 'unstarred', label: t('dashboard.etudiants.filter_starred_no', 'Non étoilés') },
+    ], [t]);
+
     const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
@@ -178,9 +185,10 @@ export default function EtudiantsPage() {
         advisorId: advisorFilter || undefined,
         underContract: contractFilter === 'under_contract' ? true : contractFilter === 'not_under_contract' ? false : undefined,
         needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
+        starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, isAdmin, includeAnonymized, sorting]);
+    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, starredFilter, isAdmin, includeAnonymized, sorting]);
 
     const {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -192,6 +200,7 @@ export default function EtudiantsPage() {
         promotionFilter,
         studyYearFilter,
         contractFilter !== 'not_under_contract' ? contractFilter : '',
+        starredFilter !== 'all' ? starredFilter : '',
         isAdmin ? advisorFilter : (advisorFilter !== currentUserId ? advisorFilter : ''),
         includeAnonymized ? 'anon' : '',
     ].filter(Boolean).length;
@@ -200,6 +209,7 @@ export default function EtudiantsPage() {
         setPromotionFilter('');
         setStudyYearFilter('');
         setContractFilter('not_under_contract');
+        setStarredFilter('all');
         setAdvisorFilter(!isAdmin && currentUser ? String(currentUser.id) : '');
         setIncludeAnonymized(false);
         clearSelection();
@@ -274,6 +284,11 @@ export default function EtudiantsPage() {
 
     const handleContractFilterChange = (value: ContractFilter) => {
         setContractFilter(value);
+        clearSelection();
+    };
+
+    const handleStarredFilterChange = (value: StarredFilter) => {
+        setStarredFilter(value);
         clearSelection();
     };
 
@@ -388,6 +403,7 @@ export default function EtudiantsPage() {
                     studyYearFilter={studyYearFilter}
                     advisorFilter={advisorFilter}
                     contractFilter={contractFilter}
+                    starredFilter={starredFilter}
                     includeAnonymized={includeAnonymized}
                     isFetching={isFetching}
                     isLoading={isLoading}
@@ -398,6 +414,7 @@ export default function EtudiantsPage() {
                     studyYearOptions={studyYearOptions}
                     advisorOptions={advisorOptions}
                     contractFilterOptions={contractFilterOptions}
+                    starredFilterOptions={starredFilterOptions}
                     activeFilterCount={activeFilterCount}
                     onSearchChange={handleSearch}
                     onClearSearch={handleClearSearch}
@@ -406,6 +423,7 @@ export default function EtudiantsPage() {
                     onStudyYearChange={handleStudyYearFilterChange}
                     onAdvisorFilterChange={handleAdvisorFilterChange}
                     onContractFilterChange={handleContractFilterChange}
+                    onStarredFilterChange={handleStarredFilterChange}
                     onIncludeAnonymizedChange={(checked) => {
                         setIncludeAnonymized(checked);
                         clearSelection();

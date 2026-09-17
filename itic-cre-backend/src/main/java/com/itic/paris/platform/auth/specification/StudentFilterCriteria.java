@@ -25,4 +25,6 @@ public class StudentFilterCriteria {
     private final Boolean includeAnonymized;
     private final Boolean underContract;
     private final Boolean needsContractVerification;
+    /** true = a une note (0 a 3 etoiles) ; false = jamais note (star_rating IS NULL). */
+    private final Boolean starred;
 }

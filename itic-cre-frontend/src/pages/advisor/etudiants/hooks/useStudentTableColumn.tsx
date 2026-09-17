@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { FileText, ShieldAlert, FileSignature } from 'lucide-react';
+import { FileText, ShieldAlert, FileSignature, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import TruncatedText from '../../../../components/shared/TruncatedText';
@@ -99,6 +99,16 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                         <ShieldAlert className="h-2.5 w-2.5" />
                                         {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
+                                    </span>
+                                )}
+                                {!!row.original.starRating && (
+                                    <span
+                                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40"
+                                        title={t('dashboard.etudiants.table.star_rating_tooltip', { count: row.original.starRating, defaultValue: '{{count}} étoile(s)' })}
+                                    >
+                                        {Array.from({ length: row.original.starRating }).map((_, i) => (
+                                            <Star key={i} className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
+                                        ))}
                                     </span>
                                 )}
                             </div>

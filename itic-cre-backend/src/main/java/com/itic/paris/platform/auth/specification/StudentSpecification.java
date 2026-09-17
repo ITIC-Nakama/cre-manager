@@ -206,6 +206,13 @@ public class StudentSpecification {
                 predicates.add(needsContractVerificationPredicate(root, query, cb));
             }
 
+            // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
+            if (criteria.getStarred() != null) {
+                predicates.add(Boolean.TRUE.equals(criteria.getStarred())
+                        ? cb.isNotNull(root.get("starRating"))
+                        : cb.isNull(root.get("starRating")));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

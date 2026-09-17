@@ -85,6 +85,13 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Dashboard** (`GET /dashboard/overview`, `GET /dashboard/students/needing-attention`) : un `ADVISOR` est toujours scopé à son propre id. Un `ADMIN` peut passer un `advisorId` optionnel pour voir un portefeuille précis (toggle "Vue globale / Mon portefeuille" côté interface), ou l'omettre pour la vue globale (comportement par défaut).
 - **Étudiants / Candidatures / CV Validation** : un `ADMIN` dispose d'une checkbox "Mes étudiants uniquement" (même mécanisme que pour un `ADVISOR`) en plus du picker complet des conseillers ; le picker de filtre exclut l'admin courant (couvert par la checkbox), mais le picker d'**affectation** (bulk-assign) l'inclut toujours, en tête de liste, sous le libellé "Moi".
 
+### Note manuelle conseiller/admin (`Student.starRating`)
+- Note libre de **0 à 3 étoiles**, saisie manuellement par un conseiller ou admin sur la fiche étudiant (`StudentDetailModal`) — délibérément **pas de calcul automatique** ni de référentiel de critères structuré, pour éviter les problématiques RGPD/équité d'un score dérivé du comportement de l'étudiant.
+- **Jamais visible ni modifiable côté étudiant** — champ absent de toute réponse API accessible à un rôle `STUDENT`.
+- `null` = jamais noté, distinct d'une note explicite de **0** (un conseiller peut délibérément noter 0 étoile).
+- `PATCH /dashboard/students/{studentId}/star-rating` (`ADVISOR`/`ADMIN`, ouvert à tout conseiller/admin comme les autres actions de ce contrôleur) — `starRating: null` efface la note.
+- Filtrable dans la liste des étudiants (`starred=true/false` sur `GET /dashboard/students` et `/dashboard/students/all`) : `true` = a une note (0 à 3), `false` = jamais noté.
+
 ### Promotions
 - Nom **unique**.
 - Lecture (lister / consulter) : ouverte à **tout utilisateur connecté**, sans restriction de rôle (advisor et étudiant inclus).
@@ -329,6 +336,8 @@ ci-dessous).
 - Calculé à la volée, jamais stocké. Tri par **XP total descendant**, rang **1-indexé**.
 - **Scope** : si l'étudiant a une promotion, le classement est limité aux étudiants de **cette promotion** ; sinon il est **global** (tous les étudiants de la plateforme).
 - Les étudiants désactivés (`active = false`) et les étudiants anonymisés RGPD (`email LIKE '%@rgpd.deleted'`) sont **exclus** du classement.
+- **Libellé de grade par entrée** : chaque `RankingEntryDTO` du top 3 porte son propre grade (`gradeLabel`/`gradeIcon`, résolu via `GamificationService.getCurrentGrade` sur l'XP de l'entrée), pas seulement l'XP brut.
+- **Sa propre ligne au-delà du top 3** : si le rang de l'étudiant connecté est `> 3`, une 4e entrée lui est ajoutée à la suite du top 3, avec son vrai rang (`rank`) et `isMe = true` — il se voit ainsi dans la liste elle-même, pas seulement dans la phrase "Tu es #6 sur 156" au-dessus. S'il est déjà dans le top 3, aucune ligne supplémentaire n'est ajoutée.
 
 ---
 

@@ -209,16 +209,26 @@ export default function StudentDashboard() {
               </p>
               <div className="flex flex-col gap-1.5">
                 {data.ranking.top3.map((entry, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm ${entry.me ? 'bg-indigo-50 dark:bg-indigo-950/30 font-semibold' : ''
-                      }`}
-                  >
-                    <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                      <span className="text-slate-400 w-4">{idx + 1}.</span>
-                      {entry.firstName} {entry.lastName[0]}.
-                    </span>
-                    <span className="text-slate-500 dark:text-slate-400">{entry.xpTotal} XP</span>
+                  <div key={idx}>
+                    {/* Separateur visuel avant la ligne "moi" quand elle est ajoutee au-dela du
+                      * top 3 (rang non consecutif par rapport a la ligne precedente) — evite de
+                      * laisser croire que ce serait la 4e place reelle. */}
+                    {idx > 0 && entry.rank > data.ranking.top3[idx - 1].rank + 1 && (
+                      <div className="text-center text-slate-300 dark:text-slate-600 text-xs py-0.5">⋯</div>
+                    )}
+                    <div
+                      className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm ${entry.me ? 'bg-indigo-50 dark:bg-indigo-950/30 font-semibold' : ''
+                        }`}
+                    >
+                      <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300 min-w-0">
+                        <span className="text-slate-400 w-5 shrink-0">{entry.rank}.</span>
+                        <span className="truncate">{entry.firstName} {entry.lastName[0]}.</span>
+                        {entry.gradeIcon && (
+                          <span title={entry.gradeLabel ?? undefined} className="shrink-0">{entry.gradeIcon}</span>
+                        )}
+                      </span>
+                      <span className="text-slate-500 dark:text-slate-400 shrink-0">{entry.xpTotal} XP</span>
+                    </div>
                   </div>
                 ))}
               </div>
