@@ -232,7 +232,7 @@ public class StudentDashboardIntegrationTest {
 
         // Then
         assertThat(summary.getGamification().getGrade().getNom()).isEqualTo("Intermédiaire");
-        assertThat(summary.getGamification().getGradeNext().getNom()).isEqualTo("Avancé");
+        assertThat(summary.getGamification().getGradeNext().getNom()).isEqualTo("Avancé(e)");
         assertThat(summary.getGamification().getXpProgress()).isEqualTo(25);
     }
 

@@ -24,10 +24,10 @@ public class GradeSeeder implements ApplicationRunner {
         if (gradeRepository.count() > 0) return;
 
         List<Grade> grades = List.of(
-                build("Débutant",      0,   1, "🌱"),
+                build("Débutant(e)",   0,   1, "🌱"),
                 build("Intermédiaire", 100, 2, "📈"),
-                build("Avancé",        300, 3, "🚀"),
-                build("Expert",        700, 4, "🏆")
+                build("Avancé(e)",     300, 3, "🚀"),
+                build("Expert(e)",     700, 4, "🏆")
         );
 
         gradeRepository.saveAll(grades);
