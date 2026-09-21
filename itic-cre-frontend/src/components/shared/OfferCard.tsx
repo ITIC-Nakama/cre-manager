@@ -56,7 +56,7 @@ export default function OfferCard({
             style={{ animationDelay: `${animationDelayMs}ms` }}
             className={`group relative z-0 overflow-hidden rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fadeIn ${
                 isItic
-                    ? 'bg-[#9A3412] dark:bg-[#7C2D12] border border-black/10 hover:shadow-[#E2762F]/20'
+                    ? 'bg-gradient-to-br from-[#9A3412] via-[#7C2D12] to-[#4A1D0A] border border-black/10 hover:shadow-[#E2762F]/20'
                     : 'bg-white dark:bg-slate-900 border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'
             }`}
         >
@@ -64,6 +64,12 @@ export default function OfferCard({
             <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${
                 isItic ? 'from-[#E2762F] via-indigo-500 to-violet-500' : 'from-[#4D84FF] to-[#D7C4FF]'
             }`} />
+
+            {/* Lueur bleue radiante — casse le orange plat, fait echo au bleu utilise partout
+                ailleurs sur la plateforme, sans dominer le degrade orange de fond. */}
+            {isItic && (
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_80%_10%,rgba(30,81,255,0.35),transparent_55%)]" />
+            )}
 
             {/* Background subtle sheen — externe uniquement, la carte ITIC porte deja sa propre teinte. */}
             {!isItic && (
@@ -107,7 +113,7 @@ export default function OfferCard({
                 </div>
                 <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:rotate-12 ${
                     isItic
-                        ? 'bg-white/20 text-white'
+                        ? 'bg-white text-[#7C2D12] shadow-sm'
                         : 'bg-[#1E51FF]/10 dark:bg-[#1E51FF]/20 text-[#1E51FF] dark:text-[#7B9FFF]'
                 }`}>
                     <ArrowUpRight className="h-4 w-4" />
@@ -187,7 +193,11 @@ export default function OfferCard({
                         href={offer.externalLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-200 active:scale-95"
+                        className={`p-2.5 rounded-xl border transition-all duration-200 active:scale-95 ${
+                            isItic
+                                ? 'bg-white text-[#7C2D12] border-white shadow-sm hover:bg-white/90'
+                                : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-800'
+                        }`}
                         title={t('dashboard.offres.actions.view_link')}
                     >
                         <ExternalLink className="h-4 w-4" />
