@@ -56,7 +56,7 @@ export default function OfferCard({
             style={{ animationDelay: `${animationDelayMs}ms` }}
             className={`group relative z-0 overflow-hidden rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fadeIn ${
                 isItic
-                    ? 'bg-[#8A4A20] dark:bg-[#5C3316] border border-black/10 hover:shadow-[#E2762F]/20'
+                    ? 'bg-[#9A3412] dark:bg-[#7C2D12] border border-black/10 hover:shadow-[#E2762F]/20'
                     : 'bg-white dark:bg-slate-900 border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'
             }`}
         >
