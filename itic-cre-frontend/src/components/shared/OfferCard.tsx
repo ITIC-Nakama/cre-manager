@@ -56,17 +56,16 @@ export default function OfferCard({
             style={{ animationDelay: `${animationDelayMs}ms` }}
             className={`group relative z-0 overflow-hidden rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fadeIn ${
                 isItic
-                    ? 'bg-[#E2762F] border border-black/10 hover:shadow-[#E2762F]/30'
+                    ? 'bg-[#8A4A20] dark:bg-[#5C3316] border border-black/10 hover:shadow-[#E2762F]/20'
                     : 'bg-white dark:bg-slate-900 border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'
             }`}
         >
-            {/* Top gradient accent — seulement pour l'externe : la carte ITIC est deja pleinement
-                orange, un liseret degrade par-dessus n'apporterait plus rien. */}
-            {!isItic && (
-                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#4D84FF] to-[#D7C4FF]" />
-            )}
+            {/* Top gradient accent — orange/indigo/violet pour ITIC, bleu/lavande pour l'externe. */}
+            <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${
+                isItic ? 'from-[#E2762F] via-indigo-500 to-violet-500' : 'from-[#4D84FF] to-[#D7C4FF]'
+            }`} />
 
-            {/* Background subtle sheen — externe uniquement, meme raison. */}
+            {/* Background subtle sheen — externe uniquement, la carte ITIC porte deja sa propre teinte. */}
             {!isItic && (
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#4D84FF]/[0.04] via-transparent to-[#D7C4FF]/[0.04]" />
             )}
