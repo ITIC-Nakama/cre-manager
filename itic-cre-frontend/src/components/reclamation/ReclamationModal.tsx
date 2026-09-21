@@ -88,7 +88,7 @@ export default function ReclamationModal({ onClose }: Props) {
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
+                className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-xl w-full max-w-lg sm:max-w-2xl lg:max-w-3xl border border-slate-200 dark:border-slate-800 max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
             >
                 <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
                     <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function ReclamationModal({ onClose }: Props) {
                                     rows={5}
                                     maxLength={2000}
                                     placeholder={t('dashboard.reclamations.form.message_placeholder', 'Écrivez votre message ici...')}
-                                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none sm:min-h-52"
                                 />
                             </div>
 

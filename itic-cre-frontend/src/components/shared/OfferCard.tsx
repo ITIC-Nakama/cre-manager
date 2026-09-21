@@ -173,7 +173,11 @@ export default function OfferCard({
                     <button
                         onClick={() => onApply(offer.id)}
                         disabled={isApplying}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98] text-white disabled:opacity-60 bg-[#1E51FF] hover:bg-[#1541D6] hover:shadow-md hover:shadow-[#1E51FF]/25"
+                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98] text-white disabled:opacity-60 ${
+                            isItic
+                                ? 'bg-gradient-to-r from-[#1E51FF] to-[#9A3412] hover:brightness-110 hover:shadow-md hover:shadow-black/20'
+                                : 'bg-[#1E51FF] hover:bg-[#1541D6] hover:shadow-md hover:shadow-[#1E51FF]/25'
+                        }`}
                     >
                         {t('dashboard.offres.apply_button')}
                     </button>
