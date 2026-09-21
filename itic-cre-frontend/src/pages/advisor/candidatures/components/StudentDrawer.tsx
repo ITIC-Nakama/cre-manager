@@ -93,19 +93,20 @@ export default function StudentDrawer({ group, onClose }: Props) {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                             onClick={() => setCreatingApplication(true)}
-                            title={t('dashboard.candidatures.detail.create_for_student_button', 'Créer une candidature')}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                         >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.detail.create_for_student_button', 'Créer une candidature')}
                         </button>
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.detail.close_button', 'Fermer')}
                         </button>
                     </div>
                 </div>

@@ -633,6 +633,31 @@ public class ApplicationServiceIntegrationTest {
     }
 
     @Test
+    public void testChangeStatusAsAdvisor_ToContractStatus_ShouldBeAutoVerified() {
+        // Given: candidature creee par le conseiller, qu'il fait lui-meme passer a un statut
+        // "sous contrat" — sa propre declaration ne doit pas se retrouver "a verifier" par
+        // lui-meme (meme precedent que declareContractForStudent)
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+
+        // When
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+        ApplicationDTO dto = applicationService.changeStatusAsAdvisor(app.getId(), request);
+
+        // Then
+        assertThat(dto.getStatus().getId()).isEqualTo(offreRecueStatus.getId());
+        assertThat(dto.getContractVerified()).isTrue();
+    }
+
+    @Test
     public void testChangeStatusAsAdvisor_OnStudentCreatedApplication_ShouldBeRejected() {
         // Given: candidature creee par l'etudiant lui-meme
         authenticate(testAdvisor);

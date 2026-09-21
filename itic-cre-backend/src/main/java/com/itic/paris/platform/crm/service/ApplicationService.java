@@ -290,13 +290,15 @@ public class ApplicationService {
             application.setTypeContrat(resolveContractType(request.getContractTypeId()));
         }
 
-        // Nouvelle declaration "sous contrat" par l'etudiant lui-meme — purement declaratif tant
-        // qu'un conseiller/admin ne l'a pas confirmee (validateContractDeclaration) ou n'a pas touche
-        // les dates (updateContractDatesAsAdvisor). Remis a faux a chaque nouvelle declaration.
-        // Invariants : jamais deux declarations "a valider" en meme temps, et jamais une nouvelle
-        // declaration tant qu'un contrat est deja actif — on n'atteint cette branche que si le
-        // statut courant n'etait pas deja compteCommeContrat, donc cette candidature elle-meme
-        // n'est jamais comptee par erreur dans ces deux verifications.
+        // Nouvelle declaration "sous contrat" — purement declaratif et non verifie quand c'est
+        // l'etudiant qui declare (attend une confirmation via validateContractDeclaration), mais
+        // deja confirme quand c'est le conseiller/admin lui-meme qui fait ce changement de statut
+        // (meme logique que declareContractForStudent : pas de double confirmation a lui demander
+        // sur sa propre declaration). Invariants inchanges quel que soit l'acteur : jamais deux
+        // declarations "a valider" en meme temps, et jamais une nouvelle declaration tant qu'un
+        // contrat est deja actif — on n'atteint cette branche que si le statut courant n'etait pas
+        // deja compteCommeContrat, donc cette candidature elle-meme n'est jamais comptee par erreur
+        // dans ces deux verifications.
         if (Boolean.TRUE.equals(newStatus.getCompteCommeContrat())) {
             UUID studentId = application.getStudent().getId();
             if (applicationRepository.existsPendingContractDeclaration(studentId)) {
@@ -309,7 +311,7 @@ public class ApplicationService {
                         ? MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE
                         : MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
             }
-            application.setContractVerified(false);
+            application.setContractVerified(actingAsAdvisor);
         }
 
         User actor = getCurrentUser();

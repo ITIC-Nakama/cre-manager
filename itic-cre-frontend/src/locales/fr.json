@@ -534,6 +534,7 @@
         "invalidate_confirm_title": "Invalider ce contrat",
         "invalidate_confirm_message": "Revenir au statut précédent pour \"{{poste}}\" chez {{entreprise}} ? L'XP associé sera repris.",
         "create_for_student_button": "Créer une candidature",
+        "close_button": "Fermer",
         "create_for_student_success": "Candidature créée et étudiant notifié par email.",
         "tab_student": "Candidatures de l'étudiant",
         "tab_advisor": "Candidatures du CRE",

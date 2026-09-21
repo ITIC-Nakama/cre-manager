@@ -534,6 +534,7 @@
         "invalidate_confirm_title": "Invalidate this contract",
         "invalidate_confirm_message": "Revert to the previous status for \"{{poste}}\" at {{entreprise}}? The associated XP will be taken back.",
         "create_for_student_button": "Create an application",
+        "close_button": "Close",
         "create_for_student_success": "Application created and student notified by email.",
         "tab_student": "Student's applications",
         "tab_advisor": "CRE's applications",
