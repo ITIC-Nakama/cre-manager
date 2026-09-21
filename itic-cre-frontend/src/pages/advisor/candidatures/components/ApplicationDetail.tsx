@@ -375,7 +375,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
                                     onClick={handleMarkAsEnded}
                                     disabled={updateContractDatesMutation.isPending || !endDate}
                                     title={!endDate ? t('dashboard.candidatures.detail.end_date_required', 'Indiquez la date de fin du contrat ci-dessus') : undefined}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {updateContractDatesMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Handshake className="h-3 w-3" />}
                                     {t('dashboard.candidatures.detail.end_contract_button', 'Marquer comme terminé')}
@@ -389,6 +389,11 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
                                 <XCircle className="h-3 w-3" />
                                 {t('dashboard.candidatures.detail.invalidate_button', 'Invalider')}
                             </button>
+                            {app.contractVerified && isActiveContract(app) && !endDate && (
+                                <p className="text-xs text-slate-400 basis-full">
+                                    {t('dashboard.candidatures.detail.end_date_required', 'Indiquez la date de fin du contrat ci-dessus')}
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}

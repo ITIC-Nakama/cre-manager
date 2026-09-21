@@ -296,6 +296,12 @@ html.dark body {
   border-color: #333a51 !important;
 }
 
+/* Icone native du picker (Chromium) masquee : DateInput.tsx redessine sa propre icone cliquable
+   par-dessus (appearance-none seul ne suffit pas a la retirer, elle restait visible en double). */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 /* 3. Inputs, Selects et Textareas */
 .dark input[type="text"],
 .dark input[type="email"],
