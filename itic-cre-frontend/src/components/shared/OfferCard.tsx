@@ -56,27 +56,26 @@ export default function OfferCard({
             style={{ animationDelay: `${animationDelayMs}ms` }}
             className={`group relative z-0 overflow-hidden rounded-2xl p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl flex flex-col gap-3 cursor-pointer animate-fadeIn ${
                 isItic
-                    ? 'bg-[#E2762F]/[0.14] dark:bg-[#E2762F]/[0.28] border border-indigo-200/60 dark:border-indigo-900/50 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-950/40'
+                    ? 'bg-[#E2762F] border border-black/10 hover:shadow-[#E2762F]/30'
                     : 'bg-white dark:bg-slate-900 border border-[#1E51FF]/25 dark:border-[#1E51FF]/30 hover:shadow-[#1E51FF]/10 dark:hover:shadow-[#1E51FF]/20'
             }`}
         >
-            {/* Top gradient accent — orange/indigo/violet pour ITIC, bleu/lavande (la meme
-                charte que .itic-gradient-blue, deja utilisee pour le titre de la page) pour
-                l'externe. */}
-            <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${
-                isItic ? 'from-[#E2762F] via-indigo-500 to-violet-500' : 'from-[#4D84FF] to-[#D7C4FF]'
-            }`} />
+            {/* Top gradient accent — seulement pour l'externe : la carte ITIC est deja pleinement
+                orange, un liseret degrade par-dessus n'apporterait plus rien. */}
+            {!isItic && (
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#4D84FF] to-[#D7C4FF]" />
+            )}
 
-            {/* Background subtle sheen */}
-            <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${
-                isItic ? 'from-indigo-500/[0.03] via-transparent to-violet-500/[0.02]' : 'from-[#4D84FF]/[0.04] via-transparent to-[#D7C4FF]/[0.04]'
-            }`} />
+            {/* Background subtle sheen — externe uniquement, meme raison. */}
+            {!isItic && (
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#4D84FF]/[0.04] via-transparent to-[#D7C4FF]/[0.04]" />
+            )}
 
             {/* Header */}
             <div className="flex items-start justify-between gap-3 relative z-10">
                 <div className="flex items-start gap-3 min-w-0">
                     {isItic ? (
-                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs">
+                        <div className="h-10 w-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/30 shadow-2xs">
                             <Building2 className="h-5 w-5" />
                         </div>
                     ) : offer.companyLogoUrl ? (
@@ -96,18 +95,20 @@ export default function OfferCard({
                     )}
                     <div className="min-w-0">
                         <p className={`font-bold text-base line-clamp-1 leading-snug ${
-                            isItic ? 'text-indigo-600 dark:text-white' : 'text-slate-900 dark:text-white'
+                            isItic ? 'text-white' : 'text-slate-900 dark:text-white'
                         }`}>
                             {offer.title}
                         </p>
-                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                        <p className={`text-xs font-medium mt-0.5 truncate ${
+                            isItic ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
+                        }`}>
                             {offer.company}
                         </p>
                     </div>
                 </div>
                 <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:rotate-12 ${
                     isItic
-                        ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                        ? 'bg-white/20 text-white'
                         : 'bg-[#1E51FF]/10 dark:bg-[#1E51FF]/20 text-[#1E51FF] dark:text-[#7B9FFF]'
                 }`}>
                     <ArrowUpRight className="h-4 w-4" />
@@ -125,7 +126,7 @@ export default function OfferCard({
                 )}
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${
                     isItic
-                        ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-100/80 dark:border-indigo-900/30'
+                        ? 'bg-white/20 text-white border-white/30'
                         : 'bg-[#1E51FF]/10 dark:bg-[#1E51FF]/20 text-[#1E51FF] dark:text-[#7B9FFF] border-[#1E51FF]/15 dark:border-[#1E51FF]/25'
                 }`}>
                     <FileSignature className="h-3 w-3" />{offer.contractType.label}
@@ -143,13 +144,17 @@ export default function OfferCard({
             </div>
 
             {/* Description */}
-            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1 relative z-10">
+            <p className={`text-sm line-clamp-2 leading-relaxed flex-1 relative z-10 ${
+                isItic ? 'text-white/90' : 'text-slate-600 dark:text-slate-400'
+            }`}>
                 {offer.description}
             </p>
 
             {/* Actions Footer */}
             <div
-                className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 mt-auto relative z-10"
+                className={`flex items-center gap-2 pt-2.5 mt-auto relative z-10 border-t ${
+                    isItic ? 'border-white/20' : 'border-slate-100 dark:border-slate-800/80'
+                }`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {isApplied ? (
