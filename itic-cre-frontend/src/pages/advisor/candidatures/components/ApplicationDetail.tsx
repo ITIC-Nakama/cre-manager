@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, MapPin, Handshake, Loader2, Pencil, Save, ShieldCheck, ShieldAlert, Trash2, Users, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRightCircle, Briefcase, ExternalLink, MapPin, Handshake, Loader2, Pencil, Save, ShieldCheck, ShieldAlert, Trash2, Users, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import DateInput from '../../../../components/basics/DateInput';
+import CustomSelect from '../../../../components/basics/CustomSelect';
 import CandidatureFormModal from '../../../student/candidatures/components/CandidatureFormModal';
-import { useUpdateContractDates, useValidateContract, useInvalidateContract, useUpdateApplicationAsAdvisor, useDeleteApplicationAsAdvisor } from '../../../../hooks/useApplications';
+import { useUpdateContractDates, useValidateContract, useInvalidateContract, useUpdateApplicationAsAdvisor, useDeleteApplicationAsAdvisor, useChangeApplicationStatusAsAdvisor, useApplicationStatuses } from '../../../../hooks/useApplications';
 import { getApiErrorMessage } from '../../../../utils/errorHelper';
 import { formatDate, formatDateTime, isActiveContract, isPendingValidation } from '../types';
-import type { ApplicationRow, Candidature } from '../../../../types/models/Application';
+import type { ApplicationRow } from '../../../../types/models/Application';
 
 interface Props {
     app: ApplicationRow;
@@ -31,12 +32,16 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
     const invalidateMutation = useInvalidateContract();
     const updateAsAdvisorMutation = useUpdateApplicationAsAdvisor();
     const deleteAsAdvisorMutation = useDeleteApplicationAsAdvisor();
+    const changeStatusAsAdvisorMutation = useChangeApplicationStatusAsAdvisor();
+    const { data: allStatuses } = useApplicationStatuses();
     const [startDate, setStartDate] = useState(app.startDate ?? '');
     const [endDate, setEndDate] = useState(app.endDate ?? '');
     const [dateError, setDateError] = useState<string | null>(null);
     const [invalidateConfirmOpen, setInvalidateConfirmOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [statusStagedId, setStatusStagedId] = useState(app.status.id);
+    const [statusChangeAttempted, setStatusChangeAttempted] = useState(false);
 
     const hasChanges = startDate !== (app.startDate ?? '') || endDate !== (app.endDate ?? '');
     const conflictingActiveContract = isPendingValidation(app)
@@ -105,11 +110,6 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
         }
     };
 
-    // CandidatureFormModal ne lit que entreprise/poste/typeContrat.id/lienOffre/contact/notes/
-    // startDate/endDate/status.ordre sur candidature — le reste de Candidature (reachedStatusIds,
-    // xpAwarded) n'existe pas sur ApplicationRow et n'est jamais lu par ce formulaire.
-    const candidatureForEdit = app as unknown as Candidature;
-
     const handleEditSave = async (payload: {
         entreprise: string; poste: string; typeContratId?: string; lienOffre?: string; contact?: string; notes?: string;
     }) => {
@@ -128,6 +128,39 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
             toast.success(t('dashboard.candidatures.detail.delete_success', 'Candidature supprimée.'));
             setDeleteConfirmOpen(false);
             onDeleted?.();
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
+        }
+    };
+
+    const statusOptions = (allStatuses ?? [])
+        .slice()
+        .sort((a, b) => a.ordre - b.ordre)
+        .map((s) => ({ value: s.id, label: s.nom }));
+    const stagedStatus = allStatuses?.find((s) => s.id === statusStagedId);
+    const hasStatusChange = statusStagedId !== app.status.id;
+    const stagedIsContractStatus = hasStatusChange && !!stagedStatus?.compteCommeContrat;
+    const stagedNeedsStartDate = stagedIsContractStatus && !startDate;
+
+    const handleApplyStatusChange = async () => {
+        if (!hasStatusChange) return;
+        setStatusChangeAttempted(true);
+        if (stagedNeedsStartDate) return;
+        try {
+            const updated = await changeStatusAsAdvisorMutation.mutateAsync({
+                id: app.id,
+                statusId: statusStagedId,
+                startDate: stagedStatus?.compteCommeContrat ? startDate : undefined,
+                endDate: stagedStatus?.compteCommeContrat ? (endDate || undefined) : undefined,
+            });
+            onUpdated({
+                status: updated.status, contractVerified: updated.contractVerified,
+                startDate: updated.startDate, endDate: updated.endDate,
+                lastStatusModifiedByName: updated.lastStatusModifiedByName,
+            });
+            toast.success(t('dashboard.candidatures.detail.status_change_success', 'Statut mis à jour.'));
+            setStatusStagedId(updated.status.id);
+            setStatusChangeAttempted(false);
         } catch (err: unknown) {
             toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
         }
@@ -188,6 +221,44 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
                         </span>
                     )}
                 </div>
+
+                {app.createdByAdvisor && (
+                    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+                        <p className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                            <ArrowRightCircle className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.detail.change_status_label', 'Changer le statut')}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <CustomSelect
+                                value={statusStagedId}
+                                options={statusOptions}
+                                onChange={setStatusStagedId}
+                                className="min-w-48"
+                            />
+                            <button
+                                onClick={handleApplyStatusChange}
+                                disabled={!hasStatusChange || changeStatusAsAdvisorMutation.isPending}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                {changeStatusAsAdvisorMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowRightCircle className="h-3 w-3" />}
+                                {t('dashboard.candidatures.detail.apply_button', 'Appliquer')}
+                            </button>
+                        </div>
+                        {stagedIsContractStatus && (
+                            <div className="space-y-1 min-w-0 max-w-xs">
+                                <label className="block text-[11px] font-medium text-slate-400">
+                                    {t('dashboard.candidatures.detail.start_date', 'Début')}
+                                </label>
+                                <DateInput value={startDate} onChange={setStartDate} dense />
+                            </div>
+                        )}
+                        {statusChangeAttempted && stagedNeedsStartDate && (
+                            <p className="text-xs text-rose-500">
+                                {t('dashboard.candidatures.detail.start_date_required', 'Une date de début est requise pour ce statut')}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3">
@@ -404,7 +475,7 @@ export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, s
 
             {editOpen && (
                 <CandidatureFormModal
-                    candidature={candidatureForEdit}
+                    candidature={app}
                     saving={updateAsAdvisorMutation.isPending}
                     onClose={() => setEditOpen(false)}
                     onSave={handleEditSave}

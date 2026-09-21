@@ -60,22 +60,9 @@ public class ApplicationService {
     @Transactional
     public ApplicationDTO create(CreateApplicationRequest request) {
         Student student = getCurrentStudent();
+        ApplicationStatus defaultStatus = defaultApplicationStatus();
 
-        ApplicationStatus defaultStatus = statusRepository.findByOrdre(1)
-                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.APPLICATION_STATUS_NOT_FOUND));
-
-        ContractType contractType = resolveContractType(request.getTypeContratId());
-
-        Application application = new Application();
-        application.setStudent(student);
-        application.setEntreprise(request.getEntreprise());
-        application.setPoste(request.getPoste());
-        application.setTypeContrat(contractType);
-        application.setLienOffre(request.getLienOffre());
-        application.setContact(request.getContact());
-        application.setNotes(request.getNotes());
-        application.setStatus(defaultStatus);
-
+        Application application = buildApplicationFromRequest(student, request, defaultStatus);
         Application saved = applicationRepository.save(application);
         recordHistory(saved, null, defaultStatus);
 
@@ -98,21 +85,9 @@ public class ApplicationService {
     public ApplicationDTO createApplicationForStudent(UUID studentId, CreateApplicationRequest request) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+        ApplicationStatus defaultStatus = defaultApplicationStatus();
 
-        ApplicationStatus defaultStatus = statusRepository.findByOrdre(1)
-                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.APPLICATION_STATUS_NOT_FOUND));
-
-        ContractType contractType = resolveContractType(request.getTypeContratId());
-
-        Application application = new Application();
-        application.setStudent(student);
-        application.setEntreprise(request.getEntreprise());
-        application.setPoste(request.getPoste());
-        application.setTypeContrat(contractType);
-        application.setLienOffre(request.getLienOffre());
-        application.setContact(request.getContact());
-        application.setNotes(request.getNotes());
-        application.setStatus(defaultStatus);
+        Application application = buildApplicationFromRequest(student, request, defaultStatus);
         application.setCreatedByAdvisor(true);
 
         Application saved = applicationRepository.save(application);
@@ -214,6 +189,36 @@ public class ApplicationService {
         return mapToDTO(applicationRepository.save(application), appConfigurationService.getStaleAlertDays());
     }
 
+    private ApplicationStatus defaultApplicationStatus() {
+        return statusRepository.findByOrdre(1)
+                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.APPLICATION_STATUS_NOT_FOUND));
+    }
+
+    /** Champs partages entre CreateApplicationRequest et UpdateApplicationRequest (UpdateApplicationRequest
+      * n'ajoute que startDate/endDate) — evite de repeter les 6 memes affectations dans
+      * buildApplicationFromRequest() et applyUpdatableFields(). */
+    private void applyCommonFields(Application application, String entreprise, String poste, UUID typeContratId,
+                                    String lienOffre, String contact, String notes) {
+        application.setEntreprise(entreprise);
+        application.setPoste(poste);
+        application.setTypeContrat(resolveContractType(typeContratId));
+        application.setLienOffre(lienOffre);
+        application.setContact(contact);
+        application.setNotes(notes);
+    }
+
+    /** Construit une nouvelle candidature a partir des champs communs — partage entre create() et
+      * createApplicationForStudent(), qui ne different que sur la resolution de l'etudiant et le flag
+      * createdByAdvisor. */
+    private Application buildApplicationFromRequest(Student student, CreateApplicationRequest request, ApplicationStatus status) {
+        Application application = new Application();
+        application.setStudent(student);
+        applyCommonFields(application, request.getEntreprise(), request.getPoste(), request.getTypeContratId(),
+                request.getLienOffre(), request.getContact(), request.getNotes());
+        application.setStatus(status);
+        return application;
+    }
+
     /** Champs modifiables par le proprietaire (etudiant ou conseiller createur) d'une candidature —
       * partage entre update() et updateApplicationAsAdvisor(), seule leur logique d'autorisation differe. */
     private void applyUpdatableFields(Application application, UpdateApplicationRequest request) {
@@ -222,12 +227,8 @@ public class ApplicationService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
         }
 
-        application.setEntreprise(request.getEntreprise());
-        application.setPoste(request.getPoste());
-        application.setTypeContrat(resolveContractType(request.getTypeContratId()));
-        application.setLienOffre(request.getLienOffre());
-        application.setContact(request.getContact());
-        application.setNotes(request.getNotes());
+        applyCommonFields(application, request.getEntreprise(), request.getPoste(), request.getTypeContratId(),
+                request.getLienOffre(), request.getContact(), request.getNotes());
         application.setStartDate(request.getStartDate());
         application.setEndDate(request.getEndDate());
     }
@@ -235,6 +236,28 @@ public class ApplicationService {
     @Transactional
     public ApplicationDTO changeStatus(UUID id, ChangeStatusRequest request) {
         Application application = getOwnedApplication(id);
+        return changeStatusInternal(application, request, false);
+    }
+
+    /**
+     * Changement de statut par un conseiller/admin — reserve aux candidatures qu'il a lui-meme
+     * creees (createdByAdvisor=true), meme perimetre que updateApplicationAsAdvisor/
+     * deleteApplicationAsAdvisor. Reutilise exactement la meme logique metier (XP, invariants
+     * contrat, historique) que changeStatus() cote etudiant.
+     */
+    @Transactional
+    public ApplicationDTO changeStatusAsAdvisor(UUID id, ChangeStatusRequest request) {
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_NOT_FOUND));
+
+        if (!application.isCreatedByAdvisor()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
+        }
+
+        return changeStatusInternal(application, request, true);
+    }
+
+    private ApplicationDTO changeStatusInternal(Application application, ChangeStatusRequest request, boolean actingAsAdvisor) {
         ApplicationStatus currentStatus = application.getStatus();
 
         // Meme verrou que update() — une candidature deja validee par un conseiller ne peut plus
@@ -277,10 +300,14 @@ public class ApplicationService {
         if (Boolean.TRUE.equals(newStatus.getCompteCommeContrat())) {
             UUID studentId = application.getStudent().getId();
             if (applicationRepository.existsPendingContractDeclaration(studentId)) {
-                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
+                throw new AppException(HttpStatus.BAD_REQUEST, actingAsAdvisor
+                        ? MessageKey.APPLICATION_STUDENT_CONTRACT_ALREADY_PENDING
+                        : MessageKey.APPLICATION_CONTRACT_ALREADY_PENDING);
             }
             if (applicationRepository.findActiveVerifiedContract(studentId).isPresent()) {
-                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
+                throw new AppException(HttpStatus.BAD_REQUEST, actingAsAdvisor
+                        ? MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE
+                        : MessageKey.APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT);
             }
             application.setContractVerified(false);
         }

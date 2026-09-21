@@ -69,7 +69,7 @@ export default function StudentDrawer({ group, onClose }: Props) {
             <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
 
             {/* Drawer panel */}
-            <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-slate-950 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-slide-in-right">
+            <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md sm:max-w-xl lg:max-w-2xl bg-white dark:bg-slate-950 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-slide-in-right">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">

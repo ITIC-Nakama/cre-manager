@@ -229,7 +229,7 @@ export default function CandidaturesPage() {
                     <button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm cursor-pointer disabled:cursor-not-allowed"
                     >
                         {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                         {t('dashboard.candidatures.export_csv', 'Exporter CSV')}

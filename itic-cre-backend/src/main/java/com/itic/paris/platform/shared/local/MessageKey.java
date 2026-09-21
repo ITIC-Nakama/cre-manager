@@ -13,6 +13,7 @@ public enum MessageKey {
 
     VALIDATION_FAILED("validation-failed", "Validation échouée", "Validation failed"),
     ROUTE_NOT_FOUND("route-not-found", "Ressource introuvable", "Resource not found"),
+    METHOD_NOT_ALLOWED("method-not-allowed", "Méthode non autorisée pour cette ressource", "Method not allowed for this resource"),
     USER_NOT_FOUND("user-not-found", "Utilisateur introuvable", "User not found"),
     EMAIL_ALREADY_IN_USE("email-already-in-use", "Email déjà utilisé", "Email already in use"),
     EMAIL_OR_PASSWORD_INCORRECT("email-or-password-incorrect", "Email ou mot de passe incorrect", "Email or password incorrect"),
@@ -104,6 +105,7 @@ public enum MessageKey {
     APPLICATION_CREATED_BY_ADVISOR_EDIT_LOCKED("application-created-by-advisor-edit-locked", "Cette candidature a été créée par votre conseiller, vous ne pouvez pas la modifier, mais vous pouvez faire évoluer son statut", "This application was created by your advisor, you cannot edit it, but you can still update its status"),
     APPLICATION_NOT_CREATED_BY_ADVISOR("application-not-created-by-advisor", "Un conseiller ne peut modifier ou supprimer que les candidatures qu'il a lui-même créées", "An advisor can only edit or delete applications they created themselves"),
     APPLICATION_CONTRACT_ALREADY_PENDING("application-contract-already-pending", "Vous avez déjà une déclaration en attente de validation", "You already have a pending declaration"),
+    APPLICATION_STUDENT_CONTRACT_ALREADY_PENDING("application-student-contract-already-pending", "Cet étudiant a déjà une déclaration en attente de validation", "This student already has a pending declaration"),
     APPLICATION_CONTRACT_ALREADY_ACTIVE("application-contract-already-active", "Un contrat est déjà actif pour cet étudiant, invalidez-le ou renseignez sa date de fin avant de valider celui-ci", "This student already has an active contract, invalidate it or set its end date before validating this one"),
     APPLICATION_STUDENT_ALREADY_UNDER_CONTRACT("application-student-already-under-contract", "Vous avez déjà un contrat en cours, contactez votre conseiller pour y mettre fin avant d'en déclarer un nouveau", "You already have an active contract, contact your advisor to end it before declaring a new one"),
     SKILL_CATEGORY_NOT_FOUND("skill-category-not-found", "Catégorie introuvable", "Skill category not found"),

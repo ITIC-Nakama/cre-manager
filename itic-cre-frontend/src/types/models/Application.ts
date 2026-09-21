@@ -38,10 +38,29 @@ export interface Candidature {
     status: ApplicationStatus;
     stale: boolean;
     viaJobboard: boolean;
+    /** Vrai si créée par un conseiller/admin au nom de l'étudiant (démarchage CRE). */
+    createdByAdvisor: boolean;
+    /** Nom complet de la dernière personne ayant changé le statut, null si jamais changé. */
+    lastStatusModifiedByName: string | null;
     reachedStatusIds: string[];
     xpAwarded: number;
     dateCreation: string;
     dateModification: string;
+}
+
+/** Sous-ensemble de Candidature/ApplicationRow effectivement utilise par CandidatureFormModal —
+  * permet de reutiliser ce formulaire aussi bien pour une Candidature (espace etudiant) qu'un
+  * ApplicationRow (espace conseiller) sans cast, la compatibilite structurelle suffit. */
+export interface CandidatureFormValues {
+    entreprise: string;
+    poste: string;
+    typeContrat: { id: string } | null;
+    lienOffre: string | null;
+    contact: string | null;
+    notes: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    status: { ordre: number };
 }
 
 export interface CandidaturePage {

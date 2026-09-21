@@ -10,6 +10,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.ArrayList;
@@ -135,6 +136,14 @@ public class GlobalExceptionHandler {
         String lang = LanguageUtil.resolveLang(request);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(CustomResponseEntity.of(MessageKey.ACCESS_DENIED, lang, HttpStatus.FORBIDDEN.value(), null));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<CustomResponseEntity> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex,
+                                                                          HttpServletRequest request) {
+        String lang = LanguageUtil.resolveLang(request);
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(CustomResponseEntity.of(MessageKey.METHOD_NOT_ALLOWED, lang, HttpStatus.METHOD_NOT_ALLOWED.value(), null));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

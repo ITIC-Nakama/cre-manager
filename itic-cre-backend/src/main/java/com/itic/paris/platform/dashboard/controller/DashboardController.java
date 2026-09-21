@@ -5,6 +5,7 @@ import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
+import com.itic.paris.platform.crm.model.dtos.ChangeStatusRequest;
 import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
 import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
 import com.itic.paris.platform.crm.model.dtos.UpdateApplicationRequest;
@@ -251,6 +252,15 @@ public class DashboardController {
     public ResponseEntity<Void> deleteApplicationAsAdvisor(@PathVariable UUID id) {
         applicationService.deleteApplicationAsAdvisor(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/applications/{id}/status")
+    @Operation(summary = "Changer le statut d'une candidature créée par un conseiller/admin — réservé à celles créées côté CRE, "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> changeApplicationStatusAsAdvisor(
+            @PathVariable UUID id,
+            @Valid @RequestBody ChangeStatusRequest request) {
+        return ResponseEntity.ok(applicationService.changeStatusAsAdvisor(id, request));
     }
 
     @PostMapping("/applications/{id}/validate-contract")

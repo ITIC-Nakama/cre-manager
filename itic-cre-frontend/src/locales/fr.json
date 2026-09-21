@@ -544,7 +544,11 @@
         "delete_success": "Candidature supprimée.",
         "edit_success": "Candidature mise à jour.",
         "created_by_advisor_badge": "Créée par le CRE",
-        "last_modified_by": "Dernière modification par {{name}}"
+        "last_modified_by": "Dernière modification par {{name}}",
+        "change_status_label": "Changer le statut",
+        "apply_button": "Appliquer",
+        "status_change_success": "Statut mis à jour.",
+        "start_date_required": "Une date de début est requise pour ce statut"
       },
       "student": {
         "title": "Mes candidatures",
@@ -574,7 +578,8 @@
           "next_step_xp": "+{{xp}} XP",
           "contract_active": "Contrat actuel",
           "contract_ended": "Contrat terminé",
-          "pending_verification": "En attente de validation"
+          "pending_verification": "En attente de validation",
+          "created_by_advisor": "Créée par ton conseiller"
         },
         "form": {
           "create_title": "Ajouter une candidature",
@@ -624,6 +629,8 @@
           "updated_at": "Mise à jour le {{date}}",
           "edit_button": "Modifier",
           "locked_hint": "Vérifiée par votre conseiller — contactez-le pour la modifier",
+          "advisor_locked_hint": "Créée par votre conseiller — contactez-le pour la modifier ou la supprimer",
+          "created_by_advisor_badge": "Créée par votre conseiller",
           "delete_button": "Supprimer",
           "confirm_delete_title": "Supprimer la candidature",
           "confirm_delete_message": "Supprimer la candidature « {{poste}} » chez {{entreprise}} ? Cette action est irréversible.",

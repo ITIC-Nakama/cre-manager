@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowRight, Clock, Handshake, Loader2, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Handshake, Loader2, ShieldCheck, Users } from 'lucide-react';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import { useChangeCandidatureStatus } from '../../../../hooks/useCandidatures';
@@ -85,6 +85,12 @@ export default function CandidatureCard({ candidature, statuses }: Props) {
                     </span>
                 )}
                 {candidature.viaJobboard && <JobboardBadge />}
+                {candidature.createdByAdvisor && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#E2762F]/10 text-[#E2762F]">
+                        <Users className="h-3 w-3" />
+                        {t('dashboard.candidatures.student.card.created_by_advisor', 'Créée par ton conseiller')}
+                    </span>
+                )}
                 {candidature.status.compteCommeContrat && (
                     candidature.contractVerified ? (
                         isCurrentContract ? (

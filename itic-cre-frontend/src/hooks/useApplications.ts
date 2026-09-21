@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
-import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract, createApplicationForStudent, updateApplicationAsAdvisor, deleteApplicationAsAdvisor } from '../api-s/requests/ApplicationRequest';
+import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract, createApplicationForStudent, updateApplicationAsAdvisor, deleteApplicationAsAdvisor, changeApplicationStatusAsAdvisor } from '../api-s/requests/ApplicationRequest';
 import type { ApplicationListParams, CandidaturePayload } from '../types/models/Application';
 
 export function useApplicationGroupedListInfinite(params: ApplicationListParams = {}) {
@@ -94,6 +94,17 @@ export function useDeleteApplicationAsAdvisor() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => deleteApplicationAsAdvisor(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+        },
+    });
+}
+
+export function useChangeApplicationStatusAsAdvisor() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, statusId, startDate, endDate, contractTypeId }: { id: string; statusId: string; startDate?: string; endDate?: string; contractTypeId?: string }) =>
+            changeApplicationStatusAsAdvisor(id, statusId, startDate, endDate, contractTypeId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
         },

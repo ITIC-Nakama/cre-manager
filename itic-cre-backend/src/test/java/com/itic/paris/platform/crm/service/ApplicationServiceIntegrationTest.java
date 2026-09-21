@@ -610,6 +610,84 @@ public class ApplicationServiceIntegrationTest {
     }
 
     @Test
+    public void testChangeStatusAsAdvisor_OnOwnCreatedApplication_ShouldSucceed() {
+        // Given
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+
+        // When
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(postuleStatus.getId());
+        ApplicationDTO dto = applicationService.changeStatusAsAdvisor(app.getId(), request);
+
+        // Then
+        assertThat(dto.getStatus().getId()).isEqualTo(postuleStatus.getId());
+        Application saved = applicationRepository.findById(app.getId()).orElseThrow();
+        assertThat(saved.getLastStatusModifiedByName()).isEqualTo("Jane Advisor");
+    }
+
+    @Test
+    public void testChangeStatusAsAdvisor_OnStudentCreatedApplication_ShouldBeRejected() {
+        // Given: candidature creee par l'etudiant lui-meme
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Candidature de l'etudiant");
+        app.setStatus(aPostulerStatus);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(postuleStatus.getId());
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatusAsAdvisor(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
+    }
+
+    @Test
+    public void testChangeStatusAsAdvisor_WithExistingActiveContract_ShouldUseAdvisorTailoredMessage() {
+        // Given: un contrat deja actif pour cet etudiant, et une autre candidature creee par le
+        // conseiller qu'il tente de faire passer au meme statut "sous contrat"
+        Application active = new Application();
+        active.setStudent(testStudent);
+        active.setEntreprise("Google");
+        active.setPoste("Alternant deja actif");
+        active.setStatus(offreRecueStatus);
+        active.setStartDate(LocalDate.now().minusMonths(2));
+        active.setContractVerified(true);
+        applicationRepository.save(active);
+
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Amazon");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(offreRecueStatus.getId());
+        request.setStartDate(LocalDate.now());
+
+        // When / Then: le message doit etre celui adresse au conseiller ("cet etudiant"), pas
+        // celui adresse a l'etudiant lui-meme ("vous avez deja un contrat")
+        AppException ex = assertThrows(AppException.class, () -> applicationService.changeStatusAsAdvisor(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_ALREADY_ACTIVE);
+    }
+
+    @Test
     public void testChangeStatus_ShouldRecordLastStatusModifiedByName() {
         // Given
         Application app = new Application();

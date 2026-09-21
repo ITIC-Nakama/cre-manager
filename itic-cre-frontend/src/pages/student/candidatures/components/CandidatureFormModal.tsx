@@ -7,10 +7,10 @@ import { useContractTypes } from '../../../../hooks/useApplications';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../../../hooks/useModalClose';
 import { getApiErrorMessage } from '../../../../utils/errorHelper';
-import type { Candidature, CandidaturePayload } from '../../../../types/models/Application';
+import type { CandidatureFormValues, CandidaturePayload } from '../../../../types/models/Application';
 
 interface Props {
-    candidature?: Candidature | null;
+    candidature?: CandidatureFormValues | null;
     saving: boolean;
     onClose: () => void;
     onSave: (payload: CandidaturePayload) => Promise<void>;

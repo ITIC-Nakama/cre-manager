@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, Briefcase, Clock, ExternalLink, Loader2, MapPin, NotebookPen, Pencil, RotateCcw, Save, ShieldCheck, Trash2, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Briefcase, Clock, ExternalLink, Loader2, MapPin, NotebookPen, Pencil, RotateCcw, Save, ShieldCheck, Trash2, Users, XCircle } from 'lucide-react';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useApplicationStatuses } from '../../../hooks/useApplications';
@@ -132,6 +132,13 @@ export default function CandidatureDetailPage() {
     // Verrouillee cote etudiant une fois confirmee par un conseiller — seul lui peut encore la
     // faire evoluer (voir ApplicationService.update/changeStatus/delete, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED).
     const isLocked = candidature.contractVerified === true;
+    // Entreprise/poste/notes non modifiables par l'etudiant sur une candidature creee par son
+    // conseiller (voir ApplicationService.update, MessageKey.APPLICATION_CREATED_BY_ADVISOR_EDIT_LOCKED/
+    // _LOCKED) — le statut reste modifiable (changeStatus n'est pas concerne par ce verrou).
+    const isFieldsLocked = isLocked || candidature.createdByAdvisor;
+    const fieldsLockedHint = candidature.createdByAdvisor
+        ? t('dashboard.candidatures.student.detail.advisor_locked_hint', 'Créée par votre conseiller — contactez-le pour la modifier ou la supprimer')
+        : t('dashboard.candidatures.student.detail.locked_hint', 'Vérifiée par votre conseiller — contactez-le pour la modifier');
 
     return (
         <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn">
@@ -148,6 +155,12 @@ export default function CandidatureDetailPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{candidature.poste}</h1>
                         {candidature.viaJobboard && <JobboardBadge />}
+                        {candidature.createdByAdvisor && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#E2762F]/10 text-[#E2762F]">
+                                <Users className="h-3 w-3" />
+                                {t('dashboard.candidatures.student.detail.created_by_advisor_badge', 'Créée par votre conseiller')}
+                            </span>
+                        )}
                     </div>
                     <p className="text-slate-500 dark:text-slate-400 mt-0.5">{candidature.entreprise}</p>
                 </div>
@@ -171,8 +184,8 @@ export default function CandidatureDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     onClick={() => setFormOpen(true)}
-                    disabled={isLocked}
-                    title={isLocked ? t('dashboard.candidatures.student.detail.locked_hint', 'Vérifiée par votre conseiller — contactez-le pour la modifier') : undefined}
+                    disabled={isFieldsLocked}
+                    title={isFieldsLocked ? fieldsLockedHint : undefined}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 >
                     <Pencil className="h-3.5 w-3.5" />
@@ -190,8 +203,8 @@ export default function CandidatureDetailPage() {
                 )}
                 <button
                     onClick={() => setDeleteConfirmOpen(true)}
-                    disabled={isLocked}
-                    title={isLocked ? t('dashboard.candidatures.student.detail.locked_hint', 'Vérifiée par votre conseiller — contactez-le pour la modifier') : undefined}
+                    disabled={isFieldsLocked}
+                    title={isFieldsLocked ? fieldsLockedHint : undefined}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 >
                     <Trash2 className="h-3.5 w-3.5" />

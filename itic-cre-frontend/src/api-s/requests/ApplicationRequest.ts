@@ -66,3 +66,14 @@ export function updateApplicationAsAdvisor(id: string, payload: CandidaturePaylo
 export function deleteApplicationAsAdvisor(id: string): Promise<void> {
     return apiClient.delete(`/dashboard/applications/${id}`).then(() => undefined);
 }
+
+/** Change le statut d'une candidature creee par un conseiller/admin — reserve a celles qu'il a lui-meme creees. */
+export function changeApplicationStatusAsAdvisor(
+    id: string,
+    statusId: string,
+    startDate?: string,
+    endDate?: string,
+    contractTypeId?: string,
+): Promise<Candidature> {
+    return apiClient.patch(`/dashboard/applications/${id}/status`, { statusId, startDate, endDate, contractTypeId }).then((response) => unwrap<Candidature>(response));
+}

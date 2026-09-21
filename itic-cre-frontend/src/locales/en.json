@@ -544,7 +544,11 @@
         "delete_success": "Application deleted.",
         "edit_success": "Application updated.",
         "created_by_advisor_badge": "Created by CRE",
-        "last_modified_by": "Last modified by {{name}}"
+        "last_modified_by": "Last modified by {{name}}",
+        "change_status_label": "Change status",
+        "apply_button": "Apply",
+        "status_change_success": "Status updated.",
+        "start_date_required": "A start date is required for this status"
       },
       "student": {
         "title": "My applications",
@@ -574,7 +578,8 @@
           "next_step_xp": "+{{xp}} XP",
           "contract_active": "Current contract",
           "contract_ended": "Contract ended",
-          "pending_verification": "Pending approval"
+          "pending_verification": "Pending approval",
+          "created_by_advisor": "Created by your advisor"
         },
         "form": {
           "create_title": "Add an application",
@@ -624,6 +629,8 @@
           "updated_at": "Updated on {{date}}",
           "edit_button": "Edit",
           "locked_hint": "Verified by your advisor — contact them to make changes",
+          "advisor_locked_hint": "Created by your advisor — contact them to edit or delete it",
+          "created_by_advisor_badge": "Created by your advisor",
           "delete_button": "Delete",
           "confirm_delete_title": "Delete application",
           "confirm_delete_message": "Delete the application \"{{poste}}\" at {{entreprise}}? This action is irreversible.",
