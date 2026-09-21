@@ -44,7 +44,7 @@ export default function DateInput({ id, value, onChange, disabled, min, max, err
                 onClick={() => inputRef.current?.showPicker?.()}
                 className={`absolute top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 disabled:cursor-not-allowed ${dense ? 'right-2' : 'right-3'} ${disabled ? '' : 'cursor-pointer'}`}
             >
-                <Calendar className={dense ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
+                <Calendar className={dense ? 'h-4 w-4' : 'h-5 w-5'} />
             </button>
         </div>
     );
