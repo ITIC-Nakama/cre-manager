@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
     Search, SlidersHorizontal, Loader2, AlertCircle, Briefcase,
@@ -51,6 +51,7 @@ export default function CandidaturesPage() {
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
     const [isExporting, setIsExporting] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [settledGroups, setSettledGroups] = useState<StudentGroup[]>([]);
 
     const { data: statuses } = useApplicationStatuses();
     const { data: promotions } = usePromotions();
@@ -155,16 +156,13 @@ export default function CandidaturesPage() {
         ? studentGroups.find((group) => group.studentId === selectedGroupId) ?? null
         : null;
 
-    // Ferme reellement le drawer (au lieu de juste le masquer) des qu'un changement de filtre en
-    // sort l'etudiant selectionne — sinon retirer ce filtre plus tard le rouvre tout seul, sans
-    // aucun clic, puisque selectedGroupId n'avait jamais ete efface. isFetching evite de le faire
-    // sur un etat de chargement transitoire (studentGroups vide le temps que la nouvelle page arrive).
-    useEffect(() => {
-        if (isFetching) return;
+    // Efface selectedGroupId des que l'etudiant selectionne sort des resultats filtres.
+    if (!isFetching && studentGroups !== settledGroups) {
+        setSettledGroups(studentGroups);
         if (selectedGroupId && !studentGroups.some((group) => group.studentId === selectedGroupId)) {
             setSelectedGroupId(null);
         }
-    }, [studentGroups, selectedGroupId, isFetching]);
+    }
 
     const handleSearch = (value: string) => {
         setSearch(value);
