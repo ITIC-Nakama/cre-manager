@@ -5,7 +5,9 @@ import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.auth.specification.ApplicationFilterCriteria;
 import com.itic.paris.platform.auth.specification.StudentFilterCriteria;
 import com.itic.paris.platform.crm.model.dtos.ApplicationDTO;
+import com.itic.paris.platform.crm.model.dtos.CreateApplicationRequest;
 import com.itic.paris.platform.crm.model.dtos.DeclareContractRequest;
+import com.itic.paris.platform.crm.model.dtos.UpdateApplicationRequest;
 import com.itic.paris.platform.crm.model.dtos.UpdateContractDatesRequest;
 import com.itic.paris.platform.crm.service.ApplicationService;
 import com.itic.paris.platform.dashboard.model.dtos.SendReminderRequest;
@@ -194,11 +196,13 @@ public class DashboardController {
             @RequestParam(required = false) Boolean underContract,
             @RequestParam(required = false) Boolean needsContractVerification,
             @RequestParam(required = false) Boolean starred,
+            @RequestParam(required = false) Boolean createdByAdvisor,
             @PageableDefault(size = 20) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
                 .underContract(underContract).needsContractVerification(needsContractVerification).starred(starred)
+                .createdByAdvisor(createdByAdvisor)
                 .build();
         return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
     }
@@ -232,6 +236,23 @@ public class DashboardController {
         return ResponseEntity.ok(applicationService.updateContractDatesAsAdvisor(id, request));
     }
 
+    @PatchMapping("/applications/{id}")
+    @Operation(summary = "Modifier une candidature créée par un conseiller/admin — réservé à celles créées côté CRE, "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> updateApplicationAsAdvisor(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateApplicationRequest request) {
+        return ResponseEntity.ok(applicationService.updateApplicationAsAdvisor(id, request));
+    }
+
+    @DeleteMapping("/applications/{id}")
+    @Operation(summary = "Supprimer une candidature créée par un conseiller/admin — réservé à celles créées côté CRE, "
+            + "silencieux (pas d'email), ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<Void> deleteApplicationAsAdvisor(@PathVariable UUID id) {
+        applicationService.deleteApplicationAsAdvisor(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/applications/{id}/validate-contract")
     @Operation(summary = "Valider une déclaration de contrat étudiant déjà exacte — "
             + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
@@ -253,6 +274,15 @@ public class DashboardController {
             @PathVariable UUID studentId,
             @Valid @RequestBody DeclareContractRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.declareContractForStudent(studentId, request));
+    }
+
+    @PostMapping("/students/{studentId}/applications")
+    @Operation(summary = "Créer une candidature pour un étudiant au nom du conseiller/admin (démarchage CRE) — "
+            + "ouvert à tout conseiller/admin, pas seulement celui affecté à l'étudiant")
+    public ResponseEntity<ApplicationDTO> createApplicationForStudent(
+            @PathVariable UUID studentId,
+            @Valid @RequestBody CreateApplicationRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.createApplicationForStudent(studentId, request));
     }
 
     @GetMapping("/students/{studentId}")

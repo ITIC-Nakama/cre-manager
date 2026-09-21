@@ -24,6 +24,7 @@ import com.itic.paris.platform.jobboard.model.dtos.ContractTypeDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.event.ApplicationCreatedByAdvisorEvent;
 import com.itic.paris.platform.shared.notification.event.ContractDeclarationInvalidatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -85,6 +86,88 @@ public class ApplicationService {
         return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
     }
 
+    /**
+     * Création d'une candidature par un conseiller/admin au nom d'un étudiant (démarchage CRE :
+     * envoi de CV, mise en relation, etc. fait hors plateforme jusque-là) — ouvert à tout
+     * conseiller/admin quel que soit son portefeuille (même précédent que declareContractForStudent).
+     * Démarre au même statut initial qu'une candidature créée par l'étudiant, qui garde le droit de
+     * la faire progresser normalement — seule la suppression lui est interdite (voir delete()).
+     * Pas d'XP crédité : l'XP récompense la démarche de l'étudiant, pas celle du conseiller.
+     */
+    @Transactional
+    public ApplicationDTO createApplicationForStudent(UUID studentId, CreateApplicationRequest request) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+
+        ApplicationStatus defaultStatus = statusRepository.findByOrdre(1)
+                .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.APPLICATION_STATUS_NOT_FOUND));
+
+        ContractType contractType = resolveContractType(request.getTypeContratId());
+
+        Application application = new Application();
+        application.setStudent(student);
+        application.setEntreprise(request.getEntreprise());
+        application.setPoste(request.getPoste());
+        application.setTypeContrat(contractType);
+        application.setLienOffre(request.getLienOffre());
+        application.setContact(request.getContact());
+        application.setNotes(request.getNotes());
+        application.setStatus(defaultStatus);
+        application.setCreatedByAdvisor(true);
+
+        Application saved = applicationRepository.save(application);
+        recordHistory(saved, null, defaultStatus);
+
+        User advisor = getCurrentUser();
+        String advisorName = advisor.getFirstName() + " " + advisor.getLastName();
+
+        auditLogService.log(AuditAction.APPLICATION_CREATED_BY_ADVISOR, advisor, "APPLICATION", saved.getId(),
+                saved.getEntreprise() + " — " + saved.getPoste() + " (étudiant : "
+                        + student.getFirstName() + " " + student.getLastName() + ")");
+
+        eventPublisher.publishEvent(new ApplicationCreatedByAdvisorEvent(
+                student.getEmail(), student.getFirstName(), student.getLang(),
+                saved.getEntreprise(), saved.getPoste(), advisorName));
+
+        return mapToDTO(saved, appConfigurationService.getStaleAlertDays());
+    }
+
+    /**
+     * Modification d'une candidature par un conseiller/admin — reservee a celles qu'il a lui-meme
+     * creees (createdByAdvisor=true) ; l'etudiant garde la main sur les siennes (voir update()).
+     * Ouvert a tout conseiller/admin quel que soit son portefeuille, meme precedent que le reste
+     * des actions "au nom de".
+     */
+    @Transactional
+    public ApplicationDTO updateApplicationAsAdvisor(UUID id, UpdateApplicationRequest request) {
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_NOT_FOUND));
+
+        if (!application.isCreatedByAdvisor()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
+        }
+        applyUpdatableFields(application, request);
+
+        return mapToDTO(applicationRepository.save(application), appConfigurationService.getStaleAlertDays());
+    }
+
+    /**
+     * Suppression d'une candidature par un conseiller/admin — reservee a celles qu'il a lui-meme
+     * creees (createdByAdvisor=true), silencieuse (pas d'email, pas de trace visible par l'etudiant),
+     * contrairement a la creation qui declenche un email immediat.
+     */
+    @Transactional
+    public void deleteApplicationAsAdvisor(UUID id) {
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.APPLICATION_NOT_FOUND));
+
+        if (!application.isCreatedByAdvisor()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
+        }
+
+        deleteApplicationWithHistory(application);
+    }
+
     @Transactional(readOnly = true)
     public Page<ApplicationDTO> getMyApplications(@NonNull Pageable pageable) {
         return getMyApplications(null, null, null, pageable);
@@ -118,6 +201,22 @@ public class ApplicationService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
         }
 
+        // L'etudiant peut faire progresser le statut d'une candidature creee par son conseiller
+        // (changeStatus), mais pas modifier ses champs — seul le conseiller qui l'a creee le peut
+        // (voir updateApplicationAsAdvisor).
+        if (application.isCreatedByAdvisor()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CREATED_BY_ADVISOR_EDIT_LOCKED);
+        }
+
+        applyUpdatableFields(application, request);
+        updateLastActivity(application.getStudent());
+
+        return mapToDTO(applicationRepository.save(application), appConfigurationService.getStaleAlertDays());
+    }
+
+    /** Champs modifiables par le proprietaire (etudiant ou conseiller createur) d'une candidature —
+      * partage entre update() et updateApplicationAsAdvisor(), seule leur logique d'autorisation differe. */
+    private void applyUpdatableFields(Application application, UpdateApplicationRequest request) {
         if (request.getStartDate() != null && request.getEndDate() != null
                 && request.getEndDate().isBefore(request.getStartDate())) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_INVALID_CONTRACT_DATES);
@@ -131,10 +230,6 @@ public class ApplicationService {
         application.setNotes(request.getNotes());
         application.setStartDate(request.getStartDate());
         application.setEndDate(request.getEndDate());
-
-        updateLastActivity(application.getStudent());
-
-        return mapToDTO(applicationRepository.save(application), appConfigurationService.getStaleAlertDays());
     }
 
     @Transactional
@@ -189,6 +284,9 @@ public class ApplicationService {
             }
             application.setContractVerified(false);
         }
+
+        User actor = getCurrentUser();
+        application.setLastStatusModifiedByName(actor.getFirstName() + " " + actor.getLastName());
 
         int xpAwarded = 0;
 
@@ -289,6 +387,18 @@ public class ApplicationService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
         }
 
+        // L'etudiant garde le droit de faire progresser une candidature creee par son conseiller
+        // (changeStatus/update), mais pas de la supprimer.
+        if (application.isCreatedByAdvisor()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APPLICATION_CREATED_BY_ADVISOR_LOCKED);
+        }
+
+        return deleteApplicationWithHistory(application);
+    }
+
+    /** Coeur commun a delete() et deleteApplicationAsAdvisor() : reprend l'XP eventuellement credite
+      * puis supprime la candidature et son historique. */
+    private int deleteApplicationWithHistory(Application application) {
         int xpRevoked = revokeApplicationXP(application);
         historyRepository.deleteByApplicationId(application.getId());
         applicationRepository.delete(application);
@@ -631,7 +741,7 @@ public class ApplicationService {
                 a.getId(), a.getEntreprise(), a.getPoste(), contractTypeDTO,
                 a.getLienOffre(), a.getOffreDescription(), a.getOffreLocation(), a.getOffreCompanyLogoUrl(),
                 a.getContact(), a.getNotes(), a.getStartDate(), a.getEndDate(), a.getContractVerified(),
-                statusDTO, stale, a.isViaJobboard(), reachedStatusIds, xpAwarded,
-                a.getDateCreation(), a.getDateModification());
+                statusDTO, stale, a.isViaJobboard(), a.isCreatedByAdvisor(), a.getLastStatusModifiedByName(),
+                reachedStatusIds, xpAwarded, a.getDateCreation(), a.getDateModification());
     }
 }

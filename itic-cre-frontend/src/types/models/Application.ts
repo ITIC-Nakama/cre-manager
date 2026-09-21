@@ -107,6 +107,10 @@ export interface ApplicationRow {
     status: ApplicationStatus;
     stale: boolean;
     viaJobboard: boolean;
+    /** Vrai si créée par un conseiller/admin au nom de l'étudiant (démarchage CRE). */
+    createdByAdvisor: boolean;
+    /** Nom complet de la dernière personne ayant changé le statut, null si jamais changé. */
+    lastStatusModifiedByName: string | null;
     dateCreation: string;
     dateModification: string;
 }
@@ -131,6 +135,7 @@ export interface ApplicationListParams {
     underContract?: boolean;
     needsContractVerification?: boolean;
     starred?: boolean;
+    createdByAdvisor?: boolean;
 }
 
 export interface StudentGroupDTO {

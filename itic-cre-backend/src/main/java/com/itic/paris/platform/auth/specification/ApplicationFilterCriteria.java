@@ -25,4 +25,6 @@ public class ApplicationFilterCriteria {
     private final Boolean needsContractVerification;
     /** true = etudiant note (0 a 3 etoiles) ; false = jamais note. */
     private final Boolean starred;
+    /** true = candidature creee par un conseiller/admin ; false = creee par l'etudiant lui-meme. */
+    private final Boolean createdByAdvisor;
 }

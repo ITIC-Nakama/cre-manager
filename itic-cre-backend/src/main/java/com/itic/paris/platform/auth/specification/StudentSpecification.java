@@ -58,6 +58,10 @@ public class StudentSpecification {
                 subPredicates.add(cb.equal(appRoot.get("typeContrat").get("id"), criteria.getTypeContratId()));
             }
 
+            if (criteria.getCreatedByAdvisor() != null) {
+                subPredicates.add(cb.equal(appRoot.get("createdByAdvisor"), criteria.getCreatedByAdvisor()));
+            }
+
             if (Boolean.TRUE.equals(criteria.getStale()) && staleThreshold != null) {
                 Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
                 subPredicates.add(cb.isTrue(statusJoin.get("declencheAlerte")));

@@ -1,34 +1,42 @@
 import { useState } from 'react';
-import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, MapPin, Handshake, Loader2, Save, ShieldCheck, ShieldAlert, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Briefcase, ExternalLink, MapPin, Handshake, Loader2, Pencil, Save, ShieldCheck, ShieldAlert, Trash2, Users, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import StatusBadge from '../../../../components/shared/StatusBadge';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import DateInput from '../../../../components/basics/DateInput';
-import { useUpdateContractDates, useValidateContract, useInvalidateContract } from '../../../../hooks/useApplications';
+import CandidatureFormModal from '../../../student/candidatures/components/CandidatureFormModal';
+import { useUpdateContractDates, useValidateContract, useInvalidateContract, useUpdateApplicationAsAdvisor, useDeleteApplicationAsAdvisor } from '../../../../hooks/useApplications';
 import { getApiErrorMessage } from '../../../../utils/errorHelper';
 import { formatDate, formatDateTime, isActiveContract, isPendingValidation } from '../types';
-import type { ApplicationRow } from '../../../../types/models/Application';
+import type { ApplicationRow, Candidature } from '../../../../types/models/Application';
 
 interface Props {
     app: ApplicationRow;
     onBack: () => void;
     onUpdated: (patch: Partial<ApplicationRow>) => void;
+    /** Appele apres une suppression reussie (delete-as-advisor) — le parent doit retirer cette
+      * candidature de sa liste et revenir a la vue precedente. */
+    onDeleted?: () => void;
     /** Autres candidatures du meme etudiant (deja chargees par StudentDrawer) — sert uniquement a
       * detecter, avant meme d'essayer de valider, qu'un autre contrat est deja actif pour cet
       * etudiant (voir bandeau d'avertissement plus bas). */
     siblingApplications?: ApplicationRow[];
 }
 
-export default function ApplicationDetail({ app, onBack, onUpdated, siblingApplications = [] }: Props) {
+export default function ApplicationDetail({ app, onBack, onUpdated, onDeleted, siblingApplications = [] }: Props) {
     const { t } = useTranslation();
     const updateContractDatesMutation = useUpdateContractDates();
     const validateMutation = useValidateContract();
     const invalidateMutation = useInvalidateContract();
+    const updateAsAdvisorMutation = useUpdateApplicationAsAdvisor();
+    const deleteAsAdvisorMutation = useDeleteApplicationAsAdvisor();
     const [startDate, setStartDate] = useState(app.startDate ?? '');
     const [endDate, setEndDate] = useState(app.endDate ?? '');
     const [dateError, setDateError] = useState<string | null>(null);
     const [invalidateConfirmOpen, setInvalidateConfirmOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
     const hasChanges = startDate !== (app.startDate ?? '') || endDate !== (app.endDate ?? '');
     const conflictingActiveContract = isPendingValidation(app)
@@ -97,6 +105,34 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
         }
     };
 
+    // CandidatureFormModal ne lit que entreprise/poste/typeContrat.id/lienOffre/contact/notes/
+    // startDate/endDate/status.ordre sur candidature — le reste de Candidature (reachedStatusIds,
+    // xpAwarded) n'existe pas sur ApplicationRow et n'est jamais lu par ce formulaire.
+    const candidatureForEdit = app as unknown as Candidature;
+
+    const handleEditSave = async (payload: {
+        entreprise: string; poste: string; typeContratId?: string; lienOffre?: string; contact?: string; notes?: string;
+    }) => {
+        const updated = await updateAsAdvisorMutation.mutateAsync({ id: app.id, payload });
+        onUpdated({
+            entreprise: updated.entreprise, poste: updated.poste, typeContrat: updated.typeContrat,
+            lienOffre: updated.lienOffre, contact: updated.contact, notes: updated.notes,
+        });
+        toast.success(t('dashboard.candidatures.detail.edit_success', 'Candidature mise à jour.'));
+        setEditOpen(false);
+    };
+
+    const handleDelete = async () => {
+        try {
+            await deleteAsAdvisorMutation.mutateAsync(app.id);
+            toast.success(t('dashboard.candidatures.detail.delete_success', 'Candidature supprimée.'));
+            setDeleteConfirmOpen(false);
+            onDeleted?.();
+        } catch (err: unknown) {
+            toast.error(getApiErrorMessage(err, t('dashboard.candidatures.detail.contract_dates_error', "Impossible d'enregistrer — veuillez réessayer")));
+        }
+    };
+
     return (
         <div className="flex flex-col h-full">
             <button
@@ -112,13 +148,39 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                     ? 'bg-amber-50/40 dark:bg-amber-950/10 border-amber-200 dark:border-amber-800/40'
                     : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800'
             }`}>
-                <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{app.poste}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{app.entreprise}</p>
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{app.poste}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{app.entreprise}</p>
+                    </div>
+                    {app.createdByAdvisor && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                onClick={() => setEditOpen(true)}
+                                title={t('dashboard.candidatures.detail.edit_button', 'Modifier')}
+                                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            >
+                                <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                                onClick={() => setDeleteConfirmOpen(true)}
+                                title={t('dashboard.candidatures.detail.delete_button', 'Supprimer')}
+                                className="p-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                            >
+                                <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
                     <StatusBadge nom={app.status.nom} couleur={app.status.couleur} />
+                    {app.createdByAdvisor && (
+                        <span className="inline-flex items-center gap-1 text-xs text-[#E2762F] font-semibold">
+                            <Users className="h-3.5 w-3.5" />
+                            {t('dashboard.candidatures.detail.created_by_advisor_badge', 'Créée par le CRE')}
+                        </span>
+                    )}
                     {app.stale && (
                         <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-semibold">
                             <AlertCircle className="h-3.5 w-3.5" />
@@ -313,6 +375,11 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                     <span>{t('dashboard.candidatures.detail.created_at', { date: formatDateTime(app.dateCreation) })}</span>
                     <span>{t('dashboard.candidatures.detail.updated_at', { date: formatDateTime(app.dateModification) })}</span>
                 </div>
+                {app.lastStatusModifiedByName && (
+                    <p className="text-xs text-slate-400 text-right -mt-2">
+                        {t('dashboard.candidatures.detail.last_modified_by', { name: app.lastStatusModifiedByName, defaultValue: 'Dernière modification par {{name}}' })}
+                    </p>
+                )}
             </div>
 
             <ConfirmDialog
@@ -324,6 +391,25 @@ export default function ApplicationDetail({ app, onBack, onUpdated, siblingAppli
                 onConfirm={handleInvalidate}
                 onClose={() => setInvalidateConfirmOpen(false)}
             />
+
+            <ConfirmDialog
+                isOpen={deleteConfirmOpen}
+                title={t('dashboard.candidatures.detail.delete_confirm_title', 'Supprimer cette candidature')}
+                message={t('dashboard.candidatures.detail.delete_confirm_message', { poste: app.poste, entreprise: app.entreprise, defaultValue: 'Supprimer "{{poste}}" chez {{entreprise}} ? Cette action est définitive.' })}
+                confirmLabel={t('dashboard.candidatures.detail.delete_button', 'Supprimer')}
+                loading={deleteAsAdvisorMutation.isPending}
+                onConfirm={handleDelete}
+                onClose={() => setDeleteConfirmOpen(false)}
+            />
+
+            {editOpen && (
+                <CandidatureFormModal
+                    candidature={candidatureForEdit}
+                    saving={updateAsAdvisorMutation.isPending}
+                    onClose={() => setEditOpen(false)}
+                    onSave={handleEditSave}
+                />
+            )}
         </div>
     );
 }

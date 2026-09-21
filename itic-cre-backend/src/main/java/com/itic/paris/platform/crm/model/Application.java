@@ -95,6 +95,18 @@ public class Application {
     @Column(name = "via_jobboard", nullable = false)
     private boolean viaJobboard = false;
 
+    /** Vrai si créée par un conseiller/admin au nom de l'étudiant (démarchage CRE), faux si créée
+      * par l'étudiant lui-même. Interdit à l'étudiant de la supprimer (voir ApplicationService.delete)
+      * mais pas de la faire progresser (changeStatus/update restent autorisés). */
+    @Column(name = "created_by_advisor", nullable = false)
+    private boolean createdByAdvisor = false;
+
+    /** Nom complet de la derniere personne ayant change le statut de cette candidature (etudiant
+      * ou conseiller/admin) — instantane texte, pas une FK, pour rester lisible meme si le compte
+      * est ensuite supprime/anonymise. Null tant qu'aucun changement de statut n'a eu lieu. */
+    @Column(name = "last_status_modified_by_name")
+    private String lastStatusModifiedByName;
+
     /** Offre jobboard d'origine si créée automatiquement, null si créée manuellement OU si
       * l'offre d'origine a depuis été supprimée — permet de retrouver la candidature CRM lors
       * d'un retrait/relance côté jobboard, et d'afficher l'offre complète depuis la candidature. */

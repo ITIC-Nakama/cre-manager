@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
-import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract } from '../api-s/requests/ApplicationRequest';
-import type { ApplicationListParams } from '../types/models/Application';
+import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract, createApplicationForStudent, updateApplicationAsAdvisor, deleteApplicationAsAdvisor } from '../api-s/requests/ApplicationRequest';
+import type { ApplicationListParams, CandidaturePayload } from '../types/models/Application';
 
 export function useApplicationGroupedListInfinite(params: ApplicationListParams = {}) {
     return useInfiniteListQuery(['applications-grouped', 'infinite', params], fetchApplicationGroupedList, params);
@@ -64,6 +64,38 @@ export function useInvalidateContract() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+}
+
+export function useCreateApplicationForStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ studentId, payload }: { studentId: string; payload: CandidaturePayload }) =>
+            createApplicationForStudent(studentId, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+        },
+    });
+}
+
+export function useUpdateApplicationAsAdvisor() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, payload }: { id: string; payload: CandidaturePayload }) =>
+            updateApplicationAsAdvisor(id, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
+        },
+    });
+}
+
+export function useDeleteApplicationAsAdvisor() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => deleteApplicationAsAdvisor(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['applications-grouped'] });
         },
     });
 }

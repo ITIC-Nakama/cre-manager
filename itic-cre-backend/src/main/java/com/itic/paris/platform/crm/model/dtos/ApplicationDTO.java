@@ -59,6 +59,14 @@ public class ApplicationDTO {
     private Boolean viaJobboard;
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "True if this application was created by an advisor/admin on the student's behalf")
+    private boolean createdByAdvisor;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+            description = "Full name of the last person (student or advisor/admin) who changed this application's status, null if never changed")
+    private String lastStatusModifiedByName;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY,
             description = "IDs of every status this application has ever reached (for XP-preview dedup on the client)")
     private List<UUID> reachedStatusIds;
 

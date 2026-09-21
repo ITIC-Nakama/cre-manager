@@ -2,6 +2,7 @@ package com.itic.paris.platform.shared.notification;
 
 import com.itic.paris.platform.auth.core.mail.EmailTemplateService;
 import com.itic.paris.platform.shared.notification.event.AdvisorAssignedEvent;
+import com.itic.paris.platform.shared.notification.event.ApplicationCreatedByAdvisorEvent;
 import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import com.itic.paris.platform.shared.notification.event.ContractDeclarationInvalidatedEvent;
@@ -58,6 +59,17 @@ public class NotificationEmailService {
         String subject = "en".equals(event.studentLang())
                 ? "Contract declaration invalidated"
                 : "Déclaration de contrat invalidée";
+        sendHtml(event.studentEmail(), subject, html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onApplicationCreatedByAdvisor(ApplicationCreatedByAdvisorEvent event) {
+        String html = emailTemplateService.renderApplicationCreatedByAdvisorEmail(
+                event.studentLang(), event.studentFirstName(), event.entreprise(), event.poste(), event.advisorName());
+        String subject = "en".equals(event.studentLang())
+                ? "Your advisor applied on your behalf"
+                : "Votre conseiller a candidaté pour vous";
         sendHtml(event.studentEmail(), subject, html);
     }
 

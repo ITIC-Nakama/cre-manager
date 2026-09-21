@@ -1,11 +1,14 @@
 package com.itic.paris.platform.crm.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.auth.repository.RoleRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.model.ApplicationHistory;
 import com.itic.paris.platform.crm.model.ApplicationStatus;
@@ -61,6 +64,9 @@ public class ApplicationServiceIntegrationTest {
     private RoleRepository roleRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ContractTypeRepository contractTypeRepository;
 
     @Autowired
@@ -70,6 +76,7 @@ public class ApplicationServiceIntegrationTest {
     private JobOfferRepository jobOfferRepository;
 
     private Student testStudent;
+    private Advisor testAdvisor;
     private ContractType cdiContract;
     private ApplicationStatus aPostulerStatus;
     private ApplicationStatus postuleStatus;
@@ -90,6 +97,16 @@ public class ApplicationServiceIntegrationTest {
         testStudent.setRole(studentRole);
         testStudent.setXpTotal(0);
         testStudent = studentRepository.save(testStudent);
+
+        Role advisorRole = roleRepository.findByName(RoleEnum.ADVISOR);
+        testAdvisor = new Advisor();
+        testAdvisor.setEmail("integration.advisor@itic.fr");
+        testAdvisor.setFirstName("Jane");
+        testAdvisor.setLastName("Advisor");
+        testAdvisor.setPassword("Secret123!");
+        testAdvisor.setEmailVerified(true);
+        testAdvisor.setRole(advisorRole);
+        testAdvisor = (Advisor) userRepository.save(testAdvisor);
 
         // Authenticate the test student in SecurityContext
         authenticate(testStudent);
@@ -112,9 +129,9 @@ public class ApplicationServiceIntegrationTest {
         SecurityContextHolder.clearContext();
     }
 
-    private void authenticate(Student student) {
+    private void authenticate(User user) {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                Map.of("id", student.getId().toString(), "lang", "fr"),
+                Map.of("id", user.getId().toString(), "lang", "fr"),
                 null,
                 List.of()
         );
@@ -525,6 +542,198 @@ public class ApplicationServiceIntegrationTest {
         AppException ex = assertThrows(AppException.class, () -> applicationService.delete(appId));
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CONTRACT_VERIFIED_LOCKED);
+        assertThat(applicationRepository.findById(appId)).isPresent();
+    }
+
+    @Test
+    public void testCreateApplicationForStudent_ShouldCreateWithCreatedByAdvisorFlag_AndNoXP() {
+        // Given: le conseiller (pas l'etudiant) est authentifie
+        authenticate(testAdvisor);
+        testStudent.setXpTotal(0);
+        studentRepository.save(testStudent);
+
+        CreateApplicationRequest request = new CreateApplicationRequest();
+        request.setEntreprise("Air France");
+        request.setPoste("Alternant demarche par le CRE");
+        request.setTypeContratId(cdiContract.getId());
+
+        // When
+        ApplicationDTO dto = applicationService.createApplicationForStudent(testStudent.getId(), request);
+
+        // Then
+        Application saved = applicationRepository.findById(dto.getId()).orElseThrow();
+        assertThat(saved.isCreatedByAdvisor()).isTrue();
+        assertThat(saved.getStudent().getId()).isEqualTo(testStudent.getId());
+        assertThat(saved.getStatus().getOrdre()).isEqualTo(1); // meme statut initial qu'une candidature etudiant
+
+        Student unchanged = studentRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(unchanged.getXpTotal()).isZero();
+    }
+
+    @Test
+    public void testDelete_CreatedByAdvisor_ShouldBeRejectedForStudentOwner() {
+        // Given: candidature creee par le conseiller pour cet etudiant
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When / Then: l'etudiant proprietaire ne peut pas la supprimer
+        AppException ex = assertThrows(AppException.class, () -> applicationService.delete(appId));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CREATED_BY_ADVISOR_LOCKED);
+        assertThat(applicationRepository.findById(appId)).isPresent();
+    }
+
+    @Test
+    public void testChangeStatus_CreatedByAdvisor_ShouldStillBeAllowedForStudentOwner() {
+        // Given: candidature creee par le conseiller pour cet etudiant
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+
+        // When: l'etudiant proprietaire fait progresser le statut, comme sur une candidature qu'il aurait creee
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(postuleStatus.getId());
+        ApplicationDTO dto = applicationService.changeStatus(app.getId(), request);
+
+        // Then
+        assertThat(dto.getStatus().getId()).isEqualTo(postuleStatus.getId());
+    }
+
+    @Test
+    public void testChangeStatus_ShouldRecordLastStatusModifiedByName() {
+        // Given
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Google");
+        app.setPoste("Software Engineer");
+        app.setStatus(aPostulerStatus);
+        app = applicationRepository.save(app);
+
+        // When
+        ChangeStatusRequest request = new ChangeStatusRequest();
+        request.setStatusId(postuleStatus.getId());
+        applicationService.changeStatus(app.getId(), request);
+
+        // Then
+        Application saved = applicationRepository.findById(app.getId()).orElseThrow();
+        assertThat(saved.getLastStatusModifiedByName()).isEqualTo("John Doe");
+    }
+
+    @Test
+    public void testUpdate_CreatedByAdvisor_ShouldBeRejectedForStudentOwner() {
+        // Given: candidature creee par le conseiller pour cet etudiant
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        UpdateApplicationRequest request = new UpdateApplicationRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Autre poste");
+
+        // When / Then: l'etudiant proprietaire ne peut pas modifier ses champs
+        AppException ex = assertThrows(AppException.class, () -> applicationService.update(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_CREATED_BY_ADVISOR_EDIT_LOCKED);
+        assertThat(applicationRepository.findById(appId).orElseThrow().getEntreprise()).isEqualTo("Air France");
+    }
+
+    @Test
+    public void testUpdateApplicationAsAdvisor_OnOwnCreatedApplication_ShouldSucceed() {
+        // Given
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+
+        UpdateApplicationRequest request = new UpdateApplicationRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Poste corrige par le conseiller");
+
+        // When
+        ApplicationDTO dto = applicationService.updateApplicationAsAdvisor(app.getId(), request);
+
+        // Then
+        assertThat(dto.getEntreprise()).isEqualTo("Amazon");
+        assertThat(dto.getPoste()).isEqualTo("Poste corrige par le conseiller");
+    }
+
+    @Test
+    public void testUpdateApplicationAsAdvisor_OnStudentCreatedApplication_ShouldBeRejected() {
+        // Given: candidature creee par l'etudiant lui-meme (createdByAdvisor=false par defaut)
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Candidature de l'etudiant");
+        app.setStatus(aPostulerStatus);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        UpdateApplicationRequest request = new UpdateApplicationRequest();
+        request.setEntreprise("Amazon");
+        request.setPoste("Autre poste");
+
+        // When / Then: le conseiller ne peut pas modifier une candidature qu'il n'a pas creee
+        AppException ex = assertThrows(AppException.class, () -> applicationService.updateApplicationAsAdvisor(appId, request));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
+    }
+
+    @Test
+    public void testDeleteApplicationAsAdvisor_OnOwnCreatedApplication_ShouldSucceed() {
+        // Given
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Alternant demarche par le CRE");
+        app.setStatus(aPostulerStatus);
+        app.setCreatedByAdvisor(true);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When
+        applicationService.deleteApplicationAsAdvisor(appId);
+
+        // Then
+        assertThat(applicationRepository.findById(appId)).isEmpty();
+    }
+
+    @Test
+    public void testDeleteApplicationAsAdvisor_OnStudentCreatedApplication_ShouldBeRejected() {
+        // Given: candidature creee par l'etudiant lui-meme
+        authenticate(testAdvisor);
+        Application app = new Application();
+        app.setStudent(testStudent);
+        app.setEntreprise("Air France");
+        app.setPoste("Candidature de l'etudiant");
+        app.setStatus(aPostulerStatus);
+        app = applicationRepository.save(app);
+        UUID appId = app.getId();
+
+        // When / Then
+        AppException ex = assertThrows(AppException.class, () -> applicationService.deleteApplicationAsAdvisor(appId));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getMessageKey()).isEqualTo(MessageKey.APPLICATION_NOT_CREATED_BY_ADVISOR);
         assertThat(applicationRepository.findById(appId)).isPresent();
     }
 

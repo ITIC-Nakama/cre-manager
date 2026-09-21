@@ -23,6 +23,8 @@ import type { StudentGroup } from './types';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 
+type CreatedByFilter = 'all' | 'advisor' | 'student';
+
 const PAGE_SIZE = 24;
 
 export default function CandidaturesPage() {
@@ -42,6 +44,7 @@ export default function CandidaturesPage() {
     const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
     // Par defaut on ecarte les etudiants deja sous contrat, comme sur la liste des etudiants.
     const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
+    const [createdByFilter, setCreatedByFilter] = useState<CreatedByFilter>('all');
     // Id plutot que l'objet lui-meme : le drawer doit refleter les donnees a jour (ex: verification
     // d'un contrat) sans que l'utilisateur ait besoin de fermer/rouvrir — un objet fige au moment du
     // clic ne serait jamais rafraichi malgre l'invalidation React Query de la liste.
@@ -122,6 +125,12 @@ export default function CandidaturesPage() {
         { value: 'unstarred', label: t('dashboard.etudiants.filter_starred_no', 'Non étoilés') },
     ], [t]);
 
+    const createdByFilterOptions = useMemo(() => [
+        { value: 'all', label: t('dashboard.candidatures.filter_created_by_all', 'Toutes') },
+        { value: 'advisor', label: t('dashboard.candidatures.filter_created_by_advisor', 'Créées par le CRE') },
+        { value: 'student', label: t('dashboard.candidatures.filter_created_by_student', "Créées par l'étudiant") },
+    ], [t]);
+
     const params = useMemo(() => ({
         size: PAGE_SIZE,
         search: debouncedSearch || undefined,
@@ -134,7 +143,8 @@ export default function CandidaturesPage() {
         underContract: contractFilter === 'under_contract' ? true : contractFilter === 'not_under_contract' ? false : undefined,
         needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
-    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter, starredFilter]);
+        createdByAdvisor: createdByFilter === 'advisor' ? true : createdByFilter === 'student' ? false : undefined,
+    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter, starredFilter, createdByFilter]);
 
     const {
         items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -186,6 +196,7 @@ export default function CandidaturesPage() {
         contractFilter !== 'not_under_contract' ? contractFilter : '',
         isAdmin ? advisorFilter : (advisorFilter !== currentUserId ? advisorFilter : ''),
         staleOnly ? 'stale' : '',
+        createdByFilter !== 'all' ? createdByFilter : '',
     ].filter(Boolean).length;
 
     const handleResetFilters = () => {
@@ -195,6 +206,7 @@ export default function CandidaturesPage() {
         setAdvisorFilter(!isAdmin && currentUser ? String(currentUser.id) : '');
         setStaleOnly(false);
         setStarredFilter('all');
+        setCreatedByFilter('all');
     };
 
     return (
@@ -343,6 +355,19 @@ export default function CandidaturesPage() {
                             <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
                             {t('dashboard.candidatures.filter_stale_only')}
                         </label>
+                    </div>
+
+                    <div className="py-3 first:pt-3 last:pb-3">
+                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                            {t('dashboard.candidatures.filter_created_by_label', 'Créée par')}
+                        </label>
+                        <CustomSelect
+                            value={createdByFilter}
+                            options={createdByFilterOptions}
+                            onChange={(value) => setCreatedByFilter(value as CreatedByFilter)}
+                            icon={<Users className="h-4 w-4 text-slate-400" />}
+                            className="w-full"
+                        />
                     </div>
                 </FiltersPopover>
             </div>

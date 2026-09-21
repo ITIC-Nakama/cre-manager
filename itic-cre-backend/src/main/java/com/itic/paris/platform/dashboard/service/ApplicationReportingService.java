@@ -192,6 +192,7 @@ public class ApplicationReportingService {
         UUID statusId = criteria.getStatusId();
         UUID typeContratId = criteria.getTypeContratId();
         Boolean stale = criteria.getStale();
+        Boolean createdByAdvisor = criteria.getCreatedByAdvisor();
 
         Specification<Student> spec = StudentSpecification.withApplicationFilters(criteria, staleThreshold);
         Page<Student> studentPage = studentRepository.findAll(spec, pageable);
@@ -209,6 +210,7 @@ public class ApplicationReportingService {
                     .filter(app -> statusId == null || statusId.equals(app.getStatus().getId()))
                     .filter(app -> typeContratId == null || (app.getTypeContrat() != null && typeContratId.equals(app.getTypeContrat().getId())))
                     .filter(app -> !Boolean.TRUE.equals(stale) || (Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte()) && app.getDateModification().isBefore(staleThreshold)))
+                    .filter(app -> createdByAdvisor == null || createdByAdvisor == app.isCreatedByAdvisor())
                     .map(app -> {
                         boolean isStale = Boolean.TRUE.equals(app.getStatus().getDeclencheAlerte())
                                 && app.getDateModification().isBefore(staleThreshold);
@@ -239,6 +241,8 @@ public class ApplicationReportingService {
                         ));
                         row.put("stale", isStale);
                         row.put("viaJobboard", app.isViaJobboard());
+                        row.put("createdByAdvisor", app.isCreatedByAdvisor());
+                        row.put("lastStatusModifiedByName", app.getLastStatusModifiedByName());
                         row.put("dateCreation", app.getDateCreation());
                         row.put("dateModification", app.getDateModification());
                         return row;

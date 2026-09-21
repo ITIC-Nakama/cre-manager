@@ -134,6 +134,18 @@ public class EmailTemplateService {
         return templateEngine.process("email/contract-declaration-invalidated", context);
     }
 
+    public String renderApplicationCreatedByAdvisorEmail(String lang, String firstName, String entreprise, String poste, String advisorName) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("entreprise", entreprise != null ? entreprise.trim() : "");
+        context.setVariable("poste", poste != null ? poste.trim() : "");
+        context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "");
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/application-created-by-advisor", context);
+    }
+
     public String renderAccountCredentialsEmail(String lang, String firstName, String email, String password, boolean isNewAccount) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));
