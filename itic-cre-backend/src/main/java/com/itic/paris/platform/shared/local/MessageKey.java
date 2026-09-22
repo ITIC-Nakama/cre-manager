@@ -171,6 +171,12 @@ public enum MessageKey {
     ANONYMIZED_USER_CANNOT_BE_REACTIVATED("anonymized-user-cannot-be-reactivated",
             "Un compte anonymisé RGPD ne peut pas être réactivé.",
             "An anonymized GDPR account cannot be reactivated."),
+    STAFF_ANONYMIZE_STUDENTS_ONLY("staff-anonymize-students-only",
+            "Seuls les comptes étudiants peuvent être anonymisés par le staff.",
+            "Only student accounts can be anonymized by staff."),
+    ACCOUNT_ALREADY_ANONYMIZED("account-already-anonymized",
+            "Ce compte a déjà été anonymisé.",
+            "This account has already been anonymized."),
     // Réclamations
     RECLAMATION_PHONE_REQUIRED("reclamation-phone-required",
             "Merci de renseigner votre numéro de téléphone.",

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -49,6 +50,18 @@ public class GdprController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Votre compte a été anonymisé et désactivé conformément au RGPD.",
+                "status", "success"
+        ));
+    }
+
+    @PatchMapping("/students/{id}/anonymize")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Anonymiser le compte d'un étudiant (RGPD, déclenché par un admin)", description = "Action irréversible — anonymise le profil, supprime les fichiers CV et désactive le compte")
+    public ResponseEntity<?> anonymizeStudentAsStaff(@PathVariable UUID id) {
+        gdprService.anonymizeStudentAsStaff(id);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Le compte étudiant a été anonymisé.",
                 "status", "success"
         ));
     }

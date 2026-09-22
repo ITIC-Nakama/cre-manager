@@ -3,6 +3,7 @@ package com.itic.paris.platform.gdpr.service;
 import com.itic.paris.platform.audit.model.AuditAction;
 import com.itic.paris.platform.audit.service.AuditLogService;
 import com.itic.paris.platform.auth.core.exception.AppException;
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
@@ -173,11 +174,36 @@ public class GdprService {
         /** L'utilisateur a lui-meme declenche la suppression (DELETE /gdpr/delete-account). */
         SELF,
         /** Purge automatique planifiee (comptes desactives depuis plus que la duree legale). */
-        SCHEDULED_PURGE
+        SCHEDULED_PURGE,
+        /** Un admin declenche l'anonymisation au nom de l'etudiant. */
+        STAFF_INITIATED
     }
 
     @Transactional
     public void anonymizeAndDeactivateUser(User user, DeletionTrigger trigger) {
+        anonymizeAndDeactivateUser(user, trigger, null);
+    }
+
+    @Transactional
+    public void anonymizeStudentAsStaff(UUID studentId) {
+        UUID currentUserId = SecurityContextHelper.currentUserId();
+        User actor = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, MessageKey.NOT_AUTHENTICATED));
+        User target = userRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+
+        if (UserMapper.roleOf(target) != RoleEnum.STUDENT) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.STAFF_ANONYMIZE_STUDENTS_ONLY);
+        }
+        if (target.isAnonymized()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.ACCOUNT_ALREADY_ANONYMIZED);
+        }
+
+        anonymizeAndDeactivateUser(target, DeletionTrigger.STAFF_INITIATED, actor);
+    }
+
+    @Transactional
+    public void anonymizeAndDeactivateUser(User user, DeletionTrigger trigger, User staffActor) {
         if (UserMapper.roleOf(user) == RoleEnum.ADMIN) {
             throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ADMIN_CANNOT_BE_DELETED);
         }
@@ -231,6 +257,10 @@ public class GdprService {
         if (trigger == DeletionTrigger.SELF) {
             auditLogService.log(AuditAction.STUDENT_SELF_DELETED_GDPR, user, user.getId(),
                     "Auto-suppression du compte par l'étudiant (RGPD) — Identité d'origine : " + originalIdentity);
+        } else if (trigger == DeletionTrigger.STAFF_INITIATED) {
+            auditLogService.log(AuditAction.STUDENT_ANONYMIZED_BY_STAFF, staffActor, user.getId(),
+                    "Anonymisation déclenchée par " + staffActor.getFirstName() + " " + staffActor.getLastName()
+                            + " — Identité d'origine : " + originalIdentity);
         } else {
             auditLogService.log(AuditAction.USER_DEACTIVATED, user, user.getId(),
                     "Anonymisation automatique RGPD (purge légale, compte désactivé depuis trop longtemps) — Identité d'origine : " + originalIdentity);

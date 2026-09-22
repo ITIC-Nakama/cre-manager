@@ -113,6 +113,10 @@ export function reactivateStudent(studentId: string): Promise<void> {
     return apiClient.patch(`/auth/users/${studentId}/reactivate`).then(() => undefined);
 }
 
+export function anonymizeStudent(studentId: string): Promise<void> {
+    return apiClient.patch(`/gdpr/students/${studentId}/anonymize`).then(() => undefined);
+}
+
 export function declareContractForStudent(studentId: string, payload: DeclareContractPayload): Promise<Candidature> {
     return apiClient.post(`/dashboard/students/${studentId}/declare-contract`, payload).then(unwrap<Candidature>);
 }

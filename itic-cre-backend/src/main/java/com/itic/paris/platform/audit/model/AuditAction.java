@@ -19,6 +19,8 @@ public enum AuditAction {
     // Auto-suppression de compte etudiant (RGPD, droit a l'oubli) — distincte de USER_DEACTIVATED
     // pour rester filtrable/identifiable meme une fois le compte anonymise.
     STUDENT_SELF_DELETED_GDPR,
+    // Anonymisation RGPD d'un etudiant declenchee par un admin (pas l'etudiant lui-meme).
+    STUDENT_ANONYMIZED_BY_STAFF,
 
     // --- Actions de gestion des CVs ---
     CV_UPLOADED,

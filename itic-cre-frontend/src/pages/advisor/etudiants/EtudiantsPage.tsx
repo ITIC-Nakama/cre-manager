@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { useStudentListInfinite, useNotifyStudent, useDeactivateStudent, useReactivateStudent } from '../../../hooks/useDashboard';
+import { useStudentListInfinite, useNotifyStudent, useDeactivateStudent, useReactivateStudent, useAnonymizeStudent } from '../../../hooks/useDashboard';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
@@ -19,6 +19,7 @@ import StudentDetailModal from '../../../components/shared/StudentDetailModal';
 import DeclareContractModal from '../../../components/shared/DeclareContractModal';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
@@ -85,9 +86,12 @@ export default function EtudiantsPage() {
     const notifyMutation = useNotifyStudent();
     const deactivateMutation = useDeactivateStudent();
     const reactivateMutation = useReactivateStudent();
+    const anonymizeMutation = useAnonymizeStudent();
     const bulkAssignAdvisorMutation = useAssignStudentsToAdvisor();
     const bulkRemoveAdvisorMutation = useRemoveStudentsFromAdvisor();
     const [includeAnonymized, setIncludeAnonymized] = useState(false);
+    const [anonymizeTarget, setAnonymizeTarget] = useState<StudentRow | null>(null);
+    const [anonymizing, setAnonymizing] = useState(false);
     const { data: promotions } = usePromotions();
 
     const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
@@ -375,6 +379,25 @@ export default function EtudiantsPage() {
         }
     };
 
+    const handleAnonymizeStudent = (student: StudentRow) => {
+        setAnonymizeTarget(student);
+    };
+
+    const handleConfirmAnonymize = async () => {
+        if (!anonymizeTarget) return;
+        setAnonymizing(true);
+        try {
+            await anonymizeMutation.mutateAsync(anonymizeTarget.id);
+            toast.success(t('dashboard.etudiants.toast_anonymized'));
+            setAnonymizeTarget(null);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_anonymize_error'));
+        } finally {
+            setAnonymizing(false);
+        }
+    };
+
     const handleExportCsv = async () => {
         setExporting(true);
         try {
@@ -481,6 +504,7 @@ export default function EtudiantsPage() {
                     onNotify={(s) => setSelectedStudent(s)}
                     onToggleActive={(s) => s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)}
                     onDeclareContract={(s) => setDeclaringContractFor(s)}
+                    onAnonymize={isAdmin ? handleAnonymizeStudent : undefined}
                 />
             )}
 
@@ -499,6 +523,20 @@ export default function EtudiantsPage() {
                 loading={confirmLoading}
                 onConfirm={handleConfirm}
                 onClose={closeConfirm}
+            />
+
+            <TypedConfirmDialog
+                isOpen={!!anonymizeTarget}
+                title={t('dashboard.etudiants.confirm_anonymize_title')}
+                message={anonymizeTarget
+                    ? t('dashboard.etudiants.confirm_anonymize_message', { name: `${anonymizeTarget.firstName} ${anonymizeTarget.lastName}` })
+                    : ''}
+                confirmationValue={anonymizeTarget?.email ?? ''}
+                confirmationLabel={t('dashboard.etudiants.confirm_anonymize_input_label')}
+                confirmLabel={t('dashboard.etudiants.actions.anonymize')}
+                loading={anonymizing}
+                onConfirm={handleConfirmAnonymize}
+                onClose={() => setAnonymizeTarget(null)}
             />
 
             {viewingCvStudentId && studentCv && (

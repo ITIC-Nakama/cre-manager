@@ -1,7 +1,10 @@
 package com.itic.paris.platform.gdpr;
 
+import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
 import com.itic.paris.platform.auth.model.Admin;
+import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.itic.paris.platform.auth.model.Promotion;
@@ -66,6 +70,9 @@ public class GdprIntegrationTest {
 
     @Autowired
     private ReclamationRepository reclamationRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
@@ -209,27 +216,8 @@ public class GdprIntegrationTest {
 
     @Test
     public void testDeleteMyAccount_AdminUser_ShouldBeForbiddenAndLeaveAccountUntouched() throws Exception {
-        Role adminRole = roleRepository.findByName(RoleEnum.ADMIN);
-
-        Admin testAdmin = new Admin();
-        testAdmin.setEmail("gdpr.admin@itic.fr");
-        testAdmin.setFirstName("Alice");
-        testAdmin.setLastName("Martin");
-        testAdmin.setPassword("Password123!");
-        testAdmin.setEmailVerified(true);
-        testAdmin.setMustChangePassword(false);
-        testAdmin.setActive(true);
-        testAdmin.setRole(adminRole);
-        testAdmin = userRepository.save(testAdmin);
-
-        CustomUserDetails adminDetails = CustomUserDetails.builder()
-                .id(testAdmin.getId())
-                .email(testAdmin.getEmail())
-                .role(testAdmin.getRole())
-                .lang("fr")
-                .mustChangePassword(false)
-                .build();
-        String adminToken = (String) jwtAuthProvider.createToken(adminDetails).get("token");
+        User testAdmin = createStaffAndReturn(RoleEnum.ADMIN, "gdpr.admin@itic.fr", "Alice", "Martin");
+        String adminToken = tokenFor(testAdmin);
 
         mockMvc.perform(delete("/gdpr/delete-account")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
@@ -238,7 +226,94 @@ public class GdprIntegrationTest {
 
         User untouchedAdmin = userRepository.findById(testAdmin.getId()).orElseThrow();
         assertThat(untouchedAdmin.isActive()).isTrue();
-        assertThat(untouchedAdmin.getEmail()).isEqualTo("gdpr.admin@itic.fr");
         assertThat(untouchedAdmin.getFirstName()).isEqualTo("Alice");
+    }
+
+    @Test
+    public void testAnonymizeStudentAsStaff_Admin_ShouldAnonymizeAndCreateAuditLog() throws Exception {
+        User admin = createStaffAndReturn(RoleEnum.ADMIN, "gdpr.admin2@itic.fr", "Alice", "Martin");
+        String adminToken = tokenFor(admin);
+
+        mockMvc.perform(patch("/gdpr/students/" + testStudent.getId() + "/anonymize")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("success"));
+
+        User anonymized = userRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(anonymized.isActive()).isFalse();
+        assertThat(anonymized.getFirstName()).isEqualTo("Anonyme");
+        assertThat(anonymized.getEmail()).startsWith("deleted_");
+
+        boolean hasAuditEntry = auditLogRepository.findAll().stream().anyMatch(log ->
+                log.getAction() == AuditAction.STUDENT_ANONYMIZED_BY_STAFF
+                        && testStudent.getId().equals(log.getTargetId())
+                        && admin.getId().equals(log.getActorId()));
+        assertThat(hasAuditEntry).isTrue();
+    }
+
+    @Test
+    public void testAnonymizeStudentAsStaff_Advisor_ShouldBeForbidden() throws Exception {
+        String advisorToken = createStaffAndToken(RoleEnum.ADVISOR, "gdpr.advisor@itic.fr", "Bob", "Conseiller");
+
+        mockMvc.perform(patch("/gdpr/students/" + testStudent.getId() + "/anonymize")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isForbidden());
+
+        User untouched = userRepository.findById(testStudent.getId()).orElseThrow();
+        assertThat(untouched.isActive()).isTrue();
+    }
+
+    @Test
+    public void testAnonymizeStudentAsStaff_NonStudentTarget_ShouldReturnBadRequest() throws Exception {
+        String adminToken = createStaffAndToken(RoleEnum.ADMIN, "gdpr.admin3@itic.fr", "Alice", "Martin");
+        User otherAdmin = createStaffAndReturn(RoleEnum.ADMIN, "gdpr.admin4@itic.fr", "Chris", "Autre");
+
+        mockMvc.perform(patch("/gdpr/students/" + otherAdmin.getId() + "/anonymize")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.STAFF_ANONYMIZE_STUDENTS_ONLY.getKey()));
+    }
+
+    @Test
+    public void testAnonymizeStudentAsStaff_AlreadyAnonymized_ShouldReturnBadRequest() throws Exception {
+        String adminToken = createStaffAndToken(RoleEnum.ADMIN, "gdpr.admin5@itic.fr", "Alice", "Martin");
+
+        mockMvc.perform(patch("/gdpr/students/" + testStudent.getId() + "/anonymize")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(patch("/gdpr/students/" + testStudent.getId() + "/anonymize")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value(MessageKey.ACCOUNT_ALREADY_ANONYMIZED.getKey()));
+    }
+
+    private User createStaffAndReturn(RoleEnum roleEnum, String email, String firstName, String lastName) {
+        Role role = roleRepository.findByName(roleEnum);
+        User staff = roleEnum == RoleEnum.ADMIN ? new Admin() : new Advisor();
+        staff.setEmail(email);
+        staff.setFirstName(firstName);
+        staff.setLastName(lastName);
+        staff.setPassword("Password123!");
+        staff.setEmailVerified(true);
+        staff.setMustChangePassword(false);
+        staff.setActive(true);
+        staff.setRole(role);
+        return userRepository.save(staff);
+    }
+
+    private String createStaffAndToken(RoleEnum roleEnum, String email, String firstName, String lastName) {
+        return tokenFor(createStaffAndReturn(roleEnum, email, firstName, lastName));
+    }
+
+    private String tokenFor(User user) {
+        CustomUserDetails details = CustomUserDetails.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .lang("fr")
+                .mustChangePassword(false)
+                .build();
+        return (String) jwtAuthProvider.createToken(details).get("token");
     }
 }

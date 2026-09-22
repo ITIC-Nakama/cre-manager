@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2, MoreVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -15,6 +15,7 @@ interface Props {
     onNotify?: (student: StudentRow) => void;
     onToggleActive?: (student: StudentRow) => void;
     onDeclareContract?: (student: StudentRow) => void;
+    onAnonymize?: (student: StudentRow) => void;
 }
 
 function formatDateTime(iso: string | null) {
@@ -25,13 +26,14 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize }: Props) {
     const { t } = useTranslation();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
     const removeMutation = useRemoveStudentFromPromotion();
     const updateStarRatingMutation = useUpdateStudentStarRating();
     const [localStarRating, setLocalStarRating] = useState<number | null>(student.starRating);
+    const [showDeleteMenu, setShowDeleteMenu] = useState(false);
 
     const [isEditingPromo, setIsEditingPromo] = useState(false);
     const [selectedPromoId, setSelectedPromoId] = useState(student.promotion?.id ?? '');
@@ -151,12 +153,40 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        {onAnonymize && !isAnonymizedStudent(student) && (
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteMenu((prev) => !prev)}
+                                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                                >
+                                    <MoreVertical className="h-4 w-4" />
+                                </button>
+                                {showDeleteMenu && (
+                                    <>
+                                        <div className="fixed inset-0 z-40" onClick={() => setShowDeleteMenu(false)} />
+                                        <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg py-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowDeleteMenu(false); onClose(); onAnonymize(student); }}
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-rose-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                <span>{t('dashboard.etudiants.actions.anonymize')}</span>
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Body */}

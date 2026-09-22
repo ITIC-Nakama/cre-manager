@@ -11,6 +11,7 @@ import {
     notifyStudent,
     deactivateStudent,
     reactivateStudent,
+    anonymizeStudent,
     declareContractForStudent,
     updateStudentStarRating,
 } from '../api-s/requests/DashboardRequest';
@@ -108,6 +109,16 @@ export function useReactivateStudent() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (studentId: string) => reactivateStudent(studentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
+        },
+    });
+}
+
+export function useAnonymizeStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (studentId: string) => anonymizeStudent(studentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
         },
