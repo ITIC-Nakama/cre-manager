@@ -35,7 +35,7 @@ public class CreateJobOfferRequest {
 
     private UUID sectorId;
 
-    @URL
+    @URL(message = "externalLink must be a valid http(s) URL")
     @Size(max = 2048)
     private String externalLink;
 }
