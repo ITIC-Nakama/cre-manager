@@ -23,6 +23,14 @@ const LIMITS = {
     externalLink: { max: 2048 },
 };
 
+function isValidHttpUrl(value: string): boolean {
+    try {
+        return ['http:', 'https:'].includes(new URL(value).protocol);
+    } catch {
+        return false;
+    }
+}
+
 export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly = false }: Props) {
     const { t } = useTranslation();
     const { data: contractTypes } = useContractTypes();
@@ -73,6 +81,10 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         }
         if (!contractTypeId) {
             errors.contractTypeId = t('dashboard.offres.form.required_field_error');
+        }
+        const trimmedLink = externalLink.trim();
+        if (trimmedLink && !isValidHttpUrl(trimmedLink)) {
+            errors.externalLink = t('dashboard.offres.form.invalid_link_error');
         }
         return errors;
     };

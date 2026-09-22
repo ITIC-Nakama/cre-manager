@@ -820,6 +820,7 @@
         "required_error": "Please fill in the required fields.",
         "required_field_error": "This field is required.",
         "length_error": "Must be between {{min}} and {{max}} characters.",
+        "invalid_link_error": "This link is not a valid URL (must start with http:// or https://).",
         "save_error": "Failed to save the offer."
       },
       "detail_modal": {

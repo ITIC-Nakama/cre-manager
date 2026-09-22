@@ -820,6 +820,7 @@
         "required_error": "Veuillez remplir les champs obligatoires.",
         "required_field_error": "Ce champ est obligatoire.",
         "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
+        "invalid_link_error": "Le lien n'est pas une URL valide (doit commencer par http:// ou https://).",
         "save_error": "Échec de l'enregistrement de l'offre."
       },
       "detail_modal": {
