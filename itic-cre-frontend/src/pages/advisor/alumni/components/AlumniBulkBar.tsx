@@ -76,7 +76,7 @@ export default function AlumniBulkBar({
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
                     >
                         <X className="h-3.5 w-3.5" />
-                        {t('common.cancel', 'Annuler')}
+                        {t('dashboard.alumni.bulk.cancel', 'Annuler')}
                     </button>
                 </div>
             </div>
@@ -91,7 +91,6 @@ export default function AlumniBulkBar({
                     {selectingAllMatching && <Loader2 className="h-3 w-3 animate-spin" />}
                     {t('dashboard.alumni.bulk.select_all_matching', {
                         count: totalElements,
-                        defaultValue: 'Sélectionner les {{count}} fiches alumni correspondant au filtre actuel',
                     })}
                 </button>
             )}

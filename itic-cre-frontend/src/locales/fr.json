@@ -1089,7 +1089,29 @@
       "confirm_delete_title": "Supprimer cette fiche ?",
       "confirm_delete_message": "La fiche de {{name}} sera supprimée définitivement. Cette action est irréversible.",
       "toast_deleted": "Fiche supprimée.",
-      "toast_error": "Une erreur est survenue, réessayez."
+      "toast_error": "Une erreur est survenue, réessayez.",
+      "export_button": "Exporter en CSV",
+      "stats_total": "Total fiches",
+      "stats_working": "En activité",
+      "stats_jobsearch": "En recherche",
+      "stats_training": "En formation",
+      "select_page": "Sélectionner les fiches affichées",
+      "unselect_page": "Tout désélectionner sur cette page",
+      "selected_count": "{{count}} sélectionné(s)",
+      "toast_exported": "{{count}} fiche(s) exportée(s).",
+      "toast_export_error": "Erreur lors de l'export CSV.",
+      "bulk": {
+        "selected_count": "{{count}} fiche(s) sélectionnée(s)",
+        "export_selected": "Exporter la sélection",
+        "delete_selected": "Supprimer la sélection",
+        "cancel": "Annuler",
+        "select_all_matching": "Sélectionner les {{count}} fiches alumni correspondant au filtre",
+        "select_all_error": "Erreur lors de la sélection des fiches.",
+        "confirm_title": "Supprimer les fiches sélectionnées ?",
+        "confirm_message": "Vous êtes sur le point de supprimer {{count}} fiche(s) alumni. Cette action est irréversible.",
+        "delete_button": "Supprimer définitivement",
+        "toast_deleted": "{{count}} fiche(s) supprimée(s)."
+      }
     },
     "reclamations_advisor": {
       "title": "Messages des étudiants",

@@ -1089,7 +1089,29 @@
       "confirm_delete_title": "Delete this record?",
       "confirm_delete_message": "{{name}}'s record will be permanently deleted. This action cannot be undone.",
       "toast_deleted": "Record deleted.",
-      "toast_error": "Something went wrong, please try again."
+      "toast_error": "Something went wrong, please try again.",
+      "export_button": "Export to CSV",
+      "stats_total": "Total records",
+      "stats_working": "Employed",
+      "stats_jobsearch": "Job searching",
+      "stats_training": "In training",
+      "select_page": "Select displayed records",
+      "unselect_page": "Deselect on this page",
+      "selected_count": "{{count}} selected",
+      "toast_exported": "{{count}} record(s) exported.",
+      "toast_export_error": "Error exporting CSV.",
+      "bulk": {
+        "selected_count": "{{count}} record(s) selected",
+        "export_selected": "Export selected",
+        "delete_selected": "Delete selected",
+        "cancel": "Cancel",
+        "select_all_matching": "Select all {{count}} alumni records matching the filter",
+        "select_all_error": "Error selecting records.",
+        "confirm_title": "Delete selected records?",
+        "confirm_message": "You are about to delete {{count}} alumni record(s). This action cannot be undone.",
+        "delete_button": "Delete permanently",
+        "toast_deleted": "{{count}} record(s) deleted."
+      }
     },
     "reclamations_advisor": {
       "title": "Student Messages",

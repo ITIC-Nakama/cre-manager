@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -23,7 +23,23 @@ import {
 } from '../../../types/models/Alumni';
 import AlumniBulkBar from './components/AlumniBulkBar';
 
-const PAGE_SIZE = 20;
+function IndeterminateCheckbox({
+    indeterminate,
+    className = '',
+    ...rest
+}: { indeterminate?: boolean } & React.InputHTMLAttributes<HTMLInputElement>) {
+    const ref = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (typeof indeterminate === 'boolean' && ref.current) {
+            ref.current.indeterminate = indeterminate;
+        }
+    }, [indeterminate]);
+
+    return <input type="checkbox" ref={ref} className={className} {...rest} />;
+}
+
+const PAGE_SIZE = 10;
 
 const STATUS_STYLES: Record<AlumniStatus, string> = {
     CDI: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
@@ -129,17 +145,23 @@ export default function AlumniPage() {
     };
 
     const allPageRowsSelected = contacts.length > 0 && contacts.every((c) => selectedIds.includes(c.id));
+    const isSomePageRowsSelected = !allPageRowsSelected && contacts.some((c) => selectedIds.includes(c.id));
     const allMatchingSelected = totalElements > 0 && selectedIds.length >= totalElements;
 
     const handleToggleAllPage = () => {
         if (allPageRowsSelected) {
-            const pageIds = new Set(contacts.map((c) => c.id));
-            setSelectedIds((prev) => prev.filter((id) => !pageIds.has(id)));
+            clearSelection();
         } else {
-            const newIds = new Set([...selectedIds, ...contacts.map((c) => c.id)]);
-            setSelectedIds(Array.from(newIds));
+            setSelectedIds(contacts.map((c) => c.id));
         }
     };
+
+    // Réinitialiser la sélection si le nombre d'IDs dépasse le total disponible
+    useEffect(() => {
+        if (selectedIds.length > 0 && totalElements > 0 && selectedIds.length > totalElements) {
+            clearSelection();
+        }
+    }, [totalElements, selectedIds.length]);
 
     const handleSelectAllMatching = async () => {
         setSelectingAllMatching(true);
@@ -148,7 +170,7 @@ export default function AlumniPage() {
             setSelectedIds(all.map((c) => c.id));
         } catch (err) {
             console.error(err);
-            toast.error(t('dashboard.alumni.bulk.select_all_error', 'Erreur lors de la sélection des fiches.'));
+            toast.error(t('dashboard.alumni.bulk.select_all_error'));
         } finally {
             setSelectingAllMatching(false);
         }
@@ -295,24 +317,24 @@ export default function AlumniPage() {
                     <CustomSelect value={exitYear} options={yearOptions} onChange={handleExitYearChange} className="w-full sm:w-48" />
                     <CustomSelect value={statusFilter} options={statusOptions} onChange={handleStatusFilterChange} className="w-full sm:w-56" />
                 </div>
-
-                {/* Barre d'action groupée (Bulk) */}
-                {selectedIds.length > 0 && (
-                    <AlumniBulkBar
-                        selectedCount={selectedIds.length}
-                        totalElements={totalElements}
-                        allPageRowsSelected={allPageRowsSelected}
-                        allMatchingSelected={allMatchingSelected}
-                        isAdmin={isAdmin}
-                        processing={bulkDeleteMutation.isPending || isExporting}
-                        selectingAllMatching={selectingAllMatching}
-                        onDelete={() => setBulkDeleteConfirmOpen(true)}
-                        onExport={() => handleExportCsv(true)}
-                        onClear={clearSelection}
-                        onSelectAllMatching={handleSelectAllMatching}
-                    />
-                )}
             </div>
+
+            {/* Barre d'action groupée (Bulk) */}
+            {selectedIds.length > 0 && (
+                <AlumniBulkBar
+                    selectedCount={selectedIds.length}
+                    totalElements={totalElements}
+                    allPageRowsSelected={allPageRowsSelected}
+                    allMatchingSelected={allMatchingSelected}
+                    isAdmin={isAdmin}
+                    processing={bulkDeleteMutation.isPending || isExporting}
+                    selectingAllMatching={selectingAllMatching}
+                    onDelete={() => setBulkDeleteConfirmOpen(true)}
+                    onExport={() => handleExportCsv(true)}
+                    onClear={clearSelection}
+                    onSelectAllMatching={handleSelectAllMatching}
+                />
+            )}
 
             {/* Liste des fiches */}
             {isLoading ? (
@@ -332,20 +354,24 @@ export default function AlumniPage() {
                     {contacts.length > 0 && (
                         <div className="flex items-center justify-between px-2 text-xs text-slate-500 dark:text-slate-400">
                             <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
+                                <IndeterminateCheckbox
                                     checked={allPageRowsSelected}
+                                    indeterminate={isSomePageRowsSelected}
                                     onChange={handleToggleAllPage}
                                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                 />
                                 <span className="font-medium">
                                     {allPageRowsSelected
-                                        ? t('dashboard.alumni.unselect_page', 'Tout désélectionner sur cette page')
-                                        : t('dashboard.alumni.select_page', 'Sélectionner les fiches affichées')}
+                                        ? t('dashboard.alumni.unselect_page')
+                                        : t('dashboard.alumni.select_page')}
                                 </span>
                             </label>
                             <span>
-                                {selectedIds.length > 0 && `${selectedIds.length} sélectionné(s)`}
+                                {selectedIds.length > 0 && (
+                                    <span>
+                                        {t('dashboard.alumni.selected_count', { count: selectedIds.length })}
+                                    </span>
+                                )}
                             </span>
                         </div>
                     )}
