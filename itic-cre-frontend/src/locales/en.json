@@ -13,6 +13,7 @@
     "admin_tag": "(Admin)",
     "me_option": "Me",
     "clear": "Clear",
+    "this_year": "This year ({{year}})",
     "time_greeting": {
       "morning": "Good morning",
       "afternoon": "Good afternoon",

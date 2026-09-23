@@ -5,17 +5,18 @@ import { useTranslation } from 'react-i18next';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import type { LucideIcon } from 'lucide-react';
 import {
-    AlertTriangle, ArrowLeft, ArrowRight, Banknote, Briefcase, Building2, Calendar, CheckCircle2,
+    AlertTriangle, ArrowLeft, ArrowRight, Banknote, Briefcase, Building2, CheckCircle2,
     GraduationCap, Loader2, Mail, Phone, User,
 } from 'lucide-react';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import AuthControls from '../../components/common/AuthControls';
 import CustomSelect from '../../components/basics/CustomSelect';
+import YearPicker from '../../components/basics/YearPicker';
 import { useSubmitAlumniContact } from '../../hooks/useAlumni';
 import { getApiErrorMessage } from '../../utils/errorHelper';
 import {
-    ALUMNI_STATUSES, alumniExitYears, isWorkingStatus,
+    ALUMNI_STATUSES, isWorkingStatus,
     type AlumniStatus, type CreateAlumniContactPayload,
 } from '../../types/models/Alumni';
 
@@ -86,11 +87,6 @@ export default function AlumniFormPage() {
     const currentStatus = useWatch({ control, name: 'currentStatus' });
     const jobInContinuity = useWatch({ control, name: 'jobInContinuity' });
     const isWorking = currentStatus !== '' && isWorkingStatus(currentStatus);
-
-    const yearOptions = useMemo(() => [
-        { value: '', label: t('alumni.form.exit_year_placeholder', 'Choisir une année') },
-        ...alumniExitYears().map((year) => ({ value: String(year), label: String(year) })),
-    ], [t]);
 
     const statusOptions = useMemo(() => [
         { value: '', label: t('alumni.form.status_placeholder', 'Choisir votre situation') },
@@ -250,9 +246,15 @@ export default function AlumniFormPage() {
                                                 control={control}
                                                 rules={{ required: t('alumni.form.exit_year_required', 'Merci de choisir votre année de sortie.') }}
                                                 render={({ field }) => (
-                                                    <CustomSelect
-                                                        id="exitYear" value={field.value} options={yearOptions} onChange={field.onChange}
-                                                        icon={<Calendar className="h-4 w-4 text-slate-400" />} className="w-full" disabled={isPending}
+                                                    <YearPicker
+                                                        id="exitYear"
+                                                        value={field.value}
+                                                        onChange={(val) => field.onChange(val ? String(val) : '')}
+                                                        minYear={1990}
+                                                        maxYear={new Date().getFullYear() + 1}
+                                                        placeholder={t('alumni.form.exit_year_placeholder', 'Choisir une année')}
+                                                        disabled={isPending}
+                                                        error={!!errors.exitYear}
                                                     />
                                                 )}
                                             />
