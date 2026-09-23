@@ -148,10 +148,10 @@ export default function AlumniFormPage() {
                         <div className="flex flex-col items-center text-center gap-4 py-8 max-w-xl mx-auto animate-fadeIn">
                             <CheckCircle2 className="h-14 w-14 text-emerald-500" />
                             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                                {t('alumni.success.title', 'Merci, c\'est bien reçu !')}
+                                {t('alumni.success.title', "Merci d'avoir partagé votre parcours !")}
                             </h1>
                             <p className="text-sm text-slate-500 dark:text-[#9aa0a6] max-w-md">
-                                {t('alumni.success.message', 'Vos coordonnées ont été enregistrées. Nous reviendrons vers vous si une opportunité correspond à votre profil.')}
+                                {t('alumni.success.message', "Vos coordonnées ont bien été enregistrées. Nous sommes ravis de vous compter parmi le réseau des anciens étudiants d'ITIC Paris et de garder le lien pour nos futurs échanges et événements.")}
                             </p>
                             <Link to="/login" className="mt-2 font-semibold itic-gradient-blue hover:underline">
                                 {t('alumni.success.back', 'Retour à l\'accueil')}
@@ -165,7 +165,7 @@ export default function AlumniFormPage() {
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs font-semibold uppercase tracking-widest text-[#3f74ff] dark:text-blue-400">
-                                        {t('alumni.badge', 'Anciens élèves')}
+                                        {t('alumni.badge', 'Anciens étudiants')}
                                     </p>
                                     <h1 className="text-3xl font-extrabold itic-gradient-warm">
                                         {t('alumni.form.title', 'Restons en contact')}

@@ -1739,8 +1739,8 @@
       "error_generic": "Something went wrong, please try again in a moment."
     },
     "success": {
-      "title": "Thank you, we got it!",
-      "message": "Your details have been saved. We will get back to you if an opportunity matches your profile.",
+      "title": "Thank you for sharing your journey!",
+      "message": "Your details have been successfully saved. We are delighted to count you among the ITIC Paris alumni network and to stay in touch for our upcoming exchanges and events.",
       "back": "Back to home"
     }
   },

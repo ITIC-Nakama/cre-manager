@@ -1681,7 +1681,7 @@
   },
   "alumni": {
     "link_label": "Formulaire alumni",
-    "badge": "Anciens élèves",
+    "badge": "Anciens étudiants",
     "back": "Retour à la connexion",
     "status": {
       "CDI": "CDI",
@@ -1739,8 +1739,8 @@
       "error_generic": "Une erreur est survenue, réessayez dans un instant."
     },
     "success": {
-      "title": "Merci, c'est bien reçu !",
-      "message": "Vos coordonnées ont été enregistrées. Nous reviendrons vers vous si une opportunité correspond à votre profil.",
+      "title": "Merci d'avoir partagé votre parcours !",
+      "message": "Vos coordonnées ont bien été enregistrées. Nous sommes ravis de vous compter parmi le réseau des anciens étudiants d'ITIC Paris et de garder le lien pour nos futurs échanges et événements.",
       "back": "Retour à l'accueil"
     }
   },
