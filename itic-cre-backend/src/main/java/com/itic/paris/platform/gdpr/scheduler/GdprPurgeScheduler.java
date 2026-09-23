@@ -1,5 +1,6 @@
 package com.itic.paris.platform.gdpr.scheduler;
 
+import com.itic.paris.platform.alumni.service.AlumniContactService;
 import com.itic.paris.platform.audit.repository.AuditLogRepository;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
@@ -27,10 +28,11 @@ public class GdprPurgeScheduler {
     private final UserRepository userRepository;
     private final GdprService gdprService;
     private final AppConfigurationService appConfigurationService;
+    private final AlumniContactService alumniContactService;
 
     /**
      * Tâche planifiée exécutée tous les jours à 03:00 du matin.
-     * Efface les OTP expirés, les logs d'audit anciens,
+     * Efface les OTP expirés, les logs d'audit anciens, les fiches alumni trop anciennes,
      * et anonymise les comptes étudiants désactivés depuis plus de la durée légale configurée.
      */
     @Scheduled(cron = "0 0 3 * * ?")
@@ -40,6 +42,7 @@ public class GdprPurgeScheduler {
         int otpRetentionHours = appConfigurationService.getGdprOtpRetentionHours();
         int auditLogRetentionDays = appConfigurationService.getGdprAuditLogRetentionDays();
         int inactiveStudentRetentionDays = appConfigurationService.getGdprInactiveStudentRetentionDays();
+        int alumniRetentionDays = appConfigurationService.getGdprAlumniRetentionDays();
 
         // 1. Purge des OTPs expirés
         try {
@@ -72,6 +75,14 @@ public class GdprPurgeScheduler {
                     inactiveStudentRetentionDays, studentsToAnonymize.size());
         } catch (Exception e) {
             log.error("[RGPD SCHEDULER] Erreur lors de l'anonymisation des étudiants: ", e);
+        }
+
+        // 4. Suppression des fiches alumni plus anciennes que la durée de conservation configurée
+        try {
+            long deletedAlumni = alumniContactService.purgeExpired(alumniRetentionDays);
+            log.info("[RGPD SCHEDULER] Fiches alumni supprimées (> {} jours): {}", alumniRetentionDays, deletedAlumni);
+        } catch (Exception e) {
+            log.error("[RGPD SCHEDULER] Erreur lors de la purge des fiches alumni: ", e);
         }
 
         log.info("[RGPD SCHEDULER] Nettoyage automatisé terminé.");

@@ -1,10 +1,6 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type { Promotion, PromotionData } from '../../types/models/Promotion';
-
-function unwrap<T>(response: { data: unknown }): T {
-    const d = response.data as Record<string, unknown>;
-    return (d?.data ?? d) as T;
-}
 
 export function fetchPromotions(): Promise<Promotion[]> {
     return apiClient.get('/promotions').then((response) => unwrap<Promotion[]>(response));

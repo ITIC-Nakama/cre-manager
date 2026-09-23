@@ -35,6 +35,8 @@ import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import ContenuPage from './pages/advisor/formation/ContenuPage'
 import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import ReclamationsPage from './pages/advisor/reclamations/ReclamationsPage'
+import AlumniPage from './pages/advisor/alumni/AlumniPage'
+import AlumniFormPage from './pages/public/AlumniFormPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 import PromotionsPage from './pages/admin/PromotionsPage'
@@ -89,6 +91,9 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
 
+        {/* Public alumni contact form — hors AuthLayout : reste accessible même connecté */}
+        <Route path="/alumni" element={<AlumniFormPage />} />
+
         {/* Root dashboard redirection */}
         <Route path="/dashboard" element={<DashboardRedirect />} />
         <Route path="/change-password-required" element={<ChangePasswordRequiredPage />} />
@@ -119,6 +124,7 @@ function App() {
           <Route path="/supervisor/contenu"       element={<ContenuPage />} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />
           <Route path="/supervisor/reclamations"  element={<ReclamationsPage />} />
+          <Route path="/supervisor/alumni"        element={<AlumniPage />} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}

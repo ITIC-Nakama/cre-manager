@@ -7,6 +7,8 @@ export const AUDIT_ACTION_COLORS: Record<string, string> = {
     USER_DEACTIVATED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
     USER_REACTIVATED: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
     STUDENT_SELF_DELETED_GDPR: 'text-fuchsia-700 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-950/30',
+    STUDENT_ANONYMIZED_BY_STAFF: 'text-fuchsia-700 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-950/30',
+    ALUMNI_CONTACT_DELETED: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30',
     PASSWORD_CHANGED: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30',
     PASSWORD_RESET: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30',
     EMAIL_VERIFIED: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/30',

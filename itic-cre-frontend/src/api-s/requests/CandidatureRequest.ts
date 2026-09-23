@@ -1,12 +1,9 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type { Candidature, CandidaturePayload, CandidaturePage, DeclareContractPayload, FetchMyCandidaturesParams } from '../../types/models/Application';
 
 export type { FetchMyCandidaturesParams };
 
-function unwrap<T>(response: { data: unknown }): T {
-    const d = response.data as Record<string, unknown>;
-    return (d?.data ?? d) as T;
-}
 
 export function fetchMyCandidatures(params: FetchMyCandidaturesParams = {}): Promise<CandidaturePage> {
     const query: Record<string, unknown> = {

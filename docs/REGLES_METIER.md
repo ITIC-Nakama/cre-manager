@@ -51,9 +51,10 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 
 ### Anonymisation RGPD & Distinction Portefeuille vs Activité
 - **Effacement nominatif** : L'anonymisation RGPD (`GdprService.anonymizeAndDeactivateUser`) remplace l'identité par `"Anonyme Utilisateur RGPD"`, l'email par `deleted_<UUID>@rgpd.deleted`, détruit le mot de passe, désactive le compte (`active = false`), supprime physiquement le fichier CV et détache l'étudiant de toute promotion (`student.setPromotion(null)`).
-- **Traçabilité de l'origine de la suppression (`GdprService.DeletionTrigger`)** : la méthode distingue deux déclencheurs pour rester auditable après coup, alors même que l'email/nom sont déjà écrasés au moment où le log est écrit — l'identité d'origine est donc capturée en mémoire **avant** l'anonymisation et injectée dans la description du log :
+- **Traçabilité de l'origine de la suppression (`GdprService.DeletionTrigger`)** : la méthode distingue trois déclencheurs pour rester auditable après coup, alors même que l'email/nom sont déjà écrasés au moment où le log est écrit — l'identité d'origine est donc capturée en mémoire **avant** l'anonymisation et injectée dans la description du log :
   - **`SELF`** (auto-suppression, `DELETE /gdpr/delete-account`, toujours initiée par l'utilisateur connecté lui-même — cette route ne résout jamais un `userId` fourni par un tiers) : action d'audit dédiée `STUDENT_SELF_DELETED_GDPR`, distincte de toute désactivation manuelle par un admin.
   - **`SCHEDULED_PURGE`** (purge légale automatique par `GdprPurgeScheduler`, comptes désactivés depuis plus de `GDPR_INACTIVE_STUDENT_RETENTION_DAYS`) : reste loggée sous `USER_DEACTIVATED` avec une description explicite mentionnant la purge automatique.
+  - **`STAFF_INITIATED`** (suppression du compte d'un étudiant par un **admin uniquement**, `PATCH /gdpr/students/{id}/anonymize`, jamais un conseiller) : action d'audit dédiée `STUDENT_ANONYMIZED_BY_STAFF`, l'admin acteur est tracé. Refusée sur un compte non étudiant (`STAFF_ANONYMIZE_STUDENTS_ONLY`) ou déjà anonymisé (`ACCOUNT_ALREADY_ANONYMIZED`). Confirmation renforcée côté admin : la modale exige de retaper l'email de l'étudiant avant d'activer le bouton. Affichée "Supprimer le compte" dans l'interface.
   - Confirmation renforcée côté étudiant avant l'auto-suppression : le bouton "Oui, supprimer mon compte" reste désactivé tant que l'utilisateur n'a pas retapé le mot de confirmation ("SUPPRIMER" / "DELETE" selon la langue) dans la modale.
 - **Règle de filtrage selon le type de statistique** :
   - **1. Statistiques "Portefeuille" & Comptage de Personnes** (`email NOT LIKE '%@rgpd.deleted'`) :
@@ -390,7 +391,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 ## 8. Journal d'audit
 
 - Lecture réservée à `ADMIN` uniquement (pas même les conseillers).
-- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `APPLICATION_CONTRACT_VALIDATED`, `APPLICATION_CONTRACT_INVALIDATED`, `APPLICATION_CONTRACT_DECLARED_BY_ADVISOR`, `OTHER` (`APPLICATION_CONTRACT_VERIFIED`/`APPLICATION_CONTRACT_REJECTED` restent dans l'enum et la contrainte CHECK pour la lecture des lignes historiques antérieures au renommage valider/invalider, mais ne sont plus jamais écrites).
+- Actions tracées : `LOGIN`, `LOGOUT`, `STUDENT_REGISTERED`, `STAFF_USER_CREATED`, `USER_UPDATED`, `USER_DELETED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `PASSWORD_CHANGED`, `PASSWORD_RESET`, `EMAIL_VERIFIED`, `CV_UPLOADED`, `CV_VALIDATED`, `CV_REJECTED`, `CV_DELETED`, `CV_STATUS_UPDATED`, `CV_COMMENTED`, `TUTO_CREATED`, `TUTO_UPDATED`, `TUTO_DELETED`, `PROMOTION_CREATED`, `PROMOTION_UPDATED`, `PROMOTION_DELETED`, `STUDENT_ASSIGNED_TO_PROMOTION`, `STUDENT_REMOVED_FROM_PROMOTION`, `APPLICATION_CONTRACT_VALIDATED`, `APPLICATION_CONTRACT_INVALIDATED`, `APPLICATION_CONTRACT_DECLARED_BY_ADVISOR`, `STUDENT_SELF_DELETED_GDPR`, `STUDENT_ANONYMIZED_BY_STAFF`, `ALUMNI_CONTACT_DELETED` (voir §13), `OTHER` (`APPLICATION_CONTRACT_VERIFIED`/`APPLICATION_CONTRACT_REJECTED` restent dans l'enum et la contrainte CHECK pour la lecture des lignes historiques antérieures au renommage valider/invalider, mais ne sont plus jamais écrites).
 - **`APPLICATION_CONTRACT_VALIDATED`/`APPLICATION_CONTRACT_INVALIDATED`/`APPLICATION_CONTRACT_DECLARED_BY_ADVISOR`** (voir §2, "Suivi sous contrat") : posées à chaque validation/invalidation d'une déclaration "sous contrat" par un conseiller/admin, ou déclaration directe au nom d'un étudiant ; la description embarque le statut, l'entreprise et l'identité de l'étudiant concerné. Ajoutées via Flyway (`audit_logs_action_check` reconstruite à chaque ajout de valeur d'enum — toujours nécessaire, la contrainte CHECK ne suit pas l'enum Java automatiquement).
 
 ---
@@ -429,6 +430,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
   7. **`JOBBOARD_OFFER_EXPIRATION_DAYS`** (par défaut : `30` jours) : Fenêtre d'expiration calculée pour France Travail/Adzuna (date de dernière mise à jour + ce délai) — sans effet sur La Bonne Alternance, qui fournit sa propre date d'expiration réelle.
   8. **`JOBBOARD_OFFER_DELETE_AFTER_DAYS`** (par défaut : `30` jours) : Délai après expiration avant suppression définitive d'une offre externe en base.
   9. **`APPLICATION_XP_WEEKLY_LIMIT`** (par défaut : `5`) : Nombre maximum de candidatures "postuler" (ITIC ou externe) créditées en XP par étudiant sur une fenêtre glissante de 7 jours.
+  10. **`GDPR_ALUMNI_RETENTION_DAYS`** (par défaut : `1095` jours, soit 3 ans ; 1 à 3650) : Durée de conservation d'une fiche alumni (voir §13), comptée depuis son envoi ; les fiches plus anciennes sont supprimées chaque nuit par `GdprPurgeScheduler`.
 - **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`, `ExternalJobSyncService`) sans redémarrer le serveur.
 
 ---
@@ -449,6 +451,36 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 - **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée uniquement pour le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
 - **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.
 - **Thème forcé en dark mode** : tous les templates déclarent `<meta name="color-scheme" content="dark">` / `<meta name="supported-color-schemes" content="dark">` et dupliquent chaque couleur de fond via l'attribut HTML `bgcolor` en plus du CSS inline, pour empêcher les clients mail mobiles (Gmail, Outlook, Apple Mail) d'inverser ou de repasser l'email en clair.
+
+---
+
+## 13. Formulaire public alumni
+
+Formulaire **sans connexion** (`/alumni` côté frontend, `POST /public/alumni` côté backend) où un ancien d'ITIC Paris laisse ses coordonnées et sa situation professionnelle. Les fiches sont consultées par les conseillers/admins dans le menu **Alumni** (`/supervisor/alumni`).
+
+### Accès
+- Lien "Formulaire alumni" depuis la page de connexion (barre en haut à droite de l'`AuthLayout`) et depuis la sidebar de la plateforme, quel que soit le rôle (étudiant, conseiller, admin) — ouvert dans un nouvel onglet depuis la plateforme. La route `/alumni` est volontairement hors `AuthLayout` (qui redirige tout utilisateur connecté vers son dashboard).
+
+### Champs et logique conditionnelle (validée côté serveur, pas seulement dans le formulaire)
+- Obligatoires : nom, prénom, email, année de sortie (1980 → année en cours + 1), formation suivie (texte libre, ≤ 150 car.), statut actuel, et **les deux consentements** (RGPD général + recontact pour recommander des alternants — cases distinctes, toutes deux requises pour envoyer).
+- Facultatifs : téléphone, prétention salariale (texte libre).
+- Statut : `CDI`, `CDD`, `ALTERNANCE`, `STAGE`, `FREELANCE` (= "en activité"), `JOB_SEARCH`, `TRAINING`, `OTHER`.
+  - **En activité** : entreprise, poste et "dans la continuité d'une formation ITIC Paris ?" (oui/non) sont requis ; si oui, la formation concernée est requise aussi.
+  - **Autre statut** : ces champs sont **ignorés** (jamais stockés), même s'ils sont envoyés.
+- `formation` reste du texte libre : les `Promotion` existantes sont des cohortes datées ("Bachelor RH 2024-2025"), inutilisables comme référentiel de formations.
+
+### Doublons et anti-abus
+- Email normalisé (trim + minuscules), unique en base (`alumni_contacts.email`). Un email déjà connu reçoit **la même réponse de succès** sans rien écraser : une route publique ne doit ni permettre d'écraser la fiche d'un tiers, ni révéler qu'un email est enregistré. Modifier sa fiche demanderait une vérification de l'email (non implémentée).
+- Champ piège (`website`, hors écran) : rempli = robot, réponse de succès mais rien n'est stocké.
+- Limitation de débit en mémoire (`FixedWindowRateLimiter`, réinitialisée au redémarrage) : `app.public-form.rate-limit.per-ip` (défaut 5), `.global` (défaut 100) par fenêtre de `.window-minutes` (défaut 60) → `429 TOO_MANY_REQUESTS`. L'IP est la **dernière** entrée de `X-Forwarded-For` (ajoutée par le proxy le plus proche ; la première est falsifiable). Ce limiteur ne protège **que** ce formulaire : `/auth/login`, `/auth/register`, `/auth/otp/send` et `/auth/reset-password` n'en ont aucun.
+
+### RGPD
+- Consentements stockés avec la version du texte affiché (`consent_version`, actuellement `v1` — à incrémenter dans `AlumniContactService.CONSENT_VERSION` si le texte de consentement change).
+- La politique de confidentialité (`/privacy`) mentionne cette collecte (données, finalités, ligne de conservation) et explique l'exercice des droits sans compte : demande par email au contact indiqué, correction = suppression puis nouvel envoi (aucune édition de fiche n'existe). Conservation : `GDPR_ALUMNI_RETENTION_DAYS` (défaut 3 ans après l'envoi, modifiable par un admin dans "Configuration Applicative") ; `GdprPurgeScheduler` (03:00 chaque nuit) supprime les fiches plus anciennes (`AlumniContactService.purgeExpired`) et écrit **un seul** log `ALUMNI_CONTACT_DELETED` agrégé (nombre de fiches, sans donnée personnelle, sans acteur). La ligne de conservation de la politique de confidentialité affiche la valeur par défaut (3 ans) en dur : la mettre à jour si la durée configurée change durablement.
+- Droit à l'effacement : suppression réelle (pas d'anonymisation, aucun compte lié) par un **admin uniquement** (`DELETE /dashboard/alumni/{id}`), tracée `ALUMNI_CONTACT_DELETED` sans donnée personnelle dans la description.
+
+### Consultation (conseillers et admins)
+- `GET /dashboard/alumni` paginé (20 par page, plus récentes d'abord), filtres : recherche (nom, email, formation, entreprise, poste), année de sortie, situation. Les conseillers voient toutes les fiches (pas de notion de portefeuille : un alumni n'a pas de conseiller référent).
 
 ---
 

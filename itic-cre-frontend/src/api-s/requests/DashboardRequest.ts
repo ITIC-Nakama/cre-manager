@@ -1,4 +1,5 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type {
     DashboardOverview,
     PromotionYearCounts,
@@ -8,10 +9,6 @@ import type {
 } from '../../types/models/Dashboard';
 import type { Candidature, DeclareContractPayload } from '../../types/models/Application';
 
-function unwrap<T>(response: { data: unknown }): T {
-    const d = response.data as Record<string, unknown>;
-    return (d?.data ?? d) as T;
-}
 
 export function fetchDashboardOverview(advisorId?: string): Promise<DashboardOverview> {
     return apiClient.get('/dashboard/overview', { params: { advisorId } }).then(unwrap<DashboardOverview>);

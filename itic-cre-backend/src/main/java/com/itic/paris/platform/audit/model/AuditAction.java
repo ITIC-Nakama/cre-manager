@@ -64,6 +64,9 @@ public enum AuditAction {
     APPLICATION_CONTRACT_INVALIDATED,
     APPLICATION_CREATED_BY_ADVISOR,
 
+    // --- Fiches alumni (formulaire public) ---
+    ALUMNI_CONTACT_DELETED,
+
     // --- Autre / Action générique ---
     OTHER
 }

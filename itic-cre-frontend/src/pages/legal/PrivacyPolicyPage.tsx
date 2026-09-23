@@ -6,7 +6,7 @@ import logoWhite from '../../assets/itic-paris-logo-white.svg';
 
 export default function PrivacyPolicyPage() {
     const { t, i18n } = useTranslation();
-    const lastUpdatedDate = i18n.language === 'en' ? 'September 11, 2026' : '11 Septembre 2026';
+    const lastUpdatedDate = i18n.language === 'en' ? 'September 23, 2026' : '23 Septembre 2026';
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 py-10 px-4 sm:px-6 lg:px-8">
@@ -70,6 +70,7 @@ export default function PrivacyPolicyPage() {
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item3_label')}</strong> {t('legal.privacy.sec2_item3_val')}</li>
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item4_label')}</strong> {t('legal.privacy.sec2_item4_val')}</li>
                             <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item5_label')}</strong> {t('legal.privacy.sec2_item5_val')}</li>
+                            <li><strong className="text-slate-900 dark:text-white">{t('legal.privacy.sec2_item6_label')}</strong> {t('legal.privacy.sec2_item6_val')}</li>
                         </ul>
                     </div>
 
@@ -109,6 +110,11 @@ export default function PrivacyPolicyPage() {
                                         <td className="py-2.5 px-3">{t('legal.privacy.sec3_row4_duration')}</td>
                                         <td className="py-2.5 px-3 text-rose-600 dark:text-rose-400 font-medium">{t('legal.privacy.sec3_row4_process')}</td>
                                     </tr>
+                                    <tr>
+                                        <td className="py-2.5 px-3 font-medium">{t('legal.privacy.sec3_row5_type')}</td>
+                                        <td className="py-2.5 px-3">{t('legal.privacy.sec3_row5_duration')}</td>
+                                        <td className="py-2.5 px-3 text-rose-600 dark:text-rose-400 font-medium">{t('legal.privacy.sec3_row5_process')}</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -143,6 +149,9 @@ export default function PrivacyPolicyPage() {
                                 </p>
                             </div>
                         </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {t('legal.privacy.sec4_alumni_note')}
+                        </p>
                     </div>
 
                     {/* Section 5: Contact DPO */}

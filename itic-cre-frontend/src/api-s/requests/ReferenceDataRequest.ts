@@ -1,9 +1,5 @@
 import { apiClient } from '../AxiosApiClient';
-
-function unwrap<T>(response: { data: unknown }): T {
-    const d = response.data as Record<string, unknown>;
-    return (d?.data ?? d) as T;
-}
+import { unwrap } from '../unwrap';
 
 export interface ReferenceDataPayload {
     label: string;

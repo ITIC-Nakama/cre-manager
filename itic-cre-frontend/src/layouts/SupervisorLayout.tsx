@@ -7,7 +7,7 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings, MessageCircleWarning
+  ScrollText, User, Settings, MessageCircleWarning, Contact
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
@@ -33,6 +33,7 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
     { label: t('dashboard.sidebar.reclamations', 'Messages'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
+    { label: t('dashboard.sidebar.alumni', 'Alumni'),   icon: Contact,         to: '/supervisor/alumni' },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
   ];

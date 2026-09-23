@@ -95,6 +95,12 @@ public class AppConfigurationSeeder implements ApplicationRunner {
                 "5",
                 "Nombre maximum de candidatures \"postuler\" (ITIC ou externe) créditées en XP par étudiant sur 7 jours glissants"
         );
+
+        seedIfMissing(
+                AppConfigurationKey.GDPR_ALUMNI_RETENTION_DAYS,
+                "1095",
+                "Durée de conservation des fiches alumni (formulaire public) avant suppression automatique en jours (3 ans - RGPD)"
+        );
     }
 
     private void seedIfMissing(AppConfigurationKey key, String defaultValue, String description) {

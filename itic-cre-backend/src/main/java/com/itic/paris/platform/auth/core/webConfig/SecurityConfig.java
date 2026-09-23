@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itic.paris.platform.shared.ratelimit.FixedWindowRateLimiter;
 import com.itic.paris.platform.shared.storage.FileAccessFilter;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import org.springframework.web.cors.CorsConfiguration;
@@ -31,14 +33,15 @@ import java.util.Set;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final Set<String> PUBLIC_AUTH_PATHS = Set.of(
+    private static final Set<String> PUBLIC_POST_PATHS = Set.of(
             "/auth/login",
             "/auth/register",
             "/auth/refresh-token",
             "/auth/otp/send",
             "/auth/otp/validate",
             "/auth/reset-password",
-            "/auth/logout"
+            "/auth/logout",
+            "/public/alumni"
     );
 
     private static final Set<String> PUBLIC_DOC_PREFIXES = Set.of(
@@ -49,13 +52,21 @@ public class SecurityConfig {
 
     private final JWTAuthProvider jwtAuthProvider;
     private final ICloudStorage cloudStorage;
+    private final FixedWindowRateLimiter rateLimiter;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
-    public SecurityConfig(JWTAuthProvider jwtAuthProvider, ICloudStorage cloudStorage) {
+    @Value("${app.rate-limit.auth.enabled:true}")
+    private boolean authRateLimitEnabled;
+
+    public SecurityConfig(JWTAuthProvider jwtAuthProvider, ICloudStorage cloudStorage,
+                          FixedWindowRateLimiter rateLimiter, ObjectMapper objectMapper) {
         this.jwtAuthProvider = jwtAuthProvider;
         this.cloudStorage = cloudStorage;
+        this.rateLimiter = rateLimiter;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -78,7 +89,7 @@ public class SecurityConfig {
 
     static boolean isPublicAuthRequest(HttpServletRequest request) {
         String path = servletPath(request);
-        if (PUBLIC_AUTH_PATHS.contains(path)) {
+        if (PUBLIC_POST_PATHS.contains(path)) {
             return true;
         }
         if (HttpMethod.GET.matches(request.getMethod()) && path.startsWith("/auth/roles")) {
@@ -111,6 +122,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwAuthFilter(jwtAuthProvider), BasicAuthenticationFilter.class)
+                .addFilterBefore(new AuthRateLimitFilter(rateLimiter, objectMapper, authRateLimitEnabled), JwAuthFilter.class)
                 .addFilterAfter(new FileAccessFilter(cloudStorage), JwAuthFilter.class)
                 .addFilterAfter(new MustChangePasswordFilter(), FileAccessFilter.class)
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -127,7 +139,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/health", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/files/public/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS.toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/promotions", "/promotions/**").permitAll()
                         .anyRequest().authenticated())

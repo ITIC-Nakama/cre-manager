@@ -1,4 +1,5 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type {
   SkillCategory,
   Article,
@@ -13,10 +14,6 @@ import type {
   SkillTreeImportResult,
 } from '../../types/models/Skill';
 
-function unwrap<T>(response: { data: unknown }): T {
-  const d = response.data as Record<string, unknown>;
-  return (d?.data ?? d) as T;
-}
 
 // ─── CATEGORIES ─────────────────────────────────────────────────────────────
 

@@ -1,4 +1,5 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type {
   Advisor,
   AdvisorPage,
@@ -9,10 +10,6 @@ import type {
   AdvisorDirectoryEntry,
 } from '../../types/models/Advisor';
 
-function unwrap<T>(response: { data: unknown }): T {
-  const d = response.data as Record<string, unknown>;
-  return (d?.data ?? d) as T;
-}
 
 export function fetchAdvisors(params: AdvisorListParams = {}): Promise<AdvisorPage> {
   return apiClient.get('/advisors', { params: { ...params, role: 'ADVISOR' } }).then((r) => unwrap<AdvisorPage>(r));

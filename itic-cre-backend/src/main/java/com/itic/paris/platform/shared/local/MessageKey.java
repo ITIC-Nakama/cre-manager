@@ -190,7 +190,21 @@ public enum MessageKey {
             "This report concerns a student who is not assigned to you."),
     RECLAMATION_ALREADY_PENDING("reclamation-already-pending",
             "Vous avez déjà une réclamation en cours. Merci d'attendre qu'elle soit traitée avant d'en envoyer une nouvelle.",
-            "You already have an ongoing report. Please wait until it's handled before sending a new one.");
+            "You already have an ongoing report. Please wait until it's handled before sending a new one."),
+    // Alumni
+    ALUMNI_CONTACT_NOT_FOUND("alumni-contact-not-found", "Fiche alumni introuvable", "Alumni record not found"),
+    ALUMNI_EXIT_YEAR_INVALID("alumni-exit-year-invalid",
+            "L'année de sortie n'est pas valide.",
+            "The graduation year is not valid."),
+    ALUMNI_WORK_DETAILS_REQUIRED("alumni-work-details-required",
+            "Merci de renseigner l'entreprise, le poste et s'il s'inscrit dans la continuité d'une formation ITIC Paris.",
+            "Please provide the company, the job title and whether it continues an ITIC Paris program."),
+    ALUMNI_CONTINUITY_FORMATION_REQUIRED("alumni-continuity-formation-required",
+            "Merci de préciser la formation ITIC Paris concernée.",
+            "Please specify which ITIC Paris program it relates to."),
+    TOO_MANY_REQUESTS("too-many-requests",
+            "Trop de tentatives, merci de réessayer plus tard.",
+            "Too many attempts, please try again later.");
 
     private static final Map<String, MessageKey> BY_KEY = Arrays.stream(values())
             .collect(Collectors.toMap(MessageKey::getKey, Function.identity()));

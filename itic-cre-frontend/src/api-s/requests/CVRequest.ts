@@ -1,10 +1,7 @@
 import { apiClient } from '../AxiosApiClient';
+import { unwrap } from '../unwrap';
 import type { CVRow, CVStatut, CVComment, CVResponse, CVPage, CVListParams, CVStatCount } from '../../types/models/CV';
 
-function unwrap<T>(response: { data: unknown }): T {
-    const d = response.data as Record<string, unknown>;
-    return (d?.data ?? d) as T;
-}
 
 /** GET /cv — lister tous les CV avec pagination (conseiller) */
 export function fetchAllCVs(params: CVListParams = {}): Promise<CVPage> {
