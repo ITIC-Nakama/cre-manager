@@ -1682,7 +1682,7 @@
   "alumni": {
     "link_label": "Alumni form",
     "badge": "Alumni",
-    "back": "Back to sign in",
+    "back": "Home",
     "status": {
       "CDI": "Permanent contract (CDI)",
       "CDD": "Fixed-term contract (CDD)",

@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import type { LucideIcon } from 'lucide-react';
 import {
-    AlertTriangle, ArrowLeft, ArrowRight, Banknote, Briefcase, Building2, CheckCircle2,
-    GraduationCap, Loader2, Mail, Phone, User,
+    AlertTriangle, ArrowRight, Banknote, Briefcase, Building2, CheckCircle2,
+    GraduationCap, Home, Loader2, Mail, Phone, User,
 } from 'lucide-react';
 import logoDark from '../../assets/itic-paris-logo-dark.svg';
 import logoWhite from '../../assets/itic-paris-logo-white.svg';
@@ -127,24 +127,24 @@ export default function AlumniFormPage() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#020203] px-4 py-6 sm:py-8 sm:px-6">
             <div className="max-w-5xl mx-auto space-y-6">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center shrink-0">
                         <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
                         <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-stretch gap-2 shrink-0">
                         <AuthControls className="flex items-center gap-1 bg-white dark:bg-[#15171f] rounded-xl p-1 shadow-sm border border-slate-200/60 dark:border-slate-800" />
                         <Link
                             to="/login"
-                            className="inline-flex items-center gap-2 text-sm font-medium text-[#3f74ff] hover:text-blue-700 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 rounded-xl bg-white dark:bg-[#15171f] shadow-sm border border-slate-200/60 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-[#9aa0a6] hover:bg-slate-100 dark:hover:bg-[#1e2130] transition-colors whitespace-nowrap"
                         >
-                            <ArrowLeft className="w-4 h-4" />
-                            {t('alumni.back', 'Retour à la connexion')}
+                            <Home className="h-3.5 w-3.5" />
+                            {t('alumni.back', 'Accueil')}
                         </Link>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#15171f] rounded-2xl shadow-xl p-6 sm:p-10">
+                <div className="bg-white dark:bg-[#15171f] rounded-2xl shadow-xl px-5 py-7 sm:p-10">
                     {submitted ? (
                         <div className="flex flex-col items-center text-center gap-4 py-8 max-w-xl mx-auto animate-fadeIn">
                             <CheckCircle2 className="h-14 w-14 text-emerald-500" />
@@ -160,18 +160,18 @@ export default function AlumniFormPage() {
                         </div>
                     ) : (
                         <form className="space-y-8" onSubmit={handleSubmit(onSubmit)} noValidate>
-                            <header className="flex items-start gap-4">
+                            <header className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
                                 <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-[#d95e3e] to-[#fbbb07] flex items-center justify-center shadow-lg shadow-[#d95e3e]/20">
                                     <GraduationCap className="h-6 w-6 text-white" />
                                 </div>
-                                <div className="min-w-0">
+                                <div className="min-w-0 space-y-1.5">
                                     <p className="text-xs font-semibold uppercase tracking-widest text-[#3f74ff] dark:text-blue-400">
                                         {t('alumni.badge', 'Anciens étudiants')}
                                     </p>
-                                    <h1 className="text-3xl font-extrabold itic-gradient-warm">
+                                    <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight itic-gradient-warm">
                                         {t('alumni.form.title', 'Restons en contact')}
                                     </h1>
-                                    <p className="mt-1 text-sm text-slate-500 dark:text-[#9aa0a6]">
+                                    <p className="text-sm leading-relaxed text-slate-500 dark:text-[#9aa0a6]">
                                         {t('alumni.form.subtitle', 'Vous êtes passé par ITIC Paris ? Laissez-nous vos coordonnées pour rester en lien avec l\'école.')}
                                     </p>
                                 </div>

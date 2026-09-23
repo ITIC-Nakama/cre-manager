@@ -157,11 +157,9 @@ export default function AlumniPage() {
     };
 
     // Réinitialiser la sélection si le nombre d'IDs dépasse le total disponible
-    useEffect(() => {
-        if (selectedIds.length > 0 && totalElements > 0 && selectedIds.length > totalElements) {
-            clearSelection();
-        }
-    }, [totalElements, selectedIds.length]);
+    if (selectedIds.length > 0 && totalElements > 0 && selectedIds.length > totalElements) {
+        setSelectedIds([]);
+    }
 
     const handleSelectAllMatching = async () => {
         setSelectingAllMatching(true);
@@ -229,7 +227,7 @@ export default function AlumniPage() {
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
             {/* Header + Stats */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+            <div className="lg:sticky lg:top-0 lg:z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
