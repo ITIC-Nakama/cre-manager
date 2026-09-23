@@ -125,22 +125,23 @@ export default function AlumniFormPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#020203] px-4 pt-20 pb-10 sm:px-6">
-            <AuthControls />
-
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020203] px-4 py-6 sm:py-8 sm:px-6">
             <div className="max-w-5xl mx-auto space-y-6">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <img src={logoDark} alt="ITIC Paris" className="h-10 w-auto dark:hidden" />
-                        <img src={logoWhite} alt="ITIC Paris" className="h-10 w-auto hidden dark:block" />
+                        <img src={logoDark} alt="ITIC Paris" className="h-9 w-auto dark:hidden" />
+                        <img src={logoWhite} alt="ITIC Paris" className="h-9 w-auto hidden dark:block" />
                     </div>
-                    <Link
-                        to="/login"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-[#3f74ff] hover:text-blue-700 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        {t('alumni.back', 'Retour à la connexion')}
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <AuthControls className="flex items-center gap-1 bg-white dark:bg-[#15171f] rounded-xl p-1 shadow-sm border border-slate-200/60 dark:border-slate-800" />
+                        <Link
+                            to="/login"
+                            className="inline-flex items-center gap-2 text-sm font-medium text-[#3f74ff] hover:text-blue-700 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            {t('alumni.back', 'Retour à la connexion')}
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="bg-white dark:bg-[#15171f] rounded-2xl shadow-xl p-6 sm:p-10">

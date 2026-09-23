@@ -48,6 +48,9 @@ public class AuthController {
     @Value("${security.jwt.token.refresh-expiration:86400000}")
     private long refreshTokenExpiration;
 
+    @Value("${security.jwt.cookie.secure:false}")
+    private boolean cookieSecure;
+
     @PostMapping("/login")
     @Operation(summary = "Connexion")
     public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto user, BindingResult bindingResult,
@@ -288,6 +291,10 @@ public class AuthController {
     }
 
     private String buildCookie(String name, String value, int maxAgeSeconds) {
-        return name + "=" + value + "; Path=/; Max-Age=" + maxAgeSeconds + "; HttpOnly; SameSite=Lax";
+        String cookie = name + "=" + value + "; Path=/; Max-Age=" + maxAgeSeconds + "; HttpOnly; SameSite=Lax";
+        if (cookieSecure) {
+            cookie += "; Secure";
+        }
+        return cookie;
     }
 }
