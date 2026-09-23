@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.Year;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -88,6 +90,20 @@ public class AlumniContactService {
                 .map(this::mapToDTO);
     }
 
+    @Transactional(readOnly = true)
+    public List<AlumniContactDTO> getAllContacts(String search, Integer exitYear, AlumniStatus status) {
+        return alumniContactRepository
+                .findAll(AlumniContactSpecification.withFilters(search, exitYear, status), Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integer> getExitYears() {
+        return alumniContactRepository.findDistinctExitYears();
+    }
+
     /** Suppression reelle (pas d'anonymisation : aucun compte lie) ; l'audit ne conserve aucune donnee personnelle. */
     @Transactional
     public void delete(UUID id) {
@@ -98,6 +114,21 @@ public class AlumniContactService {
 
         alumniContactRepository.delete(contact);
         auditLogService.log(AuditAction.ALUMNI_CONTACT_DELETED, actor, AUDIT_TARGET_TYPE, id, "Fiche alumni supprimée");
+    }
+
+    /** Suppression groupée directe en base sans SELECT préalable ni boucle (admin uniquement). */
+    @Transactional
+    public void bulkDelete(List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+        User actor = userRepository.findById(SecurityContextHelper.currentUserId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.USER_NOT_FOUND));
+        int deleted = alumniContactRepository.deleteByIdIn(ids);
+        if (deleted > 0) {
+            auditLogService.log(AuditAction.ALUMNI_CONTACT_DELETED, actor, AUDIT_TARGET_TYPE, null,
+                    deleted + " fiche(s) alumni supprimée(s) en masse");
+        }
     }
 
     /** Purge quotidienne (GdprPurgeScheduler) : un seul log d'audit agrege, sans donnee personnelle. */

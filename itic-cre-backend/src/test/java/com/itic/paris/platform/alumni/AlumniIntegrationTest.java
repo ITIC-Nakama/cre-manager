@@ -19,6 +19,7 @@ import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -449,5 +450,49 @@ public class AlumniIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.messageKey").value("alumni-contact-not-found"));
+    }
+
+    @Test
+    @DisplayName("Exit years endpoint returns distinct exit years sorted descending")
+    void getExitYears_returnsSortedDistinctYears() throws Exception {
+        persistContact("y2021@example.com", 2021, AlumniStatus.CDI, "Corp 1");
+        persistContact("y2024@example.com", 2024, AlumniStatus.CDI, "Corp 2");
+        persistContact("y2021bis@example.com", 2021, AlumniStatus.STAGE, "Corp 3");
+        persistContact("y2023@example.com", 2023, AlumniStatus.JOB_SEARCH, null);
+
+        mockMvc.perform(get(STAFF_URL + "/exit-years")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0]").value(2024))
+                .andExpect(jsonPath("$.data[1]").value(2023))
+                .andExpect(jsonPath("$.data[2]").value(2021));
+    }
+
+    @Test
+    @DisplayName("Bulk delete deletes all specified records and logs audit")
+    void bulkDelete_adminOnly_deletesBatch() throws Exception {
+        AlumniContact c1 = persistContact("b1@example.com", 2024, AlumniStatus.CDI, "Corp A");
+        AlumniContact c2 = persistContact("b2@example.com", 2023, AlumniStatus.CDI, "Corp B");
+        AlumniContact c3 = persistContact("b3@example.com", 2022, AlumniStatus.CDI, "Corp C");
+
+        List<UUID> toDelete = List.of(c1.getId(), c2.getId());
+
+        // Advisor cannot bulk delete
+        mockMvc.perform(delete(STAFF_URL + "/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(toDelete))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isForbidden());
+
+        // Admin bulk deletes
+        mockMvc.perform(delete(STAFF_URL + "/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(toDelete))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+
+        assertThat(alumniContactRepository.existsById(c1.getId())).isFalse();
+        assertThat(alumniContactRepository.existsById(c2.getId())).isFalse();
+        assertThat(alumniContactRepository.existsById(c3.getId())).isTrue();
     }
 }

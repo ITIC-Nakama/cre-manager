@@ -1,6 +1,6 @@
 import { apiClient } from '../AxiosApiClient';
 import { unwrap } from '../unwrap';
-import type { AlumniContactPage, CreateAlumniContactPayload, FetchAlumniParams } from '../../types/models/Alumni';
+import type { AlumniContact, AlumniContactPage, CreateAlumniContactPayload, FetchAlumniParams } from '../../types/models/Alumni';
 
 export type { FetchAlumniParams };
 
@@ -17,6 +17,22 @@ export function fetchAlumniContacts(params: FetchAlumniParams = {}): Promise<Alu
   return apiClient.get('/dashboard/alumni', { params: query }).then((response) => unwrap<AlumniContactPage>(response));
 }
 
+export function fetchAllAlumni(params: Omit<FetchAlumniParams, 'page' | 'size'> = {}): Promise<AlumniContact[]> {
+  const query: Record<string, unknown> = {};
+  if (params.search) query.search = params.search;
+  if (params.exitYear !== undefined) query.exitYear = params.exitYear;
+  if (params.status !== undefined) query.status = params.status;
+  return apiClient.get('/dashboard/alumni/all', { params: query }).then((response) => unwrap<AlumniContact[]>(response));
+}
+
+export function fetchAlumniExitYears(): Promise<number[]> {
+  return apiClient.get('/dashboard/alumni/exit-years').then((response) => unwrap<number[]>(response));
+}
+
 export function deleteAlumniContact(id: string): Promise<void> {
   return apiClient.delete(`/dashboard/alumni/${id}`).then(() => undefined);
+}
+
+export function bulkDeleteAlumni(ids: string[]): Promise<void> {
+  return apiClient.delete('/dashboard/alumni/bulk', { data: ids }).then(() => undefined);
 }

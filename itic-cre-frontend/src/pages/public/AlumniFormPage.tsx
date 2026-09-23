@@ -332,10 +332,18 @@ export default function AlumniFormPage() {
                                         </div>
                                     )}
 
-                                    <Field id="salaryExpectation" label={t('alumni.form.salary', 'Prétention salariale actuelle ou souhaitée (facultatif)')} error={errors.salaryExpectation?.message}>
+                                    <Field
+                                        id="salaryExpectation"
+                                        label={isWorking
+                                            ? t('alumni.form.salary_current', 'Rémunération actuelle (facultatif)')
+                                            : t('alumni.form.salary_expected', 'Prétentions salariales souhaitées (facultatif)')}
+                                        error={errors.salaryExpectation?.message}
+                                    >
                                         <IconInput
                                             id="salaryExpectation" icon={Banknote} hasError={!!errors.salaryExpectation} maxLength={100} disabled={isPending}
-                                            placeholder={t('alumni.form.salary_placeholder', 'Ex : 25-30 k€')}
+                                            placeholder={isWorking
+                                                ? t('alumni.form.salary_current_placeholder', 'Ex : 42 k€ ou 450 €/jour')
+                                                : t('alumni.form.salary_expected_placeholder', 'Ex : 35-40 k€')}
                                             {...register('salaryExpectation')}
                                         />
                                     </Field>
