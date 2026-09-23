@@ -1,21 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../api-s/AxiosApiClient';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { useDelayedUnmount } from '../../hooks/useModalClose';
 
 interface Props {
+    isOpen: boolean;
     url: string;
     fileName: string;
     title?: string;
     onClose: () => void;
 }
 
-export default function PdfViewerModal({ url, fileName, title, onClose }: Props) {
+export default function PdfViewerModal({ isOpen, url, fileName, title, onClose }: Props) {
     const { t } = useTranslation();
+    const { shouldRender, isClosing } = useDelayedUnmount(isOpen);
+    const panelRef = useRef<HTMLDivElement>(null);
+    useLockBodyScroll(panelRef, shouldRender);
+
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [error, setError] = useState(false);
 
+    // Repart de zero a chaque reouverture (pas dans un effect : le fade-out ne doit pas
+    // laisser voir un iframe vide/casse le temps que le nouvel effet reparte).
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+    if (isOpen !== prevIsOpen) {
+        setPrevIsOpen(isOpen);
+        if (isOpen) {
+            setBlobUrl(null);
+            setError(false);
+        }
+    }
+
     useEffect(() => {
+        if (!isOpen) return;
         let cancelled = false;
         let objectUrl: string | null = null;
 
@@ -34,7 +53,7 @@ export default function PdfViewerModal({ url, fileName, title, onClose }: Props)
             cancelled = true;
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
-    }, [url]);
+    }, [url, isOpen]);
 
     const handleDownload = () => {
         if (!blobUrl) return;
@@ -46,12 +65,17 @@ export default function PdfViewerModal({ url, fileName, title, onClose }: Props)
         document.body.removeChild(link);
     };
 
+    if (!shouldRender) return null;
+
     return (
         <div
-            className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70"
+            className={`fixed inset-0 z-[70] flex items-center justify-center p-2 sm:p-4 bg-black/70 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+            <div
+                ref={panelRef}
+                className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[95vw] h-[95vh] max-w-6xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}
+            >
                 <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{title ?? fileName}</p>
                     <div className="flex items-center gap-1 shrink-0">

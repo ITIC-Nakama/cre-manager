@@ -204,7 +204,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                             <div className="flex items-center gap-2 mt-1">
                                 <button
                                     onClick={() => setPreviewOpen(true)}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors cursor-pointer"
                                 >
                                     <Eye className="h-3.5 w-3.5" />
                                     {t('dashboard.cv.detail.view_cv', 'Visualiser')}
@@ -308,14 +308,12 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                 </div>
             </div>
 
-            {previewOpen && (
-                <PdfViewerModal
-                    url={cv.url}
-                    fileName="CV.pdf"
-                    title={cv.student ? `${t('dashboard.etudiants.actions.view_cv', 'Voir CV')} — ${cv.student.firstName} ${cv.student.lastName}` : t('dashboard.cv.detail.cv_title', 'CV Étudiant')}
-                    onClose={() => setPreviewOpen(false)}
-                />
-            )}
+            <PdfViewerModal
+                isOpen={previewOpen}
+                url={cv.url}
+                fileName="CV.pdf"
+                onClose={() => setPreviewOpen(false)}
+            />
         </div>
     );
 }

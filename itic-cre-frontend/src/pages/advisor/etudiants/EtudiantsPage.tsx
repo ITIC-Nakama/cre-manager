@@ -7,7 +7,8 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { useStudentListInfinite, useNotifyStudent, useDeactivateStudent, useReactivateStudent, useAnonymizeStudent } from '../../../hooks/useDashboard';
+import { useStudentListInfinite } from '../../../hooks/useDashboard';
+import { useStudentDetailActions } from '../../../hooks/useStudentDetailActions';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
 import { exportStudentsCsv } from '../../../utils/csvExport';
@@ -23,7 +24,6 @@ import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
-import { useCVByStudent, useCVStatuts } from '../../../hooks/useCV';
 import { isAnonymizedStudent } from '../../../utils/studentUtils';
 
 import { useStudentColumns } from './hooks/useStudentTableColumn';
@@ -73,51 +73,22 @@ export default function EtudiantsPage() {
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
     const [viewingStudent, setViewingStudent] = useState<StudentRow | null>(null);
-    const [declaringContractFor, setDeclaringContractFor] = useState<StudentRow | null>(null);
     const [exporting, setExporting] = useState(false);
-    const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
     const [selectingAllMatching, setSelectingAllMatching] = useState(false);
     const [bulkProcessing, setBulkProcessing] = useState(false);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const notifyMutation = useNotifyStudent();
-    const deactivateMutation = useDeactivateStudent();
-    const reactivateMutation = useReactivateStudent();
-    const anonymizeMutation = useAnonymizeStudent();
     const bulkAssignAdvisorMutation = useAssignStudentsToAdvisor();
     const bulkRemoveAdvisorMutation = useRemoveStudentsFromAdvisor();
     const [includeAnonymized, setIncludeAnonymized] = useState(false);
-    const [anonymizeTarget, setAnonymizeTarget] = useState<StudentRow | null>(null);
-    const [anonymizing, setAnonymizing] = useState(false);
     const { data: promotions } = usePromotions();
 
-    const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
-    const { data: cvStatuts = [] } = useCVStatuts();
+    const studentActions = useStudentDetailActions({ isAdmin, onAnonymizeSuccess: () => setViewingStudent(null) });
     const { data: advisors = [] } = useAllAdvisors();
 
     const columns = useStudentColumns({ isAdmin });
-
-    const [confirmDialog, setConfirmDialog] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        onConfirm: () => Promise<void>;
-    }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
-    const [confirmLoading, setConfirmLoading] = useState(false);
-
-    const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
-    const handleConfirm = async () => {
-        setConfirmLoading(true);
-        try {
-            await confirmDialog.onConfirm();
-            closeConfirm();
-        } finally {
-            setConfirmLoading(false);
-        }
-    };
 
     const filterOptions = useMemo(() => [
         { value: 'all', label: t('dashboard.etudiants.filter_all') },
@@ -343,61 +314,6 @@ export default function EtudiantsPage() {
         }
     };
 
-    const handleNotify = async (student: StudentRow, message?: string): Promise<void> => {
-        try {
-            await notifyMutation.mutateAsync({ studentId: student.id, message });
-            toast.success(t('dashboard.notify_modal.success', { name: `${student.firstName} ${student.lastName}` }));
-        } catch {
-            toast.error(t('dashboard.notify_modal.error', { email: student.email }));
-        }
-    };
-
-    const handleDeactivateStudent = (student: StudentRow) => {
-        setConfirmDialog({
-            isOpen: true,
-            title: t('dashboard.etudiants.confirm_deactivate_title'),
-            message: t('dashboard.etudiants.confirm_deactivate', { name: `${student.firstName} ${student.lastName}` }),
-            onConfirm: async () => {
-                try {
-                    await deactivateMutation.mutateAsync(student.id);
-                    toast.success(t('dashboard.etudiants.toast_deactivated'));
-                } catch (err) {
-                    console.error(err);
-                    toast.error(t('dashboard.etudiants.toast_deactivate_error'));
-                }
-            },
-        });
-    };
-
-    const handleReactivateStudent = async (student: StudentRow) => {
-        try {
-            await reactivateMutation.mutateAsync(student.id);
-            toast.success(t('dashboard.etudiants.toast_reactivated'));
-        } catch (err) {
-            console.error(err);
-            toast.error(t('dashboard.etudiants.toast_reactivate_error'));
-        }
-    };
-
-    const handleAnonymizeStudent = (student: StudentRow) => {
-        setAnonymizeTarget(student);
-    };
-
-    const handleConfirmAnonymize = async () => {
-        if (!anonymizeTarget) return;
-        setAnonymizing(true);
-        try {
-            await anonymizeMutation.mutateAsync(anonymizeTarget.id);
-            toast.success(t('dashboard.etudiants.toast_anonymized'));
-            setAnonymizeTarget(null);
-        } catch (err) {
-            console.error(err);
-            toast.error(t('dashboard.etudiants.toast_anonymize_error'));
-        } finally {
-            setAnonymizing(false);
-        }
-    };
-
     const handleExportCsv = async () => {
         setExporting(true);
         try {
@@ -482,18 +398,18 @@ export default function EtudiantsPage() {
                 hasNextPage={!!hasNextPage}
                 isFetchingNextPage={isFetchingNextPage}
                 onLoadMore={fetchNextPage}
-                studentCvLoading={studentCvLoading}
-                viewingCvStudentId={viewingCvStudentId}
-                setViewingCvStudentId={setViewingCvStudentId}
+                studentCvLoading={studentActions.studentCvLoading}
+                viewingCvStudentId={studentActions.viewingCvStudentId}
+                setViewingCvStudentId={studentActions.setViewingCvStudentId}
                 setViewingStudent={setViewingStudent}
             />
 
             {/* Modals */}
-            {selectedStudent && (
+            {studentActions.notifyingStudent && (
                 <NotifyStudentModal
-                    student={selectedStudent}
-                    onClose={() => setSelectedStudent(null)}
-                    onSend={(message) => handleNotify(selectedStudent, message)}
+                    student={studentActions.notifyingStudent}
+                    onClose={studentActions.closeNotify}
+                    onSend={studentActions.handleNotifyStudent}
                 />
             )}
 
@@ -501,50 +417,48 @@ export default function EtudiantsPage() {
                 <StudentDetailModal
                     student={viewingStudent}
                     onClose={() => setViewingStudent(null)}
-                    onNotify={(s) => setSelectedStudent(s)}
-                    onToggleActive={(s) => s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)}
-                    onDeclareContract={(s) => setDeclaringContractFor(s)}
-                    onAnonymize={isAdmin ? handleAnonymizeStudent : undefined}
-                    onViewCv={(s) => setViewingCvStudentId(s.id)}
+                    {...studentActions.studentDetailProps}
                 />
             )}
 
-            {declaringContractFor && (
+            {studentActions.declaringContractFor && (
                 <DeclareContractModal
-                    student={declaringContractFor}
-                    onClose={() => setDeclaringContractFor(null)}
+                    student={studentActions.declaringContractFor}
+                    onClose={studentActions.closeDeclareContract}
                 />
             )}
 
             <ConfirmDialog
-                isOpen={confirmDialog.isOpen}
-                title={confirmDialog.title}
-                message={confirmDialog.message}
+                isOpen={!!studentActions.deactivateTarget}
+                title={t('dashboard.etudiants.confirm_deactivate_title')}
+                message={studentActions.deactivateTarget
+                    ? t('dashboard.etudiants.confirm_deactivate', { name: `${studentActions.deactivateTarget.firstName} ${studentActions.deactivateTarget.lastName}` })
+                    : ''}
                 confirmLabel={t('dashboard.etudiants.actions.deactivate')}
-                loading={confirmLoading}
-                onConfirm={handleConfirm}
-                onClose={closeConfirm}
+                loading={studentActions.deactivateLoading}
+                onConfirm={studentActions.handleConfirmDeactivate}
+                onClose={studentActions.closeDeactivateConfirm}
             />
 
             <TypedConfirmDialog
-                isOpen={!!anonymizeTarget}
+                isOpen={!!studentActions.anonymizeTarget}
                 title={t('dashboard.etudiants.confirm_anonymize_title')}
-                message={anonymizeTarget
-                    ? t('dashboard.etudiants.confirm_anonymize_message', { name: `${anonymizeTarget.firstName} ${anonymizeTarget.lastName}` })
+                message={studentActions.anonymizeTarget
+                    ? t('dashboard.etudiants.confirm_anonymize_message', { name: `${studentActions.anonymizeTarget.firstName} ${studentActions.anonymizeTarget.lastName}` })
                     : ''}
-                confirmationValue={anonymizeTarget?.email ?? ''}
+                confirmationValue={studentActions.anonymizeTarget?.email ?? ''}
                 confirmationLabel={t('dashboard.etudiants.confirm_anonymize_input_label')}
                 confirmLabel={t('dashboard.etudiants.actions.anonymize')}
-                loading={anonymizing}
-                onConfirm={handleConfirmAnonymize}
-                onClose={() => setAnonymizeTarget(null)}
+                loading={studentActions.anonymizing}
+                onConfirm={studentActions.handleConfirmAnonymize}
+                onClose={studentActions.closeAnonymize}
             />
 
-            {viewingCvStudentId && studentCv && (
+            {studentActions.viewingCvStudentId && studentActions.studentCv && (
                 <CVDetailModal
-                    cv={studentCv}
-                    statuts={cvStatuts}
-                    onClose={() => setViewingCvStudentId(null)}
+                    cv={studentActions.studentCv}
+                    statuts={studentActions.cvStatuts}
+                    onClose={() => studentActions.setViewingCvStudentId(null)}
                 />
             )}
         </div>
