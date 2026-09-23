@@ -470,6 +470,28 @@ public class DashboardControllerIntegrationTest {
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
                     .andExpect(status().isNotFound());
         }
+
+        @Test
+        @DisplayName("GET /dashboard/students/{studentId}/row returns the same row shape as the list endpoint")
+        void getStudentRowSuccess() throws Exception {
+            mockMvc.perform(get("/dashboard/students/" + activeStudent.getId() + "/row")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.id").value(activeStudent.getId().toString()))
+                    .andExpect(jsonPath("$.data.email").value("student.active.dashboard@itic.fr"))
+                    .andExpect(jsonPath("$.data.firstName").exists())
+                    .andExpect(jsonPath("$.data.grade").exists())
+                    .andExpect(jsonPath("$.data.xpTotal").exists())
+                    .andExpect(jsonPath("$.data.applications").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("GET /dashboard/students/{studentId}/row with unknown UUID returns 404")
+        void getStudentRowNotFound() throws Exception {
+            mockMvc.perform(get("/dashboard/students/" + UUID.randomUUID() + "/row")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested

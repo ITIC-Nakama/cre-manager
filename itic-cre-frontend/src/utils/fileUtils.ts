@@ -30,3 +30,25 @@ export async function openFileSecurely(url: string, fallbackName: string = 'docu
     toast.error('Impossible de charger le fichier');
   }
 }
+
+/** Telecharge le fichier directement (jamais de nouvel onglet), contrairement a openFileSecurely. */
+export async function downloadFileSecurely(url: string, fallbackName: string = 'document.pdf') {
+  try {
+    const response = await apiClient.get(url, { responseType: 'blob' });
+    const rawContentType = response.headers['content-type'];
+    const contentType = typeof rawContentType === 'string' ? rawContentType : 'application/octet-stream';
+    const blob = new Blob([response.data], { type: contentType });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fallbackName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error('Erreur lors du téléchargement du fichier :', err);
+    toast.error('Impossible de télécharger le fichier');
+  }
+}

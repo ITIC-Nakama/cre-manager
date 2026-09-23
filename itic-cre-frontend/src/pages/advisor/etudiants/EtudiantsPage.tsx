@@ -505,6 +505,7 @@ export default function EtudiantsPage() {
                     onToggleActive={(s) => s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)}
                     onDeclareContract={(s) => setDeclaringContractFor(s)}
                     onAnonymize={isAdmin ? handleAnonymizeStudent : undefined}
+                    onViewCv={(s) => setViewingCvStudentId(s.id)}
                 />
             )}
 

@@ -6,6 +6,10 @@
       "delete": "Delete",
       "deleting": "Deleting…"
     },
+    "pdf_viewer": {
+      "download": "Download",
+      "error": "Unable to load the document."
+    },
     "admin_tag": "(Admin)",
     "me_option": "Me",
     "clear": "Clear",
@@ -836,7 +840,17 @@
         "external_link_notice": "This offer links to an external platform to apply.",
         "external_link_button": "View original job posting",
         "status_applied": "You have already applied to this offer",
-        "close": "Close"
+        "close": "Close",
+        "view_applicants_one": "{{count}} applicant",
+        "view_applicants_other": "{{count}} applicants"
+      },
+      "applicants_modal": {
+        "title": "Applicants",
+        "view_action": "View applicants",
+        "empty": "No applicants for this offer",
+        "applied_at": "Applied on {{date}}",
+        "count_one": "{{count}} applicant",
+        "count_other": "{{count}} applicants"
       },
       "toast": {
         "created": "Offer published successfully.",
@@ -1522,7 +1536,8 @@
         "promotion": "Class",
         "uploaded_at": "Uploaded on",
         "updated_at": "Last updated on",
-        "view_pdf": "View PDF document",
+        "view_cv": "View",
+        "download_cv": "Download",
         "comments_label": "Advisor comments",
         "no_comments": "No comments yet.",
         "delete_comment": "Delete comment",

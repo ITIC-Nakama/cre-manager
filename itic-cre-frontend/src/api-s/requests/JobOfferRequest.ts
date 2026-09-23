@@ -70,6 +70,13 @@ export function fetchMyJobApplications(): Promise<JobApplicationPage> {
         .then((response) => unwrap<JobApplicationPage>(response));
 }
 
+// Advisor/admin — candidats d'une offre (liste paginee)
+export function fetchApplicationsForOffer(jobOfferId: string, params: { page?: number; size?: number } = {}): Promise<JobApplicationPage> {
+    return apiClient
+        .get(`/jobboard/applications/offer/${jobOfferId}`, { params })
+        .then((response) => unwrap<JobApplicationPage>(response));
+}
+
 export function withdrawJobApplication(id: string): Promise<{ xpRevoked: number }> {
     return apiClient.delete(`/jobboard/applications/${id}/withdraw`).then((response) => unwrap<{ xpRevoked: number }>(response));
 }

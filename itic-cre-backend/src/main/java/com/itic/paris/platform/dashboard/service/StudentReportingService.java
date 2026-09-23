@@ -82,6 +82,21 @@ public class StudentReportingService {
     }
 
     /**
+     * Meme forme qu'une ligne de {@link #getStudentList} mais pour un seul etudiant — pour ouvrir
+     * sa fiche detail (StudentDetailModal) depuis un contexte ou seul l'id est disponible (ex:
+     * liste des candidats d'une offre jobboard).
+     */
+    public Map<String, Object> getStudentRow(UUID studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
+
+        Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
+        Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
+
+        return buildStudentRows(List.of(student), staleThreshold, inactiveThreshold).get(0);
+    }
+
+    /**
      * Etudiants necessitant une action du conseiller (candidature stagnante ou CV manquant),
      * tries par pertinence et limites cote base de donnees — evite de rapatrier un lot arbitraire
      * d'etudiants juste pour en retenir 5 cote client (voir StudentSpecification.needingAttention).

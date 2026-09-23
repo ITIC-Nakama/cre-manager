@@ -14,6 +14,7 @@ import {
     wipeJobOffers,
     applyToJobOffer,
     fetchMyJobApplications,
+    fetchApplicationsForOffer,
     withdrawJobApplication,
     fetchExternalJobboardStats,
     triggerExternalJobboardSync,
@@ -57,6 +58,16 @@ export function useMyJobApplications() {
         queryKey: ['job-applications', 'mine'],
         queryFn: fetchMyJobApplications,
     });
+}
+
+// Advisor/admin — candidats d'une offre, scroll infini
+export function useApplicationsForOfferInfinite(jobOfferId: string | null) {
+    return useInfiniteListQuery(
+        ['job-applications', 'offer', jobOfferId, 'infinite'],
+        (params: { page?: number; size?: number }) => fetchApplicationsForOffer(jobOfferId as string, params),
+        {},
+        { enabled: !!jobOfferId },
+    );
 }
 
 export function useCreateJobOffer() {

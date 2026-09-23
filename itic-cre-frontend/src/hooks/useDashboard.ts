@@ -7,6 +7,7 @@ import {
     fetchPromotionStudentCounts,
     fetchPromotionYearCounts,
     fetchStudentList,
+    fetchStudentRow,
     fetchStudentsNeedingAttention,
     notifyStudent,
     deactivateStudent,
@@ -17,6 +18,15 @@ import {
 } from '../api-s/requests/DashboardRequest';
 import type { StudentListParams } from '../types/models/Dashboard';
 import type { DeclareContractPayload } from '../types/models/Application';
+
+/** Meme forme qu'une ligne de useStudentListInfinite — pour ouvrir StudentDetailModal depuis un id seul. */
+export function useStudentRow(studentId: string | null) {
+    return useQuery({
+        queryKey: ['dashboard', 'students', 'row', studentId],
+        queryFn: () => fetchStudentRow(studentId as string),
+        enabled: !!studentId,
+    });
+}
 
 export function useDashboardOverview(advisorId?: string) {
     return useQuery({

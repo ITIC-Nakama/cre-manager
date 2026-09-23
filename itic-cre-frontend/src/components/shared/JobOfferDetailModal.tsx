@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
     X, Briefcase, Building2, MapPin, FileSignature, Layers,
     Calendar, ExternalLink, CheckCircle2, UserMinus, Loader2,
-    Globe, Power, PowerOff, Trash2, User
+    Globe, Power, PowerOff, Trash2, User, Users
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -19,6 +19,7 @@ interface Props {
     onEdit?: (offer: JobOffer) => void;
     onToggleActive?: (offer: JobOffer) => void;
     onDelete?: (offer: JobOffer) => void;
+    onViewApplicants?: (offer: JobOffer) => void;
     showAdminActions?: boolean;
 }
 
@@ -41,6 +42,7 @@ export default function JobOfferDetailModal({
     onEdit,
     onToggleActive,
     onDelete,
+    onViewApplicants,
     showAdminActions = false,
 }: Props) {
     const { t, i18n } = useTranslation();
@@ -163,6 +165,16 @@ export default function JobOfferDetailModal({
                                 <User className="h-3.5 w-3.5 text-slate-400" />
                                 {t('dashboard.offres.detail_modal.published_by', { name: `${offer.createdByFirstName} ${offer.createdByLastName ?? ''}`.trim() })}
                             </span>
+                        )}
+                        {showAdminActions && onViewApplicants && (
+                            <button
+                                type="button"
+                                onClick={() => { onClose(); onViewApplicants(offer); }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/30 shadow-2xs hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors cursor-pointer"
+                            >
+                                <Users className="h-3.5 w-3.5" />
+                                {t('dashboard.offres.detail_modal.view_applicants', { count: offer.applicationCount })}
+                            </button>
                         )}
                     </div>
 

@@ -53,6 +53,12 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }
 
+/** Meme forme qu'une ligne de la liste /dashboard/students — pour ouvrir StudentDetailModal quand
+  * seul l'id est disponible (ex: liste des candidats d'une offre jobboard). */
+export function fetchStudentRow(studentId: string): Promise<StudentRow> {
+    return apiClient.get(`/dashboard/students/${studentId}/row`).then(unwrap<StudentRow>);
+}
+
 export function updateStudentStarRating(studentId: string, starRating: number | null): Promise<{ id: string; starRating: number | null }> {
     return apiClient
         .patch(`/dashboard/students/${studentId}/star-rating`, { starRating })

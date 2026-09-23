@@ -50,6 +50,10 @@ export interface JobApplicationJobboard {
     studentId: string;
     jobOfferTitle: string;
     appliedAt: string;
+    studentFirstName: string;
+    studentLastName: string;
+    studentEmail: string;
+    studentProfilePicture: string | null;
 }
 
 export interface JobApplicationPage {

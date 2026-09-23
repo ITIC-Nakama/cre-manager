@@ -295,6 +295,31 @@ public class JobOfferIntegrationTest {
         assertThat(applicationDTO.getJobOfferTitle()).isEqualTo("Chef de Projet");
     }
 
+    /** La liste des candidats d'une offre (vue conseiller/admin) doit inclure l'identite de l'etudiant. */
+    @Test
+    public void testGetApplicationsForOffer_IncludesStudentDetails() {
+        CreateJobOfferRequest request = new CreateJobOfferRequest();
+        request.setTitle("Développeur Backend");
+        request.setCompany("Backend SA");
+        request.setDescription("Poste de développeur backend");
+        request.setContractTypeId(cdiContract.getId());
+        JobOfferDTO offer = jobOfferService.create(request);
+
+        authenticate(student);
+        jobApplicationService.apply(offer.getId());
+
+        authenticate(advisor);
+        Page<JobApplicationDTO> applicants = jobApplicationService.getApplicationsForOffer(
+                offer.getId(), PageRequest.of(0, 20));
+
+        assertThat(applicants.getTotalElements()).isEqualTo(1);
+        JobApplicationDTO applicant = applicants.getContent().get(0);
+        assertThat(applicant.getStudentId()).isEqualTo(student.getId());
+        assertThat(applicant.getStudentFirstName()).isEqualTo("Student");
+        assertThat(applicant.getStudentLastName()).isEqualTo("Jobboard");
+        assertThat(applicant.getStudentEmail()).isEqualTo("student.jobboard@itic.fr");
+    }
+
     /** Postuler à une offre externe crée une candidature CRM avec un instantané de l'offre. */
     @Test
     public void testApplyToExternalOfferSucceedsAndCopiesSnapshot() {

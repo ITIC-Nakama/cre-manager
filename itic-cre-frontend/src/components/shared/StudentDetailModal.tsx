@@ -16,6 +16,7 @@ interface Props {
     onToggleActive?: (student: StudentRow) => void;
     onDeclareContract?: (student: StudentRow) => void;
     onAnonymize?: (student: StudentRow) => void;
+    onViewCv?: (student: StudentRow) => void;
 }
 
 function formatDateTime(iso: string | null) {
@@ -26,7 +27,7 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv }: Props) {
     const { t } = useTranslation();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
@@ -357,9 +358,20 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 </div>
                             );
                         }
-                        if (!onNotify && !onToggleActive && !onDeclareContract && !onAnonymize) return null;
+                        if (!onNotify && !onToggleActive && !onDeclareContract && !onAnonymize && !onViewCv) return null;
                         return (
                             <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                {onViewCv && student.hasCv && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onViewCv(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/60 transition-colors cursor-pointer"
+                                    >
+                                        <FileText className="h-3.5 w-3.5" />
+                                        <span>{t('dashboard.etudiants.actions.view_cv', 'Voir CV')}</span>
+                                    </button>
+                                )}
+
                                 {onDeclareContract && (
                                     <button
                                         type="button"

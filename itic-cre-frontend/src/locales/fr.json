@@ -6,6 +6,10 @@
       "delete": "Supprimer",
       "deleting": "Suppression…"
     },
+    "pdf_viewer": {
+      "download": "Télécharger",
+      "error": "Impossible de charger le document."
+    },
     "admin_tag": "(Admin)",
     "me_option": "Moi",
     "clear": "Effacer",
@@ -836,7 +840,17 @@
         "external_link_notice": "Cette offre redirige vers une plateforme externe pour candidater.",
         "external_link_button": "Consulter l'annonce",
         "status_applied": "Vous avez déjà postulé à cette offre",
-        "close": "Fermer"
+        "close": "Fermer",
+        "view_applicants_one": "{{count}} candidat",
+        "view_applicants_other": "{{count}} candidats"
+      },
+      "applicants_modal": {
+        "title": "Candidats",
+        "view_action": "Voir les candidats",
+        "empty": "Aucun candidat pour cette offre",
+        "applied_at": "Candidature le {{date}}",
+        "count_one": "{{count}} candidat",
+        "count_other": "{{count}} candidats"
       },
       "toast": {
         "created": "Offre publiée avec succès.",
@@ -1522,7 +1536,8 @@
         "promotion": "Promotion",
         "uploaded_at": "Déposé le",
         "updated_at": "Dernière mise à jour le",
-        "view_pdf": "Consulter le document PDF",
+        "view_cv": "Visualiser",
+        "download_cv": "Télécharger",
         "comments_label": "Commentaires du conseiller",
         "no_comments": "Aucun commentaire pour le moment.",
         "delete_comment": "Supprimer ce commentaire",

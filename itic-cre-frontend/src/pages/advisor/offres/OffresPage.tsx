@@ -8,9 +8,19 @@ import {
     useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors,
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
+import {
+    useStudentRow, useNotifyStudent, useDeactivateStudent, useReactivateStudent, useAnonymizeStudent,
+} from '../../../hooks/useDashboard';
+import { useCVByStudent, useCVStatuts } from '../../../hooks/useCV';
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
+import JobOfferApplicantsModal from '../../../components/shared/JobOfferApplicantsModal';
+import StudentDetailModal from '../../../components/shared/StudentDetailModal';
+import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
+import DeclareContractModal from '../../../components/shared/DeclareContractModal';
+import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import WipeOffersDialog from '../../../components/shared/WipeOffersDialog';
 import OffresHeader from './components/OffresHeader';
 import OffresFiltersBar from './components/OffresFiltersBar';
@@ -19,6 +29,7 @@ import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { JobOffer } from '../../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../../types/models/JobOffer';
+import type { StudentRow } from '../../../types/models/Dashboard';
 
 const PAGE_SIZE = 20;
 
@@ -60,6 +71,13 @@ export default function OffresPage() {
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [wipeDialogOpen, setWipeDialogOpen] = useState(false);
+    const [applicantsOffer, setApplicantsOffer] = useState<JobOffer | null>(null);
+    const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
+    const [notifyingStudent, setNotifyingStudent] = useState<StudentRow | null>(null);
+    const [declaringContractFor, setDeclaringContractFor] = useState<StudentRow | null>(null);
+    const [anonymizeTarget, setAnonymizeTarget] = useState<StudentRow | null>(null);
+    const [anonymizing, setAnonymizing] = useState(false);
+    const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -121,16 +139,25 @@ export default function OffresPage() {
     const deleteMutation = useDeleteJobOffer();
     const wipeMutation = useWipeJobOffers();
 
+    const studentRowQuery = useStudentRow(viewingStudentId);
+    const notifyMutation = useNotifyStudent();
+    const deactivateStudentMutation = useDeactivateStudent();
+    const reactivateStudentMutation = useReactivateStudent();
+    const anonymizeMutation = useAnonymizeStudent();
+    const { data: studentCv } = useCVByStudent(viewingCvStudentId);
+    const { data: cvStatuts = [] } = useCVStatuts();
+
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
         message: string;
+        confirmLabel?: string;
         onConfirm: () => Promise<void>;
     }>({ isOpen: false, title: '', message: '', onConfirm: async () => { } });
     const [confirmLoading, setConfirmLoading] = useState(false);
 
-    const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>) => {
-        setConfirmDialog({ isOpen: true, title, message, onConfirm });
+    const openConfirm = (title: string, message: string, onConfirm: () => Promise<void>, confirmLabel?: string) => {
+        setConfirmDialog({ isOpen: true, title, message, onConfirm, confirmLabel });
     };
 
     const closeConfirm = () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
@@ -242,6 +269,63 @@ export default function OffresPage() {
         }
     };
 
+    const handleNotifyStudent = async (message?: string) => {
+        if (!notifyingStudent) return;
+        try {
+            await notifyMutation.mutateAsync({ studentId: notifyingStudent.id, message });
+            toast.success(t('dashboard.notify_modal.success', { name: `${notifyingStudent.firstName} ${notifyingStudent.lastName}` }));
+        } catch {
+            toast.error(t('dashboard.notify_modal.error', { email: notifyingStudent.email }));
+        }
+    };
+
+    const handleDeactivateStudent = (student: StudentRow) => {
+        openConfirm(
+            t('dashboard.etudiants.confirm_deactivate_title'),
+            t('dashboard.etudiants.confirm_deactivate', { name: `${student.firstName} ${student.lastName}` }),
+            async () => {
+                try {
+                    await deactivateStudentMutation.mutateAsync(student.id);
+                    toast.success(t('dashboard.etudiants.toast_deactivated'));
+                } catch (err) {
+                    console.error(err);
+                    toast.error(t('dashboard.etudiants.toast_deactivate_error'));
+                }
+            },
+            t('dashboard.etudiants.actions.deactivate'),
+        );
+    };
+
+    const handleReactivateStudent = async (student: StudentRow) => {
+        try {
+            await reactivateStudentMutation.mutateAsync(student.id);
+            toast.success(t('dashboard.etudiants.toast_reactivated'));
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_reactivate_error'));
+        }
+    };
+
+    const handleAnonymizeStudent = (student: StudentRow) => {
+        setAnonymizeTarget(student);
+    };
+
+    const handleConfirmAnonymize = async () => {
+        if (!anonymizeTarget) return;
+        setAnonymizing(true);
+        try {
+            await anonymizeMutation.mutateAsync(anonymizeTarget.id);
+            toast.success(t('dashboard.etudiants.toast_anonymized'));
+            setAnonymizeTarget(null);
+            setViewingStudentId(null);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_anonymize_error'));
+        } finally {
+            setAnonymizing(false);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
             <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
@@ -290,6 +374,7 @@ export default function OffresPage() {
                 onLoadMore={fetchNextPage}
                 onView={setViewingOffer}
                 onEdit={(offer) => { setEditingOffer(offer); setIsReadOnly(false); setFormOpen(true); }}
+                onViewApplicants={setApplicantsOffer}
             />
 
             {viewingOffer && (
@@ -305,8 +390,67 @@ export default function OffresPage() {
                     }}
                     onToggleActive={handleToggleActive}
                     onDelete={handleDelete}
+                    onViewApplicants={setApplicantsOffer}
                 />
             )}
+
+            {applicantsOffer && (
+                <JobOfferApplicantsModal
+                    offer={applicantsOffer}
+                    onClose={() => setApplicantsOffer(null)}
+                    onViewStudent={setViewingStudentId}
+                    loadingStudentId={studentRowQuery.isFetching ? viewingStudentId : null}
+                />
+            )}
+
+            {studentRowQuery.data && viewingStudentId && (
+                <StudentDetailModal
+                    student={studentRowQuery.data}
+                    onClose={() => setViewingStudentId(null)}
+                    onNotify={(s) => setNotifyingStudent(s)}
+                    onToggleActive={(s) => (s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s))}
+                    onDeclareContract={(s) => setDeclaringContractFor(s)}
+                    onAnonymize={isAdmin ? handleAnonymizeStudent : undefined}
+                    onViewCv={(s) => setViewingCvStudentId(s.id)}
+                />
+            )}
+
+            {viewingCvStudentId && studentCv && (
+                <CVDetailModal
+                    cv={studentCv}
+                    statuts={cvStatuts}
+                    onClose={() => setViewingCvStudentId(null)}
+                />
+            )}
+
+            {notifyingStudent && (
+                <NotifyStudentModal
+                    student={notifyingStudent}
+                    onClose={() => setNotifyingStudent(null)}
+                    onSend={(message) => handleNotifyStudent(message)}
+                />
+            )}
+
+            {declaringContractFor && (
+                <DeclareContractModal
+                    student={declaringContractFor}
+                    onClose={() => setDeclaringContractFor(null)}
+                />
+            )}
+
+            <TypedConfirmDialog
+                isOpen={!!anonymizeTarget}
+                title={t('dashboard.etudiants.confirm_anonymize_title')}
+                message={anonymizeTarget
+                    ? t('dashboard.etudiants.confirm_anonymize_message', { name: `${anonymizeTarget.firstName} ${anonymizeTarget.lastName}` })
+                    : ''}
+                confirmationValue={anonymizeTarget?.email ?? ''}
+                confirmationLabel={t('dashboard.etudiants.confirm_anonymize_input_label')}
+                confirmLabel={t('dashboard.etudiants.actions.anonymize')}
+                loading={anonymizing}
+                onConfirm={handleConfirmAnonymize}
+                onClose={() => setAnonymizeTarget(null)}
+            />
 
             {formOpen && (
                 <JobOfferFormModal
@@ -321,6 +465,7 @@ export default function OffresPage() {
                 isOpen={confirmDialog.isOpen}
                 title={confirmDialog.title}
                 message={confirmDialog.message}
+                confirmLabel={confirmDialog.confirmLabel}
                 loading={confirmLoading}
                 onConfirm={handleConfirm}
                 onClose={closeConfirm}

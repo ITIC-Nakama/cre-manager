@@ -27,4 +27,16 @@ public class JobApplicationDTO {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Instant appliedAt;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private String studentFirstName;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private String studentLastName;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private String studentEmail;
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private String studentProfilePicture;
 }

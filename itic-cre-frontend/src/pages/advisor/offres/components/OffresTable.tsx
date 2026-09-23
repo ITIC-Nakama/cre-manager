@@ -37,11 +37,12 @@ interface Props {
     onLoadMore: () => void;
     onView: (offer: JobOffer) => void;
     onEdit: (offer: JobOffer) => void;
+    onViewApplicants: (offer: JobOffer) => void;
     sorting: SortingState;
     onSortingChange: (sorting: SortingState) => void;
 }
 
-export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, sorting, onSortingChange }: Props) {
+export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, onViewApplicants, sorting, onSortingChange }: Props) {
     const { t } = useTranslation();
 
     const columns = useMemo(() => [
@@ -100,11 +101,26 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
         }),
         col.accessor('applicationCount', {
             header: t('dashboard.offres.table.applications'),
-            cell: ({ getValue }) => (
-                <span className="inline-flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400">
-                    <Users className="h-3.5 w-3.5" />{getValue()}
-                </span>
-            ),
+            cell: ({ getValue, row }) => {
+                const count = getValue();
+                if (count === 0) {
+                    return (
+                        <span className="inline-flex items-center gap-1 text-sm text-slate-400 dark:text-slate-600">
+                            <Users className="h-3.5 w-3.5" />{count}
+                        </span>
+                    );
+                }
+                return (
+                    <button
+                        type="button"
+                        onClick={() => onViewApplicants(row.original)}
+                        className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                        title={t('dashboard.offres.applicants_modal.view_action', 'Voir les candidats')}
+                    >
+                        <Users className="h-3.5 w-3.5" />{count}
+                    </button>
+                );
+            },
         }),
         col.accessor('active', {
             header: t('dashboard.offres.table.status'),
@@ -121,8 +137,7 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
             header: t('dashboard.offres.table.created_at'),
             cell: ({ getValue }) => <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(getValue())}</span>,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [t]);
+    ], [t, onViewApplicants]);
 
     const coreRowModel = useMemo(() => getCoreRowModel(), []);
 

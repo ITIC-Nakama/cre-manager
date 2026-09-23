@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2 } from 'lucide-react';
+import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2, Eye, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useCVComments, useUpdateCVStatus, useAddCVComment, useDeleteCVComment } from '../../hooks/useCV';
@@ -7,7 +7,8 @@ import { useUserStore } from '../../store/UserStore';
 import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
 import UserAvatar from './UserAvatar';
-import { openFileSecurely } from '../../utils/fileUtils';
+import PdfViewerModal from './PdfViewerModal';
+import { downloadFileSecurely } from '../../utils/fileUtils';
 
 interface Props {
     cv: CVRow;
@@ -34,6 +35,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
     const [cv, setCv] = useState<CVRow>(initialCv);
     const [newComment, setNewComment] = useState('');
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     useEffect(() => {
         setCv(initialCv);
@@ -199,13 +201,22 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{formatDateTime(cv.updatedAt)}</p>
                                 </div>
                             )}
-                            <button
-                                onClick={() => openFileSecurely(cv.url, 'CV.pdf')}
-                                className="inline-flex items-center gap-2 mt-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
-                            >
-                                <FileText className="h-3.5 w-3.5" />
-                                {t('dashboard.cv.detail.view_pdf', 'Voir le CV (PDF)')}
-                            </button>
+                            <div className="flex items-center gap-2 mt-1">
+                                <button
+                                    onClick={() => setPreviewOpen(true)}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+                                >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    {t('dashboard.cv.detail.view_cv', 'Visualiser')}
+                                </button>
+                                <button
+                                    onClick={() => downloadFileSecurely(cv.url, 'CV.pdf')}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                >
+                                    <Download className="h-3.5 w-3.5" />
+                                    {t('dashboard.cv.detail.download_cv', 'Télécharger')}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -296,6 +307,15 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                     </div>
                 </div>
             </div>
+
+            {previewOpen && (
+                <PdfViewerModal
+                    url={cv.url}
+                    fileName="CV.pdf"
+                    title={cv.student ? `${t('dashboard.etudiants.actions.view_cv', 'Voir CV')} — ${cv.student.firstName} ${cv.student.lastName}` : t('dashboard.cv.detail.cv_title', 'CV Étudiant')}
+                    onClose={() => setPreviewOpen(false)}
+                />
+            )}
         </div>
     );
 }

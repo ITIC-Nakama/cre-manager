@@ -22,7 +22,8 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     Page<JobApplication> findByStudentId(UUID studentId, Pageable pageable);
 
-    Page<JobApplication> findByJobOfferId(UUID jobOfferId, Pageable pageable);
+    @Query("SELECT ja FROM JobApplication ja JOIN FETCH ja.student WHERE ja.jobOffer.id = :jobOfferId")
+    Page<JobApplication> findByJobOfferIdWithStudent(@Param("jobOfferId") UUID jobOfferId, Pageable pageable);
 
     long countByJobOfferId(UUID jobOfferId);
 

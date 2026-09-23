@@ -301,6 +301,12 @@ public class DashboardController {
         return ResponseEntity.ok(studentReportingService.getStudentDetail(studentId));
     }
 
+    @GetMapping("/students/{studentId}/row")
+    @Operation(summary = "Ligne résumée d'un étudiant (même forme que la liste) — pour ouvrir sa fiche depuis un contexte externe (ex: candidats d'une offre)")
+    public ResponseEntity<?> studentRow(@PathVariable UUID studentId) {
+        return ResponseEntity.ok(studentReportingService.getStudentRow(studentId));
+    }
+
     @PostMapping("/students/{studentId}/notify")
     @Operation(
             summary = "Envoyer un email de rappel à un étudiant",

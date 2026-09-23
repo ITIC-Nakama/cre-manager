@@ -11,6 +11,7 @@ import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.jobboard.model.dtos.JobApplicationDTO;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
+import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public class JobApplicationService {
     private final JobOfferRepository jobOfferRepository;
     private final StudentRepository studentRepository;
     private final ApplicationService applicationService;
+    private final ICloudStorage cloudStorage;
 
     @Transactional
     public JobApplicationDTO apply(UUID jobOfferId) {
@@ -62,7 +64,7 @@ public class JobApplicationService {
     }
 
     public Page<JobApplicationDTO> getApplicationsForOffer(UUID jobOfferId, Pageable pageable) {
-        return jobApplicationRepository.findByJobOfferId(jobOfferId, pageable)
+        return jobApplicationRepository.findByJobOfferIdWithStudent(jobOfferId, pageable)
                 .map(this::mapToDTO);
     }
 
@@ -86,12 +88,17 @@ public class JobApplicationService {
     }
 
     private JobApplicationDTO mapToDTO(JobApplication application) {
+        Student student = application.getStudent();
         return new JobApplicationDTO(
                 application.getId(),
                 application.getJobOffer().getId(),
-                application.getStudent().getId(),
+                student.getId(),
                 application.getJobOffer().getTitle(),
-                application.getAppliedAt()
+                application.getAppliedAt(),
+                student.getFirstName(),
+                student.getLastName(),
+                student.getEmail(),
+                student.getProfilePicture() != null ? cloudStorage.getFile(student.getProfilePicture()) : null
         );
     }
 
