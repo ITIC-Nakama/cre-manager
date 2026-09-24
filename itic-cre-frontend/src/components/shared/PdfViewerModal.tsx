@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../api-s/AxiosApiClient';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useDelayedUnmount } from '../../hooks/useModalClose';
+import { useModalLayer } from '../../hooks/useModalLayer';
 
 interface Props {
     isOpen: boolean;
@@ -16,6 +17,7 @@ interface Props {
 export default function PdfViewerModal({ isOpen, url, fileName, title, onClose }: Props) {
     const { t } = useTranslation();
     const { shouldRender, isClosing } = useDelayedUnmount(isOpen);
+    useModalLayer(shouldRender);
     const panelRef = useRef<HTMLDivElement>(null);
     useLockBodyScroll(panelRef, shouldRender);
 

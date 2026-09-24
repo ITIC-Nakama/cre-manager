@@ -7,6 +7,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useDelayedUnmount } from '../../hooks/useModalClose';
+import { useModalLayer } from '../../hooks/useModalLayer';
 import type { JobOffer } from '../../types/models/JobOffer';
 
 interface Props {
@@ -60,6 +61,7 @@ export default function JobOfferDetailModal({
     }, [onClose]);
 
     const { shouldRender, isClosing } = useDelayedUnmount(!!offerProp);
+    const covered = useModalLayer(shouldRender);
     useLockBodyScroll(scrollRef, shouldRender);
     const lastOfferRef = useRef<JobOffer | null>(null);
     if (offerProp) lastOfferRef.current = offerProp;
@@ -71,7 +73,7 @@ export default function JobOfferDetailModal({
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
+            className={`fixed inset-0 z-50 ${covered ? 'hidden' : 'flex'} items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div

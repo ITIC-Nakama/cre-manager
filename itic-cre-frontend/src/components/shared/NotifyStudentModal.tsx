@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useModalLayer } from '../../hooks/useModalLayer';
 
 interface Student {
   id: string;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function NotifyStudentModal({ student, onClose, onSend }: Props) {
   const { t } = useTranslation();
+  useModalLayer();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 

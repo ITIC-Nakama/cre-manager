@@ -9,6 +9,7 @@ import { useUpdateStudentStarRating } from '../../hooks/useDashboard';
 import { formatPromotionLabel } from '../../utils/promotionUtils';
 import CustomSelect from '../basics/CustomSelect';
 import UserAvatar from './UserAvatar';
+import { useModalLayer } from '../../hooks/useModalLayer';
 
 interface Props {
     student: StudentRow;
@@ -18,8 +19,6 @@ interface Props {
     onDeclareContract?: (student: StudentRow) => void;
     onAnonymize?: (student: StudentRow) => void;
     onViewCv?: (student: StudentRow) => void;
-    /** Une autre modale s'ouvre par-dessus : on masque celle-ci (etat conserve) plutot que de la laisser peinte dessous. */
-    covered?: boolean;
 }
 
 function formatDateTime(iso: string | null) {
@@ -30,8 +29,9 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv, covered = false }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv }: Props) {
     const { t } = useTranslation();
+    const covered = useModalLayer();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
     const removeMutation = useRemoveStudentFromPromotion();

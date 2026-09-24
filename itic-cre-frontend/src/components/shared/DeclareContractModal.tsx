@@ -8,6 +8,7 @@ import DateInput from '../basics/DateInput';
 import { useContractTypes } from '../../hooks/useApplications';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../hooks/useModalClose';
+import { useModalLayer } from '../../hooks/useModalLayer';
 import { useDeclareContractForStudent } from '../../hooks/useDashboard';
 
 interface Props {
@@ -41,6 +42,7 @@ export default function DeclareContractModal({ student, onClose }: Props) {
     const scrollRef = useRef<HTMLFormElement>(null);
     useLockBodyScroll(scrollRef, true);
     const { isClosing, handleClose } = useModalClose(onClose);
+    useModalLayer();
 
     const contractTypeOptions = [
         { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },

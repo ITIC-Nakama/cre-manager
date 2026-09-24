@@ -3,6 +3,7 @@ import { X, Users, Loader2, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useDelayedUnmount } from '../../hooks/useModalClose';
+import { useModalLayer } from '../../hooks/useModalLayer';
 import { useApplicationsForOfferInfinite } from '../../hooks/useJobOffers';
 import InfiniteScrollSentinel from './InfiniteScrollSentinel';
 import type { JobOffer, JobApplicationJobboard } from '../../types/models/JobOffer';
@@ -12,18 +13,17 @@ interface Props {
     onClose: () => void;
     onViewStudent: (studentId: string) => void;
     loadingStudentId?: string | null;
-    /** Une fiche etudiant s'ouvre par-dessus : on masque cette liste (etat et defilement conserves). */
-    covered?: boolean;
 }
 
 function formatDate(iso: string, locale = 'fr-FR') {
     return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-export default function JobOfferApplicantsModal({ offer: offerProp, onClose, onViewStudent, loadingStudentId, covered = false }: Props) {
+export default function JobOfferApplicantsModal({ offer: offerProp, onClose, onViewStudent, loadingStudentId }: Props) {
     const { t, i18n } = useTranslation();
     const scrollRef = useRef<HTMLDivElement>(null);
     const { shouldRender, isClosing } = useDelayedUnmount(!!offerProp);
+    const covered = useModalLayer(shouldRender);
     useLockBodyScroll(scrollRef, shouldRender);
     const [lastOffer, setLastOffer] = useState<JobOffer | null>(null);
     if (offerProp && offerProp !== lastOffer) {

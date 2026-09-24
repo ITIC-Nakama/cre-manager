@@ -9,6 +9,7 @@ import type { CVRow, CVStatut } from '../../types/models/CV';
 import UserAvatar from './UserAvatar';
 import PdfViewerModal from './PdfViewerModal';
 import { downloadFileSecurely } from '../../utils/fileUtils';
+import { useModalLayer } from '../../hooks/useModalLayer';
 
 interface Props {
     cv: CVRow;
@@ -36,6 +37,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
     const [newComment, setNewComment] = useState('');
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
+    const covered = useModalLayer();
 
     useEffect(() => {
         setCv(initialCv);
@@ -83,10 +85,11 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${covered ? '' : 'bg-black/60'}`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] flex flex-col">
+            {/* Le visualiseur PDF est rendu dans ce conteneur : on masque seulement le panneau et son fond pendant l'apercu */}
+            <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] ${covered ? 'hidden' : 'flex'} flex-col`}>
 
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
