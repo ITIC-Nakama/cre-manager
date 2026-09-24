@@ -97,6 +97,7 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
             onDeclareContract: (s: StudentRow) => setDeclaringContractFor(s),
             onAnonymize: isAdmin ? handleAnonymizeStudent : undefined,
             onViewCv: (s: StudentRow) => setViewingCvStudentId(s.id),
+            covered: (!!viewingCvStudentId && !!studentCv) || !!notifyingStudent || !!declaringContractFor,
         },
 
         notifyingStudent,

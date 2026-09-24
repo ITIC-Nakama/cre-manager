@@ -12,13 +12,15 @@ interface Props {
     onClose: () => void;
     onViewStudent: (studentId: string) => void;
     loadingStudentId?: string | null;
+    /** Une fiche etudiant s'ouvre par-dessus : on masque cette liste (etat et defilement conserves). */
+    covered?: boolean;
 }
 
 function formatDate(iso: string, locale = 'fr-FR') {
     return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-export default function JobOfferApplicantsModal({ offer: offerProp, onClose, onViewStudent, loadingStudentId }: Props) {
+export default function JobOfferApplicantsModal({ offer: offerProp, onClose, onViewStudent, loadingStudentId, covered = false }: Props) {
     const { t, i18n } = useTranslation();
     const scrollRef = useRef<HTMLDivElement>(null);
     const { shouldRender, isClosing } = useDelayedUnmount(!!offerProp);
@@ -39,7 +41,7 @@ export default function JobOfferApplicantsModal({ offer: offerProp, onClose, onV
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
+            className={`fixed inset-0 z-50 ${covered ? 'hidden' : 'flex'} items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className={`bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 flex flex-col h-[85vh] sm:h-auto sm:max-h-[80vh] overflow-hidden ${isClosing ? 'animate-scale-down' : 'animate-scale-up'}`}>

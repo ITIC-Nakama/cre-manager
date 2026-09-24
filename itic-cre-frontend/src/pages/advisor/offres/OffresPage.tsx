@@ -330,6 +330,7 @@ export default function OffresPage() {
                     onClose={() => setApplicantsOffer(null)}
                     onViewStudent={setViewingStudentId}
                     loadingStudentId={studentRowQuery.isFetching ? viewingStudentId : null}
+                    covered={!!(studentRowQuery.data && viewingStudentId)}
                 />
             )}
 

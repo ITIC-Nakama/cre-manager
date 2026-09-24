@@ -18,6 +18,8 @@ interface Props {
     onDeclareContract?: (student: StudentRow) => void;
     onAnonymize?: (student: StudentRow) => void;
     onViewCv?: (student: StudentRow) => void;
+    /** Une autre modale s'ouvre par-dessus : on masque celle-ci (etat conserve) plutot que de la laisser peinte dessous. */
+    covered?: boolean;
 }
 
 function formatDateTime(iso: string | null) {
@@ -28,7 +30,7 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv, covered = false }: Props) {
     const { t } = useTranslation();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
@@ -109,7 +111,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            className={`fixed inset-0 z-50 ${covered ? 'hidden' : 'flex'} items-center justify-center p-4 bg-black/60`}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
