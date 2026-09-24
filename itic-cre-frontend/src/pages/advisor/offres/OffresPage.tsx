@@ -83,7 +83,8 @@ export default function OffresPage() {
     }, [location]);
 
     const isInternalSource = sourceFilter === 'MANUAL';
-    const [sorting, setSorting] = useState<SortingState>([]);
+    // Par defaut : offres les plus demandees en premier
+    const [sorting, setSorting] = useState<SortingState>([{ id: 'applicationCount', desc: true }]);
 
     const params = useMemo(() => ({
         size: PAGE_SIZE,

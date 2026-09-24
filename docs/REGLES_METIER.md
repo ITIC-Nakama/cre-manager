@@ -185,6 +185,12 @@ décroissants (`Sort.by(DESC, "priorityContract", "effectiveDate")`, deux champs
   à l'intérieur de chaque groupe (le plus récent Stage/Alternance en tête, puis le plus récent
   CDI/CDD). Reflète la même priorité que celle déjà appliquée côté quota de synchronisation
   France Travail (2/3 alternance+stage / 1/3 CDI+CDD, voir `FranceTravailProvider.SEARCH_BUCKETS`).
+- **Tableau de gestion des offres (page conseiller/admin "Offres d'emploi")** : ouvert par défaut trié par
+  **nombre de candidatures décroissant** (`sort=applicationCount,desc` envoyé par la page ; l'utilisateur peut
+  changer de colonne). Comme beaucoup d'offres ont 0 candidature, `GET /jobboard/offers/all` complète tout tri
+  demandé par `effectiveDate` décroissant puis `id` (`StablePageable.withTieBreakers`) : sans départage, l'ordre
+  des offres à égalité varie d'une requête à l'autre et le défilement infini (une requête par page) affiche une
+  offre en double ou en saute une. Le tri demandé reste toujours prioritaire.
 
 ### Critères de recherche des sources externes — 100% configurables en base, jamais codés en dur
 Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`, `departments`,

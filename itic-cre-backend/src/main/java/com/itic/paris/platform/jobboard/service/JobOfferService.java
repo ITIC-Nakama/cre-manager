@@ -18,9 +18,11 @@ import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import com.itic.paris.platform.jobboard.repository.SectorRepository;
+import com.itic.paris.platform.shared.pagination.StablePageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class JobOfferService {
+
+    /** Departage des offres a egalite dans la liste de gestion (voir StablePageable). */
+    private static final Sort OFFER_TIE_BREAKERS = Sort.by(Sort.Direction.DESC, "effectiveDate").and(Sort.by("id"));
 
     private final JobOfferRepository jobOfferRepository;
     private final ContractTypeRepository contractTypeRepository;
@@ -168,7 +173,8 @@ public class JobOfferService {
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location, Pageable pageable) {
         Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location), pageable);
+                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location),
+                StablePageable.withTieBreakers(pageable, OFFER_TIE_BREAKERS));
         return page.map(this::mapToDTO);
     }
 
