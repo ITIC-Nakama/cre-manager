@@ -8,6 +8,7 @@ import { usePromotions, useAssignStudentToPromotion, useRemoveStudentFromPromoti
 import { useUpdateStudentStarRating } from '../../hooks/useDashboard';
 import { formatPromotionLabel } from '../../utils/promotionUtils';
 import CustomSelect from '../basics/CustomSelect';
+import UserAvatar from './UserAvatar';
 
 interface Props {
     student: StudentRow;
@@ -116,9 +117,13 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                            {student.firstName[0]}{student.lastName[0]}
-                        </div>
+                        <UserAvatar
+                            profilePicture={student.profilePicture}
+                            firstName={student.firstName}
+                            lastName={student.lastName}
+                            className="h-12 w-12 shrink-0"
+                            enlargeOnClick
+                        />
                         <div>
                             <p className="text-base font-bold text-slate-900 dark:text-white">
                                 {student.firstName} {student.lastName}
