@@ -22,6 +22,8 @@ interface CustomSelectProps {
   searchable?: boolean;
   searchPlaceholder?: string;
   noResultsLabel?: string;
+  /** 'pill' (defaut) pour les filtres ; 'field' pour un champ de formulaire au meme style que les inputs */
+  variant?: 'pill' | 'field';
 }
 
 const MOBILE_QUERY = '(max-width: 767px)';
@@ -38,6 +40,7 @@ export default function CustomSelect({
   searchable = false,
   searchPlaceholder = 'Rechercher…',
   noResultsLabel = 'Aucun résultat',
+  variant = 'pill',
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -134,17 +137,24 @@ export default function CustomSelect({
     </div>
   );
 
+  const isField = variant === 'field';
+  const isPlaceholder = isField && value === '';
+
   const triggerButton = (
     <button
       type="button"
       disabled={disabled}
-      className={`inline-flex items-center justify-between gap-2 w-full rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
-        disabled ? 'opacity-60 cursor-not-allowed hover:bg-white dark:hover:bg-slate-900' : 'cursor-pointer'
+      className={`inline-flex items-center justify-between gap-2 w-full ${
+        isField
+          ? 'rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-800 transition-all duration-200 hover:border-slate-200 dark:border-[#333a51] dark:bg-[#0d0f16] dark:text-white dark:hover:border-slate-500 focus:outline-none focus:border-[#3f74ff]'
+          : 'rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
+      } ${
+        disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
       <span className="flex items-center gap-2 truncate">
         {icon}
-        <span className="truncate">{selectedLabel}</span>
+        <span className={`truncate ${isField ? (isPlaceholder ? 'text-slate-400' : 'font-medium') : ''}`}>{selectedLabel}</span>
       </span>
       <ChevronDown
         className={`h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${

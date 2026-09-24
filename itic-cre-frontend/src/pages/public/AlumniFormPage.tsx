@@ -13,6 +13,7 @@ import logoWhite from '../../assets/itic-paris-logo-white.svg';
 import AuthControls from '../../components/common/AuthControls';
 import CustomSelect from '../../components/basics/CustomSelect';
 import YearPicker from '../../components/basics/YearPicker';
+import { fieldClass } from '../../components/basics/fieldStyles';
 import { useSubmitAlumniContact } from '../../hooks/useAlumni';
 import { getApiErrorMessage } from '../../utils/errorHelper';
 import {
@@ -38,11 +39,6 @@ interface FormValues {
     website: string;
 }
 
-const inputClass = (hasError: boolean, withIcon = true) =>
-    `w-full rounded-xl border-2 bg-slate-50 dark:bg-slate-700/60 ${withIcon ? 'pl-11' : 'pl-4'} pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400
-    focus:bg-white dark:focus:bg-slate-700 focus:outline-none focus:border-[#3f74ff] transition-all duration-200 disabled:opacity-60
-    ${hasError ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`;
-
 function Field({ id, label, required = false, error, children }: {
     id: string; label: string; required?: boolean; error?: string; children: ReactNode;
 }) {
@@ -57,11 +53,11 @@ function Field({ id, label, required = false, error, children }: {
     );
 }
 
-function IconInput({ icon: Icon, hasError, ...inputProps }: { icon: LucideIcon; hasError: boolean } & InputHTMLAttributes<HTMLInputElement>) {
+function IconInput({ icon: Icon, hasError, type = 'text', ...inputProps }: { icon: LucideIcon; hasError: boolean } & InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div className="relative group">
             <Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3f74ff] transition-colors pointer-events-none" />
-            <input className={inputClass(hasError)} {...inputProps} />
+            <input type={type} className={fieldClass(hasError)} {...inputProps} />
         </div>
     );
 }
@@ -283,6 +279,7 @@ export default function AlumniFormPage() {
                                                 <CustomSelect
                                                     id="currentStatus" value={field.value} options={statusOptions} onChange={field.onChange}
                                                     icon={<Briefcase className="h-4 w-4 text-slate-400" />} className="w-full" disabled={isPending}
+                                                    variant="field"
                                                 />
                                             )}
                                         />

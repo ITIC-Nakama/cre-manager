@@ -72,7 +72,7 @@ export default function YearPicker({
         setIsOpen(false);
     };
 
-    const handleClear = (e: React.MouseEvent) => {
+    const handleClear = (e: React.SyntheticEvent) => {
         e.stopPropagation();
         onChange(undefined);
     };
@@ -184,14 +184,14 @@ export default function YearPicker({
             type="button"
             id={id}
             disabled={disabled}
-            className={`w-full relative flex items-center justify-between rounded-xl border bg-white dark:bg-slate-900 py-3 pl-11 pr-4 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#3f74ff]/20 ${
+            className={`w-full relative flex items-center justify-between rounded-xl border-2 bg-slate-50 dark:bg-[#0d0f16] py-3 pl-11 pr-4 text-sm transition-all duration-200 focus:outline-none ${
                 disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
             } ${
                 error
-                    ? 'border-rose-400 focus:border-rose-500'
+                    ? 'border-red-400 focus:border-red-500'
                     : isOpen
-                    ? 'border-[#3f74ff] ring-2 ring-[#3f74ff]/20'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-[#3f74ff]'
+                    ? 'border-[#3f74ff]'
+                    : 'border-slate-100 dark:border-[#333a51] hover:border-slate-200 dark:hover:border-slate-500 focus:border-[#3f74ff]'
             }`}
         >
             <Calendar className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
@@ -211,7 +211,7 @@ export default function YearPicker({
                         tabIndex={0}
                         aria-label="Effacer l'année"
                         onClick={handleClear}
-                        onKeyDown={(e) => e.key === 'Enter' && handleClear(e as any)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleClear(e)}
                         className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                     >
                         <X className="h-3.5 w-3.5" />
