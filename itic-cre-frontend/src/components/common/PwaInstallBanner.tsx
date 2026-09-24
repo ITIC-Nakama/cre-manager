@@ -111,7 +111,7 @@ export default function PwaInstallBanner() {
   return (
     <>
       <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-fade-in-up">
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/40 text-white rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/40 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-indigo-400">
               {isDesktop ? (
@@ -151,7 +151,7 @@ export default function PwaInstallBanner() {
 
       {/* iOS Safari Instruction Modal */}
       {showIosModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function PwaInstallBanner() {
 
       {/* Android Mobile Instruction Modal */}
       {showAndroidModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -255,7 +255,7 @@ export default function PwaInstallBanner() {
 
       {/* Desktop PC / Mac Instruction Modal */}
       {showDesktopModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">

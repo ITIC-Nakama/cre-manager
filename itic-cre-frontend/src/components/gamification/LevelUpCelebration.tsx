@@ -37,7 +37,7 @@ export default function LevelUpCelebration({ grade, onClose }: LevelUpCelebratio
   return createPortal(
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn cursor-pointer"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 animate-fadeIn cursor-pointer"
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {confetti.map((c) => (
@@ -62,12 +62,12 @@ export default function LevelUpCelebration({ grade, onClose }: LevelUpCelebratio
         className="animate-pop-in relative flex flex-col items-center gap-5 overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary-600 via-primary-500 to-amber-400 px-8 py-10 sm:px-12 sm:py-12 text-center shadow-[0_25px_70px_-15px_rgba(59,113,255,0.55)] max-w-sm w-full cursor-default"
       >
         {/* Halo decoratif */}
-        <div className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.28)_0%,transparent_70%)]" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.16)_0%,transparent_70%)]" />
 
         <div className="relative flex items-center justify-center h-24 w-24">
           <span className="absolute inset-0 rounded-full bg-white/25 animate-ping" style={{ animationDuration: '1.8s' }} />
-          <span className="absolute inset-0 rounded-full bg-white/15 backdrop-blur-sm border border-white/30" />
+          <span className="absolute inset-0 rounded-full bg-white/15 border border-white/30" />
           <span className="relative text-5xl animate-check-pop">{grade.icone || '🏅'}</span>
         </div>
 

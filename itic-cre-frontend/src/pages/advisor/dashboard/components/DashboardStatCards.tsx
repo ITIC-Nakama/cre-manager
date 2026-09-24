@@ -123,7 +123,7 @@ export default function DashboardStatCards({ overview, loading, cvsToReview, isA
                   <div className="relative group inline-flex items-center">
                     <HelpCircle className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 cursor-help transition-colors" />
                     
-                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block w-72 p-3.5 bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white text-xs rounded-xl shadow-2xl border border-slate-700/60 z-[100] animate-in fade-in duration-150 pointer-events-none">
+                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block w-72 p-3.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs rounded-xl shadow-2xl border border-slate-700/60 z-[100] animate-in fade-in duration-150 pointer-events-none">
                       <div className="flex items-center gap-1.5 font-semibold text-blue-400 mb-2 border-b border-slate-700/60 pb-1.5">
                         <HelpCircle className="h-3.5 w-3.5" />
                         <span>{t('dashboard.advisor.stats.students_tooltip_title')}</span>
