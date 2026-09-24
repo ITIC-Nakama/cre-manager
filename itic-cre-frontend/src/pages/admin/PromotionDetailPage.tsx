@@ -8,8 +8,6 @@ import {
   UserPlus,
   Search,
   GraduationCap,
-  ShieldCheck,
-  ShieldAlert,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -22,6 +20,7 @@ import SortableTh, { toggleSort, type SortState } from '../../components/basics/
 import PromotionYearTabs from './components/PromotionYearTabs';
 import AssignStudentModal from './components/AssignStudentModal';
 import InfiniteScrollSentinel from '../../components/shared/InfiniteScrollSentinel';
+import StudentActivityBadge from '../../components/shared/StudentActivityBadge';
 import type { StudentRow } from '../../types/models/Dashboard';
 
 const PAGE_SIZE = 10;
@@ -300,14 +299,11 @@ export default function PromotionDetailPage() {
                       </div>
                     </td>
                     <td className="px-6 py-3.5">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        student.isActive
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
-                          : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30'
-                      }`}>
-                        {student.isActive ? <ShieldCheck className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />}
-                        {student.isActive ? t('dashboard.etudiants.table.active', 'Actif') : t('dashboard.etudiants.table.inactive', 'Inactif')}
-                      </span>
+                      <StudentActivityBadge
+                        accountActive={student.accountActive}
+                        isActive={student.isActive}
+                        lastActivity={student.lastActivity}
+                      />
                     </td>
                     {promotion.hasYears && (
                       <td className="px-6 py-3.5">

@@ -20,6 +20,8 @@ public class StudentFilterCriteria {
     private final UUID advisorId;
     private final String search;
     private final Boolean isActive;
+    /** Etat du compte (User.active) — distinct de isActive, qui porte sur la connexion recente. false = comptes desactives. */
+    private final Boolean accountActive;
     private final Boolean hasCv;
     private final Boolean hasStale;
     private final Boolean includeAnonymized;

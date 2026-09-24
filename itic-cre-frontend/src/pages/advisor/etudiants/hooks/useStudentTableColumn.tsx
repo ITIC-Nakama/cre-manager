@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import UserAvatar from '../../../../components/shared/UserAvatar';
+import StudentActivityBadge from '../../../../components/shared/StudentActivityBadge';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
 
 const col = createColumnHelper<StudentRow>();
@@ -180,18 +181,11 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
             header: t('dashboard.etudiants.table.status'),
             cell: ({ getValue, row }) => (
                 <div className="flex items-center">
-                    {row.original.accountActive ? (
-                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${getValue()
-                                ? 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
-                                : 'bg-rose-100/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40'
-                            }`}>
-                            {getValue() ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-700 whitespace-nowrap">
-                            {t('dashboard.etudiants.table.account_disabled')}
-                        </span>
-                    )}
+                    <StudentActivityBadge
+                        accountActive={row.original.accountActive}
+                        isActive={!!getValue()}
+                        lastActivity={row.original.lastActivity}
+                    />
                 </div>
             ),
         }),

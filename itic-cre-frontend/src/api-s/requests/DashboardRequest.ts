@@ -30,10 +30,12 @@ export function fetchPromotionYearCounts(promotionId: string): Promise<Promotion
     return apiClient.get(`/dashboard/promotions/${promotionId}/year-counts`).then(unwrap<PromotionYearCounts>);
 }
 
-export function fetchStudentList(params: StudentListParams = {}): Promise<StudentPage> {
-    const query: Record<string, unknown> = { page: params.page ?? 0, size: params.size ?? 20 };
+/** Filtres communs a la liste paginee et a la liste complete (export) des etudiants. */
+function toStudentFilterQuery(params: StudentListParams): Record<string, unknown> {
+    const query: Record<string, unknown> = {};
     if (params.search)      query.search     = params.search;
     if (params.isActive     !== undefined) query.isActive   = params.isActive;
+    if (params.accountActive !== undefined) query.accountActive = params.accountActive;
     if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
     if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
     if (params.promotionId)               query.promotionId = params.promotionId;
@@ -45,7 +47,16 @@ export function fetchStudentList(params: StudentListParams = {}): Promise<Studen
     if (params.underContract !== undefined) query.underContract = params.underContract;
     if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
     if (params.starred !== undefined)     query.starred = params.starred;
-    if (params.sort)                      query.sort = params.sort;
+    return query;
+}
+
+export function fetchStudentList(params: StudentListParams = {}): Promise<StudentPage> {
+    const query: Record<string, unknown> = {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        ...toStudentFilterQuery(params),
+    };
+    if (params.sort) query.sort = params.sort;
 
     return apiClient.get('/dashboard/students', { params: query }).then(unwrap<StudentPage>);
 }
@@ -68,22 +79,7 @@ export function fetchStudentsNeedingAttention(advisorId?: string): Promise<Stude
 }
 
 export function fetchAllStudents(params: Omit<StudentListParams, 'page' | 'size'> = {}): Promise<StudentRow[]> {
-    const query: Record<string, unknown> = {};
-    if (params.search)      query.search     = params.search;
-    if (params.isActive     !== undefined) query.isActive   = params.isActive;
-    if (params.hasCv        !== undefined) query.hasCv      = params.hasCv;
-    if (params.hasStale     !== undefined) query.hasStale   = params.hasStale;
-    if (params.promotionId)               query.promotionId = params.promotionId;
-    if (params.studyYear    !== undefined) query.studyYear  = params.studyYear;
-    if (params.studyYearMissing !== undefined) query.studyYearMissing = params.studyYearMissing;
-    if (params.excludePromotionId)        query.excludePromotionId = params.excludePromotionId;
-    if (params.advisorId)                 query.advisorId = params.advisorId;
-    if (params.includeAnonymized !== undefined) query.includeAnonymized = params.includeAnonymized;
-    if (params.underContract !== undefined) query.underContract = params.underContract;
-    if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
-    if (params.starred !== undefined)     query.starred = params.starred;
-
-    return apiClient.get('/dashboard/students/all', { params: query }).then(unwrap<StudentRow[]>);
+    return apiClient.get('/dashboard/students/all', { params: toStudentFilterQuery(params) }).then(unwrap<StudentRow[]>);
 }
 
 export function exportApplicationsCsv(params: Record<string, unknown> = {}): Promise<Blob> {

@@ -75,6 +75,8 @@ export interface StudentListParams {
   size?: number;
   search?: string;
   isActive?: boolean;
+  /** Etat du compte (false = comptes desactives) — distinct de isActive (connexion recente). */
+  accountActive?: boolean;
   hasCv?: boolean;
   hasStale?: boolean;
   promotionId?: string;

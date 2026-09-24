@@ -120,6 +120,7 @@ public class DashboardController {
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) Boolean accountActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
@@ -130,7 +131,7 @@ public class DashboardController {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
-                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
+                .accountActive(accountActive).hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
                 .needsContractVerification(needsContractVerification).starred(starred)
                 .build();
         return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
@@ -146,6 +147,7 @@ public class DashboardController {
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) Boolean accountActive,
             @RequestParam(required = false) Boolean hasCv,
             @RequestParam(required = false) Boolean hasStale,
             @RequestParam(required = false, defaultValue = "false") Boolean includeAnonymized,
@@ -155,7 +157,7 @@ public class DashboardController {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
-                .hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
+                .accountActive(accountActive).hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
                 .needsContractVerification(needsContractVerification).starred(starred)
                 .build();
         Page<Map<String, Object>> result = studentReportingService.getStudentList(criteria, Pageable.unpaged());
@@ -198,7 +200,9 @@ public class DashboardController {
             @RequestParam(required = false) Boolean needsContractVerification,
             @RequestParam(required = false) Boolean starred,
             @RequestParam(required = false) Boolean createdByAdvisor,
-            @PageableDefault(size = 20) Pageable pageable) {
+            // Tri par defaut deterministe (id departage les homonymes) : sans ORDER BY, l'ordre des lignes
+            // peut varier d'une requete a l'autre et un meme etudiant apparait sur deux pages du defilement infini.
+            @PageableDefault(size = 20, sort = {"lastName", "firstName", "id"}) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)

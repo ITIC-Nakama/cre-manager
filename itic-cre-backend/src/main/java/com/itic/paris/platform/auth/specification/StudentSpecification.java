@@ -131,6 +131,11 @@ public class StudentSpecification {
                 predicates.add(cb.notLike(cb.lower(root.get("email")), "%@rgpd.deleted"));
             }
 
+            // Etat du compte : comptes desactives (false) ou ouverts (true), independamment de la connexion recente
+            if (criteria.getAccountActive() != null) {
+                predicates.add(cb.equal(root.get("active"), criteria.getAccountActive()));
+            }
+
             // Promotion filter
             if (criteria.getPromotionId() != null) {
                 predicates.add(cb.equal(root.get("promotion").get("id"), criteria.getPromotionId()));

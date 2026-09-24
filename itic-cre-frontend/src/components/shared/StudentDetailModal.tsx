@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldCheck, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2 } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -9,6 +9,7 @@ import { useUpdateStudentStarRating } from '../../hooks/useDashboard';
 import { formatPromotionLabel } from '../../utils/promotionUtils';
 import CustomSelect from '../basics/CustomSelect';
 import UserAvatar from './UserAvatar';
+import StudentActivityBadge from './StudentActivityBadge';
 import { useModalLayer } from '../../hooks/useModalLayer';
 
 interface Props {
@@ -172,14 +173,12 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                 <div className="p-5 space-y-4">
                     {/* Status badges row */}
                     <div className="flex flex-wrap gap-2">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                            student.isActive
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
-                                : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30'
-                        }`}>
-                            {student.isActive ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />}
-                            {student.isActive ? t('dashboard.etudiants.table.active') : t('dashboard.etudiants.table.inactive')}
-                        </span>
+                        <StudentActivityBadge
+                            accountActive={student.accountActive}
+                            isActive={student.isActive}
+                            lastActivity={student.lastActivity}
+                            size="md"
+                        />
 
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                             student.hasCv

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,6 +106,28 @@ class StudentSpecificationIntegrationTest {
 
         assertThat(inactiveResult.getContent()).hasSize(1);
         assertThat(inactiveResult.getContent().get(0).getFirstName()).isEqualTo("Bob");
+    }
+
+    @Test
+    @DisplayName("Should filter students by account state, independently of recent connection")
+    void testAccountActiveFilter() {
+        // student2 est desactive mais s'est connecte hier : "Actif" cote connexion, "desactive" cote compte
+        student2.setLastActivity(Instant.now().minus(1, ChronoUnit.DAYS));
+        studentRepository.save(student2);
+
+        Page<Student> disabledResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().accountActive(false).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(disabledResult.getContent()).extracting(Student::getFirstName).containsExactly("Bob");
+
+        Page<Student> openResult = studentRepository.findAll(
+                StudentSpecification.withStudentListFilters(
+                        StudentFilterCriteria.builder().accountActive(true).build(), null, null),
+                PageRequest.of(0, 10)
+        );
+        assertThat(openResult.getContent()).extracting(Student::getFirstName).containsExactly("Alice");
     }
 
     @Test
@@ -445,5 +468,38 @@ class StudentSpecificationIntegrationTest {
         );
         assertThat(needsVerificationResult.getContent()).hasSize(1);
         assertThat(needsVerificationResult.getContent().get(0).getId()).isEqualTo(student1.getId());
+    }
+
+    @Test
+    @DisplayName("The sidebar badge count agrees with the 'a verifier' list: a deactivated student's pending declaration is in neither")
+    void testPendingVerificationBadgeMatchesListForDeactivatedStudents() {
+        ApplicationStatus contractStatus = new ApplicationStatus();
+        contractStatus.setNom("Offre reçue badge test");
+        contractStatus.setOrdre(105);
+        contractStatus.setCompteCommeContrat(true);
+        contractStatus = applicationStatusRepository.save(contractStatus);
+
+        for (Student student : new Student[]{student1, student2}) {
+            Application pending = new Application();
+            pending.setStudent(student);
+            pending.setEntreprise("Pending Corp");
+            pending.setPoste("Alternant");
+            pending.setStatus(contractStatus);
+            pending.setStartDate(LocalDate.now().plusDays(10));
+            applicationRepository.save(pending);
+        }
+
+        long badgeCount = applicationRepository.countStudentsWithUnverifiedContract();
+
+        Page<Student> listResult = studentRepository.findAll(
+                StudentSpecification.withApplicationFilters(
+                        ApplicationFilterCriteria.builder().activeStudentsOnly(true).needsContractVerification(true).build(), null),
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(listResult.getContent()).extracting(Student::getId).containsExactly(student1.getId());
+        assertThat(badgeCount).isEqualTo(listResult.getTotalElements());
+        assertThat(applicationRepository.countStudentsWithUnverifiedContractForStudents(
+                List.of(student1.getId(), student2.getId()))).isEqualTo(1);
     }
 }

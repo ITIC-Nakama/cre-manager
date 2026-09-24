@@ -151,13 +151,17 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
             "AND " + LATEST_CONTRACT_START_DATE)
     List<UUID> findStudentIdsWithUnverifiedContract(List<UUID> studentIds);
 
+    /** Compte uniquement les etudiants ACTIFS (un compte anonymise RGPD est toujours desactive) : c'est
+      * le perimetre de la liste "a verifier" (Candidatures, activeStudentsOnly). Sans ce filtre, la
+      * declaration d'un etudiant desactive ou parti restait comptee dans le badge sans jamais
+      * apparaitre dans la liste — donc impossible a traiter. */
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.status.compteCommeContrat = true " +
-            "AND a.contractVerified = false " +
+            "AND a.contractVerified = false AND a.student.active = true " +
             "AND " + LATEST_CONTRACT_START_DATE)
     long countStudentsWithUnverifiedContract();
 
     @Query("SELECT COUNT(DISTINCT a.student.id) FROM Application a WHERE a.student.id IN :studentIds " +
-            "AND a.status.compteCommeContrat = true AND a.contractVerified = false " +
+            "AND a.status.compteCommeContrat = true AND a.contractVerified = false AND a.student.active = true " +
             "AND " + LATEST_CONTRACT_START_DATE)
     long countStudentsWithUnverifiedContractForStudents(List<UUID> studentIds);
 
