@@ -1,10 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
 import { fetchApplicationGroupedList, fetchApplicationStatuses, fetchContractTypes, updateApplicationStatus, updateApplicationContractDates, validateApplicationContract, invalidateApplicationContract, createApplicationForStudent, updateApplicationAsAdvisor, deleteApplicationAsAdvisor, changeApplicationStatusAsAdvisor } from '../api-s/requests/ApplicationRequest';
-import type { ApplicationListParams, CandidaturePayload } from '../types/models/Application';
+import type { ApplicationListParams, CandidaturePayload, StudentGroupDTO } from '../types/models/Application';
+
+const groupStudentId = (group: StudentGroupDTO) => group.studentId;
 
 export function useApplicationGroupedListInfinite(params: ApplicationListParams = {}) {
-    return useInfiniteListQuery(['applications-grouped', 'infinite', params], fetchApplicationGroupedList, params);
+    return useInfiniteListQuery(['applications-grouped', 'infinite', params], fetchApplicationGroupedList, params, {
+        getItemKey: groupStudentId,
+    });
 }
 
 export function useApplicationStatuses() {

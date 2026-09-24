@@ -18,7 +18,16 @@ export function useInfiniteListQuery<T, P extends { page?: number }>(
     queryKey: QueryKey,
     fetchPage: (params: P) => Promise<PageLike<T>>,
     params: P,
-    options: { enabled?: boolean } = {},
+    options: {
+        enabled?: boolean;
+        /**
+         * Cle unique d'un element (ex: studentId). Si fournie, un element renvoye sur deux pages (ordre
+         * du serveur qui a bouge entre deux requetes) n'est affiche qu'une fois. Optionnelle : les listes
+         * n'ont pas toutes la meme cle. Doit etre une reference STABLE (fonction definie hors composant),
+         * sinon la liste est recalculee a chaque rendu (cf. le freeze d'infinite scroll deja corrige ici).
+         */
+        getItemKey?: (item: T) => string;
+    } = {},
 ) {
     const query = useInfiniteQuery({
         queryKey,
@@ -28,10 +37,12 @@ export function useInfiniteListQuery<T, P extends { page?: number }>(
         enabled: options.enabled,
     });
 
-    const items = useMemo(
-        () => query.data?.pages.flatMap((p) => p.content ?? []) ?? [],
-        [query.data]
-    );
+    const { getItemKey } = options;
+    const items = useMemo(() => {
+        const all = query.data?.pages.flatMap((p) => p.content ?? []) ?? [];
+        if (!getItemKey) return all;
+        return Array.from(new Map(all.map((item) => [getItemKey(item), item] as const)).values());
+    }, [query.data, getItemKey]);
     const totalElements = query.data?.pages[0]?.totalElements ?? 0;
 
     return { ...query, items, totalElements };
