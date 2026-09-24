@@ -430,7 +430,7 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
   7. **`JOBBOARD_OFFER_EXPIRATION_DAYS`** (par défaut : `30` jours) : Fenêtre d'expiration calculée pour France Travail/Adzuna (date de dernière mise à jour + ce délai) — sans effet sur La Bonne Alternance, qui fournit sa propre date d'expiration réelle.
   8. **`JOBBOARD_OFFER_DELETE_AFTER_DAYS`** (par défaut : `30` jours) : Délai après expiration avant suppression définitive d'une offre externe en base.
   9. **`APPLICATION_XP_WEEKLY_LIMIT`** (par défaut : `5`) : Nombre maximum de candidatures "postuler" (ITIC ou externe) créditées en XP par étudiant sur une fenêtre glissante de 7 jours.
-  10. **`GDPR_ALUMNI_RETENTION_DAYS`** (par défaut : `1095` jours, soit 3 ans ; 1 à 3650) : Durée de conservation d'une fiche alumni (voir §13), comptée depuis son envoi ; les fiches plus anciennes sont supprimées chaque nuit par `GdprPurgeScheduler`.
+  10. **`GDPR_ALUMNI_RETENTION_DAYS`** (par défaut : `1095` jours, soit 3 ans ; 1 à 36500, soit 100 ans : volontairement pas de plafond restrictif, les fiches sont des archives) : Durée de conservation d'une fiche alumni (voir §13), comptée depuis son envoi ; les fiches plus anciennes sont supprimées chaque nuit par `GdprPurgeScheduler`.
 - **Intégration temps réel** : Toute modification enregistrée dans l'interface "Paramètres" → "Configuration Applicative" est immédiatement prise en compte par les services applicatifs (`StudentDashboardService`, `ApplicationService`, `GdprPurgeScheduler`, `ExternalJobSyncService`) sans redémarrer le serveur.
 
 ---

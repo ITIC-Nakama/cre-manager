@@ -127,7 +127,7 @@ public class AppConfigurationService {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             } else if (key == AppConfigurationKey.GDPR_INACTIVE_STUDENT_RETENTION_DAYS && (val < 1 || val > 3650)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
-            } else if (key == AppConfigurationKey.GDPR_ALUMNI_RETENTION_DAYS && (val < 1 || val > 3650)) {
+            } else if (key == AppConfigurationKey.GDPR_ALUMNI_RETENTION_DAYS && (val < 1 || val > 36500)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
             } else if (key == AppConfigurationKey.INACTIVE_STUDENT_DAYS && (val < 1 || val > 365)) {
                 throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.APP_CONFIG_INVALID_VALUE);
