@@ -34,17 +34,34 @@ public class AdvisorReclamationService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** ADVISOR = ses etudiants affectes uniquement ; ADMIN = tout. */
+    /**
+     * Par defaut (mineOnly non fourni) : ADVISOR = ses etudiants affectes uniquement, ADMIN = tout —
+     * comportement historique inchange. mineOnly force explicitement l'un ou l'autre pour CHAQUE role
+     * (un admin peut lui aussi avoir un portefeuille de referent et vouloir s'y limiter ; un conseiller
+     * peut vouloir voir au-dela du sien) — case a cocher "Mon portefeuille uniquement" cote client.
+     */
     @Transactional(readOnly = true)
-    public Page<AdvisorReclamationDTO> getReclamations(ReclamationStatus status, Pageable pageable) {
-        UUID advisorScope = advisorScope();
-        return reclamationRepository.findForAdvisorView(advisorScope, status, pageable)
+    public Page<AdvisorReclamationDTO> getReclamations(ReclamationStatus status, Boolean mineOnly, Pageable pageable) {
+        return reclamationRepository.findForAdvisorView(resolveScope(mineOnly), status, pageable)
                 .map(this::mapToDTO);
     }
 
+    /** Badge sidebar : jamais affecte par la case "Mon portefeuille uniquement" de la page Messages. */
     @Transactional(readOnly = true)
     public long getPendingCount() {
         return reclamationRepository.countForAdvisorView(advisorScope(), ReclamationStatus.PENDING);
+    }
+
+    /** Toujours mon seul portefeuille, meme pour un admin — affiche a cote de la case a cocher. */
+    @Transactional(readOnly = true)
+    public long getMyPendingCount() {
+        return reclamationRepository.countForAdvisorView(currentActor().getId(), ReclamationStatus.PENDING);
+    }
+
+    /** Complementaire de getMyPendingCount() : ce que la case "Mon portefeuille uniquement" masque si on la coche. */
+    @Transactional(readOnly = true)
+    public long getOutsideMyPortfolioPendingCount() {
+        return reclamationRepository.countOutsideAdvisorView(currentActor().getId(), ReclamationStatus.PENDING);
     }
 
     /** Seul le conseiller affecte a l'etudiant (ou un admin) peut agir sur sa reclamation. */
@@ -80,6 +97,14 @@ public class AdvisorReclamationService {
     private UUID advisorScope() {
         User actor = currentActor();
         return UserMapper.roleOf(actor) == RoleEnum.ADMIN ? null : actor.getId();
+    }
+
+    /** mineOnly explicite prime sur le defaut par role ; null = comportement historique (voir advisorScope()). */
+    private UUID resolveScope(Boolean mineOnly) {
+        if (mineOnly == null) {
+            return advisorScope();
+        }
+        return mineOnly ? currentActor().getId() : null;
     }
 
     private User currentActor() {

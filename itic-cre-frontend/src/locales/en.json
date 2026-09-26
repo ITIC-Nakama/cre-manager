@@ -1134,7 +1134,11 @@
       "toast_resolved": "Message marked as resolved.",
       "toast_refused": "Message refused.",
       "toast_reopened": "Message reopened.",
-      "toast_error": "Something went wrong, please try again."
+      "toast_error": "Something went wrong, please try again.",
+      "mine_only": "My portfolio only",
+      "my_pending_count": "{{count}} message(s) to handle in my portfolio",
+      "outside_pending_count": "{{count}} message(s) to handle outside my portfolio",
+      "outside_pending_count_hint": "Pending messages from students who are not in my portfolio — uncheck the box to see them in the list."
     },
     "connaissances": {
       "tree": {

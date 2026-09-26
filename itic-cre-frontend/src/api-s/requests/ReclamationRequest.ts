@@ -30,11 +30,23 @@ export function deleteReclamation(id: string): Promise<void> {
 export function fetchAdvisorReclamations(params: FetchAdvisorReclamationsParams = {}): Promise<AdvisorReclamationPage> {
     const query: Record<string, unknown> = { page: params.page ?? 0, size: params.size ?? 15 };
     if (params.status !== undefined) query.status = params.status;
+    if (params.mineOnly !== undefined) query.mineOnly = params.mineOnly;
     return apiClient.get('/dashboard/reclamations', { params: query }).then((response) => unwrap<AdvisorReclamationPage>(response));
 }
 
+/** Badge sidebar — jamais affecte par la case "Mon portefeuille uniquement" de la page Messages. */
 export function fetchPendingReclamationsCount(): Promise<number> {
     return apiClient.get('/dashboard/reclamations/pending-count').then((response) => unwrap<number>(response));
+}
+
+/** Toujours mon seul portefeuille, meme pour un admin. */
+export function fetchMyPendingReclamationsCount(): Promise<number> {
+    return apiClient.get('/dashboard/reclamations/pending-count-mine').then((response) => unwrap<number>(response));
+}
+
+/** Complementaire de fetchMyPendingReclamationsCount : ce que la case "Mon portefeuille uniquement" masque si on la coche. */
+export function fetchOutsideMyPortfolioPendingCount(): Promise<number> {
+    return apiClient.get('/dashboard/reclamations/pending-count-outside-mine').then((response) => unwrap<number>(response));
 }
 
 export function resolveReclamation(id: string): Promise<AdvisorReclamation> {

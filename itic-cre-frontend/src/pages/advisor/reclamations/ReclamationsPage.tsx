@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, GraduationCap, Loader2, Mail, MessageCircleWarning, Phone, RotateCcw, UserCog, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, GraduationCap, HelpCircle, Loader2, Mail, MessageCircleWarning, Phone, RotateCcw, UserCog, Users, XCircle } from 'lucide-react';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import UserAvatar from '../../../components/shared/UserAvatar';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
 import CustomSelect from '../../../components/basics/CustomSelect';
-import { useAdvisorReclamationsInfinite, useResolveReclamation, useRefuseReclamation, useReopenReclamation } from '../../../hooks/useReclamations';
+import {
+    useAdvisorReclamationsInfinite, useMyPendingReclamationsCount, useOutsideMyPortfolioPendingCount,
+    useResolveReclamation, useRefuseReclamation, useReopenReclamation,
+} from '../../../hooks/useReclamations';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { ReclamationStatus } from '../../../types/models/Reclamation';
@@ -24,15 +27,24 @@ export default function ReclamationsPage() {
     const isAdmin = useUserStore((state) => state.user?.role) === Role.ADMIN;
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('PENDING');
     const [actingId, setActingId] = useState<string | null>(null);
+    // Conseiller : son seul portefeuille par defaut (comportement historique). Admin : tout le monde
+    // par defaut (comportement historique) — mais un admin peut lui aussi avoir un portefeuille de
+    // referent et vouloir s'y limiter, d'ou la case a cocher dans les deux cas.
+    const [mineOnly, setMineOnly] = useState(!isAdmin);
 
     const params = useMemo(() => ({
         size: 15,
         status: statusFilter === 'all' ? undefined : statusFilter,
-    }), [statusFilter]);
+        mineOnly,
+    }), [statusFilter, mineOnly]);
 
     const {
         items: reclamations, totalElements, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage,
     } = useAdvisorReclamationsInfinite(params);
+
+    // Independants de l'etat de la case a cocher : informent la decision de la cocher/decocher.
+    const { data: myPendingCount } = useMyPendingReclamationsCount();
+    const { data: outsidePendingCount } = useOutsideMyPortfolioPendingCount();
 
     const resolveMutation = useResolveReclamation();
     const refuseMutation = useRefuseReclamation();
@@ -88,6 +100,37 @@ export default function ReclamationsPage() {
                     onChange={(v) => setStatusFilter(v as StatusFilter)}
                     className="w-full sm:w-48"
                 />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 -mt-2">
+                <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={mineOnly}
+                        onChange={(e) => setMineOnly(e.target.checked)}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <Users className="h-3.5 w-3.5 text-indigo-500" />
+                    {t('dashboard.reclamations_advisor.mine_only', 'Mon portefeuille uniquement')}
+                </label>
+
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {t('dashboard.reclamations_advisor.my_pending_count', {
+                        count: myPendingCount ?? 0,
+                        defaultValue: '{{count}} message(s) à traiter dans mon portefeuille',
+                    })}
+                </span>
+
+                <span
+                    className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400"
+                    title={t('dashboard.reclamations_advisor.outside_pending_count_hint', "Messages en attente d'étudiants qui ne sont pas dans mon portefeuille — décochez la case pour les voir dans la liste.")}
+                >
+                    {t('dashboard.reclamations_advisor.outside_pending_count', {
+                        count: outsidePendingCount ?? 0,
+                        defaultValue: '{{count}} message(s) à traiter hors de mon portefeuille',
+                    })}
+                    <HelpCircle className="h-3.5 w-3.5 cursor-help" />
+                </span>
             </div>
 
             {isLoading ? (

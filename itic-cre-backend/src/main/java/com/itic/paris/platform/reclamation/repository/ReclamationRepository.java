@@ -31,4 +31,10 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, UUID> 
     @Query("SELECT COUNT(r) FROM Reclamation r WHERE (:advisorId IS NULL OR r.student.advisor.id = :advisorId) " +
             "AND r.status = :status")
     long countForAdvisorView(@Param("advisorId") UUID advisorId, @Param("status") ReclamationStatus status);
+
+    /** Complementaire de countForAdvisorView(advisorId, ...) : tout ce qui n'est PAS dans le portefeuille
+      * de advisorId, y compris les etudiants sans conseiller affecte. */
+    @Query("SELECT COUNT(r) FROM Reclamation r WHERE r.status = :status " +
+            "AND (r.student.advisor IS NULL OR r.student.advisor.id <> :advisorId)")
+    long countOutsideAdvisorView(@Param("advisorId") UUID advisorId, @Param("status") ReclamationStatus status);
 }

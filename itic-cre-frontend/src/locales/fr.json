@@ -1134,7 +1134,11 @@
       "toast_resolved": "Message marqué comme résolu.",
       "toast_refused": "Message refusé.",
       "toast_reopened": "Message rouvert.",
-      "toast_error": "Une erreur est survenue, réessayez."
+      "toast_error": "Une erreur est survenue, réessayez.",
+      "mine_only": "Mon portefeuille uniquement",
+      "my_pending_count": "{{count}} message(s) à traiter dans mon portefeuille",
+      "outside_pending_count": "{{count}} message(s) à traiter hors de mon portefeuille",
+      "outside_pending_count_hint": "Messages en attente d'étudiants qui ne sont pas dans mon portefeuille — décochez la case pour les voir dans la liste."
     },
     "connaissances": {
       "tree": {

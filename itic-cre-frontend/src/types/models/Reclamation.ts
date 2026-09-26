@@ -56,4 +56,6 @@ export interface FetchAdvisorReclamationsParams {
   page?: number;
   size?: number;
   status?: ReclamationStatus;
+  /** true = mon seul portefeuille (meme pour un admin) ; false = tout le monde ; omis = defaut par role. */
+  mineOnly?: boolean;
 }

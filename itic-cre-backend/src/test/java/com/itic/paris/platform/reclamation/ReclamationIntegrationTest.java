@@ -337,6 +337,63 @@ public class ReclamationIntegrationTest {
         }
 
         @Test
+        @DisplayName("mineOnly=false lets an advisor see everyone, not just their own students")
+        void list_mineOnlyFalse_letsAdvisorSeeEveryone() throws Exception {
+            persistReclamation(studentWithAdvisor, ReclamationStatus.PENDING);
+            persistReclamation(studentWithoutAdvisor, ReclamationStatus.PENDING);
+
+            mockMvc.perform(get("/dashboard/reclamations").param("mineOnly", "false")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + assignedAdvisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content.length()").value(2));
+        }
+
+        @Test
+        @DisplayName("mineOnly=true lets an admin restrict to their own portfolio, like an advisor")
+        void list_mineOnlyTrue_restrictsAdminToOwnPortfolio() throws Exception {
+            persistReclamation(studentWithAdvisor, ReclamationStatus.PENDING);
+            Student adminsOwnStudent = studentWithoutAdvisor;
+            adminsOwnStudent.setAdvisor(admin);
+            studentRepository.save(adminsOwnStudent);
+            persistReclamation(adminsOwnStudent, ReclamationStatus.PENDING);
+
+            mockMvc.perform(get("/dashboard/reclamations").param("mineOnly", "true")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.content[0].studentId").value(adminsOwnStudent.getId().toString()));
+        }
+
+        @Test
+        @DisplayName("My-portfolio and outside-portfolio pending counts are complementary and unaffected by mineOnly")
+        void pendingCounts_mineAndOutsideAreComplementary() throws Exception {
+            persistReclamation(studentWithAdvisor, ReclamationStatus.PENDING);
+            persistReclamation(studentWithoutAdvisor, ReclamationStatus.PENDING);
+            persistReclamation(studentWithoutAdvisor, ReclamationStatus.RESOLVED);
+
+            mockMvc.perform(get("/dashboard/reclamations/pending-count-mine")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + assignedAdvisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").value(1));
+
+            mockMvc.perform(get("/dashboard/reclamations/pending-count-outside-mine")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + assignedAdvisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").value(1));
+
+            // Un admin sans portefeuille propre dans ce jeu de donnees : tout est "hors portefeuille".
+            mockMvc.perform(get("/dashboard/reclamations/pending-count-mine")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").value(0));
+
+            mockMvc.perform(get("/dashboard/reclamations/pending-count-outside-mine")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").value(2));
+        }
+
+        @Test
         @DisplayName("Resolve sets status and closedAt")
         void resolve_setsStatusAndClosedAt() throws Exception {
             Reclamation r = persistReclamation(studentWithAdvisor, ReclamationStatus.PENDING);

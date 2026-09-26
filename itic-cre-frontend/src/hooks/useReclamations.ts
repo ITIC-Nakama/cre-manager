@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
     createReclamation, deleteReclamation, fetchMyReclamations, fetchReclamationFormContext,
-    fetchAdvisorReclamations, fetchPendingReclamationsCount, resolveReclamation, refuseReclamation, reopenReclamation,
+    fetchAdvisorReclamations, fetchPendingReclamationsCount, fetchMyPendingReclamationsCount,
+    fetchOutsideMyPortfolioPendingCount, resolveReclamation, refuseReclamation, reopenReclamation,
 } from '../api-s/requests/ReclamationRequest';
 import type { CreateReclamationPayload, FetchReclamationsParams, FetchAdvisorReclamationsParams } from '../types/models/Reclamation';
 
@@ -51,10 +52,29 @@ export function useAdvisorReclamationsInfinite(params: FetchAdvisorReclamationsP
 }
 
 // Poll toutes les minutes + refetch au focus de l'onglet (defaut React Query).
+// Badge sidebar — jamais affecte par la case "Mon portefeuille uniquement" de la page Messages.
 export function usePendingReclamationsCount() {
     return useQuery({
         queryKey: PENDING_RECLAMATIONS_COUNT_KEY,
         queryFn: fetchPendingReclamationsCount,
+        refetchInterval: 60000,
+    });
+}
+
+/** Toujours mon seul portefeuille, meme pour un admin — affiche a cote de la case a cocher, independamment de son etat. */
+export function useMyPendingReclamationsCount() {
+    return useQuery({
+        queryKey: [...ADVISOR_RECLAMATIONS_KEY, 'pending-count-mine'],
+        queryFn: fetchMyPendingReclamationsCount,
+        refetchInterval: 60000,
+    });
+}
+
+/** Complementaire de useMyPendingReclamationsCount. */
+export function useOutsideMyPortfolioPendingCount() {
+    return useQuery({
+        queryKey: [...ADVISOR_RECLAMATIONS_KEY, 'pending-count-outside-mine'],
+        queryFn: fetchOutsideMyPortfolioPendingCount,
         refetchInterval: 60000,
     });
 }
