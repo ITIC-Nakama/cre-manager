@@ -96,10 +96,12 @@ export function useMyCV() {
     });
 }
 
-export function useMyComments() {
+/** enabled=false tant que l'étudiant n'a pas de CV (la route répond 404). */
+export function useMyComments(enabled = true) {
     return useQuery({
         queryKey: ['my-cv-comments'],
         queryFn: fetchMyComments,
+        enabled,
     });
 }
 

@@ -371,6 +371,42 @@ public class CvBuilderIntegrationTest {
         }
     }
 
+    // ─── Completude ─────────────────────────────────────────────────────────
+
+    @Test
+    public void score_FullCv_ShouldReach100WithoutTips() throws Exception {
+        saveDraft(fullCvBody(null, "CLASSIQUE"));
+
+        mockMvc.perform(get("/cv/builder/me/score").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.score").value(100))
+                .andExpect(jsonPath("$.data.pageCount").value(1))
+                .andExpect(jsonPath("$.data.tips.length()").value(0));
+    }
+
+    @Test
+    public void score_MinimalDraft_ShouldGiveConcreteTipsWithSection() throws Exception {
+        ObjectNode body = draftBody(null);
+        ((ArrayNode) body.at("/data/langues")).add(objectMapper.createObjectNode().put("langue", "Anglais"));
+        saveDraft(body);
+
+        MvcResult result = mockMvc.perform(get("/cv/builder/me/score")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        var data = objectMapper.readTree(result.getResponse().getContentAsString()).get("data");
+
+        assertThat(data.get("score").asInt()).isBetween(1, 99);
+        List<String> codes = new java.util.ArrayList<>();
+        data.get("tips").forEach(tip -> codes.add(tip.get("code").asText()));
+        assertThat(codes).contains("SUMMARY_MISSING", "LANGUAGE_LEVELS", "EXPERIENCE_POINTS", "EDUCATION_MISSING");
+        data.get("tips").forEach(tip -> {
+            if (tip.get("code").asText().equals("SUMMARY_MISSING")) {
+                assertThat(tip.get("section").asText()).isEqualTo("accroche");
+            }
+        });
+    }
+
     // ─── 6. Envoi sans CV existant ──────────────────────────────────────────
 
     @Test

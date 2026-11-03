@@ -41,6 +41,12 @@ public class CvBuilderStudentController {
         return ResponseEntity.ok(cvBuilderService.saveMyDraft(SecurityContextHelper.currentUserId(), request));
     }
 
+    @GetMapping("/score")
+    @Operation(summary = "Score de complétude du brouillon enregistré, conseils et nombre de pages")
+    public ResponseEntity<?> score() {
+        return ResponseEntity.ok(cvBuilderService.score(SecurityContextHelper.currentUserId()));
+    }
+
     @PostMapping("/submit")
     @Operation(summary = "Envoyer son CV à son conseiller : génère le PDF et remplace le CV actif (statut « En attente »)")
     public ResponseEntity<?> submit(@RequestBody @Valid CvDraftRequest request) throws IOException {

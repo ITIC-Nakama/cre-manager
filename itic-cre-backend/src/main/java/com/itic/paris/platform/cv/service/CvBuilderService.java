@@ -9,6 +9,7 @@ import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.model.CvBuilderOptions;
 import com.itic.paris.platform.cv.model.CvDraft;
 import com.itic.paris.platform.cv.model.CvTemplate;
+import com.itic.paris.platform.cv.model.dtos.builder.CvCompletenessDto;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftResponse;
@@ -59,6 +60,7 @@ public class CvBuilderService {
     private final ApplicationRepository applicationRepository;
     private final CvDraftValidator validator;
     private final CvRenderService renderService;
+    private final CvCompletenessService completenessService;
     private final CVService cvService;
     private final CVRepository cvRepository;
     private final ICloudStorage cloudStorage;
@@ -166,6 +168,22 @@ public class CvBuilderService {
     }
 
     private static final byte[] PDF_MAGIC_BYTES = {0x25, 0x50, 0x44, 0x46, 0x2D};
+
+    /**
+     * Completude du brouillon enregistre (ou du prerempli au premier acces). Le nombre de pages vient
+     * d'un vrai rendu PDF : c'est lui qui declenche le conseil "vise 1 page".
+     */
+    @Transactional(readOnly = true)
+    public CvCompletenessDto score(UUID studentId) {
+        Student student = findStudent(studentId);
+        CvDraft draft = draftRepository.findByStudentId(studentId).orElse(null);
+        CvDraftData data = draft != null ? draft.getData() : prefill(student);
+        CvRenderService.CvRenderOptions options = draft != null
+                ? new CvRenderService.CvRenderOptions(draft.getTemplateCode(), draft.getAccentColor(), draft.getCvLang())
+                : new CvRenderService.CvRenderOptions(CvTemplate.CLASSIQUE, CvBuilderOptions.DEFAULT_ACCENT_COLOR, "fr");
+        int pageCount = renderService.renderPdf(student, data, options).pageCount();
+        return completenessService.evaluate(renderService.clean(data), pageCount);
+    }
 
     /** Apercu HTML du brouillon courant (meme non enregistre), avec le modele et la couleur choisis. */
     @Transactional(readOnly = true)

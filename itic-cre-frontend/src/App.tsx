@@ -16,6 +16,7 @@ import { Role } from './types/models/Auth'
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/dashboard/StudentDashboard'
 import StudentCVPage from './pages/student/cv/StudentCVPage'
+import CVBuilderPage from './pages/student/cv-builder/CVBuilderPage'
 import StudentOffresPage from './pages/student/offres/OffresPage'
 import CandidaturesListPage from './pages/student/candidatures/CandidaturesListPage'
 import CandidatureDetailPage from './pages/student/candidatures/CandidatureDetailPage'
@@ -110,6 +111,7 @@ function App() {
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
           <Route path="/student/cv"            element={<StudentCVPage />} />
+          <Route path="/student/cv/assistant"  element={<CVBuilderPage />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 

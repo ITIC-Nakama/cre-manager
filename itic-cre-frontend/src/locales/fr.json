@@ -2005,5 +2005,240 @@
       "desc": "Une erreur réseau est survenue. Veuillez réessayer.",
       "retry": "Réessayer"
     }
+  },
+  "studentCvBuilder": {
+    "title": "Assistant de CV",
+    "subtitle": "Remplis les sections à gauche : l’aperçu à droite est exactement le PDF que recevra ton conseiller.",
+    "error": {
+      "load": "Impossible de charger ton brouillon de CV"
+    },
+    "tabs": {
+      "form": "Formulaire",
+      "preview": "Aperçu"
+    },
+    "toolbar": {
+      "back": "Mon CV",
+      "template": "Modèle",
+      "color": "Couleur",
+      "lang": "Langue du CV",
+      "download": "Télécharger le PDF",
+      "submit": "Envoyer à mon conseiller"
+    },
+    "templates": {
+      "CLASSIQUE": "Classique",
+      "MODERNE": "Moderne"
+    },
+    "colors": {
+      "3B71FF": "Bleu ITIC",
+      "E2782E": "Orange",
+      "2E8B57": "Vert",
+      "374151": "Gris anthracite",
+      "8B1E3F": "Bordeaux"
+    },
+    "save": {
+      "idle": "Brouillon prérempli, rien n’est encore enregistré",
+      "dirty": "Modifications non enregistrées",
+      "saving": "Enregistrement…",
+      "savedAt": "Enregistré à {{time}}",
+      "error": "Échec de l’enregistrement, nouvel essai à la prochaine modification",
+      "invalid": "Une valeur n’est pas acceptée.",
+      "conflict": "Ton CV a été modifié dans un autre onglet.",
+      "reload": "Recharger"
+    },
+    "preview": {
+      "title": "Aperçu",
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "zoomIn": "Zoomer",
+      "zoomOut": "Dézoomer",
+      "fit": "Ajuster à la largeur",
+      "error": "Aperçu indisponible pour le moment."
+    },
+    "completeness": {
+      "title": "Complétude",
+      "perfect": "Ton CV est complet. Envoie-le à ton conseiller !"
+    },
+    "tips": {
+      "NAME_MISSING": "Indique ton prénom et ton nom",
+      "TITLE_MISSING": "Ajoute un titre : le poste que tu vises",
+      "CONTACT_MISSING": "Renseigne ton e-mail et ton téléphone",
+      "CITY_MISSING": "Précise ta ville",
+      "LINKS_MISSING": "Ajoute ton LinkedIn (ou un portfolio)",
+      "SUMMARY_MISSING": "Ajoute une accroche",
+      "SUMMARY_TOO_SHORT": "Développe ton accroche : 2 ou 3 phrases",
+      "EXPERIENCE_MISSING": "Ajoute au moins une expérience (stage, job, bénévolat)",
+      "EXPERIENCE_POINTS": "Décris chaque expérience en 2 réalisations au moins",
+      "EXPERIENCE_TO_CONFIRM": "Confirme les expériences proposées depuis tes candidatures",
+      "EDUCATION_MISSING": "Ajoute ta formation",
+      "SKILLS_FEW": "Liste au moins 5 compétences",
+      "SKILLS_MISSING": "Ajoute tes compétences",
+      "LANGUAGES_MISSING": "Ajoute les langues que tu parles",
+      "LANGUAGE_LEVELS": "Précise le niveau de tes langues",
+      "PROJECTS_MISSING": "Ajoute un projet ou une certification",
+      "INTERESTS_MISSING": "Ajoute un ou deux centres d’intérêt",
+      "TOO_LONG": "Ton CV fait {{pages}} pages : vise 1 page"
+    },
+    "sections": {
+      "identite": {
+        "title": "Identité et contact",
+        "help": "Repris de ton compte : vérifie et complète."
+      },
+      "accroche": {
+        "title": "Accroche",
+        "help": "Le court paragraphe en tête de CV, lu en premier par le recruteur."
+      },
+      "experiences": {
+        "title": "Expériences",
+        "help": "Du plus récent au plus ancien : alternance, stages, jobs, bénévolat."
+      },
+      "formations": {
+        "title": "Formation",
+        "help": "Ta formation ITIC en premier, puis les diplômes précédents."
+      },
+      "projets": {
+        "title": "Projets",
+        "help": "Projets d’école ou personnels qui montrent ce que tu sais faire."
+      },
+      "competences": {
+        "title": "Compétences",
+        "help": "Des mots-clés précis : ce sont eux que les recruteurs recherchent."
+      },
+      "langues": {
+        "title": "Langues",
+        "help": "Indique toujours un niveau."
+      },
+      "certifications": {
+        "title": "Certifications",
+        "help": "TOEIC, Voltaire, PIX, certifications techniques…"
+      },
+      "centresInteret": {
+        "title": "Centres d’intérêt",
+        "help": "Facultatif, mais utile pour engager la conversation en entretien."
+      }
+    },
+    "section": {
+      "moveUp": "Remonter la section sur le CV",
+      "moveDown": "Descendre la section sur le CV",
+      "show": "Afficher sur le CV",
+      "hide": "Masquer sur le CV",
+      "hiddenBadge": "masquée"
+    },
+    "actions": {
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "remove": "Supprimer"
+    },
+    "tags": {
+      "placeholder": "Tape puis Entrée (ou virgule)"
+    },
+    "dates": {
+      "debut": "Début",
+      "fin": "Fin",
+      "enCours": "En cours"
+    },
+    "identite": {
+      "prenom": "Prénom",
+      "nom": "Nom",
+      "titre": "Titre du CV",
+      "titreHint": "Le poste visé, en quelques mots : « Développeur full-stack en alternance ».",
+      "email": "E-mail",
+      "telephone": "Téléphone",
+      "ville": "Ville",
+      "mobilite": "Mobilité",
+      "mobiliteHint": "Ex : Île-de-France, télétravail possible.",
+      "liens": "Liens",
+      "liensHint": "LinkedIn, GitHub, portfolio… Les adresses doivent commencer par https://",
+      "addLien": "Ajouter un lien",
+      "photo": "Afficher ma photo de profil",
+      "photoHint": "Facultatif. La photo de ton compte est reprise telle quelle (JPEG ou PNG). Change-la depuis tes paramètres."
+    },
+    "linkTypes": {
+      "LINKEDIN": "LinkedIn",
+      "GITHUB": "GitHub",
+      "PORTFOLIO": "Portfolio",
+      "AUTRE": "Autre"
+    },
+    "accroche": {
+      "label": "Ton accroche",
+      "hint": "2 ou 3 phrases : qui tu es, ce que tu cherches (type de contrat, durée, rythme) et ce que tu apportes.",
+      "placeholder": "Étudiante en Bachelor Développement à ITIC Paris, je cherche une alternance de 12 mois…"
+    },
+    "experiences": {
+      "entry": "Expérience {{n}}",
+      "add": "Ajouter une expérience",
+      "toConfirm": "Proposée depuis ta candidature au contrat validé. Vérifie les dates et ajoute tes réalisations.",
+      "confirm": "Confirmer",
+      "poste": "Poste",
+      "entreprise": "Entreprise",
+      "typeContrat": "Type de contrat",
+      "typeContratHint": "Alternance, stage, CDD, job étudiant…",
+      "ville": "Ville",
+      "points": "Réalisations",
+      "pointsHint": "Commence par un verbe d’action et chiffre quand tu peux. 2 à 4 lignes suffisent.",
+      "pointPlaceholder": "Ex : Développement d’une API REST utilisée par 3 équipes",
+      "addPoint": "Ajouter une réalisation"
+    },
+    "formations": {
+      "entry": "Formation {{n}}",
+      "add": "Ajouter une formation",
+      "diplome": "Diplôme ou formation",
+      "etablissement": "Établissement",
+      "ville": "Ville",
+      "mention": "Mention ou spécialité (facultatif)"
+    },
+    "projets": {
+      "entry": "Projet {{n}}",
+      "add": "Ajouter un projet",
+      "nom": "Nom du projet",
+      "lien": "Lien (facultatif)",
+      "description": "Description",
+      "descriptionHint": "Le but du projet et ton rôle, en une ou deux phrases.",
+      "technos": "Technologies"
+    },
+    "competences": {
+      "techniques": "Techniques",
+      "techniquesHint": "Langages, frameworks, méthodes : Java, React, SQL, Scrum…",
+      "outils": "Outils",
+      "outilsHint": "Logiciels et outils : Git, Figma, Excel, Jira…",
+      "savoirEtre": "Savoir-être",
+      "savoirEtreHint": "Qualités que tes expériences illustrent : rigueur, autonomie…"
+    },
+    "langues": {
+      "hint": "Niveaux du cadre européen (CECRL) : A1-A2 débutant, B1-B2 indépendant, C1-C2 expérimenté.",
+      "placeholder": "Anglais",
+      "niveau": "Niveau…",
+      "add": "Ajouter une langue"
+    },
+    "levels": {
+      "A1": "A1 · débutant",
+      "A2": "A2 · élémentaire",
+      "B1": "B1 · intermédiaire",
+      "B2": "B2 · indépendant",
+      "C1": "C1 · avancé",
+      "C2": "C2 · maîtrise",
+      "NATIF": "Langue maternelle"
+    },
+    "certifications": {
+      "entry": "Certification {{n}}",
+      "add": "Ajouter une certification",
+      "nom": "Intitulé",
+      "placeholder": "Ex : TOEIC 850, Projet Voltaire, PIX…",
+      "organisme": "Organisme",
+      "date": "Date"
+    },
+    "centresInteret": {
+      "label": "Tes centres d’intérêt",
+      "hint": "Précis plutôt que génériques : « basket en club depuis 8 ans » dit plus que « sport »."
+    },
+    "submitModal": {
+      "title": "Envoyer ton CV à ton conseiller ?",
+      "body": "Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.",
+      "confirm": "Envoyer"
+    },
+    "toast": {
+      "submitted": "CV envoyé à ton conseiller : il est maintenant « En attente » de relecture.",
+      "submitError": "L’envoi a échoué, réessaie dans un instant.",
+      "downloadError": "Le PDF n’a pas pu être généré."
+    }
   }
 }
