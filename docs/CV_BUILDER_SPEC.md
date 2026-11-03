@@ -196,3 +196,42 @@ Seeder de test (`@Order(20+)`, profil dev uniquement) : un étudiant « démo »
 - **Tâche « Corriger votre CV »** détectée par `nom.contains("corriger")` : fragile si un admin renomme le statut.
 - **Règle §6 vs code** : la doc dit que l'historique est réinitialisé au remplacement, alors que le code garde les commentaires (et l'interface l'annonce). Choisir et aligner la doc.
 - **Taille maximale** : `REGLES_METIER` §7 annonce 512 Mo, la configuration est à 20 Mo.
+
+Ces écarts n'ont **pas** été corrigés pendant l'implémentation (branche `feat/cv-builder`) : ils attendent la décision de Jules.
+
+## 14. Mise en œuvre (3 novembre 2026, branche `feat/cv-builder`)
+
+Implémenté en 6 commits suivant le §11. Tests : `CvBuilderIntegrationTest` (23 tests, couvrent les tests 1 à 10 du §9), `CVIntegrationTest` inchangé et vert (test 11) ; suite complète verte, build du frontend vert.
+
+### Ce qui a changé par rapport au texte ci-dessus, et pourquoi
+
+| Sujet | Spécification | Implémenté | Pourquoi |
+|---|---|---|---|
+| Version d'openhtmltopdf | Dernière version | `1.1.97` (9 oct. 2026) ; la dernière était `1.1.108` (1er nov.) | Le projet publie presque chaque jour : une version avec trois semaines de recul plutôt qu'une version de deux jours. Monter de version = changer `openhtmltopdf.version` dans le `pom.xml`. |
+| Police à empattements | « une serif » | **PT Serif** (OFL), Roboto (Apache 2.0) ; licences dans `resources/fonts` | Les serifs courantes de Google Fonts ne sont plus livrées qu'en police variable, mal gérée par PDFBox ; PT Serif existe en fichiers statiques. |
+| Signature de `replaceActiveCv` | `(Student, InputStream, long, CvSource, String)` | `(Student, CvFileWriter, CvSource, String)` : le stockage est passé en fonction | Le dépôt manuel continue d'appeler exactement `uploadFile(MultipartFile, path)` comme avant : comportement et tests existants strictement inchangés. L'assistant appelle `uploadFile(InputStream, path, "application/pdf", length)`. |
+| JSON des expériences | — | Champ `aConfirmer` (booléen) | Marque les expériences proposées depuis une candidature au contrat validé ; le bouton « Confirmer » le remet à `false`. |
+| Validation | Limites du §4 | Mêmes limites + plafonds de sécurité : 5 liens, 10 langues, 15 certifications, 30 étiquettes de 60 caractères, textes courts 150, description de projet 500, URL 300 caractères | Borner la taille du JSON stocké et du PDF. Les champs vides restent acceptés (brouillon en cours). |
+| Corps de `submit` | — | Le brouillon courant (avec `version`) : il est enregistré (même règle 409 que `PUT`) puis envoyé. Réponse = réponse CV habituelle + `pageCount` + `draftVersion` | Ce qui part chez le conseiller est exactement ce qui est à l'écran ; `draftVersion` permet à l'auto-sauvegarde de reprendre sans 409. |
+| Anti-abus | Refus si contenu inchangé | Refus (400 `cv-builder-nothing-changed`) seulement si le CV **actif** vient de l'assistant **et** que l'empreinte est identique ; l'empreinte inclut modèle, couleur et langue | Après un dépôt manuel, l'étudiant doit pouvoir revenir à son CV de l'assistant ; changer de modèle produit un autre PDF. |
+| Score | `GET /score` ou dans `GET` | `GET /cv/builder/me/score` sur le brouillon **enregistré** (ou le prérempli) ; nombre de pages issu d'un vrai rendu PDF ; conseils = codes (`SUMMARY_MISSING`…) + section à ouvrir, traduits côté front | Le badge « 1 page / 2 pages » et le conseil « vise 1 page » reposent sur le vrai PDF ; l'auto-sauvegarde rafraîchit le score toutes les 1,5 s. Barème : identité 30, accroche 10, expériences 20, formation 10, compétences 10, langues 10, projets/certifications 5, centres d'intérêt 5 ; -5 au-delà d'une page. |
+| Aperçu | HTML | HTML (`byte[]` pour échapper à l'enveloppe JSON), `Cache-Control: no-store`, sans `X-Page-Count` | Rester rapide à chaque frappe ; le nombre de pages vient du score. |
+| Libellés fr/en | Messages Thymeleaf | Moteur Thymeleaf **dédié** au CV avec ses propres messages (`templates/cv/messages*.properties`) | Ne pas ajouter de `MessageSource` global à l'application (impact possible sur les messages de validation existants). |
+| Couleurs d'accent | Bleu, orange, vert, gris anthracite, bordeaux | `#3B71FF`, `#E2782E`, `#2E8B57`, `#374151`, `#8B1E3F` | Valeurs exactes de la liste fermée (serveur et front). |
+| Photo | Photo de profil existante | Reprise seulement si c'est un JPEG ou un PNG, intégrée en `data:` URI | PDFBox ne lit pas le WebP ; aucune ressource externe n'est chargée pendant le rendu (accès bloqué, protection SSRF). |
+| Modèle Moderne | Deux colonnes | Colonne latérale : contact, compétences, langues, centres d'intérêt ; le reste dans la colonne principale ; mise en page par tableau | openhtmltopdf ne gère pas flexbox ; un CV de deux pages se coupe proprement (entrées non coupées). |
+| Lecture conseiller | `GET /cv/student/{id}/builder` | Idem, 404 (`cv-builder-draft-not-found`) sans brouillon | — |
+| Quitter la page | Avertissement | `beforeunload` (onglet fermé ou rechargé) + enregistrement immédiat lors d'une navigation interne | L'application utilise `BrowserRouter` : `useBlocker` n'y est pas disponible. |
+| En-têtes | `X-Page-Count` | Ajouté à `exposedHeaders` du CORS avec `Content-Disposition` | En local, front (:5173) et API (:8080) sont sur deux origines. |
+| Seeder « profil dev » | `@Order(20+)`, profil dev | `TestCvBuilderSeeder`, `@Order(30)`, activé par `app.test.seeders.enabled` comme les autres `Test*Seeder` | Le projet n'a pas de profil Spring « dev » ; on suit le mécanisme existant. |
+| V45 sur PostgreSQL | `docker-compose` (`postgres:16-alpine`) | Jouée sur le PostgreSQL 17 natif de l'environnement local (sans Docker) | Choix de travailler sans Docker. Le SQL n'utilise que des fonctions présentes en 16 (`gen_random_uuid`, contraintes CHECK) : à rejouer sur l'image 16 avant fusion. |
+
+### Comptes de démo (seeder de test ; mot de passe : valeur de `app.test.student.password`)
+- `demo.assistant@itic.fr` (Inès Moreau) : sans CV, promotion « Bachelor Dev 2025-2026 », une candidature au contrat validé → montre le prérempli.
+- `demo.corriger@itic.fr` (Yanis Lefort) : brouillon complet déjà envoyé (modèle Moderne), CV « À corriger » avec un commentaire du conseiller de test → montre la correction dans l'assistant puis la validation et l'XP.
+- Conseiller : `test.advisor@itic.fr`, à qui les deux étudiants sont affectés.
+
+### Vérifié en local
+Scénario du §2 joué de bout en bout dans le navigateur (Edge), deux modèles générés en PDF et relus (1 et 2 pages, fr et en) : texte sélectionnable, polices embarquées, titre « CV — Prénom Nom » et auteur dans les métadonnées, fichier `CV_Nom_Prenom.pdf`.
+
+**Non vérifié** : le rendu dans l'image Docker `21-jre-alpine` (pas de Docker sur le poste). Les polices sont embarquées et fournies directement au moteur, sans recours aux polices système ; à confirmer lors du premier déploiement de test.

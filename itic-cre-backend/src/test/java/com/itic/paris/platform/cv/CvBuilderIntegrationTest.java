@@ -413,6 +413,56 @@ public class CvBuilderIntegrationTest {
         });
     }
 
+    @Test
+    public void score_TwoPageCv_ShouldAdviseOnePage() throws Exception {
+        CvDraftData data = CvSampleFixtures.fullCv();
+        for (int i = 0; i < 8; i++) {
+            CvDraftData.Experience e = new CvDraftData.Experience();
+            e.setId("long-" + i);
+            e.setPoste("Poste " + i);
+            e.setEntreprise("Entreprise " + i);
+            e.setPoints(new java.util.ArrayList<>(List.of(
+                    "Une réalisation assez longue pour occuper une ligne entière du modèle de CV",
+                    "Une deuxième réalisation détaillée", "Une troisième réalisation")));
+            data.getExperiences().add(e);
+        }
+        ObjectNode body = objectMapper.createObjectNode();
+        body.set("data", objectMapper.valueToTree(data));
+        saveDraft(body);
+
+        mockMvc.perform(get("/cv/builder/me/score").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pageCount").value(2))
+                .andExpect(jsonPath("$.data.tips[?(@.code == 'TOO_LONG')].params.pages").value(2));
+    }
+
+    @Test
+    public void preview_WithPhotoEnabled_ShouldEmbedProfilePictureAsDataUri() throws Exception {
+        student.setProfilePicture("public/profiles/photo.png");
+        studentRepository.save(student);
+        byte[] png = java.util.Base64.getDecoder().decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+        when(cloudStorage.downloadFile("public/profiles/photo.png")).thenAnswer(inv -> new java.io.ByteArrayInputStream(png));
+
+        ObjectNode body = draftBody(null);
+        ((ObjectNode) body.at("/data/identite")).put("afficherPhoto", true);
+        MvcResult result = mockMvc.perform(post("/cv/builder/me/preview")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(result.getResponse().getContentAsString(StandardCharsets.UTF_8)).contains("src=\"data:image/png;base64,");
+
+        // Et le PDF se génère avec l'image (pas d'accès réseau : data: URI uniquement).
+        mockMvc.perform(post("/cv/builder/me/pdf")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF));
+    }
+
     // ─── 6. Envoi sans CV existant ──────────────────────────────────────────
 
     @Test
