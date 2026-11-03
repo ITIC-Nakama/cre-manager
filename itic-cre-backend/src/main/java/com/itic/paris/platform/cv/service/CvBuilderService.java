@@ -43,6 +43,10 @@ public class CvBuilderService {
     private final StudentRepository studentRepository;
     private final ApplicationRepository applicationRepository;
     private final CvDraftValidator validator;
+    private final CvRenderService renderService;
+
+    /** PDF genere a la volee pour le telechargement (rien n'est soumis ni enregistre). */
+    public record GeneratedPdf(byte[] bytes, int pageCount, String fileName) {}
 
     /** Brouillon enregistre, ou — au premier acces — un brouillon prerempli NON enregistre. */
     @Transactional(readOnly = true)
@@ -73,6 +77,43 @@ public class CvBuilderService {
         applyRequest(draft, request);
         CvDraft saved = draftRepository.saveAndFlush(draft);
         return toResponse(saved);
+    }
+
+    /** Apercu HTML du brouillon courant (meme non enregistre), avec le modele et la couleur choisis. */
+    @Transactional(readOnly = true)
+    public String preview(UUID studentId, CvDraftRequest request) {
+        validator.validate(request);
+        Student student = findStudent(studentId);
+        return renderService.renderHtml(student, request.getData(), resolveOptions(studentId, request));
+    }
+
+    @Transactional(readOnly = true)
+    public GeneratedPdf pdf(UUID studentId, CvDraftRequest request) {
+        validator.validate(request);
+        Student student = findStudent(studentId);
+        CvRenderService.RenderedPdf pdf = renderService.renderPdf(student, request.getData(), resolveOptions(studentId, request));
+        return new GeneratedPdf(pdf.bytes(), pdf.pageCount(), fileName(request.getData()));
+    }
+
+    /** Options de rendu : celles de la requete, sinon celles du brouillon enregistre, sinon les valeurs par defaut. */
+    CvRenderService.CvRenderOptions resolveOptions(UUID studentId, CvDraftRequest request) {
+        CvDraft saved = draftRepository.findByStudentId(studentId).orElse(null);
+        CvTemplate template = request.getTemplateCode() != null
+                ? CvTemplate.valueOf(request.getTemplateCode())
+                : saved != null ? saved.getTemplateCode() : CvTemplate.CLASSIQUE;
+        String accent = request.getAccentColor() != null
+                ? request.getAccentColor().toUpperCase()
+                : saved != null ? saved.getAccentColor() : CvBuilderOptions.DEFAULT_ACCENT_COLOR;
+        String lang = request.getCvLang() != null
+                ? request.getCvLang()
+                : saved != null ? saved.getCvLang() : "fr";
+        return new CvRenderService.CvRenderOptions(template, accent, lang);
+    }
+
+    /** "CV_Nom_Prenom.pdf", d'apres l'identite saisie dans le CV. */
+    static String fileName(CvDraftData data) {
+        CvDraftData.Identite identite = data.getIdentite();
+        return CvFileNames.friendlyPdfName(identite.getNom(), identite.getPrenom());
     }
 
     /** Copie le contenu et les options de la requete (deja validee) dans le brouillon. */

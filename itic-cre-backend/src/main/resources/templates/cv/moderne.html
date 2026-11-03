@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--
+  Modele "Moderne" : bandeau de couleur, deux colonnes (tableau, openhtmltopdf ne gere pas flexbox).
+  Colonne laterale : contact, competences, langues, centres d'interet. Police sans empattements (Roboto).
+-->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="|CV — ${fullName}|">CV</title>
+  <meta name="author" th:content="${fullName}"/>
+  <meta name="subject" th:content="${cv.identite.titre}"/>
+  <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <style th:inline="css">
+    body { font-family: 'Roboto', 'PT Serif', sans-serif; font-size: 9.3pt; }
+    .band { background: [(${accent})]; color: #ffffff; padding: 6mm 7mm; border-radius: 2.5mm; margin-bottom: 5mm; }
+    .photo { float: right; width: 24mm; height: 28mm; margin-left: 5mm; border: 0.6mm solid #ffffff; }
+    .name { font-size: 22pt; font-weight: 700; line-height: 1.1; }
+    .title { font-size: 11.5pt; font-weight: 500; margin-top: 1.5mm; }
+    .layout { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .side { width: 58mm; vertical-align: top; background: [(${accentLight})]; padding: 5mm 5mm 3mm 5mm; border-radius: 2.5mm; }
+    .gap { width: 6mm; }
+    .main { vertical-align: top; padding: 1mm 0 0 0; }
+    .section-title { font-size: 10.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8pt;
+                     color: [(${accent})]; margin: 0 0 2mm 0; }
+    .main .section-title { padding-bottom: 1mm; border-bottom: 0.5mm solid [(${accent})]; }
+    .side .section { margin-bottom: 4.5mm; }
+    .contact-line { margin-bottom: 1.2mm; word-wrap: break-word; }
+    .link { display: block; margin-bottom: 1.2mm; word-wrap: break-word; }
+    .link-type { font-weight: 500; }
+    .skill-group { margin-bottom: 2mm; }
+    .skill-label { font-weight: 500; color: #374151; margin-bottom: 0.8mm; }
+    .skill-colon { display: none; }
+    .tag { display: inline-block; background: #ffffff; border-radius: 1.5mm; padding: 0.5mm 1.8mm;
+           margin: 0 1.2mm 1.2mm 0; font-size: 8.6pt; }
+    .lang-row { margin-bottom: 1.2mm; }
+    .lang-row .muted { display: block; font-size: 8.6pt; }
+    .summary { margin: 0 0 4.5mm 0; }
+  </style>
+</head>
+<body>
+  <div class="band">
+    <img class="photo" th:if="${photo != null}" th:src="${photo}" alt=""/>
+    <div class="name" th:text="${fullName}">Prénom Nom</div>
+    <div class="title" th:if="${fmt.present(cv.identite.titre)}" th:text="${cv.identite.titre}">Titre</div>
+    <div class="clear"></div>
+  </div>
+
+  <table class="layout">
+    <tr>
+      <td class="side">
+        <div class="section">
+          <h2 class="section-title" th:text="#{cv.contact}">Contact</h2>
+          <div class="contact-line" th:if="${fmt.present(cv.identite.email)}" th:text="${cv.identite.email}">email</div>
+          <div class="contact-line" th:if="${fmt.present(cv.identite.telephone)}" th:text="${cv.identite.telephone}">téléphone</div>
+          <div class="contact-line" th:if="${fmt.present(cv.identite.ville)}" th:text="${cv.identite.ville}">ville</div>
+          <div class="contact-line" th:if="${fmt.present(cv.identite.mobilite)}" th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">mobilité</div>
+          <th:block th:replace="~{cv/fragments :: links}"></th:block>
+        </div>
+        <th:block th:each="s : ${sideSections}">
+          <th:block th:replace="~{cv/fragments :: section(${s})}"></th:block>
+        </th:block>
+      </td>
+      <td class="gap"></td>
+      <td class="main">
+        <div class="section" th:if="${fmt.present(cv.accroche)}">
+          <h2 class="section-title" th:text="#{cv.summary}">Profil</h2>
+          <p class="summary" th:text="${cv.accroche}">Accroche</p>
+        </div>
+        <th:block th:each="s : ${mainSections}">
+          <th:block th:replace="~{cv/fragments :: section(${s})}"></th:block>
+        </th:block>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

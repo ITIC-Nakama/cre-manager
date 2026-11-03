@@ -36,14 +36,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.Normalizer;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -300,31 +298,9 @@ public class CVService {
      * indépendant du nom de stockage interne (UUID + timestamp) utilisé sur le disque/bucket.
      */
     private String buildFriendlyFileName(Student student) {
-        StringBuilder name = new StringBuilder("CV");
-        appendSlug(name, student.getLastName());
-        appendSlug(name, student.getFirstName());
-        if (student.getPromotion() != null) {
-            appendSlug(name, student.getPromotion().getName());
-        }
-        name.append(".pdf");
-        return name.toString();
+        return CvFileNames.friendlyPdfName(student.getLastName(), student.getFirstName(),
+                student.getPromotion() != null ? student.getPromotion().getName() : null);
     }
-
-    private void appendSlug(StringBuilder builder, String value) {
-        if (value == null || value.isBlank()) {
-            return;
-        }
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
-        String slug = FILENAME_UNSAFE_CHARS.matcher(normalized).replaceAll("-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-        if (!slug.isEmpty()) {
-            builder.append("_").append(slug);
-        }
-    }
-
-    private static final Pattern FILENAME_UNSAFE_CHARS = Pattern.compile("[^A-Za-z0-9]+");
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCVStats(UUID advisorId) {

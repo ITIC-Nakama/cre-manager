@@ -30,11 +30,24 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.text.PDFTextStripper;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -229,6 +242,105 @@ public class CvBuilderIntegrationTest {
         body.put("accentColor", "#123456");
 
         expectBadRequest(body, "cv-builder-invalid-accent-color");
+    }
+
+    // ─── 4. Apercu HTML ─────────────────────────────────────────────────────
+
+    @Test
+    public void preview_ShouldRenderNameAndFilledSectionsButNotHiddenOrEmptyOnes() throws Exception {
+        CvDraftData data = CvSampleFixtures.fullCv();
+        data.setProjets(new java.util.ArrayList<>());
+        data.setSectionsMasquees(new java.util.ArrayList<>(List.of("centresInteret")));
+        ObjectNode body = objectMapper.createObjectNode();
+        body.set("data", objectMapper.valueToTree(data));
+        body.put("templateCode", "CLASSIQUE");
+
+        MvcResult result = mockMvc.perform(post("/cv/builder/me/preview")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
+                .andReturn();
+        String html = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(html).contains("Amina Diallo", "Capgemini", "Expériences professionnelles", "Langues");
+        assertThat(html).doesNotContain("Centres d’intérêt", "Basket en club");
+        assertThat(html).doesNotContain("section-projets");
+        assertThat(cvDraftRepository.findByStudentId(student.getId())).isEmpty();
+    }
+
+    @Test
+    public void preview_ShouldEscapeUserInput() throws Exception {
+        ObjectNode body = draftBody(null);
+        ((ObjectNode) body.at("/data/identite")).put("prenom", "<script>alert(1)</script>");
+
+        MvcResult result = mockMvc.perform(post("/cv/builder/me/preview")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(html).doesNotContain("<script>").contains("&lt;script&gt;");
+    }
+
+    @Test
+    public void preview_ShouldTranslateSectionTitlesInEnglish() throws Exception {
+        ObjectNode body = draftBody(null);
+        body.put("cvLang", "en");
+
+        MvcResult result = mockMvc.perform(post("/cv/builder/me/preview")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsString(StandardCharsets.UTF_8))
+                .contains("Work experience", "Present").doesNotContain("Expériences professionnelles");
+    }
+
+    // ─── 5. PDF ─────────────────────────────────────────────────────────────
+
+    @Test
+    public void pdf_ShouldReturnRealPdfWithPageCountAndEmbeddedFonts() throws Exception {
+        for (String template : List.of("CLASSIQUE", "MODERNE")) {
+            ObjectNode body = objectMapper.createObjectNode();
+            body.set("data", objectMapper.valueToTree(CvSampleFixtures.fullCv()));
+            body.put("templateCode", template);
+
+            MvcResult result = mockMvc.perform(post("/cv/builder/me/pdf")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body.toString()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                    .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                            org.hamcrest.Matchers.containsString("CV_Diallo_Amina.pdf")))
+                    .andReturn();
+
+            byte[] bytes = result.getResponse().getContentAsByteArray();
+            assertThat(new String(bytes, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+            int pageCount = Integer.parseInt(result.getResponse().getHeader("X-Page-Count"));
+            assertThat(pageCount).isGreaterThanOrEqualTo(1);
+
+            try (PDDocument document = Loader.loadPDF(bytes)) {
+                assertThat(document.getNumberOfPages()).isEqualTo(pageCount);
+                assertThat(document.getDocumentInformation().getTitle()).isEqualTo("CV — Amina Diallo");
+                assertThat(document.getDocumentInformation().getAuthor()).isEqualTo("Amina Diallo");
+                PDPage page = document.getPage(0);
+                List<PDFont> fonts = new java.util.ArrayList<>();
+                for (COSName name : page.getResources().getFontNames()) {
+                    fonts.add(page.getResources().getFont(name));
+                }
+                assertThat(fonts).isNotEmpty().allMatch(PDFont::isEmbedded);
+                // Texte selectionnable (pas une image) : on retrouve le contenu saisi.
+                assertThat(new PDFTextStripper().getText(document)).contains("Capgemini", "Amina Diallo");
+            }
+        }
     }
 
     // ─── Outils ─────────────────────────────────────────────────────────────

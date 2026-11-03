@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!--
+  Fragments communs aux modeles de CV (classique.html, moderne.html).
+  Contraintes openhtmltopdf : XHTML bien forme (balises fermees, pas d'entites nommees comme &nbsp;),
+  CSS 2.1 (pas de flexbox ni de grid : float et tableaux). Les textes saisis passent tous par th:text (echappes).
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Mise en page A4 commune + rendu "feuille" dans l'iframe d'apercu (media screen, ignore par le PDF). -->
+<style th:fragment="pageCss">
+  @page { size: A4; margin: 15mm; }
+  html, body { margin: 0; padding: 0; }
+  body { color: #1f2937; font-size: 9.6pt; line-height: 1.38; }
+  a { color: inherit; text-decoration: none; }
+  ul { margin: 1mm 0 0 0; padding: 0 0 0 4.5mm; }
+  li { margin: 0 0 0.6mm 0; }
+  .clear { clear: both; }
+  .entry { margin: 0 0 3.2mm 0; page-break-inside: avoid; }
+  .entry-date { float: right; margin-left: 4mm; color: #6b7280; font-size: 8.8pt; white-space: nowrap; }
+  .entry-title { font-weight: 700; }
+  .entry-sub { color: #4b5563; }
+  .entry-text { margin-top: 0.8mm; }
+  .muted { color: #6b7280; }
+  .section { margin: 0 0 3mm 0; }
+  .section-title { page-break-after: avoid; }
+  @media screen {
+    html { background: #e5e7eb; }
+    body { width: 180mm; min-height: 267mm; margin: 16px auto; padding: 15mm; background: #ffffff;
+           box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18); }
+  }
+</style>
+
+<!-- Aiguillage : rend la section demandee (nom issu de CvBuilderOptions.SECTIONS). -->
+<th:block th:fragment="section(name)">
+  <th:block th:switch="${name}">
+    <th:block th:case="'experiences'"><th:block th:replace="~{cv/fragments :: experiences}"></th:block></th:block>
+    <th:block th:case="'formations'"><th:block th:replace="~{cv/fragments :: formations}"></th:block></th:block>
+    <th:block th:case="'projets'"><th:block th:replace="~{cv/fragments :: projets}"></th:block></th:block>
+    <th:block th:case="'competences'"><th:block th:replace="~{cv/fragments :: competences}"></th:block></th:block>
+    <th:block th:case="'langues'"><th:block th:replace="~{cv/fragments :: langues}"></th:block></th:block>
+    <th:block th:case="'certifications'"><th:block th:replace="~{cv/fragments :: certifications}"></th:block></th:block>
+    <th:block th:case="'centresInteret'"><th:block th:replace="~{cv/fragments :: centresInteret}"></th:block></th:block>
+  </th:block>
+</th:block>
+
+<div th:fragment="experiences" class="section section-experiences">
+  <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
+  <div class="entry" th:each="e : ${cv.experiences}">
+    <span class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</span>
+    <div class="entry-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</div>
+    <div class="entry-sub" th:text="${fmt.join(' · ', e.entreprise, e.ville)}">Entreprise</div>
+    <ul th:if="${!e.points.isEmpty()}">
+      <li th:each="p : ${e.points}" th:text="${p}">Point</li>
+    </ul>
+  </div>
+</div>
+
+<div th:fragment="formations" class="section section-formations">
+  <h2 class="section-title" th:text="#{cv.section.formations}">Formation</h2>
+  <div class="entry" th:each="f : ${cv.formations}">
+    <span class="entry-date" th:text="${fmt.period(f.debut, f.fin, f.enCours, #messages.msg('cv.ongoing'))}">2025</span>
+    <div class="entry-title" th:text="${f.diplome}">Diplôme</div>
+    <div class="entry-sub" th:text="${fmt.join(' · ', f.etablissement, f.ville, f.mention)}">Établissement</div>
+  </div>
+</div>
+
+<div th:fragment="projets" class="section section-projets">
+  <h2 class="section-title" th:text="#{cv.section.projets}">Projets</h2>
+  <div class="entry" th:each="p : ${cv.projets}">
+    <span class="entry-date" th:if="${fmt.present(p.lien)}"><a th:href="${p.lien}" th:text="${fmt.displayUrl(p.lien)}">lien</a></span>
+    <div class="entry-title" th:text="${p.nom}">Projet</div>
+    <div class="entry-text" th:if="${fmt.present(p.description)}" th:text="${p.description}">Description</div>
+    <div class="entry-sub" th:if="${!p.technos.isEmpty()}">
+      <span class="muted" th:text="|#{cv.technos}#{cv.colon}|">Technologies : </span><span th:text="${#strings.listJoin(p.technos, ', ')}">Java</span>
+    </div>
+  </div>
+</div>
+
+<div th:fragment="competences" class="section section-competences">
+  <h2 class="section-title" th:text="#{cv.section.competences}">Compétences</h2>
+  <div class="skill-group" th:if="${!cv.competences.techniques.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.techniques}">Techniques</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.techniques}" th:text="${t}">Java</span></div>
+  </div>
+  <div class="skill-group" th:if="${!cv.competences.outils.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.outils}">Outils</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.outils}" th:text="${t}">Git</span></div>
+  </div>
+  <div class="skill-group" th:if="${!cv.competences.savoirEtre.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.savoirEtre}">Savoir-être</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.savoirEtre}" th:text="${t}">Rigueur</span></div>
+  </div>
+</div>
+
+<div th:fragment="langues" class="section section-langues">
+  <h2 class="section-title" th:text="#{cv.section.langues}">Langues</h2>
+  <div class="lang-row" th:each="l : ${cv.langues}">
+    <span class="entry-title" th:text="${l.langue}">Anglais</span>
+    <span class="muted" th:if="${fmt.present(l.niveau)}" th:text="|— ${#messages.msg('cv.level.' + l.niveau)}|">— C1</span>
+  </div>
+</div>
+
+<div th:fragment="certifications" class="section section-certifications">
+  <h2 class="section-title" th:text="#{cv.section.certifications}">Certifications</h2>
+  <div class="entry" th:each="c : ${cv.certifications}">
+    <span class="entry-date" th:text="${fmt.month(c.date)}">2025</span>
+    <div class="entry-title" th:text="${c.nom}">Certification</div>
+    <div class="entry-sub" th:if="${fmt.present(c.organisme)}" th:text="${c.organisme}">Organisme</div>
+  </div>
+</div>
+
+<div th:fragment="centresInteret" class="section section-centresInteret">
+  <h2 class="section-title" th:text="#{cv.section.centresInteret}">Centres d'intérêt</h2>
+  <div class="skill-items"><span class="tag" th:each="i : ${cv.centresInteret}" th:text="${i}">Basket</span></div>
+</div>
+
+<!-- Liens (LinkedIn, GitHub…) : libelle + URL lisible, cliquables dans le PDF. -->
+<th:block th:fragment="links">
+  <span class="link" th:each="l : ${cv.identite.liens}">
+    <a th:href="${l.url}"><span class="link-type" th:text="|${#messages.msg('cv.link.' + l.type)}#{cv.colon}|">LinkedIn : </span><span th:text="${fmt.displayUrl(l.url)}">linkedin.com/in/…</span></a>
+  </span>
+</th:block>
+
+</body>
+</html>
