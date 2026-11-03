@@ -161,6 +161,7 @@ public enum MessageKey {
     CV_BUILDER_INVALID_TEMPLATE("cv-builder-invalid-template", "Modèle de CV inconnu", "Unknown CV template"),
     CV_BUILDER_INVALID_ACCENT_COLOR("cv-builder-invalid-accent-color", "Couleur d'accent non proposée", "Accent color not available"),
     CV_BUILDER_INVALID_LANG("cv-builder-invalid-lang", "Langue du CV non prise en charge (fr ou en)", "CV language not supported (fr or en)"),
+    CV_BUILDER_DRAFT_NOT_FOUND("cv-builder-draft-not-found", "Cet étudiant n'a pas de brouillon dans l'assistant de CV", "This student has no draft in the CV builder"),
     CV_BUILDER_NOTHING_CHANGED("cv-builder-nothing-changed", "Ton CV n'a pas changé depuis le dernier envoi à ton conseiller", "Your CV has not changed since you last sent it to your advisor"),
     CV_BUILDER_PDF_FAILED("cv-builder-pdf-failed", "La génération du PDF a échoué, réessayez dans un instant", "PDF generation failed, please try again in a moment"),
     CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles."),

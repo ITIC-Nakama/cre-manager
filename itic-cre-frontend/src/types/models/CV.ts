@@ -7,6 +7,9 @@ export interface CVStatut {
     gainXP: number;
 }
 
+/** Origine du CV actif : dépôt d'un PDF ou génération par l'assistant. */
+export type CVSource = 'UPLOAD' | 'BUILDER';
+
 export interface CVStudentInfo {
     id: string;
     firstName: string;
@@ -24,6 +27,8 @@ export interface CVRow {
     url: string;
     studentId: string;
     student?: CVStudentInfo;
+    source?: CVSource;
+    templateCode?: string | null;
 }
 
 export interface CVPage {
@@ -57,6 +62,8 @@ export interface CVResponse {
     xpAwarded: boolean;
     statut: CVStatut;
     studentId: string;
+    source?: CVSource;
+    templateCode?: string | null;
 }
 
 export interface CVComment {

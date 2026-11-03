@@ -222,6 +222,15 @@ public class CvBuilderService {
         return CvFileNames.friendlyPdfName(identite.getNom(), identite.getPrenom());
     }
 
+    /** Conseiller / admin : brouillon enregistre d'un etudiant (lecture seule, 404 s'il n'existe pas). */
+    @Transactional(readOnly = true)
+    public CvDraftResponse getDraftOfStudent(UUID studentId) {
+        findStudent(studentId);
+        return draftRepository.findByStudentId(studentId)
+                .map(this::toResponse)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CV_BUILDER_DRAFT_NOT_FOUND));
+    }
+
     /** Copie le contenu et les options de la requete (deja validee) dans le brouillon. */
     void applyRequest(CvDraft draft, CvDraftRequest request) {
         draft.setData(request.getData());

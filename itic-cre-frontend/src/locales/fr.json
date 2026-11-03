@@ -1594,7 +1594,8 @@
         "delete_comment": "Supprimer ce commentaire",
         "add_comment": "Ajouter un commentaire",
         "comment_placeholder": "Rédiger un conseil ou une demande de correction...",
-        "send_comment": "Envoyer le commentaire"
+        "send_comment": "Envoyer le commentaire",
+        "source": "Origine"
       },
       "filter_all_statuts": "Tous les statuts",
       "table": {
@@ -1609,6 +1610,11 @@
       "search_placeholder": "Rechercher un étudiant ou un CV...",
       "actions": {
         "review": "Examiner"
+      },
+      "source": {
+        "builder": "Assistant",
+        "builderTitle": "Généré avec l’assistant — modèle {{template}}",
+        "builderTitleNoTemplate": "Généré avec l’assistant"
       }
     },
     "promotions": {
@@ -1979,7 +1985,8 @@
       "viewBtn": "Voir mon CV",
       "replaceBtn": "Remplacer mon CV",
       "cancelReplaceBtn": "Annuler le remplacement",
-      "fallbackName": "Mon CV.pdf"
+      "fallbackName": "Mon CV.pdf",
+      "editInBuilderBtn": "Modifier dans l’assistant"
     },
     "comments": {
       "title": "Retours du conseiller",
@@ -2004,6 +2011,16 @@
       "title": "Impossible de charger votre CV",
       "desc": "Une erreur réseau est survenue. Veuillez réessayer.",
       "retry": "Réessayer"
+    },
+    "start": {
+      "recommended": "Recommandé",
+      "builderTitle": "Créer mon CV avec l’assistant",
+      "builderDesc": "Un formulaire guidé, déjà prérempli avec ton compte et ta formation. Choisis un modèle, vois le résultat en direct et obtiens un PDF propre en 15 minutes.",
+      "builderCta": "Commencer",
+      "uploadTitle": "Déposer un PDF",
+      "uploadDesc": "Tu as déjà un CV à jour ? Dépose-le tel quel (PDF, 10 Mo maximum).",
+      "uploadCta": "Choisir un fichier",
+      "back": "Revenir au choix"
     }
   },
   "studentCvBuilder": {

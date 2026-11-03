@@ -5,17 +5,24 @@ import CVSheet from './components/CVSheet';
 import CVDropzone from './components/CVDropzone';
 import CVComments from './components/CVComments';
 import CVReplaceModal from './components/CVReplaceModal';
-import { AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import CVStartChoice from './components/CVStartChoice';
+import { AlertCircle, RefreshCw, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
+
+const CV_BUILDER_PATH = '/student/cv/assistant';
 
 export default function StudentCVPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: cv, isLoading: cvLoading, isError, error, refetch } = useMyCV();
   const { data: comments = [] } = useMyComments();
   const uploadMutation = useUploadMyCV();
 
+  // Sans CV : choix entre l'assistant et le dépôt d'un PDF (le dépôt affiche la zone habituelle).
+  const [uploadChosen, setUploadChosen] = useState(false);
   const [isReplaceOpen, setIsReplaceOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
@@ -135,9 +142,22 @@ export default function StudentCVPage() {
 
       {/* Grille de contenu principal */}
       {!cv ? (
-        /* État A : Aucun CV encore téléversé */
-        <div className="max-w-2xl mx-auto w-full mt-4">
-          <CVDropzone onFileSelect={handleUpload} isUploading={uploadMutation.isPending} />
+        /* État A : Aucun CV encore téléversé — assistant (recommandé) ou dépôt d'un PDF */
+        <div className="max-w-3xl mx-auto w-full mt-4 flex flex-col gap-4">
+          {uploadChosen ? (
+            <>
+              <button
+                onClick={() => setUploadChosen(false)}
+                className="self-start inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {t('studentCv.start.back', 'Revenir au choix')}
+              </button>
+              <CVDropzone onFileSelect={handleUpload} isUploading={uploadMutation.isPending} />
+            </>
+          ) : (
+            <CVStartChoice onCreateWithBuilder={() => navigate(CV_BUILDER_PATH)} onChooseUpload={() => setUploadChosen(true)} />
+          )}
         </div>
       ) : (
         /* État B : CV téléversé, mise en page sur 2 colonnes */
@@ -149,6 +169,7 @@ export default function StudentCVPage() {
               onReplaceToggle={() => setIsReplaceOpen(!isReplaceOpen)}
               isReplaceOpen={isReplaceOpen}
               isUploading={uploadMutation.isPending}
+              onEditInBuilder={() => navigate(CV_BUILDER_PATH)}
             />
 
             {isReplaceOpen && (

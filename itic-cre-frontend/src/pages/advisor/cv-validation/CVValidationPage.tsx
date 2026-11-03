@@ -17,6 +17,7 @@ import { useAllCVsInfinite, useCVStatuts, useCVStats } from '../../../hooks/useC
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
+import CVSourceBadge from '../../../components/shared/CVSourceBadge';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -154,9 +155,14 @@ export default function CVValidationPage() {
         }),
         col.accessor('statut', {
             header: t('dashboard.cv.table.status', 'Statut'),
-            cell: ({ getValue }) => {
+            cell: ({ getValue, row }) => {
                 const s = getValue();
-                return <StatutBadge nom={s.nom} couleur={s.couleur} />;
+                return (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <StatutBadge nom={s.nom} couleur={s.couleur} />
+                        <CVSourceBadge source={row.original.source} templateCode={row.original.templateCode} compact />
+                    </div>
+                );
             },
         }),
         col.accessor('uploadedAt', {

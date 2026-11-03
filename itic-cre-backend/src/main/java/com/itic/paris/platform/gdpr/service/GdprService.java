@@ -15,6 +15,7 @@ import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.model.CVCommentaire;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
+import com.itic.paris.platform.cv.repository.CvDraftRepository;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
@@ -43,6 +44,7 @@ public class GdprService {
     private final UserRepository userRepository;
     private final CVRepository cvRepository;
     private final CVCommentaireRepository cvCommentaireRepository;
+    private final CvDraftRepository cvDraftRepository;
     private final ReclamationRepository reclamationRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -73,6 +75,7 @@ public class GdprService {
                 .build();
 
         GdprDataExportDto.CvData cvData = null;
+        GdprDataExportDto.CvDraftData cvDraftData = null;
         List<GdprDataExportDto.ApplicationData> crmApplications = List.of();
         List<GdprDataExportDto.JobApplicationData> jobboardApplications = List.of();
         List<GdprDataExportDto.QuizValidationData> quizValidations = List.of();
@@ -98,6 +101,19 @@ public class GdprService {
                         .commentes(comments.stream().map(CVCommentaire::getContenu).collect(Collectors.toList()))
                         .build();
             }
+
+            // Brouillon de l'assistant de CV
+            cvDraftData = cvDraftRepository.findByStudentId(student.getId())
+                    .map(draft -> GdprDataExportDto.CvDraftData.builder()
+                            .templateCode(draft.getTemplateCode().name())
+                            .accentColor(draft.getAccentColor())
+                            .cvLang(draft.getCvLang())
+                            .createdAt(draft.getCreatedAt())
+                            .updatedAt(draft.getUpdatedAt())
+                            .lastSubmittedAt(draft.getLastSubmittedAt())
+                            .content(draft.getData())
+                            .build())
+                    .orElse(null);
 
             // CRM Applications
             List<Application> apps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
@@ -161,6 +177,7 @@ public class GdprService {
         return GdprDataExportDto.builder()
                 .userProfile(userProfile)
                 .cv(cvData)
+                .cvDraft(cvDraftData)
                 .crmApplications(crmApplications)
                 .jobboardApplications(jobboardApplications)
                 .quizValidations(quizValidations)
@@ -239,6 +256,8 @@ public class GdprService {
                 cvCommentaireRepository.deleteByCvId(cv.getId());
                 cvRepository.delete(cv);
             }
+            // Le brouillon de l'assistant contient tout le CV en clair : supprime, pas anonymise.
+            cvDraftRepository.deleteByStudentId(student.getId());
 
             List<Application> apps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
             for (Application app : apps) {

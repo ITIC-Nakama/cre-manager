@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
+import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Promotion;
+import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.auth.model.Role;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.dtos.CustomUserDetails;
@@ -99,6 +102,9 @@ public class CvBuilderIntegrationTest {
 
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private CVRepository cvRepository;
@@ -517,6 +523,69 @@ public class CvBuilderIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    // ─── 9. Isolement entre etudiants, lecture conseiller ───────────────────
+
+    @Test
+    public void draft_ShouldOnlyBeReachableByItsOwnerAndStaff() throws Exception {
+        ObjectNode body = draftBody(null);
+        ((ObjectNode) body.get("data")).put("accroche", "Accroche privée de l'étudiante A");
+        saveDraft(body);
+
+        Student other = createStudent("builder.other@itic.fr", "Bastien", "Martin");
+        String otherToken = tokenFor(other);
+
+        // L'autre etudiant ne voit que son propre brouillon (prerempli a son nom)...
+        mockMvc.perform(get("/cv/builder/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + otherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.saved").value(false))
+                .andExpect(jsonPath("$.data.data.identite.prenom").value("Bastien"))
+                .andExpect(jsonPath("$.data.data.accroche").value(""));
+        // ...n'ecrit que le sien...
+        mockMvc.perform(put("/cv/builder/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + otherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(draftBody(null).toString()))
+                .andExpect(status().isOk());
+        assertThat(cvDraftRepository.findByStudentId(student.getId()).orElseThrow().getData().getAccroche())
+                .isEqualTo("Accroche privée de l'étudiante A");
+        // ...et ne peut pas passer par la route conseiller.
+        mockMvc.perform(get("/cv/student/" + student.getId() + "/builder")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + otherToken))
+                .andExpect(status().isForbidden());
+
+        // Le conseiller lit le brouillon, sans pouvoir utiliser les routes etudiant.
+        String advisorToken = tokenFor(createAdvisor());
+        mockMvc.perform(get("/cv/student/" + student.getId() + "/builder")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.data.accroche").value("Accroche privée de l'étudiante A"));
+        mockMvc.perform(put("/cv/builder/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(draftBody(null).toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    // ─── 10. RGPD ───────────────────────────────────────────────────────────
+
+    @Test
+    public void gdpr_ExportShouldIncludeDraftAndAnonymizationShouldDeleteIt() throws Exception {
+        ObjectNode body = draftBody(null);
+        ((ObjectNode) body.get("data")).put("accroche", "Mon accroche");
+        saveDraft(body);
+
+        mockMvc.perform(get("/gdpr/export").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.cvDraft.templateCode").value("CLASSIQUE"))
+                .andExpect(jsonPath("$.data.cvDraft.content.accroche").value("Mon accroche"));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/gdpr/delete-account")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk());
+
+        assertThat(cvDraftRepository.findByStudentId(student.getId())).isEmpty();
+    }
+
     private ObjectNode fullCvBody(Long version, String template) {
         CvDraftData data = CvSampleFixtures.fullCv();
         // Ids fixes : un meme contenu doit produire la meme empreinte d'un envoi a l'autre.
@@ -594,7 +663,20 @@ public class CvBuilderIntegrationTest {
         return studentRepository.save(s);
     }
 
-    private String tokenFor(Student s) {
+    private Advisor createAdvisor() {
+        Advisor advisor = new Advisor();
+        advisor.setEmail("builder.advisor@itic.fr");
+        advisor.setFirstName("Claire");
+        advisor.setLastName("Conseil");
+        advisor.setPassword("Password123!");
+        advisor.setEmailVerified(true);
+        advisor.setMustChangePassword(false);
+        advisor.setActive(true);
+        advisor.setRole(roleRepository.findByName(RoleEnum.ADVISOR));
+        return userRepository.save(advisor);
+    }
+
+    private String tokenFor(User s) {
         CustomUserDetails details = CustomUserDetails.builder()
                 .id(s.getId())
                 .email(s.getEmail())

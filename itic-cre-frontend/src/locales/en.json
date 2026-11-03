@@ -1594,7 +1594,8 @@
         "delete_comment": "Delete comment",
         "add_comment": "Add a comment",
         "comment_placeholder": "Write advice or correction request...",
-        "send_comment": "Send comment"
+        "send_comment": "Send comment",
+        "source": "Origin"
       },
       "filter_all_statuts": "All statuses",
       "table": {
@@ -1609,6 +1610,11 @@
       "search_placeholder": "Search student or CV...",
       "actions": {
         "review": "Review"
+      },
+      "source": {
+        "builder": "Builder",
+        "builderTitle": "Generated with the builder — {{template}} template",
+        "builderTitleNoTemplate": "Generated with the builder"
       }
     },
     "promotions": {
@@ -1979,7 +1985,8 @@
       "viewBtn": "View my CV",
       "replaceBtn": "Replace my CV",
       "cancelReplaceBtn": "Cancel replacement",
-      "fallbackName": "My CV.pdf"
+      "fallbackName": "My CV.pdf",
+      "editInBuilderBtn": "Edit in the builder"
     },
     "comments": {
       "title": "Advisor feedback",
@@ -2004,6 +2011,16 @@
       "title": "Unable to load your CV",
       "desc": "A network error occurred. Please try again.",
       "retry": "Retry"
+    },
+    "start": {
+      "recommended": "Recommended",
+      "builderTitle": "Create my CV with the builder",
+      "builderDesc": "A guided form, already pre-filled with your account and programme. Pick a template, see the result live and get a clean PDF in 15 minutes.",
+      "builderCta": "Get started",
+      "uploadTitle": "Upload a PDF",
+      "uploadDesc": "Already have an up-to-date CV? Upload it as is (PDF, 10 MB max).",
+      "uploadCta": "Choose a file",
+      "back": "Back to the choice"
     }
   },
   "studentCvBuilder": {

@@ -295,6 +295,8 @@ public class CVService {
         response.put("nomFichier", buildFriendlyFileName(cv.getStudent()));
         response.put("studentId", cv.getStudent().getId());
         response.put("xpAwarded", cv.getXpAwarded());
+        response.put("source", cv.getSource());
+        response.put("templateCode", cv.getTemplateCode());
 
         // Inclure les informations de l'étudiant pour éviter une seconde requête
         Map<String, Object> studentMap = new HashMap<>();
