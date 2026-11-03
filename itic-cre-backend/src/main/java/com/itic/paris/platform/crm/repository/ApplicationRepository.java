@@ -55,6 +55,9 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID>,
 
     boolean existsByStudentId(UUID studentId);
 
+    /** Candidatures au contrat valide par un conseiller — prerempli des experiences de l'assistant de CV. */
+    List<Application> findAllByStudentIdAndContractVerifiedTrueOrderByStartDateDesc(UUID studentId);
+
     long countByStudentId(UUID studentId);
 
     long countByStudentIdIn(List<UUID> studentIds);
