@@ -15,9 +15,18 @@ import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
+import com.itic.paris.platform.audit.model.AuditAction;
+import com.itic.paris.platform.audit.repository.AuditLogRepository;
+import com.itic.paris.platform.cv.model.CV;
+import com.itic.paris.platform.cv.model.CVStatut;
+import com.itic.paris.platform.cv.model.CvDraft;
+import com.itic.paris.platform.cv.model.CvSource;
+import com.itic.paris.platform.cv.repository.CVRepository;
+import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.cv.repository.CvDraftRepository;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,11 +47,19 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -83,6 +100,15 @@ public class CvBuilderIntegrationTest {
     @Autowired
     private JWTAuthProvider jwtAuthProvider;
 
+    @Autowired
+    private CVRepository cvRepository;
+
+    @Autowired
+    private CVStatutRepository cvStatutRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
     @MockitoBean
     private ICloudStorage cloudStorage;
 
@@ -93,7 +119,9 @@ public class CvBuilderIntegrationTest {
     private String token;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
+        when(cloudStorage.uploadFile(any(InputStream.class), anyString(), anyString(), anyLong())).thenReturn(true);
+        when(cloudStorage.getFile(anyString())).thenReturn("https://mock-url.com/cv.pdf");
         student = createStudent("builder.student@itic.fr", "Amina", "Diallo");
         token = tokenFor(student);
     }
@@ -341,6 +369,131 @@ public class CvBuilderIntegrationTest {
                 assertThat(new PDFTextStripper().getText(document)).contains("Capgemini", "Amina Diallo");
             }
         }
+    }
+
+    // ─── 6. Envoi sans CV existant ──────────────────────────────────────────
+
+    @Test
+    public void submit_WithoutExistingCv_ShouldCreateBuilderCvInFirstStatus() throws Exception {
+        CVStatut firstStatut = cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().get(0);
+
+        mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(null, "MODERNE").toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.statut.id").value(firstStatut.getId().toString()))
+                .andExpect(jsonPath("$.data.pageCount").value(1))
+                .andExpect(jsonPath("$.data.draftVersion").isNumber());
+
+        CV cv = cvRepository.findByStudentId(student.getId()).orElseThrow();
+        assertThat(cv.getSource()).isEqualTo(CvSource.BUILDER);
+        assertThat(cv.getTemplateCode()).isEqualTo("MODERNE");
+        assertThat(cv.getStatut().getId()).isEqualTo(firstStatut.getId());
+        assertThat(cv.getXpAwarded()).isFalse();
+        assertThat(cv.getFilePath()).matches("cvs/" + student.getId() + "-\\d+\\.pdf");
+
+        ArgumentCaptor<InputStream> content = ArgumentCaptor.forClass(InputStream.class);
+        verify(cloudStorage).uploadFile(content.capture(), eq(cv.getFilePath()), eq("application/pdf"), anyLong());
+        assertThat(new String(content.getValue().readNBytes(5), StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+
+        assertThat(auditLogRepository.findAll())
+                .anyMatch(log -> log.getAction() == AuditAction.CV_GENERATED && cv.getId().equals(log.getTargetId()));
+        CvDraft draft = cvDraftRepository.findByStudentId(student.getId()).orElseThrow();
+        assertThat(draft.getLastSubmittedHash()).hasSize(64);
+        assertThat(draft.getLastSubmittedAt()).isNotNull();
+    }
+
+    // ─── 7. Envoi avec un CV deja valide ────────────────────────────────────
+
+    @Test
+    public void submit_WithExistingValidatedCv_ShouldReuseRowAndResetStatusAndXp() throws Exception {
+        CVStatut valide = cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().stream()
+                .filter(st -> st.getNom().contains("Validé")).findFirst().orElseThrow();
+        String oldPath = "cvs/" + student.getId() + "-1700000000000.pdf";
+        CV existing = new CV();
+        existing.setStudent(student);
+        existing.setFilePath(oldPath);
+        existing.setStatut(valide);
+        existing.setXpAwarded(true);
+        existing = cvRepository.save(existing);
+
+        mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(null, "CLASSIQUE").toString()))
+                .andExpect(status().isOk());
+
+        CV cv = cvRepository.findByStudentId(student.getId()).orElseThrow();
+        assertThat(cv.getId()).isEqualTo(existing.getId());
+        assertThat(cv.getStatut().getId())
+                .isEqualTo(cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().get(0).getId());
+        assertThat(cv.getXpAwarded()).isFalse();
+        assertThat(cv.getSource()).isEqualTo(CvSource.BUILDER);
+        assertThat(cv.getUpdatedAt()).isNull();
+        verify(cloudStorage).deleteFile(oldPath);
+    }
+
+    @Test
+    public void submit_WhenStorageFails_ShouldKeepPreviousFile() throws Exception {
+        CV existing = new CV();
+        existing.setStudent(student);
+        existing.setFilePath("cvs/" + student.getId() + "-1700000000000.pdf");
+        existing.setStatut(cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().get(0));
+        cvRepository.save(existing);
+        when(cloudStorage.uploadFile(any(InputStream.class), anyString(), anyString(), anyLong())).thenReturn(false);
+
+        mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(null, "CLASSIQUE").toString()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.messageKey").value("cv-upload-failed"));
+
+        verify(cloudStorage, never()).deleteFile(anyString());
+    }
+
+    // ─── 8. Envoi sans changement ───────────────────────────────────────────
+
+    @Test
+    public void submit_Unchanged_ShouldBeRejectedUntilContentChanges() throws Exception {
+        MvcResult first = mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(null, "CLASSIQUE").toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+        long draftVersion = objectMapper.readTree(first.getResponse().getContentAsString())
+                .at("/data/draftVersion").asLong();
+
+        mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(draftVersion, "CLASSIQUE").toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value("cv-builder-nothing-changed"));
+
+        // Changer seulement le modele suffit : le PDF envoye au conseiller n'est plus le meme.
+        mockMvc.perform(post("/cv/builder/me/submit")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(fullCvBody(draftVersion, "MODERNE").toString()))
+                .andExpect(status().isOk());
+    }
+
+    private ObjectNode fullCvBody(Long version, String template) {
+        CvDraftData data = CvSampleFixtures.fullCv();
+        // Ids fixes : un meme contenu doit produire la meme empreinte d'un envoi a l'autre.
+        for (int i = 0; i < data.getExperiences().size(); i++) data.getExperiences().get(i).setId("exp-" + i);
+        for (int i = 0; i < data.getFormations().size(); i++) data.getFormations().get(i).setId("for-" + i);
+        for (int i = 0; i < data.getProjets().size(); i++) data.getProjets().get(i).setId("pro-" + i);
+        ObjectNode body = objectMapper.createObjectNode();
+        body.set("data", objectMapper.valueToTree(data));
+        body.put("templateCode", template);
+        if (version != null) {
+            body.put("version", version);
+        }
+        return body;
     }
 
     // ─── Outils ─────────────────────────────────────────────────────────────

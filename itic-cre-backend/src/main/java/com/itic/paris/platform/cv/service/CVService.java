@@ -14,6 +14,7 @@ import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.model.CVCommentaire;
 import com.itic.paris.platform.cv.model.CVStatut;
+import com.itic.paris.platform.cv.model.CvSource;
 import com.itic.paris.platform.cv.model.dtos.CVCommentaireCreateDto;
 import com.itic.paris.platform.cv.model.dtos.CVStatusUpdateDto;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
@@ -76,17 +77,35 @@ public class CVService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
 
+        return replaceActiveCv(student, path -> cloudStorage.uploadFile(file, path), CvSource.UPLOAD, null);
+    }
+
+    /** Ecrit le nouveau fichier au chemin donne ; renvoie false si le stockage a echoue. */
+    @FunctionalInterface
+    public interface CvFileWriter {
+        boolean write(String path) throws IOException;
+    }
+
+    /**
+     * Chemin unique de remplacement du CV actif, partage par le depot manuel et l'assistant :
+     * premier statut actif, meme ligne cvs (student_id unique), XP de validation re-gagnable,
+     * ancien fichier supprime seulement apres la reussite du nouvel envoi.
+     */
+    @Transactional
+    public Map<String, Object> replaceActiveCv(Student student, CvFileWriter writer, CvSource source, String templateCode)
+            throws IOException {
         CVStatut statutEnAttente = statutRepository.findAllByActifTrueOrderByOrdreAsc()
                 .stream().findFirst()
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_STATUT_NOT_FOUND));
 
-        CV cv = cvRepository.findByStudentId(studentId).orElse(new CV());
+        CV cv = cvRepository.findByStudentId(student.getId()).orElse(new CV());
         String previousPath = cv.getFilePath();
 
         // Le nouvel upload doit reussir avant qu'on touche a l'ancien fichier :
         // sinon un echec d'upload laisse l'etudiant sans CV du tout (ancien supprime, nouveau jamais arrive).
-        String path = "cvs/" + studentId + "-" + System.currentTimeMillis() + ".pdf";
-        boolean success = cloudStorage.uploadFile(file, path);
+        // Prefixe cvs/{studentId}- obligatoire : FileAccessFilter s'en sert pour autoriser l'etudiant en mode local.
+        String path = "cvs/" + student.getId() + "-" + System.currentTimeMillis() + ".pdf";
+        boolean success = writer.write(path);
         if (!success) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_UPLOAD_FAILED);
         }
@@ -97,6 +116,8 @@ public class CVService {
         cv.setUploadedAt(Instant.now());
         cv.setUpdatedAt(null);
         cv.setXpAwarded(false);
+        cv.setSource(source);
+        cv.setTemplateCode(templateCode);
 
         awardStatusXPIfNeeded(cv, statutEnAttente);
 
@@ -106,7 +127,12 @@ public class CVService {
             cloudStorage.deleteFile(previousPath);
         }
 
-        auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
+        if (source == CvSource.BUILDER) {
+            auditLogService.log(AuditAction.CV_GENERATED, student, saved.getId(),
+                    "CV généré avec l'assistant (modèle " + templateCode + ")");
+        } else {
+            auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
+        }
 
         return buildCVResponse(saved);
     }

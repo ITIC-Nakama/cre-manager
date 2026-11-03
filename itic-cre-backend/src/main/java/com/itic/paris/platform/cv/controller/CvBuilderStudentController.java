@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @RestController
@@ -38,6 +39,12 @@ public class CvBuilderStudentController {
     @Operation(summary = "Enregistrer son brouillon de CV (409 si la version est périmée)")
     public ResponseEntity<?> saveMyDraft(@RequestBody @Valid CvDraftRequest request) {
         return ResponseEntity.ok(cvBuilderService.saveMyDraft(SecurityContextHelper.currentUserId(), request));
+    }
+
+    @PostMapping("/submit")
+    @Operation(summary = "Envoyer son CV à son conseiller : génère le PDF et remplace le CV actif (statut « En attente »)")
+    public ResponseEntity<?> submit(@RequestBody @Valid CvDraftRequest request) throws IOException {
+        return ResponseEntity.ok(cvBuilderService.submit(SecurityContextHelper.currentUserId(), request));
     }
 
     /** byte[] et non String : le ResponseWrapperAdvice laisse passer les octets sans enveloppe JSON. */

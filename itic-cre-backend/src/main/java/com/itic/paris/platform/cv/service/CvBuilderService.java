@@ -14,13 +14,28 @@ import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftResponse;
 import com.itic.paris.platform.cv.repository.CvDraftRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.cv.model.CvSource;
+import com.itic.paris.platform.cv.model.converter.CvDraftDataConverter;
+import com.itic.paris.platform.cv.repository.CVRepository;
+import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HexFormat;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -44,6 +59,12 @@ public class CvBuilderService {
     private final ApplicationRepository applicationRepository;
     private final CvDraftValidator validator;
     private final CvRenderService renderService;
+    private final CVService cvService;
+    private final CVRepository cvRepository;
+    private final ICloudStorage cloudStorage;
+
+    @Value("${app.upload.max-cv-size-mb:10}")
+    private long maxCvSizeMb;
 
     /** PDF genere a la volee pour le telechargement (rien n'est soumis ni enregistre). */
     public record GeneratedPdf(byte[] bytes, int pageCount, String fileName) {}
@@ -78,6 +99,73 @@ public class CvBuilderService {
         CvDraft saved = draftRepository.saveAndFlush(draft);
         return toResponse(saved);
     }
+
+    /**
+     * Envoi au conseiller : enregistre le brouillon (meme controle de version que PUT), genere le PDF
+     * puis le fait entrer dans le circuit existant via CVService.replaceActiveCv (statut initial, XP re-gagnable).
+     * Refuse un envoi identique au precedent tant que le CV actif est celui de l'assistant (anti-farm d'XP).
+     */
+    @Transactional
+    public Map<String, Object> submit(UUID studentId, CvDraftRequest request) throws IOException {
+        saveMyDraft(studentId, request);
+        CvDraft draft = draftRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CV_NOT_FOUND));
+        Student student = draft.getStudent();
+
+        String fingerprint = fingerprint(draft);
+        boolean activeCvIsFromBuilder = cvRepository.findByStudentId(studentId)
+                .map(cv -> cv.getSource() == CvSource.BUILDER)
+                .orElse(false);
+        if (activeCvIsFromBuilder && fingerprint.equals(draft.getLastSubmittedHash())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_BUILDER_NOTHING_CHANGED);
+        }
+
+        CvRenderService.RenderedPdf pdf = renderService.renderPdf(student, draft.getData(), new CvRenderService.CvRenderOptions(
+                draft.getTemplateCode(), draft.getAccentColor(), draft.getCvLang()));
+        byte[] bytes = pdf.bytes();
+        // Memes garde-fous que le depot manuel, meme si le fichier vient du serveur.
+        if (!startsWithPdfSignature(bytes)) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_BUILDER_PDF_FAILED);
+        }
+        if (bytes.length > maxCvSizeMb * 1024L * 1024L) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_FILE_TOO_LARGE);
+        }
+
+        Map<String, Object> response = cvService.replaceActiveCv(student,
+                path -> cloudStorage.uploadFile(new ByteArrayInputStream(bytes), path, "application/pdf", bytes.length),
+                CvSource.BUILDER, draft.getTemplateCode().name());
+
+        draft.setLastSubmittedHash(fingerprint);
+        draft.setLastSubmittedAt(Instant.now());
+        CvDraft saved = draftRepository.saveAndFlush(draft);
+
+        Map<String, Object> result = new HashMap<>(response);
+        result.put("pageCount", pdf.pageCount());
+        // Le client reprend l'auto-sauvegarde avec cette version (sinon 409 au prochain PUT).
+        result.put("draftVersion", saved.getVersion());
+        return result;
+    }
+
+    /** SHA-256 du contenu (JSON canonique) et des options de rendu : deux envois identiques ont la meme empreinte. */
+    static String fingerprint(CvDraft draft) {
+        String material = CvDraftDataConverter.toJson(draft.getData())
+                + "|" + draft.getTemplateCode().name()
+                + "|" + draft.getAccentColor()
+                + "|" + draft.getCvLang();
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(material.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 indisponible", e);
+        }
+    }
+
+    private static boolean startsWithPdfSignature(byte[] bytes) {
+        return bytes.length >= PDF_MAGIC_BYTES.length
+                && Arrays.equals(Arrays.copyOf(bytes, PDF_MAGIC_BYTES.length), PDF_MAGIC_BYTES);
+    }
+
+    private static final byte[] PDF_MAGIC_BYTES = {0x25, 0x50, 0x44, 0x46, 0x2D};
 
     /** Apercu HTML du brouillon courant (meme non enregistre), avec le modele et la couleur choisis. */
     @Transactional(readOnly = true)
