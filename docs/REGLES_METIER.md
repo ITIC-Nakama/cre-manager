@@ -138,7 +138,7 @@ Les tâches affichées sur le tableau de bord de l'étudiant sont calculées dyn
 - **Pas de candidature (`NO_APPLICATION`)** : Ajouté s'il n'a aucune candidature enregistrée (Libellé : *"Ajouter votre première candidature"*).
 - **Relance nécessaire (`STALE_APPLICATION`)** : Ajouté pour chaque candidature stagnante (stale) dans le CRM (Libellé : *"Relancer [Nom de l'entreprise]"*). Limité aux 3 plus anciennes candidatures stagnantes.
 - **Pas de CV déposé (`NO_CV`)** : Ajouté si l'étudiant n'a pas encore téléversé son premier CV (Libellé : *"Déposer votre CV"*).
-- **CV à corriger (`CV_TO_CORRECT`)** : Ajouté si le conseiller a attribué le statut "À corriger" au CV de l'étudiant (Libellé : *"Corriger votre CV"*).
+- **CV à corriger (`CV_TO_CORRECT`)** : Ajouté si le conseiller a attribué le statut "À corriger" au CV de l'étudiant (Libellé : *"Corriger votre CV"*). Le statut est reconnu par son **code technique `A_CORRIGER`** (`cv_statuts.code`, V46), pas par son nom : l'admin peut le renommer sans casser la tâche. Le bandeau « Action requise sur votre CV » du tableau de bord suit la même règle (il s'affiche quand cette tâche est présente).
 
 Ces libellés sont traduits dynamiquement par le backend selon la langue spécifiée dans les en-têtes HTTP de la requête cliente.
 
@@ -375,7 +375,8 @@ ci-dessous).
 ## 6. CV — Dépôt et validation
 
 - **Dépôt unique & Remplacement** : Un étudiant a **un seul CV actif** (relation 1:1 `student_id` unique). Déposer un nouveau fichier remplace l'ancien. L'action affiche une modale de confirmation indiquant que l'historique et le statut actuel seront réinitialisés, effectue une suppression physique du fichier du stockage Cloud/Local, et recrée une nouvelle entité de CV au statut "En attente".
-- **Statuts par défaut** (CRUD complet par l'admin, contrairement aux statuts CRM) : **En attente** (0 XP), **Validé** (30 XP), **À corriger** (0 XP).
+- **Statuts par défaut** (CRUD complet par l'admin, contrairement aux statuts CRM) : **En attente** (0 XP), **Validé** (30 XP), **À corriger** (0 XP, code `A_CORRIGER`).
+- **Code technique** (`cv_statuts.code`, V46, unique, liste fermée `CVStatutCode`) : identifie un statut que le code doit reconnaître quel que soit son nom. Il n'est ni exposé dans le formulaire admin ni modifié par l'API : renommer le statut garde son code, un statut créé par l'admin n'en a pas. Un statut qui porte un code **ne peut pas être supprimé** (409 `cv-statut-system-not-deletable`) : le recréer perdrait son code. Il reste renommable et désactivable. À la migration, `A_CORRIGER` est posé sur le statut dont le nom contient « corriger » (le premier actif par ordre s'il y en a plusieurs).
 - **CV à examiner** (tuile « CVs à examiner » du tableau de bord, badge de la sidebar, `GET /dashboard/cv/pending-count`) : nombre de CV au statut **« En attente »**, c'est-à-dire le statut d'arrivée d'un CV déposé ou envoyé (premier statut actif par `ordre`, même règle que le remplacement). Un CV « Validé » ou « À corriger » n'est pas compté. Limité au portefeuille du conseiller, vue globale pour un admin.
 - **Gain de points XP** : N'importe quel statut avec `gainXP > 0` attribue l'XP (pas seulement "Validé"), que ce soit atteint via le dépôt initial ou un changement manuel par un conseiller.
 - **Sécurité anti-double gain** : Un flag `xpAwarded` empêche de regagner de l'XP en rebasculant entre statuts pour le **même** fichier déposé. Ce flag se réinitialise à `false` à chaque nouveau dépôt de CV, permettant ainsi à un étudiant de remporter de l'XP de validation sur une nouvelle version corrigée.

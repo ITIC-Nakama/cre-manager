@@ -143,6 +143,7 @@ public enum MessageKey {
     CV_STATUS_UPDATED("cv-status-updated", "Statut du CV mis à jour", "CV status updated"),
     CV_STATUT_NOT_FOUND("cv-statut-not-found", "Statut CV introuvable", "CV status not found"),
     CV_STATUT_NAME_ALREADY_EXISTS("cv-statut-name-already-exists", "Un statut CV avec ce nom existe déjà", "A CV status with this name already exists"),
+    CV_STATUT_SYSTEM_NOT_DELETABLE("cv-statut-system-not-deletable", "Ce statut est reconnu par l'application : il ne peut pas être supprimé, seulement renommé ou désactivé", "This status is used by the application: it cannot be deleted, only renamed or deactivated"),
     CV_COMMENT_NOT_FOUND("cv-comment-not-found", "Commentaire de CV introuvable", "CV comment not found"),
     // Assistant de creation de CV (docs/CV_BUILDER_SPEC.md)
     CV_BUILDER_TOO_MANY_EXPERIENCES("cv-builder-too-many-experiences", "15 expériences au maximum", "15 experiences at most"),

@@ -220,6 +220,40 @@ public class StudentDashboardIntegrationTest {
     }
 
     @Test
+    public void testCvToCorrectTaskRecognizesStatusByCodeNotByName() {
+        CVStatut aCorriger = cvStatutRepository.findAll().stream()
+                .filter(s -> s.getNom().equals("À corriger"))
+                .findFirst().orElseThrow();
+        CV cv = new CV();
+        cv.setStudent(studentA);
+        cv.setFilePath("cvs/mock.pdf");
+        cv.setStatut(aCorriger);
+        cvRepository.save(cv);
+
+        // Given: l'admin renomme le statut « À corriger » (le nom ne contient plus « corriger »)
+        aCorriger.setNom("Corrections demandées");
+        cvStatutRepository.save(aCorriger);
+
+        // Then: la tache est toujours proposee
+        assertThat(currentTaskTypes()).contains("CV_TO_CORRECT");
+
+        // Given: un statut cree par l'admin dont le nom contient « corriger », mais sans code
+        CVStatut lookalike = new CVStatut();
+        lookalike.setNom("Rien à corriger");
+        lookalike.setOrdre(4);
+        lookalike.setCouleur("#10B981");
+        cv.setStatut(cvStatutRepository.save(lookalike));
+        cvRepository.save(cv);
+
+        // Then: pas de tache « Corriger votre CV »
+        assertThat(currentTaskTypes()).doesNotContain("CV_TO_CORRECT");
+    }
+
+    private List<String> currentTaskTypes() {
+        return studentDashboardService.getSummary().getAFaireAujourdhui().stream().map(TaskDTO::getType).toList();
+    }
+
+    @Test
     public void testGradeProgressionPercentage() {
         // Given: Student A has 150 XP.
         // Intermédiaire level is 100 XP, next is Avancé at 300 XP.

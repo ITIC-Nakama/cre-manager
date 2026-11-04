@@ -13,6 +13,7 @@ import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.crm.repository.ApplicationStatusRepository;
 import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.model.CVCommentaire;
+import com.itic.paris.platform.cv.model.CVStatutCode;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
@@ -121,9 +122,7 @@ public class TestCvBuilderSeeder implements ApplicationRunner {
         cvBuilderService.submit(student.getId(), request);
 
         CV cv = cvRepository.findByStudentId(student.getId()).orElseThrow();
-        cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().stream()
-                .filter(s -> s.getNom().toLowerCase().contains("corriger"))
-                .findFirst()
+        cvStatutRepository.findByCode(CVStatutCode.A_CORRIGER)
                 .ifPresent(statut -> {
                     cv.setStatut(statut);
                     cv.setUpdatedAt(Instant.now());

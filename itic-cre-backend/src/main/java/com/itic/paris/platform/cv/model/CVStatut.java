@@ -31,4 +31,9 @@ public class CVStatut {
 
     @Column(name = "gain_xp", nullable = false)
     private Integer gainXP = 0;
+
+    /** Statut reconnu par le code (voir CVStatutCode) ; null pour un statut cree par l'admin, jamais modifie par l'API. */
+    @Enumerated(EnumType.STRING)
+    @Column(unique = true, length = 30)
+    private CVStatutCode code;
 }

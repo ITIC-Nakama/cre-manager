@@ -60,6 +60,10 @@ public class CVStatutService {
 
     public void delete(UUID id) {
         CVStatut statut = findById(id);
+        // Un statut avec code (ex. A_CORRIGER) est reconnu par le code : le supprimer puis le recreer perdrait ce code.
+        if (statut.getCode() != null) {
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.CV_STATUT_SYSTEM_NOT_DELETABLE);
+        }
         statutRepository.delete(statut);
     }
 }

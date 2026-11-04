@@ -195,10 +195,11 @@ Seeder de test (`@Order(20+)`, profil dev uniquement) : un étudiant « démo »
 - **Compteur « CV à relire »** (`CVRepository.countNotInFinalStatut`) : il compte `ordre < MAX(ordre)`. Avec « À corriger » en ordre 3, le badge compte *En attente + Validé* au lieu de *En attente* (ou *En attente + À corriger*).
   → **Corrigé le 4 novembre 2026** : le compteur ne compte plus que les CV « En attente », le statut d'arrivée d'un dépôt (`CVStatutRepository.findFirstByActifTrueOrderByOrdreAsc`, désormais partagé avec `CVService.replaceActiveCv`). Test : `DashboardControllerIntegrationTest.cvsToReviewCountsOnlyPendingCvs`.
 - **Tâche « Corriger votre CV »** détectée par `nom.contains("corriger")` : fragile si un admin renomme le statut.
+  → **Corrigé le 4 novembre 2026** : colonne `cv_statuts.code` (V46, `CVStatutCode.A_CORRIGER`, remplie à la migration à partir de l'ancienne règle). La tâche, le bandeau du tableau de bord étudiant et le seeder de démo reconnaissent le statut par ce code. Un statut qui porte un code ne peut plus être supprimé (409), sinon le recréer perdrait le code. Tests : `StudentDashboardIntegrationTest.testCvToCorrectTaskRecognizesStatusByCodeNotByName`, `CVStatutIntegrationTest`.
 - **Règle §6 vs code** : la doc dit que l'historique est réinitialisé au remplacement, alors que le code garde les commentaires (et l'interface l'annonce). Choisir et aligner la doc.
 - **Taille maximale** : `REGLES_METIER` §7 annonce 512 Mo, la configuration est à 20 Mo.
 
-Ces écarts n'ont **pas** été corrigés pendant l'implémentation (branche `feat/cv-builder`) : ils attendent la décision de Jules.
+Ces écarts n'ont **pas** été corrigés pendant l'implémentation (branche `feat/cv-builder`). Les deux premiers ont été corrigés ensuite, le 4 novembre 2026, sur la même branche ; les deux derniers attendent la décision de Jules.
 
 ## 14. Mise en œuvre (3 novembre 2026, branche `feat/cv-builder`)
 
