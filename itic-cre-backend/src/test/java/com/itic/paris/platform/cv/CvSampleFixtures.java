@@ -94,6 +94,140 @@ final class CvSampleFixtures {
         return data;
     }
 
+    /** CV fictif plus fourni (reconversion, 5 experiences) : tient sur 2 pages dans les deux modeles. */
+    static CvDraftData longCv() {
+        CvDraftData data = new CvDraftData();
+        CvDraftData.Identite id = data.getIdentite();
+        id.setPrenom("Sarah");
+        id.setNom("Lemoine");
+        id.setTitre("Développeuse back-end Java en alternance, Mastère");
+        id.setEmail("sarah.lemoine@example.com");
+        id.setTelephone("06 98 76 54 32");
+        id.setVille("Montreuil");
+        id.setMobilite("Île-de-France, télétravail partiel");
+        id.setLiens(new ArrayList<>(List.of(
+                link("LINKEDIN", "https://www.linkedin.com/in/sarah-lemoine-demo"),
+                link("GITHUB", "https://github.com/sarah-lemoine-demo"),
+                link("PORTFOLIO", "https://portfolio.example.com/sarah-lemoine"))));
+        data.setAccroche("Après quatre ans dans la logistique, je me suis reconvertie dans le développement logiciel. "
+                + "En Mastère à ITIC Paris et en alternance dans une banque, je conçois des services Java fiables "
+                + "et je fais le lien entre les besoins métier et la technique. Je cherche un CDI de développeuse "
+                + "back-end à partir de septembre 2027.");
+
+        data.setExperiences(new ArrayList<>(List.of(
+                experience("Développeuse back-end Java", "Banque Hexagone", "La Défense", "Alternance", "2025-09", null,
+                        "Conception de microservices Spring Boot pour le parcours d'ouverture de compte en ligne",
+                        "Migration de traitements de nuit vers Spring Batch : durée d'exécution divisée par trois",
+                        "Rédaction des contrats d'API OpenAPI partagés avec les équipes mobiles iOS et Android",
+                        "Revue de code et accompagnement de deux alternants arrivés en cours d'année",
+                        "Suivi des services en production avec Grafana et alertes sur les temps de réponse"),
+                experience("Développeuse web", "Agence Kalia Web", "Lyon", "Stage", "2024-04", "2024-08",
+                        "Développement d'un espace client en React et TypeScript pour un réseau de 40 magasins",
+                        "Création d'une API Node.js de prise de rendez-vous reliée à l'agenda des conseillers",
+                        "Écriture de tests de bout en bout avec Playwright sur les parcours critiques",
+                        "Amélioration de l'accessibilité (RGAA) : score Lighthouse passé de 68 à 95"),
+                experience("Chargée de projet logistique", "Nexa Logistique", "Gennevilliers", "CDI", "2020-09", "2023-12",
+                        "Coordination d'une équipe de 12 préparateurs de commandes sur deux quais d'expédition",
+                        "Création d'un outil de suivi des expéditions en Excel et VBA, mon premier contact avec le code",
+                        "Baisse de 18 % des erreurs de préparation grâce à un contrôle par lecture de codes-barres",
+                        "Formation des intérimaires aux procédures de sécurité et au logiciel de gestion d'entrepôt"),
+                experience("Assistante logistique", "Nexa Logistique", "Gennevilliers", "CDD", "2019-01", "2020-08",
+                        "Planification des tournées de livraison pour une flotte de 25 véhicules",
+                        "Gestion des litiges transporteurs et suivi des indicateurs de qualité de service",
+                        "Mise à jour quotidienne des stocks dans l'ERP et inventaires tournants mensuels"),
+                experience("Équipière polyvalente", "Brasserie du Canal", "Paris 10e", "Job étudiant", "2016-09", "2018-12",
+                        "Service en salle et encaissement les week-ends pendant mes études",
+                        "Accueil et formation des nouveaux équipiers aux règles d'hygiène"))));
+
+        data.setFormations(new ArrayList<>(List.of(
+                formation("Mastère Expert en développement logiciel", "ITIC Paris", "Paris", "2025-09", null, ""),
+                formation("Bachelor Développement web et mobile (reconversion)", "ITIC Paris", "Paris", "2024-01", "2025-07",
+                        "Mention très bien"),
+                formation("BTS Gestion des transports et logistique associée", "Lycée Jean-Baptiste Say", "Paris",
+                        "2017-09", "2019-07", ""))));
+
+        data.setProjets(new ArrayList<>(List.of(
+                projet("API de réservation de salles de réunion", "https://github.com/sarah-lemoine-demo/salles",
+                        "API REST sécurisée par JWT, gestion des conflits de créneaux et rappels par e-mail.",
+                        "Java", "Spring Boot", "PostgreSQL", "Docker"),
+                projet("Tableau de bord des émissions de CO2 des livraisons", "",
+                        "Calcul des émissions par tournée à partir des données de transport, graphiques par semaine.",
+                        "React", "TypeScript", "Python"),
+                projet("Bot d'entraide pour la promotion", "https://github.com/sarah-lemoine-demo/entraide-bot",
+                        "Bot Discord qui oriente les questions vers les bons canaux et rappelle les rendus.",
+                        "Node.js", "Discord.js"))));
+
+        data.getCompetences().setTechniques(new ArrayList<>(List.of("Java 21", "Spring Boot", "Spring Batch",
+                "React", "TypeScript", "PostgreSQL", "Kafka", "REST / OpenAPI", "JUnit et Mockito")));
+        data.getCompetences().setOutils(new ArrayList<>(List.of("Git", "Docker", "Kubernetes", "Grafana",
+                "IntelliJ IDEA", "Jira")));
+        data.getCompetences().setSavoirEtre(new ArrayList<>(List.of("Organisation", "Pédagogie",
+                "Gestion des priorités", "Esprit d'équipe")));
+
+        data.setLangues(new ArrayList<>(List.of(langue("Français", "NATIF"), langue("Anglais", "C1"),
+                langue("Espagnol", "B1"))));
+
+        data.setCertifications(new ArrayList<>(List.of(
+                certification("AWS Certified Cloud Practitioner", "Amazon Web Services", "2025-06"),
+                certification("Professional Scrum Developer I", "Scrum.org", "2025-02"),
+                certification("TOEIC : 905 points", "ETS Global", "2024-11"))));
+
+        data.setCentresInteret(new ArrayList<>(List.of("Course à pied (semi-marathon)",
+                "Bénévolat : aide aux devoirs en informatique", "Jeux de société", "Cuisine du monde")));
+        return data;
+    }
+
+    private static CvDraftData.Experience experience(String poste, String entreprise, String ville, String type,
+                                                     String debut, String fin, String... points) {
+        CvDraftData.Experience e = new CvDraftData.Experience();
+        e.setPoste(poste);
+        e.setEntreprise(entreprise);
+        e.setVille(ville);
+        e.setTypeContrat(type);
+        e.setDebut(debut);
+        e.setFin(fin);
+        e.setEnCours(fin == null);
+        e.setPoints(new ArrayList<>(List.of(points)));
+        return e;
+    }
+
+    private static CvDraftData.Formation formation(String diplome, String etablissement, String ville,
+                                                   String debut, String fin, String mention) {
+        CvDraftData.Formation f = new CvDraftData.Formation();
+        f.setDiplome(diplome);
+        f.setEtablissement(etablissement);
+        f.setVille(ville);
+        f.setDebut(debut);
+        f.setFin(fin == null ? "" : fin);
+        f.setEnCours(fin == null);
+        f.setMention(mention);
+        return f;
+    }
+
+    private static CvDraftData.Projet projet(String nom, String lien, String description, String... technos) {
+        CvDraftData.Projet p = new CvDraftData.Projet();
+        p.setNom(nom);
+        p.setLien(lien);
+        p.setDescription(description);
+        p.setTechnos(new ArrayList<>(List.of(technos)));
+        return p;
+    }
+
+    private static CvDraftData.Langue langue(String langue, String niveau) {
+        CvDraftData.Langue l = new CvDraftData.Langue();
+        l.setLangue(langue);
+        l.setNiveau(niveau);
+        return l;
+    }
+
+    private static CvDraftData.Certification certification(String nom, String organisme, String date) {
+        CvDraftData.Certification c = new CvDraftData.Certification();
+        c.setNom(nom);
+        c.setOrganisme(organisme);
+        c.setDate(date);
+        return c;
+    }
+
     private static CvDraftData.Lien link(String type, String url) {
         CvDraftData.Lien lien = new CvDraftData.Lien();
         lien.setType(type);
