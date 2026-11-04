@@ -2,7 +2,9 @@ package com.itic.paris.platform.dashboard.service;
 
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.repository.CVRepository;
+import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.gamification.model.Grade;
 import com.itic.paris.platform.gamification.repository.GradeRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
@@ -24,6 +26,7 @@ public class DashboardOverviewService {
     private final StudentRepository studentRepository;
     private final ApplicationRepository applicationRepository;
     private final CVRepository cvRepository;
+    private final CVStatutRepository cvStatutRepository;
     private final GradeRepository gradeRepository;
     private final AppConfigurationService appConfigurationService;
     private final GradeDistributionService gradeDistributionService;
@@ -96,7 +99,7 @@ public class DashboardOverviewService {
         overview.put("studentsUnderContractCount", studentsUnderContractCount);
         overview.put("studentsNeedingContractVerificationCount", studentsNeedingContractVerificationCount);
         overview.put("recentApplications7d", recentApplications7d);
-        overview.put("cvsToReview", cvRepository.countNotInFinalStatut());
+        overview.put("cvsToReview", countCvsToReview(null));
         overview.put("recentApplications30d", recentApplications30d);
         overview.put("applicationsByStatus", appsByStatus);
         overview.put("cvsByStatut", cvsByStatut);
@@ -174,7 +177,7 @@ public class DashboardOverviewService {
         overview.put("studentsUnderContractCount", studentsUnderContractCount);
         overview.put("studentsNeedingContractVerificationCount", studentsNeedingContractVerificationCount);
         overview.put("recentApplications7d", recentApplications7d);
-        overview.put("cvsToReview", cvRepository.countNotInFinalStatutForStudents(studentIds));
+        overview.put("cvsToReview", countCvsToReview(studentIds));
         overview.put("recentApplications30d", recentApplications30d);
         overview.put("applicationsByStatus", appsByStatus);
         overview.put("cvsByStatut", cvsByStatut);
@@ -186,9 +189,23 @@ public class DashboardOverviewService {
 
     /** Nombre de CVs en attente de validation — pour badge sidebar conseiller. advisorId null = vue globale (admin). */
     public long getCvsPendingCount(UUID advisorId) {
-        if (advisorId == null) return cvRepository.countNotInFinalStatut();
+        if (advisorId == null) return countCvsToReview(null);
         List<UUID> studentIds = studentRepository.findIdsByAdvisorId(advisorId);
-        return studentIds.isEmpty() ? 0 : cvRepository.countNotInFinalStatutForStudents(studentIds);
+        return studentIds.isEmpty() ? 0 : countCvsToReview(studentIds);
+    }
+
+    /**
+     * CV a relire = CV au statut « En attente », le statut d'arrivee d'un CV depose ou envoye (meme regle
+     * que CVService.replaceActiveCv). Un CV « Validé » ou « À corriger » n'attend plus le conseiller.
+     * studentIds null = vue globale.
+     */
+    private long countCvsToReview(List<UUID> studentIds) {
+        return cvStatutRepository.findFirstByActifTrueOrderByOrdreAsc()
+                .map(CVStatut::getId)
+                .map(statutId -> studentIds == null
+                        ? cvRepository.countByStatutId(statutId)
+                        : cvRepository.countByStatutIdAndStudentIdIn(statutId, studentIds))
+                .orElse(0L);
     }
 
     /** Nombre d'etudiants avec une declaration "sous contrat" non encore verifiee — pour badge sidebar conseiller. */

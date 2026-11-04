@@ -193,6 +193,7 @@ Seeder de test (`@Order(20+)`, profil dev uniquement) : un étudiant « démo »
 
 ## 13. Écarts relevés dans l'existant (à signaler à Jules, corriger seulement avec son accord)
 - **Compteur « CV à relire »** (`CVRepository.countNotInFinalStatut`) : il compte `ordre < MAX(ordre)`. Avec « À corriger » en ordre 3, le badge compte *En attente + Validé* au lieu de *En attente* (ou *En attente + À corriger*).
+  → **Corrigé le 4 novembre 2026** : le compteur ne compte plus que les CV « En attente », le statut d'arrivée d'un dépôt (`CVStatutRepository.findFirstByActifTrueOrderByOrdreAsc`, désormais partagé avec `CVService.replaceActiveCv`). Test : `DashboardControllerIntegrationTest.cvsToReviewCountsOnlyPendingCvs`.
 - **Tâche « Corriger votre CV »** détectée par `nom.contains("corriger")` : fragile si un admin renomme le statut.
 - **Règle §6 vs code** : la doc dit que l'historique est réinitialisé au remplacement, alors que le code garde les commentaires (et l'interface l'annonce). Choisir et aligner la doc.
 - **Taille maximale** : `REGLES_METIER` §7 annonce 512 Mo, la configuration est à 20 Mo.

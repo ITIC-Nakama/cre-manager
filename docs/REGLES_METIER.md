@@ -376,6 +376,7 @@ ci-dessous).
 
 - **Dépôt unique & Remplacement** : Un étudiant a **un seul CV actif** (relation 1:1 `student_id` unique). Déposer un nouveau fichier remplace l'ancien. L'action affiche une modale de confirmation indiquant que l'historique et le statut actuel seront réinitialisés, effectue une suppression physique du fichier du stockage Cloud/Local, et recrée une nouvelle entité de CV au statut "En attente".
 - **Statuts par défaut** (CRUD complet par l'admin, contrairement aux statuts CRM) : **En attente** (0 XP), **Validé** (30 XP), **À corriger** (0 XP).
+- **CV à examiner** (tuile « CVs à examiner » du tableau de bord, badge de la sidebar, `GET /dashboard/cv/pending-count`) : nombre de CV au statut **« En attente »**, c'est-à-dire le statut d'arrivée d'un CV déposé ou envoyé (premier statut actif par `ordre`, même règle que le remplacement). Un CV « Validé » ou « À corriger » n'est pas compté. Limité au portefeuille du conseiller, vue globale pour un admin.
 - **Gain de points XP** : N'importe quel statut avec `gainXP > 0` attribue l'XP (pas seulement "Validé"), que ce soit atteint via le dépôt initial ou un changement manuel par un conseiller.
 - **Sécurité anti-double gain** : Un flag `xpAwarded` empêche de regagner de l'XP en rebasculant entre statuts pour le **même** fichier déposé. Ce flag se réinitialise à `false` à chaque nouveau dépôt de CV, permettant ainsi à un étudiant de remporter de l'XP de validation sur une nouvelle version corrigée.
 - **Étapes du Cycle de Validation (Timeline/CycleStrip)** :

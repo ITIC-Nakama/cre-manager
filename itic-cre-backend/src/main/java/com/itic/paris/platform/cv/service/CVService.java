@@ -94,8 +94,7 @@ public class CVService {
     @Transactional
     public Map<String, Object> replaceActiveCv(Student student, CvFileWriter writer, CvSource source, String templateCode)
             throws IOException {
-        CVStatut statutEnAttente = statutRepository.findAllByActifTrueOrderByOrdreAsc()
-                .stream().findFirst()
+        CVStatut statutEnAttente = statutRepository.findFirstByActifTrueOrderByOrdreAsc()
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_STATUT_NOT_FOUND));
 
         CV cv = cvRepository.findByStudentId(student.getId()).orElse(new CV());

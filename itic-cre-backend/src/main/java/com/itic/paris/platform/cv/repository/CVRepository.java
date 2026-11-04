@@ -33,8 +33,7 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     @Query("SELECT COUNT(DISTINCT c.student.id) FROM CV c")
     long countStudentsWithCv();
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
-    long countNotInFinalStatut();
+    long countByStatutId(UUID statutId);
 
     /** Fetch all CVs with their student + promotion in a single JOIN so no lazy-load issues. */
     @Query("SELECT c FROM CV c JOIN FETCH c.student s LEFT JOIN FETCH s.promotion")
@@ -52,6 +51,5 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.id IN :studentIds GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
     List<Object[]> countGroupedByStatutForStudents(List<UUID> studentIds);
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
-    long countNotInFinalStatutForStudents(List<UUID> studentIds);
+    long countByStatutIdAndStudentIdIn(UUID statutId, List<UUID> studentIds);
 }

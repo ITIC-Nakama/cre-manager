@@ -45,6 +45,8 @@ export function useUpdateCVStatus() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cvs'] });
             queryClient.invalidateQueries({ queryKey: ['cv-stats'] });
+            // Badge « Validation CV » de la sidebar et tuile « CVs à examiner » : le CV quitte peut-être « En attente »
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 }
