@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,7 @@ public class JobOfferService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
         Sector sector = resolveSector(request.getSectorId());
 
+        String emailCandidature = requireApplyChannel(request);
         User createdBy = getCurrentUser();
 
         JobOffer jobOffer = new JobOffer();
@@ -60,6 +62,7 @@ public class JobOfferService {
         jobOffer.setContractType(contractType);
         jobOffer.setSector(sector);
         jobOffer.setExternalLink(request.getExternalLink());
+        jobOffer.setEmailCandidature(emailCandidature);
         jobOffer.setActive(true);
         jobOffer.setCreatedBy(createdBy);
 
@@ -67,6 +70,19 @@ public class JobOfferService {
         auditLogService.log(AuditAction.JOB_OFFER_CREATED, createdBy, "JOB_OFFER", saved.getId(),
                 saved.getTitle() + " — " + saved.getCompany());
         return mapToDTO(saved);
+    }
+
+    /**
+     * Une offre déposée par le staff doit offrir un moyen de postuler : un lien, ou une adresse
+     * e-mail dans la description. Retourne l'adresse trouvée (null s'il n'y a qu'un lien).
+     */
+    private String requireApplyChannel(CreateJobOfferRequest request) {
+        String emailCandidature = ApplicationEmailExtractor.extract(request.getDescription());
+        boolean hasLink = request.getExternalLink() != null && !request.getExternalLink().isBlank();
+        if (!hasLink && emailCandidature == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_NO_APPLY_CHANNEL);
+        }
+        return emailCandidature;
     }
 
     private Sector resolveSector(UUID sectorId) {
@@ -120,6 +136,7 @@ public class JobOfferService {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
         Sector sector = resolveSector(request.getSectorId());
+        String emailCandidature = requireApplyChannel(request);
 
         jobOffer.setTitle(request.getTitle());
         jobOffer.setCompany(request.getCompany());
@@ -128,6 +145,7 @@ public class JobOfferService {
         jobOffer.setContractType(contractType);
         jobOffer.setSector(sector);
         jobOffer.setExternalLink(request.getExternalLink());
+        jobOffer.setEmailCandidature(emailCandidature);
 
         JobOffer updated = jobOfferRepository.save(jobOffer);
         auditLogService.log(AuditAction.JOB_OFFER_UPDATED, getCurrentUser(), "JOB_OFFER", updated.getId(),
@@ -174,19 +192,25 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location, Pageable pageable) {
-        return getAllOffers(search, contractTypeId, sectorId, source, active, location, null, pageable);
+        return getAllOffers(search, contractTypeId, sectorId, source, active, location, null, null, pageable);
     }
 
     /**
-     * Liste staff avec le filtre « Déposée par » : identifiant du conseiller/admin auteur de
-     * l'offre, ou {@link JobOfferSpecification#POSTED_BY_EXTERNAL} pour les offres externes.
+     * Liste staff. Filtres en plus de ceux des étudiants :
+     * <ul>
+     *   <li>« Déposée par » : identifiant du conseiller/admin auteur de l'offre, ou
+     *       {@link JobOfferSpecification#POSTED_BY_EXTERNAL} pour les offres externes ;</li>
+     *   <li>« Sans moyen de postuler » ({@code noApplyChannel=true}) : offres sans lien ni adresse e-mail de candidature.</li>
+     * </ul>
      */
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
-                                          String location, String postedBy, Pageable pageable) {
-        Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location,
-                        normalizePostedBy(postedBy)),
-                StablePageable.withTieBreakers(pageable, OFFER_TIE_BREAKERS));
+                                          String location, String postedBy, Boolean noApplyChannel, Pageable pageable) {
+        Specification<JobOffer> spec = JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active,
+                location, normalizePostedBy(postedBy));
+        if (Boolean.TRUE.equals(noApplyChannel)) {
+            spec = spec.and(JobOfferSpecification.withoutApplyChannel());
+        }
+        Page<JobOffer> page = jobOfferRepository.findAll(spec, StablePageable.withTieBreakers(pageable, OFFER_TIE_BREAKERS));
         return page.map(this::mapToDTO);
     }
 
@@ -277,7 +301,8 @@ public class JobOfferService {
                 jobOffer.getUpdatedAt(),
                 applicationCount,
                 jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getFirstName() : null,
-                jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getLastName() : null
+                jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getLastName() : null,
+                jobOffer.getEmailCandidature()
         );
     }
 

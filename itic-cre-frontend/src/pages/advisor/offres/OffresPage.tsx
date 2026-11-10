@@ -90,6 +90,8 @@ export default function OffresPage() {
         return value === 'all' ? '' : value;
     });
     const [postedByFilter, setPostedByFilter] = useState(() => initialParam('postedBy'));
+    // '' = toutes les offres, 'none' = sans lien ni adresse e-mail de candidature
+    const [applyChannelFilter, setApplyChannelFilter] = useState(() => (initialParam('applyChannel') === 'none' ? 'none' : ''));
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
@@ -120,11 +122,12 @@ export default function OffresPage() {
             source: sourceFilter === DEFAULT_SOURCE ? '' : sourceFilter,
             active: activeFilter === DEFAULT_ACTIVE ? '' : (activeFilter || 'all'),
             postedBy: postedByFilter,
+            applyChannel: applyChannelFilter,
         });
         if (next !== new URLSearchParams(window.location.search).toString()) {
             setSearchParams(new URLSearchParams(next), { replace: true });
         }
-    }, [debouncedSearch, debouncedLocation, contractTypeFilter, isInternalSource, sectorFilter, sourceFilter, activeFilter, postedByFilter, setSearchParams]);
+    }, [debouncedSearch, debouncedLocation, contractTypeFilter, isInternalSource, sectorFilter, sourceFilter, activeFilter, postedByFilter, applyChannelFilter, setSearchParams]);
     // Par defaut : offres les plus demandees en premier
     const [sorting, setSorting] = useState<SortingState>([{ id: 'applicationCount', desc: true }]);
 
@@ -137,8 +140,9 @@ export default function OffresPage() {
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
         postedBy: postedByFilter || undefined,
+        noApplyChannel: applyChannelFilter === 'none' ? true : undefined,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, postedByFilter, sorting]);
+    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, postedByFilter, applyChannelFilter, sorting]);
     const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();
@@ -164,6 +168,11 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
         { value: 'true', label: t('dashboard.offres.table.active', 'Active') },
         { value: 'false', label: t('dashboard.offres.table.inactive', 'Inactive') },
+    ], [t]);
+
+    const applyChannelOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.apply_channel_filter.all', 'Tous') },
+        { value: 'none', label: t('dashboard.offres.apply_channel_filter.none', 'Sans moyen de postuler') },
     ], [t]);
 
     const sourceOptions = useMemo(() => [
@@ -268,7 +277,7 @@ export default function OffresPage() {
         setActiveFilter(value);
     };
 
-    const activeFilterCount = [locationFilter, contractTypeFilter, isInternalSource ? sectorFilter : '', activeFilter !== 'true' ? activeFilter || 'all' : ''].filter(Boolean).length;
+    const activeFilterCount = [locationFilter, contractTypeFilter, isInternalSource ? sectorFilter : '', activeFilter !== 'true' ? activeFilter || 'all' : '', applyChannelFilter].filter(Boolean).length;
 
     const handleResetFilters = () => {
         setLocationFilter('');
@@ -276,6 +285,7 @@ export default function OffresPage() {
         setContractTypeFilter('');
         setSectorFilter('');
         setActiveFilter('true');
+        setApplyChannelFilter('');
         if (locationTimer.current) clearTimeout(locationTimer.current);
     };
 
@@ -364,6 +374,9 @@ export default function OffresPage() {
                     activeFilter={activeFilter}
                     activeFilterOptions={activeFilterOptions}
                     onActiveFilterChange={handleActiveFilterChange}
+                    applyChannelFilter={applyChannelFilter}
+                    applyChannelOptions={applyChannelOptions}
+                    onApplyChannelChange={setApplyChannelFilter}
                     activeFilterCount={activeFilterCount}
                     onReset={handleResetFilters}
                     isFetching={isFetching}

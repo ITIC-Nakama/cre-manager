@@ -81,6 +81,16 @@ public class JobOfferSpecification {
     }
 
     /**
+     * Offres sans aucun moyen de postuler : ni lien (null ou vide), ni adresse e-mail de candidature
+     * trouvée dans la description. Repère et filtre « Sans moyen de postuler » de la liste staff.
+     */
+    public static Specification<JobOffer> withoutApplyChannel() {
+        return (root, query, cb) -> cb.and(
+                cb.or(cb.isNull(root.get("externalLink")), cb.equal(cb.trim(root.get("externalLink")), "")),
+                cb.isNull(root.get("emailCandidature")));
+    }
+
+    /**
      * Offres externes (jamais MANUAL) dont l'employeur matche un des motifs de la liste noire
      * globale (comparaison "contient", insensible à la casse — même sémantique que
      * AbstractJobProvider.isEmployerExcluded, appliquée ici à des offres déjà en base plutôt qu'à

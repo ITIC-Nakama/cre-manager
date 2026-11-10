@@ -154,6 +154,7 @@ public class JobOfferIntegrationTest {
         request.setDescription("Poste de développeur passionné...");
         request.setLocation("Paris");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
 
         JobOfferDTO created = jobOfferService.create(request);
 
@@ -173,6 +174,7 @@ public class JobOfferIntegrationTest {
         request1.setDescription("Frontend dev");
         request1.setLocation("Paris");
         request1.setContractTypeId(cdiContract.getId());
+        request1.setExternalLink("https://example.com/offre");
         jobOfferService.create(request1);
 
         CreateJobOfferRequest request2 = new CreateJobOfferRequest();
@@ -181,6 +183,7 @@ public class JobOfferIntegrationTest {
         request2.setDescription("Data analysis");
         request2.setLocation("Lyon");
         request2.setContractTypeId(cdiContract.getId());
+        request2.setExternalLink("https://example.com/offre");
         jobOfferService.create(request2);
 
         Page<JobOfferDTO> searchResult = jobOfferService.getActiveOffers("React", null, PageRequest.of(0, 10));
@@ -214,6 +217,7 @@ public class JobOfferIntegrationTest {
         manualRequest.setCompany("ITIC");
         manualRequest.setDescription("Description manuelle recente");
         manualRequest.setContractTypeId(cdiContract.getId());
+        manualRequest.setExternalLink("https://example.com/offre");
         jobOfferService.create(manualRequest);
 
         // Publiee il y a seulement 1 jour cote source externe — doit se classer entre les deux
@@ -286,6 +290,7 @@ public class JobOfferIntegrationTest {
         request.setDescription("Poste de chef de projet");
         request.setLocation("Paris");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO offer = jobOfferService.create(request);
 
         authenticate(student);
@@ -303,6 +308,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("Backend SA");
         request.setDescription("Poste de développeur backend");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO offer = jobOfferService.create(request);
 
         authenticate(student);
@@ -406,6 +412,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Poste de développeur backend");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         request.setSectorId(devSector.getId());
 
         JobOfferDTO created = jobOfferService.create(request);
@@ -422,6 +429,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Poste de développeur backend, sans secteur precise");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         // sectorId volontairement non renseigne
 
         JobOfferDTO created = jobOfferService.create(request);
@@ -436,6 +444,7 @@ public class JobOfferIntegrationTest {
         createRequest.setCompany("ITIC Tech");
         createRequest.setDescription("Poste fullstack, sans secteur au depart");
         createRequest.setContractTypeId(cdiContract.getId());
+        createRequest.setExternalLink("https://example.com/offre");
         JobOfferDTO created = jobOfferService.create(createRequest);
         assertThat(created.getSector()).isNull();
 
@@ -444,6 +453,7 @@ public class JobOfferIntegrationTest {
         updateRequest.setCompany(created.getCompany());
         updateRequest.setDescription(created.getDescription());
         updateRequest.setContractTypeId(cdiContract.getId());
+        updateRequest.setExternalLink("https://example.com/offre");
         updateRequest.setSectorId(devSector.getId());
 
         JobOfferDTO updatedWithSector = jobOfferService.update(created.getId(), updateRequest);
@@ -462,6 +472,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Poste avec un identifiant de secteur invalide");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         request.setSectorId(UUID.randomUUID());
 
         assertThatThrownBy(() -> jobOfferService.create(request))
@@ -475,6 +486,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre jamais candidatee");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO created = jobOfferService.create(request);
 
         jobOfferService.delete(created.getId());
@@ -489,6 +501,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre manuelle");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO manualOffer = jobOfferService.create(request);
 
         JobOffer externalOffer = new JobOffer();
@@ -513,6 +526,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre manuelle");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO manualOffer = jobOfferService.create(request);
 
         JobOffer adzunaOffer = new JobOffer();
@@ -547,6 +561,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre manuelle");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO manualOffer = jobOfferService.create(request);
 
         JobOffer externalOffer = new JobOffer();
@@ -584,6 +599,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre avec un clic jobboard mais aucune candidature CRM");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO offer = jobOfferService.create(request);
 
         // Cree directement la ligne "clic postuler" via le repository (pas via
@@ -614,6 +630,7 @@ public class JobOfferIntegrationTest {
         request.setCompany("ITIC Tech");
         request.setDescription("Offre reliee a une vraie candidature CRM suivie");
         request.setContractTypeId(cdiContract.getId());
+        request.setExternalLink("https://example.com/offre");
         JobOfferDTO offer = jobOfferService.create(request);
 
         ApplicationStatus status = applicationStatusRepository.findAll().stream().findFirst()

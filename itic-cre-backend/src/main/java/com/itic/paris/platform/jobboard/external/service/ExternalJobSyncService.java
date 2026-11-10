@@ -19,6 +19,7 @@ import com.itic.paris.platform.jobboard.external.repository.JobboardSyncSettings
 import com.itic.paris.platform.jobboard.external.repository.SyncLogRepository;
 import com.itic.paris.platform.jobboard.model.ContractType;
 import com.itic.paris.platform.jobboard.model.JobOffer;
+import com.itic.paris.platform.jobboard.service.ApplicationEmailExtractor;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
 import com.itic.paris.platform.jobboard.repository.JobOfferRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
@@ -281,19 +282,7 @@ public class ExternalJobSyncService {
                 continue;
             }
 
-            JobOffer offer = new JobOffer();
-            offer.setTitle(dto.title());
-            offer.setCompany(dto.company());
-            offer.setDescription(dto.description());
-            offer.setLocation(dto.location());
-            offer.setContractType(contractType);
-            offer.setExternalLink(dto.externalLink());
-            offer.setSource(provider.getSource());
-            offer.setSourceId(dto.sourceId());
-            offer.setCompanyLogoUrl(dto.companyLogoUrl());
-            offer.setExpiresAt(dto.expiresAt());
-            offer.setPublishedAt(dto.publishedAt());
-            offer.setActive(true);
+            JobOffer offer = toJobOffer(provider.getSource(), dto, contractType);
 
             try {
                 jobOfferRepository.save(offer);
@@ -305,6 +294,28 @@ public class ExternalJobSyncService {
             }
         }
         return new int[]{inserted, skipped};
+    }
+
+    /**
+     * Offre à insérer pour une offre externe normalisée. L'adresse e-mail de candidature est
+     * extraite de la description, comme pour une offre déposée par le staff.
+     */
+    public static JobOffer toJobOffer(String source, ExternalJobOfferDTO dto, ContractType contractType) {
+        JobOffer offer = new JobOffer();
+        offer.setTitle(dto.title());
+        offer.setCompany(dto.company());
+        offer.setDescription(dto.description());
+        offer.setLocation(dto.location());
+        offer.setContractType(contractType);
+        offer.setExternalLink(dto.externalLink());
+        offer.setEmailCandidature(ApplicationEmailExtractor.extract(dto.description()));
+        offer.setSource(source);
+        offer.setSourceId(dto.sourceId());
+        offer.setCompanyLogoUrl(dto.companyLogoUrl());
+        offer.setExpiresAt(dto.expiresAt());
+        offer.setPublishedAt(dto.publishedAt());
+        offer.setActive(true);
+        return offer;
     }
 
     // ---- Administration ----

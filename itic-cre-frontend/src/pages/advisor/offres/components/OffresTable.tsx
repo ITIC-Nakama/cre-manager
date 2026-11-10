@@ -7,13 +7,14 @@ import {
     type SortingState,
 } from '@tanstack/react-table';
 import {
-    Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
+    AlertTriangle, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
     ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { JobOffer } from '../../../../types/models/JobOffer';
+import { getApplyChannel } from '../../../../utils/applyChannel';
 
 const col = createColumnHelper<JobOffer>();
 
@@ -64,6 +65,15 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                     <div className="min-w-0">
                         <span className="block font-semibold text-slate-900 dark:text-white line-clamp-2" title={row.original.title}>{row.original.title}</span>
                         <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
+                        {getApplyChannel(row.original) === 'none' && (
+                            <span
+                                className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-900/50"
+                                title={t('dashboard.offres.no_channel_hint', 'Ni lien ni adresse e-mail : les étudiants ne savent pas comment postuler.')}
+                            >
+                                <AlertTriangle className="h-3 w-3" />
+                                {t('dashboard.offres.no_channel_badge', 'Sans moyen de postuler')}
+                            </span>
+                        )}
                     </div>
                 </div>
             ),

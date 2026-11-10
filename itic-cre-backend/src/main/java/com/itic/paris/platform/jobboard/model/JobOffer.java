@@ -80,6 +80,14 @@ public class JobOffer {
     private String externalLink;
 
     /**
+     * Adresse e-mail de candidature, extraite de la description (ApplicationEmailExtractor) à la
+     * création, à la modification et à l'import. Null si la description n'en contient pas.
+     */
+    @Size(max = 320)
+    @Column(name = "email_candidature", length = 320)
+    private String emailCandidature;
+
+    /**
      * Identifiant de la source de l'offre : MANUAL (créée par un conseiller)
      * ou source externe (FRANCE_TRAVAIL, BONNE_ALTERNANCE, ADZUNA, ...).
      * String volontairement (pas d'enum) pour ajouter des sources sans migration.

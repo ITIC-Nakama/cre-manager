@@ -2,6 +2,7 @@ import { Building2, FileSignature, Layers, MapPin, CheckCircle2, ExternalLink, U
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { JobOffer } from '../../types/models/JobOffer';
+import { getApplyChannel } from '../../utils/applyChannel';
 
 const SOURCE_BADGE_STYLES: Record<string, string> = {
     FRANCE_TRAVAIL: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400',
@@ -35,6 +36,8 @@ interface Props {
     isApplying: boolean;
     onSelect: () => void;
     onApply: (offerId: string) => void;
+    /** Bouton « Postuler » : lien, e-mail ou détail de l'offre selon le canal. */
+    onPostuler: (offer: JobOffer) => void;
     onWithdraw: (applicationId: string, title: string) => void;
     animationDelayMs?: number;
 }
@@ -45,10 +48,11 @@ interface Props {
  * sans dupliquer le markup.
  */
 export default function OfferCard({
-    offer, isApplied, applicationId, isApplying, onSelect, onApply, onWithdraw, animationDelayMs = 0,
+    offer, isApplied, applicationId, isApplying, onSelect, onApply, onPostuler, onWithdraw, animationDelayMs = 0,
 }: Props) {
     const { t } = useTranslation();
     const isItic = offer.source === 'MANUAL';
+    const channel = getApplyChannel(offer);
 
     return (
         <div
@@ -136,6 +140,17 @@ export default function OfferCard({
                 }`}>
                     <FileSignature className="h-3 w-3" />{offer.contractType.label}
                 </span>
+                {channel !== 'none' && (
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${
+                        isItic
+                            ? 'bg-white/15 text-white border-white/30'
+                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/70 dark:border-slate-700/60'
+                    }`}>
+                        {channel === 'email'
+                            ? t('dashboard.offres.channel.email', '📧 Par mail')
+                            : t('dashboard.offres.channel.link', '🔗 Lien externe')}
+                    </span>
+                )}
                 {offer.sector && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-100/80 dark:border-violet-900/30">
                         <Layers className="h-3 w-3" />{offer.sector.label}
@@ -176,19 +191,31 @@ export default function OfferCard({
                         </button>
                     </>
                 ) : (
-                    <button
-                        onClick={() => onApply(offer.id)}
-                        disabled={isApplying}
-                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98] text-white disabled:opacity-60 ${
-                            isItic
-                                ? 'bg-gradient-to-r from-[#1E51FF] to-[#9A3412] hover:brightness-110 hover:shadow-md hover:shadow-black/20'
-                                : 'bg-[#1E51FF] hover:bg-[#1541D6] hover:shadow-md hover:shadow-[#1E51FF]/25'
-                        }`}
-                    >
-                        {t('dashboard.offres.apply_button')}
-                    </button>
+                    <>
+                        <button
+                            onClick={() => onPostuler(offer)}
+                            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-[0.98] text-white ${
+                                isItic
+                                    ? 'bg-gradient-to-r from-[#1E51FF] to-[#9A3412] hover:brightness-110 hover:shadow-md hover:shadow-black/20'
+                                    : 'bg-[#1E51FF] hover:bg-[#1541D6] hover:shadow-md hover:shadow-[#1E51FF]/25'
+                            }`}
+                        >
+                            {t('dashboard.offres.postuler_button', 'Postuler')}
+                        </button>
+                        <button
+                            onClick={() => onApply(offer.id)}
+                            disabled={isApplying}
+                            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold border bg-transparent transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] ${
+                                isItic
+                                    ? 'border-white/60 text-white hover:bg-white/10'
+                                    : 'border-[#1E51FF]/40 text-[#1E51FF] dark:text-[#7B9FFF] hover:bg-[#1E51FF]/5 dark:hover:bg-[#1E51FF]/10'
+                            }`}
+                        >
+                            {t('dashboard.offres.apply_button', 'J’ai postulé ✓')}
+                        </button>
+                    </>
                 )}
-                {offer.externalLink && (
+                {isApplied && offer.externalLink && (
                     <a
                         href={offer.externalLink}
                         target="_blank"

@@ -10,6 +10,8 @@ import CustomSelect from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
 import ConfirmDialog from '../../../../components/shared/ConfirmDialog';
 import JobOfferDetailModal from '../../../../components/shared/JobOfferDetailModal';
+import EmailApplyDialog from '../../../../components/shared/EmailApplyDialog';
+import ApplyFollowUpPrompt from '../../../../components/shared/ApplyFollowUpPrompt';
 import OfferCard from '../../../../components/shared/OfferCard';
 import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { JobOffer } from '../../../../types/models/JobOffer';
@@ -38,6 +40,12 @@ export default function IticOffresTab() {
         setWithdrawTarget,
         handleApply,
         handleWithdrawConfirm,
+        handlePostuler,
+        emailApply,
+        closeEmailApply,
+        followUp,
+        confirmFollowUp,
+        dismissFollowUp,
     } = useJobOfferApplyActions();
 
     const params = useMemo(() => ({
@@ -196,6 +204,7 @@ export default function IticOffresTab() {
                                 isApplying={applyMutation.isPending}
                                 onSelect={() => setSelectedOffer(offer)}
                                 onApply={handleApply}
+                                onPostuler={(o) => handlePostuler(o, setSelectedOffer)}
                                 onWithdraw={(appId, title) => setWithdrawTarget({ applicationId: appId, title })}
                                 animationDelayMs={Math.min(index * 40, 400)}
                             />
@@ -219,6 +228,7 @@ export default function IticOffresTab() {
                             onClose={() => setSelectedOffer(null)}
                             isApplied={!!appliedApplicationByOfferId.get(selectedOffer.id)}
                             onApply={handleApply}
+                            onPostuler={(o) => handlePostuler(o, setSelectedOffer)}
                             onWithdraw={(offer) => {
                                 const appId = appliedApplicationByOfferId.get(offer.id);
                                 if (appId) {
@@ -228,6 +238,14 @@ export default function IticOffresTab() {
                             isApplying={applyMutation.isPending}
                         />
                     )}
+
+                    <EmailApplyDialog target={emailApply} onClose={closeEmailApply} />
+                    <ApplyFollowUpPrompt
+                        followUp={followUp}
+                        isConfirming={applyMutation.isPending}
+                        onConfirm={confirmFollowUp}
+                        onDismiss={dismissFollowUp}
+                    />
 
                     <ConfirmDialog
                         isOpen={!!withdrawTarget}

@@ -72,8 +72,9 @@ public class JobOfferController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
     @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels "
-            + "search/contractTypeId/sectorId/source/active/location/postedBy (postedBy = id du conseiller/admin auteur, "
-            + "ou EXTERNAL pour les offres externes)")
+            + "search/contractTypeId/sectorId/source/active/location/postedBy/noApplyChannel (postedBy = id du "
+            + "conseiller/admin auteur, ou EXTERNAL pour les offres externes ; noApplyChannel=true : offres sans lien "
+            + "ni adresse e-mail de candidature)")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
@@ -82,8 +83,10 @@ public class JobOfferController {
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String postedBy,
+            @RequestParam(required = false) Boolean noApplyChannel,
             @PageableDefault(size = 20, sort = {"priorityContract", "effectiveDate"}, direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location, postedBy, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location,
+                postedBy, noApplyChannel, pageable));
     }
 
     @GetMapping("/authors")
