@@ -17,6 +17,7 @@ import { useAllCVsInfinite, useCVStatuts, useCVStats } from '../../../hooks/useC
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
+import StudentActivityBadge from '../../../components/shared/StudentActivityBadge';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -26,6 +27,9 @@ import { Role } from '../../../types/models/Auth';
 import type { StarredFilter } from '../etudiants/components/EtudiantsFilters';
 
 const PAGE_SIZE_LOCAL = 20;
+
+/** Gris neutre (slate-500) de la puce « Comptes désactivés », même modèle que les puces de statut. */
+const DISABLED_ACCOUNTS_CHIP_COLOR = '#64748B';
 
 const col = createColumnHelper<CVRow>();
 
@@ -92,10 +96,17 @@ export default function CVValidationPage() {
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
+    // Les CV des comptes desactives sont masques partout (filtre serveur) ; la puce « Comptes désactivés »
+    // permet de les retrouver. Une seule puce active a la fois : choisir un statut ramene a la vue normale.
+    const [disabledAccountsOnly, setDisabledAccountsOnly] = useState(false);
     const [sorting, setSorting] = useState<SortingState>([]);
+    const accountActive = disabledAccountsOnly ? false : undefined;
 
     const { data: statuts = [] } = useCVStatuts();
+    // Puces de statut : comptes actifs uniquement, quelle que soit la vue.
     const { data: stats = [] } = useCVStats(advisorFilter || undefined);
+    const { data: disabledStats = [] } = useCVStats(advisorFilter || undefined, false);
+    const disabledCount = disabledStats.reduce((sum, s) => sum + s.count, 0);
     const { data: advisors = [] } = useAllAdvisors();
     const params = useMemo(() => ({
         size: PAGE_SIZE_LOCAL,
@@ -103,8 +114,9 @@ export default function CVValidationPage() {
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+        accountActive,
         sort: toSortParam(sorting),
-    }), [statutFilter, search, advisorFilter, starredFilter, sorting]);
+    }), [statutFilter, search, advisorFilter, starredFilter, accountActive, sorting]);
 
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -138,6 +150,11 @@ export default function CVValidationPage() {
                     />
                     {row.original.student?.email && (
                         <TruncatedText text={row.original.student.email} className="text-xs text-slate-400" />
+                    )}
+                    {row.original.student?.accountActive === false && (
+                        <div className="mt-1">
+                            <StudentActivityBadge accountActive={false} isActive={false} lastActivity={null} />
+                        </div>
                     )}
                 </div>
             ),
@@ -187,6 +204,12 @@ export default function CVValidationPage() {
 
     const handleStatutChange = (val: string) => {
         setStatutFilter(val);
+        setDisabledAccountsOnly(false);
+    };
+
+    const handleDisabledAccountsChip = () => {
+        setStatutFilter('');
+        setDisabledAccountsOnly((active) => !active);
     };
 
     const handleSearch = (val: string) => {
@@ -219,6 +242,7 @@ export default function CVValidationPage() {
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
                         {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
+                        {disabledAccountsOnly && ` · ${t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')}`}
                     </p>
                 </div>
 
@@ -305,6 +329,18 @@ export default function CVValidationPage() {
                                 </button>
                             );
                         })}
+                        <button
+                            onClick={handleDisabledAccountsChip}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${disabledAccountsOnly ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                }`}
+                            style={{
+                                background: `${DISABLED_ACCOUNTS_CHIP_COLOR}18`,
+                                color: DISABLED_ACCOUNTS_CHIP_COLOR,
+                                border: `1px solid ${DISABLED_ACCOUNTS_CHIP_COLOR}44`,
+                            }}
+                        >
+                            {t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')} · {disabledCount}
+                        </button>
                     </div>
                 )}
             </div>

@@ -11,12 +11,26 @@ import java.util.UUID;
 
 public class CVSpecification {
 
+    /** Comptes actifs uniquement — voir la variante avec accountActive. */
     public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred) {
+        return withFilters(statutId, search, advisorId, starred, null);
+    }
+
+    /**
+     * @param accountActive null ou true = comptes actifs (defaut) ; false = seulement les comptes desactives
+     *                      (vue « Comptes desactives » pour retrouver leurs CV).
+     */
+    public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred,
+                                                Boolean accountActive) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Join student
             Join<CV, Student> studentJoin = root.join("student", JoinType.INNER);
+
+            // Un compte desactive sort des listes, quel que soit le statut : simple filtre, le CV n'est pas
+            // modifie et revient a la reactivation. Meme regle que CVRepository (puces, badge, tuile).
+            predicates.add(cb.equal(studentJoin.get("active"), !Boolean.FALSE.equals(accountActive)));
 
             // Filter by statut
             if (statutId != null) {

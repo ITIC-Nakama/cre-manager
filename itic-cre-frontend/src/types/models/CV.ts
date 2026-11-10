@@ -12,6 +12,8 @@ export interface CVStudentInfo {
     firstName: string;
     lastName: string;
     email: string;
+    /** false = compte desactive (vue « Comptes désactivés » de Validation des CVs). */
+    accountActive?: boolean;
     profilePicture?: string | null;
     promotion: { id: string; nom: string } | null;
 }
@@ -40,6 +42,8 @@ export interface CVListParams {
     search?: string;
     advisorId?: string;
     starred?: boolean;
+    /** Absent = comptes actifs (defaut serveur) ; false = seulement les comptes desactives. */
+    accountActive?: boolean;
     sort?: string;
 }
 

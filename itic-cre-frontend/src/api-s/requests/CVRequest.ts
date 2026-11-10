@@ -10,6 +10,7 @@ export function fetchAllCVs(params: CVListParams = {}): Promise<CVPage> {
     if (params.search)   query.search   = params.search;
     if (params.advisorId) query.advisorId = params.advisorId;
     if (params.starred !== undefined) query.starred = params.starred;
+    if (params.accountActive !== undefined) query.accountActive = params.accountActive;
     if (params.sort)     query.sort     = params.sort;
     return apiClient.get('/cv', { params: query }).then(unwrap<CVPage>);
 }
@@ -44,9 +45,12 @@ export function deleteCVComment(commentId: string): Promise<void> {
     return apiClient.delete(`/cv/comments/${commentId}`).then(() => undefined);
 }
 
-/** GET /cv/stats — obtenir le nombre de CV par statut */
-export function fetchCVStats(advisorId?: string): Promise<CVStatCount[]> {
-    return apiClient.get('/cv/stats', { params: advisorId ? { advisorId } : undefined }).then((r) => unwrap<CVStatCount[]>(r));
+/** GET /cv/stats — obtenir le nombre de CV par statut (accountActive=false : comptes désactivés) */
+export function fetchCVStats(advisorId?: string, accountActive?: boolean): Promise<CVStatCount[]> {
+    const params: Record<string, unknown> = {};
+    if (advisorId) params.advisorId = advisorId;
+    if (accountActive !== undefined) params.accountActive = accountActive;
+    return apiClient.get('/cv/stats', { params }).then((r) => unwrap<CVStatCount[]>(r));
 }
 
 /** POST /cv/me/upload — déposer ou remplacer le CV de l'étudiant connecté */

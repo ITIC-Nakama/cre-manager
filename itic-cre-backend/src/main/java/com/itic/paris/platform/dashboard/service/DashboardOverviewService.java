@@ -40,7 +40,7 @@ public class DashboardOverviewService {
         long anonymizedStudents = studentRepository.countAnonymizedStudents();
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
         long totalApplications = applicationRepository.countExcludingConfirmedContract();
-        long totalCvs = cvRepository.count();
+        long totalCvs = cvRepository.countByStudentActiveTrue();
         double averageXp = studentRepository.averageXp();
 
         Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
@@ -119,7 +119,7 @@ public class DashboardOverviewService {
         long anonymizedStudents = studentRepository.countAnonymizedByIdIn(studentIds);
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
         long totalApplications = applicationRepository.countExcludingConfirmedContractForStudents(studentIds);
-        long totalCvs = cvRepository.countByStudentIdIn(studentIds);
+        long totalCvs = cvRepository.countByStudentIdInAndStudentActiveTrue(studentIds);
         double averageXp = studentRepository.averageXpByIdIn(studentIds);
 
         Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);

@@ -134,8 +134,10 @@ public class CVService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred, Pageable pageable) {
-        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId, starred), pageable);
+    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred,
+                                                        Boolean accountActive, Pageable pageable) {
+        Page<CV> page = cvRepository.findAll(
+                CVSpecification.withFilters(statutId, search, advisorId, starred, accountActive), pageable);
         return page.map(this::buildCVResponse);
     }
 
@@ -279,6 +281,7 @@ public class CVService {
         studentMap.put("firstName", student.getFirstName());
         studentMap.put("lastName", student.getLastName());
         studentMap.put("email", student.getEmail());
+        studentMap.put("accountActive", student.isActive());
         studentMap.put("profilePicture", student.getProfilePicture() != null
                 ? cloudStorage.getFile(student.getProfilePicture())
                 : null);
@@ -328,9 +331,16 @@ public class CVService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCVStats(UUID advisorId) {
+        return getCVStats(advisorId, null);
+    }
+
+    /** @param accountActive null ou true = comptes actifs (defaut) ; false = comptes desactives (memes regles que la liste). */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCVStats(UUID advisorId, Boolean accountActive) {
+        boolean active = !Boolean.FALSE.equals(accountActive);
         List<Object[]> rows = advisorId != null
-                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId))
-                : cvRepository.countGroupedByStatut();
+                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId), active)
+                : cvRepository.countGroupedByStatut(active);
         return rows.stream().map(row -> {
             Map<String, Object> map = new HashMap<>();
             map.put("statutId", row[0]);
