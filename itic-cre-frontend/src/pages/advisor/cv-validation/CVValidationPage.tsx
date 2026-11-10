@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigationType, useSearchParams } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -27,6 +28,30 @@ import { Role } from '../../../types/models/Auth';
 import type { StarredFilter } from '../etudiants/components/EtudiantsFilters';
 
 const PAGE_SIZE_LOCAL = 20;
+
+/** Position de défilement mémorisée en quittant la page (ex. vers la fiche d'un étudiant). */
+const SCROLL_STORAGE_KEY = 'cv-validation-scroll';
+
+/** Filtres recopiés dans l'URL : retour arrière et lien partagé retrouvent la même vue. */
+function buildFilterSearch(current: string, filters: Record<string, string>): string {
+    const next = new URLSearchParams(current);
+    for (const [key, value] of Object.entries(filters)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+    }
+    return next.toString();
+}
+
+function parseSortParam(value: string | null): SortingState {
+    if (!value) return [];
+    const [id, dir] = value.split(':');
+    return id ? [{ id, desc: dir === 'desc' }] : [];
+}
+
+/** Conteneur qui défile dans le layout staff (SupervisorLayout) — la page elle-même ne défile pas. */
+function scrollContainer(): HTMLElement | null {
+    return document.querySelector('main');
+}
 
 /** Gris neutre (slate-500) de la puce « Comptes désactivés », même modèle que les puces de statut. */
 const DISABLED_ACCOUNTS_CHIP_COLOR = '#64748B';
@@ -89,17 +114,41 @@ export default function CVValidationPage() {
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
 
-    const [statutFilter, setStatutFilter] = useState('');
-    const [search, setSearch] = useState('');
+    // Etat initial lu dans l'URL : en revenant de la fiche d'un étudiant (ou par un lien partagé),
+    // on retrouve les mêmes filtres.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const defaultAdvisorFilter = !isAdmin && currentUser ? String(currentUser.id) : '';
+    const [statutFilter, setStatutFilter] = useState(() => searchParams.get('statut') ?? '');
+    const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
     const [selectedCV, setSelectedCV] = useState<CVRow | null>(null);
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
-    const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
-    const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
+    // Dans l'URL, 'all' = « tous les conseillers » choisi explicitement par un conseiller.
+    const [advisorFilter, setAdvisorFilter] = useState(() => {
+        const value = searchParams.get('conseiller');
+        if (value === null) return defaultAdvisorFilter;
+        return value === 'all' ? '' : value;
+    });
+    const [starredFilter, setStarredFilter] = useState<StarredFilter>(() => (searchParams.get('etoiles') as StarredFilter | null) ?? 'all');
     // Les CV des comptes desactives sont masques partout (filtre serveur) ; la puce « Comptes désactivés »
     // permet de les retrouver. Une seule puce active a la fois : choisir un statut ramene a la vue normale.
-    const [disabledAccountsOnly, setDisabledAccountsOnly] = useState(false);
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [disabledAccountsOnly, setDisabledAccountsOnly] = useState(() => searchParams.get('desactives') === '1');
+    const [sorting, setSorting] = useState<SortingState>(() => parseSortParam(searchParams.get('tri')));
+
+    useEffect(() => {
+        const [firstSort] = sorting;
+        const next = buildFilterSearch(window.location.search, {
+            statut: statutFilter,
+            q: search.trim(),
+            conseiller: advisorFilter === defaultAdvisorFilter ? '' : (advisorFilter || 'all'),
+            etoiles: starredFilter === 'all' ? '' : starredFilter,
+            desactives: disabledAccountsOnly ? '1' : '',
+            tri: firstSort ? `${firstSort.id}:${firstSort.desc ? 'desc' : 'asc'}` : '',
+        });
+        if (next !== new URLSearchParams(window.location.search).toString()) {
+            setSearchParams(new URLSearchParams(next), { replace: true });
+        }
+    }, [statutFilter, search, advisorFilter, defaultAdvisorFilter, starredFilter, disabledAccountsOnly, sorting, setSearchParams]);
     const accountActive = disabledAccountsOnly ? false : undefined;
 
     const { data: statuts = [] } = useCVStatuts();
@@ -121,6 +170,45 @@ export default function CVValidationPage() {
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useAllCVsInfinite(params);
+
+    // « Page » de la liste à défilement infini : la position est mémorisée pendant le défilement (avec
+    // les filtres de l'URL) et rétablie sur un retour arrière (fermeture de la fiche étudiant, bouton
+    // Précédent), une fois les lignes en cache réaffichées. Une visite par le menu repart du haut.
+    const navigationType = useNavigationType();
+    const scrollRestored = useRef(false);
+    useEffect(() => {
+        const container = scrollContainer();
+        if (!container) return;
+        let frame = 0;
+        const save = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                sessionStorage.setItem(SCROLL_STORAGE_KEY, JSON.stringify({ search: window.location.search, top: container.scrollTop }));
+            });
+        };
+        container.addEventListener('scroll', save, { passive: true });
+        return () => {
+            cancelAnimationFrame(frame);
+            container.removeEventListener('scroll', save);
+        };
+    }, []);
+    useEffect(() => {
+        if (scrollRestored.current || isLoading) return;
+        scrollRestored.current = true;
+        const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+        if (!saved || navigationType !== 'POP') return;
+        const { search: savedSearch, top } = JSON.parse(saved) as { search: string; top: number };
+        const container = scrollContainer();
+        if (!container || savedSearch !== window.location.search) return;
+        // À l'image suivante : le layout staff remonte en haut à chaque changement de page
+        // (useResetScrollOnNavigate, effet du parent, exécuté après celui-ci).
+        requestAnimationFrame(() => {
+            container.scrollTop = top;
+        });
+    }, [isLoading, navigationType]);
+
+    // La fiche étudiant est réservée au staff (conseillers et admins, voir /dashboard/students/** côté API).
+    const canOpenStudentProfile = currentUser?.role === Role.ADVISOR || currentUser?.role === Role.ADMIN;
 
     const statutOptions = useMemo(() => [
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
@@ -427,6 +515,9 @@ export default function CVValidationPage() {
                     cv={selectedCV}
                     statuts={statuts}
                     onClose={() => setSelectedCV(null)}
+                    studentLink={canOpenStudentProfile && selectedCV.studentId
+                        ? { to: `/supervisor/etudiants/${selectedCV.studentId}`, state: { from: 'cv-validation' } }
+                        : undefined}
                 />
             )}
         </div>

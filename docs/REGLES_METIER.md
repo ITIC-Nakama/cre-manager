@@ -411,6 +411,15 @@ ci-dessous).
   - Rien n'est supprimé ni modifié : le CV garde son statut et réapparaît tel quel si le compte est réactivé.
   - La puce grise « Comptes désactivés · N » (N = leurs CV, tous statuts confondus) affiche uniquement ces CV, avec le badge « Compte désactivé ». Côté API : `accountActive=false` sur `GET /cv` et `GET /cv/stats` ; sans ce paramètre, seuls les comptes actifs sont renvoyés. La réponse indique `student.accountActive`.
   - La fiche étudiant (`GET /cv/student/{id}`) affiche toujours le CV, compte actif ou non.
+- **Lien vers la fiche étudiant** (« Validation des CVs ») : dans la fenêtre d'un CV (icône œil), l'en-tête
+  (photo, nom, e-mail) est un lien vers la fiche de l'étudiant, `/supervisor/etudiants/{id}` (page Étudiants,
+  fiche ouverte).
+  - Clic : même onglet ; Ctrl/Cmd+clic ou clic molette : nouvel onglet (vrai lien `<a>`). Au survol et au
+    focus clavier, le nom se souligne et une flèche apparaît.
+  - Fermer la fiche ramène à la validation des CV avec les mêmes filtres (statut, recherche, conseiller,
+    étoiles, « Comptes désactivés », tri — recopiés dans l'URL de la page) et la même position dans la liste.
+  - Réservé au staff : la fiche (`GET /dashboard/students/{id}/row`) est ouverte à tout conseiller ou admin,
+    même non référent, compte désactivé compris ; pour un autre rôle, l'en-tête n'est pas cliquable.
 
 ---
 
