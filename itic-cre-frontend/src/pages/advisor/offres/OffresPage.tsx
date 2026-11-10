@@ -1,11 +1,11 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { SortingState } from '@tanstack/react-table';
 import {
     useAllJobOffersInfinite, useCreateJobOffer, useUpdateJobOffer,
-    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors,
+    useDeactivateJobOffer, useActivateJobOffer, useDeleteJobOffer, useWipeJobOffers, useSectors, useOfferAuthors,
 } from '../../../hooks/useJobOffers';
 import { useContractTypes } from '../../../hooks/useApplications';
 import { useStudentRow } from '../../../hooks/useDashboard';
@@ -29,6 +29,25 @@ import type { JobOffer } from '../../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../../types/models/JobOffer';
 
 const PAGE_SIZE = 20;
+
+/** Valeur du filtre « Déposée par » qui isole les offres externes (voir JobOfferSpecification). */
+const POSTED_BY_EXTERNAL = 'EXTERNAL';
+const DEFAULT_SOURCE = 'ALL';
+const DEFAULT_ACTIVE = 'true';
+
+/**
+ * Filtres recopiés dans l'URL pour qu'une vue filtrée se partage par simple lien. Seules les
+ * valeurs différentes des défauts y figurent ; « Toutes les offres » ('' côté état) s'écrit 'all'.
+ */
+function buildFilterSearch(current: string, filters: Record<string, string>): string {
+    const next = new URLSearchParams(current);
+    next.delete('create');
+    for (const [key, value] of Object.entries(filters)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+    }
+    return next.toString();
+}
 
 const SORT_FIELD_BY_COLUMN: Record<string, string> = {
     title: 'title',
@@ -54,15 +73,23 @@ export default function OffresPage() {
     const navigate = useNavigate();
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [locationFilter, setLocationFilter] = useState('');
-    const [debouncedLocation, setDebouncedLocation] = useState('');
-    const [contractTypeFilter, setContractTypeFilter] = useState('');
-    const [sectorFilter, setSectorFilter] = useState('');
-    const [sourceFilter, setSourceFilter] = useState('ALL');
+    const currentUserId = currentUser ? String(currentUser.id) : '';
+    // Etat initial lu dans l'URL : un lien partage rouvre la meme vue filtree.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialParam = (key: string, fallback = '') => searchParams.get(key) ?? fallback;
+    const [search, setSearch] = useState(() => initialParam('q'));
+    const [debouncedSearch, setDebouncedSearch] = useState(() => initialParam('q'));
+    const [locationFilter, setLocationFilter] = useState(() => initialParam('location'));
+    const [debouncedLocation, setDebouncedLocation] = useState(() => initialParam('location'));
+    const [contractTypeFilter, setContractTypeFilter] = useState(() => initialParam('contractTypeId'));
+    const [sectorFilter, setSectorFilter] = useState(() => initialParam('sectorId'));
+    const [sourceFilter, setSourceFilter] = useState(() => initialParam('source', DEFAULT_SOURCE));
     // Actives par defaut — evite d'afficher d'emblee les offres desactivees accumulees.
-    const [activeFilter, setActiveFilter] = useState('true');
+    const [activeFilter, setActiveFilter] = useState(() => {
+        const value = initialParam('active', DEFAULT_ACTIVE);
+        return value === 'all' ? '' : value;
+    });
+    const [postedByFilter, setPostedByFilter] = useState(() => initialParam('postedBy'));
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
@@ -83,6 +110,21 @@ export default function OffresPage() {
     }, [location]);
 
     const isInternalSource = sourceFilter === 'MANUAL';
+
+    useEffect(() => {
+        const next = buildFilterSearch(window.location.search, {
+            q: debouncedSearch.trim(),
+            location: debouncedLocation.trim(),
+            contractTypeId: contractTypeFilter,
+            sectorId: isInternalSource ? sectorFilter : '',
+            source: sourceFilter === DEFAULT_SOURCE ? '' : sourceFilter,
+            active: activeFilter === DEFAULT_ACTIVE ? '' : (activeFilter || 'all'),
+            postedBy: postedByFilter,
+        });
+        if (next !== new URLSearchParams(window.location.search).toString()) {
+            setSearchParams(new URLSearchParams(next), { replace: true });
+        }
+    }, [debouncedSearch, debouncedLocation, contractTypeFilter, isInternalSource, sectorFilter, sourceFilter, activeFilter, postedByFilter, setSearchParams]);
     // Par defaut : offres les plus demandees en premier
     const [sorting, setSorting] = useState<SortingState>([{ id: 'applicationCount', desc: true }]);
 
@@ -94,8 +136,9 @@ export default function OffresPage() {
         active: activeFilter === '' ? undefined : activeFilter === 'true',
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
+        postedBy: postedByFilter || undefined,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, sorting]);
+    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, postedByFilter, sorting]);
     const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();
@@ -109,6 +152,13 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_sectors', 'Tous les secteurs') },
         ...(sectors ?? []).map((s) => ({ value: s.id, label: s.label })),
     ], [sectors, t]);
+
+    const { data: offerAuthors } = useOfferAuthors();
+    const postedByOptions = useMemo(() => [
+        { value: '', label: t('dashboard.offres.posted_by_filter.all', 'Tous les auteurs') },
+        { value: POSTED_BY_EXTERNAL, label: t('dashboard.offres.posted_by_filter.external', 'Offres externes') },
+        ...(offerAuthors ?? []).map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}`.trim() })),
+    ], [offerAuthors, t]);
 
     const activeFilterOptions = useMemo(() => [
         { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
@@ -191,6 +241,27 @@ export default function OffresPage() {
         if (value !== 'MANUAL') {
             setSectorFilter('');
         }
+        // Combinaisons sans resultat possible : on retire le filtre « Déposée par » qui contredit la source.
+        const externalOnly = value !== 'ALL' && value !== 'MANUAL';
+        if ((externalOnly && postedByFilter && postedByFilter !== POSTED_BY_EXTERNAL)
+            || (value === 'MANUAL' && postedByFilter === POSTED_BY_EXTERNAL)) {
+            setPostedByFilter('');
+        }
+    };
+
+    const handlePostedByChange = (value: string) => {
+        setPostedByFilter(value);
+        // Meme logique dans l'autre sens : un auteur ITIC n'a pas d'offre externe, et inversement.
+        const externalOnlySource = sourceFilter !== 'ALL' && sourceFilter !== 'MANUAL';
+        if ((value === POSTED_BY_EXTERNAL && sourceFilter === 'MANUAL')
+            || (value && value !== POSTED_BY_EXTERNAL && externalOnlySource)) {
+            setSourceFilter(DEFAULT_SOURCE);
+            setSectorFilter('');
+        }
+    };
+
+    const handleMyOffersToggle = () => {
+        handlePostedByChange(postedByFilter === currentUserId ? '' : currentUserId);
     };
 
     const handleActiveFilterChange = (value: string) => {
@@ -276,6 +347,11 @@ export default function OffresPage() {
                     sourceFilter={sourceFilter}
                     sourceOptions={sourceOptions}
                     onSourceChange={handleSourceChange}
+                    postedByFilter={postedByFilter}
+                    postedByOptions={postedByOptions}
+                    onPostedByChange={handlePostedByChange}
+                    myOffersActive={!!currentUserId && postedByFilter === currentUserId}
+                    onMyOffersToggle={handleMyOffersToggle}
                     locationFilter={locationFilter}
                     onLocationChange={handleLocationChange}
                     contractTypeFilter={contractTypeFilter}

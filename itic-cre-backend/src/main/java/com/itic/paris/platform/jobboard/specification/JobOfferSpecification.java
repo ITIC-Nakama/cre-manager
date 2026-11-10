@@ -40,6 +40,19 @@ public class JobOfferSpecification {
      * restriction (ITIC + externes) ; sinon source exacte.
      */
     public static Specification<JobOffer> withAllFilters(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location) {
+        return withAllFilters(search, contractTypeId, sectorId, source, active, location, null);
+    }
+
+    /** Valeur du filtre « Déposée par » qui isole les offres externes (aucun auteur ITIC). */
+    public static final String POSTED_BY_EXTERNAL = "EXTERNAL";
+
+    /**
+     * Variante avec le filtre « Déposée par » (postedBy), combinable avec tous les autres :
+     * null → aucun filtre ; {@link #POSTED_BY_EXTERNAL} → offres externes uniquement ; sinon
+     * l'identifiant du conseiller/admin qui a créé l'offre (déjà validé par l'appelant).
+     */
+    public static Specification<JobOffer> withAllFilters(String search, UUID contractTypeId, UUID sectorId, String source,
+                                                         Boolean active, String location, String postedBy) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(sourcePredicate(root, cb, source));
@@ -47,11 +60,24 @@ public class JobOfferSpecification {
             addSectorPredicate(predicates, root, cb, sectorId);
             addSearchPredicate(predicates, root, cb, search);
             addLocationPredicate(predicates, root, cb, location);
+            addPostedByPredicate(predicates, root, cb, postedBy);
             if (active != null) {
                 predicates.add(cb.equal(root.get("active"), active));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    private static void addPostedByPredicate(List<Predicate> predicates, Root<JobOffer> root,
+                                              CriteriaBuilder cb, String postedBy) {
+        if (postedBy == null || postedBy.isBlank()) {
+            return;
+        }
+        if (POSTED_BY_EXTERNAL.equalsIgnoreCase(postedBy)) {
+            predicates.add(cb.notEqual(root.get("source"), "MANUAL"));
+            return;
+        }
+        predicates.add(cb.equal(root.get("createdBy").get("id"), UUID.fromString(postedBy)));
     }
 
     /**

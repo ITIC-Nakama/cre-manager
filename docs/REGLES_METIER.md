@@ -326,6 +326,26 @@ ci-dessous).
   `active` optionnel (`true`/`false`/absent = toutes) ; l'interface présélectionne "Actives" par
   défaut.
 
+### Filtre « Déposée par » (page staff Offres)
+- `GET /jobboard/offers/all` accepte un paramètre `postedBy` optionnel, filtré côté serveur
+  (`JobOfferSpecification`), combinable avec tous les autres filtres et paginé :
+  - l'identifiant d'un conseiller/admin → ses offres uniquement (`created_by_id`) ;
+  - `EXTERNAL` → les offres externes uniquement (aucun auteur ITIC) ;
+  - toute autre valeur → `400 job-offer-invalid-posted-by`.
+- Les choix proposés viennent de `GET /jobboard/offers/authors` (réservé `ADVISOR`/`ADMIN`) : les
+  conseillers/admins ayant déposé **au moins une offre**, actives ou non, triés par nom.
+- Raccourci **« Mes offres »** : applique `postedBy` = l'utilisateur connecté (nouveau clic : retire
+  le filtre).
+- La liste staff affiche l'auteur de chaque offre (colonne « Déposée par ») ; pour une offre
+  externe, « Externe · » suivi de sa source.
+- Combinaisons contradictoires évitées par l'interface : choisir un auteur repasse la source sur
+  « Toutes les offres » si elle était externe, et choisir « Offres externes » la repasse sur « Toutes »
+  si elle était « internes » (et inversement quand on change la source).
+- **Filtres dans l'URL** : recherche (`q`), lieu, type de contrat, secteur, source, statut (`active`,
+  `all` pour « toutes ») et `postedBy` sont recopiés dans l'adresse de la page ; un lien copié rouvre
+  la même vue filtrée. Seules les valeurs différentes des défauts (« Toutes les offres », « Actives »)
+  y figurent.
+
 ---
 
 ## 4. Gamification — XP & Grades

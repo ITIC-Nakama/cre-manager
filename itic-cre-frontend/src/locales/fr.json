@@ -724,6 +724,16 @@
         "bonne_alternance": "La Bonne Alternance",
         "adzuna": "Adzuna"
       },
+      "posted_by_filter": {
+        "label": "Déposée par",
+        "all": "Déposée par : tous",
+        "external": "Offres externes",
+        "mine": "Mes offres",
+        "mine_hint": "Afficher uniquement les offres que j’ai déposées",
+        "search": "Rechercher un conseiller…",
+        "none": "Aucun conseiller trouvé",
+        "external_author": "Externe · {{source}}"
+      },
       "external_sync_button": "Offres externes",
       "wipe_button": "Tout supprimer",
       "wipe_dialog": {
@@ -786,6 +796,7 @@
         "location": "Lieu",
         "contract": "Type de contrat",
         "sector": "Secteur",
+        "posted_by": "Déposée par",
         "source": "Source",
         "applications": "Candidatures",
         "status": "Statut",
