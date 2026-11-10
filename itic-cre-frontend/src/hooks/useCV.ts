@@ -81,10 +81,10 @@ export function useUpdateCVStatutConfig() {
     });
 }
 
-export function useCVStats(advisorId?: string) {
+export function useCVStats(advisorId?: string, accountActive?: boolean) {
     return useQuery({
-        queryKey: ['cv-stats', advisorId],
-        queryFn: () => fetchCVStats(advisorId),
+        queryKey: ['cv-stats', advisorId, accountActive],
+        queryFn: () => fetchCVStats(advisorId, accountActive),
     });
 }
 

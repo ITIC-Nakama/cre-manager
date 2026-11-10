@@ -73,7 +73,7 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 ### Vocabulaire : compte actif ≠ étudiant actif ≠ étudiant inactif
 
 Trois états distincts, à ne pas confondre (backend `StudentRow` : `accountActive` / `isActive` / `lastActivity`) :
-- **Compte désactivé** (`accountActive = false`) : désactivé par un conseiller/admin (ou anonymisé RGPD, toujours désactivé) — l'étudiant ne peut plus se connecter. Badge gris "Compte désactivé". C'est ce que filtre `activeStudentsOnly` (page Candidatures, compteur "à vérifier").
+- **Compte désactivé** (`accountActive = false`) : désactivé par un conseiller/admin (ou anonymisé RGPD, toujours désactivé) — l'étudiant ne peut plus se connecter. Badge gris "Compte désactivé". C'est ce que filtre `activeStudentsOnly` (page Candidatures, compteur "à vérifier"), ainsi que la page « Validation des CVs » (voir §6).
 - **Actif** (`isActive = true`) : compte ouvert **et** connexion dans les `INACTIVE_STUDENT_DAYS` derniers jours (défaut 14, configurable). Badge vert "Actif".
 - **Inactif** (`isActive = false`, compte ouvert) : aucune connexion depuis plus de `INACTIVE_STUDENT_DAYS` jours. Le badge affiche la durée écoulée depuis la dernière connexion, en jours (< 60 j), en mois (< 2 ans) puis en années — "Inactif depuis 3 mois" — ou "Jamais connecté" si aucune connexion n'a jamais eu lieu. Un étudiant inactif reste visible partout (Candidatures, "à vérifier"…) : seule la désactivation du compte le masque.
 - **Isoler les comptes désactivés** : la liste Étudiants les affiche mélangés aux autres (seuls les comptes anonymisés RGPD sont masqués, sauf case admin dédiée). Le filtre "Comptes désactivés" de la page envoie `accountActive=false` (`GET /dashboard/students` et `/students/all`) ; `accountActive` porte sur l'état du compte, indépendamment de `isActive` (un compte désactivé qui s'est connecté hier reste "Actif" côté connexion, donc visible sous le filtre "Actifs").
@@ -387,6 +387,10 @@ ci-dessous).
   - Les commentaires rédigés par un conseiller sur le CV d'un étudiant sont récupérés chronologiquement via `/api/cv/comments`.
   - Chaque commentaire affiche le nom complet du conseiller, sa photo de profil, sa fonction, la date au format `JJ/MM/AAAA` et le corps du message.
   - L'ajout d'un commentaire déclenche un email asynchrone d'alerte envoyé directement à l'étudiant concerné.
+- **CV des comptes désactivés** : la page « Validation des CVs » ne montre que les CV des comptes actifs (`users.active = true`). Le filtre est appliqué côté serveur sur la liste (`GET /cv`, avec ses filtres statut, conseiller et recherche), les puces par statut (`GET /cv/stats`), le badge « Validation CV » (`GET /dashboard/cv/pending-count`) et la tuile « CVs à examiner » (`cvsToReview` et `totalCvs`), en vue globale comme en portefeuille conseiller.
+  - Rien n'est supprimé ni modifié : le CV garde son statut et réapparaît tel quel si le compte est réactivé.
+  - La puce grise « Comptes désactivés · N » (N = leurs CV, tous statuts confondus) affiche uniquement ces CV, avec le badge « Compte désactivé ». Côté API : `accountActive=false` sur `GET /cv` et `GET /cv/stats` ; sans ce paramètre, seuls les comptes actifs sont renvoyés. La réponse indique `student.accountActive`.
+  - La fiche étudiant (`GET /cv/student/{id}`) affiche toujours le CV, compte actif ou non.
 
 ---
 

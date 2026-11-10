@@ -20,12 +20,23 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
 
     boolean existsByStudentId(UUID studentId);
 
-    long countByStudentIdIn(List<UUID> studentIds);
+    /** Sous-titre de la tuile « CVs a examiner » (« N CVs deposes ») : comptes actifs, comme la liste. */
+    long countByStudentActiveTrue();
+
+    long countByStudentIdInAndStudentActiveTrue(List<UUID> studentIds);
 
     long countByStudentPromotionId(UUID promotionId);
 
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatut();
+    // Les comptages par statut (puces de « Validation des CVs », badge, tuile « CVs a examiner ») ignorent
+    // les comptes desactives, comme la liste (CVSpecification) : sinon un CV compte sans apparaitre.
+    // Les puces de la vue « Comptes desactives » passent accountActive = false.
+
+    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.active = :accountActive GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
+    List<Object[]> countGroupedByStatut(@Param("accountActive") boolean accountActive);
+
+    default List<Object[]> countGroupedByStatut() {
+        return countGroupedByStatut(true);
+    }
 
     @Query("SELECT c.student.id FROM CV c WHERE c.student.id IN :studentIds")
     List<UUID> findStudentIdsWithCv(List<UUID> studentIds);
@@ -33,7 +44,7 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     @Query("SELECT COUNT(DISTINCT c.student.id) FROM CV c")
     long countStudentsWithCv();
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
+    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.active = true AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
     long countNotInFinalStatut();
 
     /** Fetch all CVs with their student + promotion in a single JOIN so no lazy-load issues. */
@@ -49,9 +60,13 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     @Query("SELECT COUNT(DISTINCT c.student.id) FROM CV c WHERE c.student.id IN :studentIds")
     long countStudentsWithCvByIdIn(List<UUID> studentIds);
 
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.id IN :studentIds GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatutForStudents(List<UUID> studentIds);
+    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND c.student.active = :accountActive GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
+    List<Object[]> countGroupedByStatutForStudents(@Param("studentIds") List<UUID> studentIds, @Param("accountActive") boolean accountActive);
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
+    default List<Object[]> countGroupedByStatutForStudents(List<UUID> studentIds) {
+        return countGroupedByStatutForStudents(studentIds, true);
+    }
+
+    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND c.student.active = true AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
     long countNotInFinalStatutForStudents(List<UUID> studentIds);
 }

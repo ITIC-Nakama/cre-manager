@@ -31,20 +31,24 @@ public class CVAdvisorController {
     private final CVService cvService;
 
     @GetMapping
-    @Operation(summary = "Lister tous les CVs paginés (filtres statutId/recherche/advisorId/starred optionnels)")
+    @Operation(summary = "Lister tous les CVs paginés (filtres statutId/recherche/advisorId/starred optionnels). "
+            + "Comptes actifs par défaut ; accountActive=false = seulement les comptes désactivés")
     public ResponseEntity<?> listAll(
             @RequestParam(required = false) UUID statutId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) Boolean starred,
+            @RequestParam(required = false) Boolean accountActive,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, advisorId, starred, pageable));
+        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, advisorId, starred, accountActive, pageable));
     }
 
     @GetMapping("/stats")
-    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller")
-    public ResponseEntity<?> getStats(@RequestParam(required = false) UUID advisorId) {
-        return ResponseEntity.ok(cvService.getCVStats(advisorId));
+    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller. "
+            + "Comptes actifs par défaut ; accountActive=false = seulement les comptes désactivés")
+    public ResponseEntity<?> getStats(@RequestParam(required = false) UUID advisorId,
+                                      @RequestParam(required = false) Boolean accountActive) {
+        return ResponseEntity.ok(cvService.getCVStats(advisorId, accountActive));
     }
 
     @GetMapping("/student/{studentId}")
