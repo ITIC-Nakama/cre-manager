@@ -72,7 +72,16 @@ export interface JobOfferListParams {
     active?: boolean;
     source?: string;
     location?: string;
+    /** Filtre « Déposée par » (liste staff) : id du conseiller/admin auteur, ou 'EXTERNAL'. */
+    postedBy?: string;
     sort?: string;
+}
+
+/** Conseiller/admin ayant déposé au moins une offre (options du filtre « Déposée par »). */
+export interface OfferAuthor {
+    id: string;
+    firstName: string;
+    lastName: string;
 }
 
 export interface JobOfferPayload {

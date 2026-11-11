@@ -13,6 +13,7 @@ import com.itic.paris.platform.jobboard.model.Sector;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.ContractTypeDTO;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
+import com.itic.paris.platform.jobboard.model.dtos.OfferAuthorDTO;
 import com.itic.paris.platform.jobboard.model.dtos.SectorDTO;
 import com.itic.paris.platform.jobboard.repository.ContractTypeRepository;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.itic.paris.platform.jobboard.specification.JobOfferSpecification ;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -172,10 +174,40 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active, String location, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, sectorId, source, active, location, null, pageable);
+    }
+
+    /**
+     * Liste staff avec le filtre « Déposée par » : identifiant du conseiller/admin auteur de
+     * l'offre, ou {@link JobOfferSpecification#POSTED_BY_EXTERNAL} pour les offres externes.
+     */
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
+                                          String location, String postedBy, Pageable pageable) {
         Page<JobOffer> page = jobOfferRepository.findAll(
-                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location),
+                JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active, location,
+                        normalizePostedBy(postedBy)),
                 StablePageable.withTieBreakers(pageable, OFFER_TIE_BREAKERS));
         return page.map(this::mapToDTO);
+    }
+
+    /** Auteurs possibles du filtre « Déposée par » : conseillers/admins ayant déposé au moins une offre. */
+    public List<OfferAuthorDTO> getOfferAuthors() {
+        return jobOfferRepository.findOfferAuthors();
+    }
+
+    private static String normalizePostedBy(String postedBy) {
+        if (postedBy == null || postedBy.isBlank()) {
+            return null;
+        }
+        String value = postedBy.trim();
+        if (JobOfferSpecification.POSTED_BY_EXTERNAL.equalsIgnoreCase(value)) {
+            return JobOfferSpecification.POSTED_BY_EXTERNAL;
+        }
+        try {
+            return UUID.fromString(value).toString();
+        } catch (IllegalArgumentException e) {
+            throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_INVALID_POSTED_BY);
+        }
     }
 
     @Transactional

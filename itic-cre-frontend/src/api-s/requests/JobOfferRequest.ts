@@ -7,6 +7,7 @@ import type {
     JobApplicationPage,
     JobOfferListParams,
     JobOfferPayload,
+    OfferAuthor,
     ExternalJobboardStats,
     ExternalSourceCriteriaPayload,
     SectorDetail,
@@ -25,6 +26,11 @@ export function createSector(label: string): Promise<SectorDetail> {
 // Advisor/admin — toutes les offres (actives + inactives)
 export function fetchAllJobOffers(params: JobOfferListParams = {}): Promise<JobOfferPage> {
     return apiClient.get('/jobboard/offers/all', { params }).then((response) => unwrap<JobOfferPage>(response));
+}
+
+// Advisor/admin — auteurs proposés par le filtre « Déposée par »
+export function fetchOfferAuthors(): Promise<OfferAuthor[]> {
+    return apiClient.get('/jobboard/offers/authors').then((response) => unwrap<OfferAuthor[]>(response));
 }
 
 // Etudiant — offres actives uniquement

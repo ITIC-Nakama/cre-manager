@@ -99,6 +99,28 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                 );
             },
         }),
+        col.accessor((row) => [row.createdByFirstName, row.createdByLastName].filter(Boolean).join(' '), {
+            id: 'postedBy',
+            header: t('dashboard.offres.table.posted_by', 'Déposée par'),
+            // Pas de tri : les offres externes n'ont pas d'auteur (jointure qui les exclurait).
+            enableSorting: false,
+            cell: ({ getValue, row }) => {
+                const name = getValue();
+                if (row.original.source !== 'MANUAL') {
+                    const sourceLabel = t(`dashboard.offres.external.sources.${row.original.source}`, row.original.source);
+                    return (
+                        <span className="text-sm text-slate-400 dark:text-slate-500">
+                            {t('dashboard.offres.posted_by_filter.external_author', { source: sourceLabel, defaultValue: 'Externe · {{source}}' })}
+                        </span>
+                    );
+                }
+                return name ? (
+                    <TruncatedText text={name} className="max-w-[140px] text-slate-600 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
+        }),
         col.accessor('applicationCount', {
             header: t('dashboard.offres.table.applications'),
             cell: ({ getValue, row }) => {

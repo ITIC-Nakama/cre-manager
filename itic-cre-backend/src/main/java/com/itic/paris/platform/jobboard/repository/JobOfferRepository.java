@@ -1,6 +1,7 @@
 package com.itic.paris.platform.jobboard.repository;
 
 import com.itic.paris.platform.jobboard.model.JobOffer;
+import com.itic.paris.platform.jobboard.model.dtos.OfferAuthorDTO;
 import com.itic.paris.platform.jobboard.specification.JobOfferSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,14 @@ import java.util.UUID;
 public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSpecificationExecutor<JobOffer> {
 
     boolean existsByCreatedById(UUID createdById);
+
+    /**
+     * Conseillers/admins ayant déposé au moins une offre (toutes offres confondues, actives ou
+     * non), triés par nom — options du filtre « Déposée par » de la liste staff.
+     */
+    @Query("SELECT DISTINCT new com.itic.paris.platform.jobboard.model.dtos.OfferAuthorDTO(u.id, u.firstName, u.lastName) "
+            + "FROM JobOffer j JOIN j.createdBy u ORDER BY u.lastName, u.firstName")
+    List<OfferAuthorDTO> findOfferAuthors();
 
     boolean existsBySourceId(String sourceId);
 

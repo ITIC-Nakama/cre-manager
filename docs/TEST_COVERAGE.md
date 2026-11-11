@@ -34,13 +34,14 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Confidentialité & RGPD** | `GdprIntegrationTest.java` | 6 | Droit à la portabilité (export complet au format JSON) et droit à l'oubli (anonymisation irréversible, désactivation de compte via `GdprPurgeScheduler`, distinction statistiques "portefeuille" vs "activité"). |
 | **Skill Tree / Tutos** | `SkillTreeIntegrationTest.java` | 4 | Navigation dans l'arbre de compétences, calcul des articles lus, soumission de quiz avec calcul de score exact et export/import de l'arbre. |
 | **Jobboard / Offres** | `JobOfferIntegrationTest.java`, `SectorIntegrationTest.java`, `JobOfferSpecificationIntegrationTest.java`, `JobboardExternalSyncIntegrationTest.java` | 47 | Création/édition des offres ITIC, CRUD des secteurs, filtrage/recherche via Specifications (actif, contrat, localisation), postulation ITIC **et externe** avec instantané de l'offre copié dans la candidature CRM, seuil hebdomadaire anti-farming d'XP, suppression d'offre jamais bloquée par une candidature liée (détachement automatique), agrégation externe (France Travail/Adzuna/La Bonne Alternance) : dédoublonnage, pagination, expiration calculée ou réelle selon la source, nettoyage automatique des offres périmées, désactivation de source admin-only. Détail exhaustif test par test : [TESTS_JOBBOARD_EXTERNE.md](./TESTS_JOBBOARD_EXTERNE.md). |
+| **Jobboard — filtre « Déposée par »** | `JobOfferPostedByFilterIntegrationTest.java` | 7 | Liste staff filtrée côté serveur par auteur (conseiller/admin) ou sur les offres externes (`postedBy=EXTERNAL`), raccourci « Mes offres », combinaison avec statut/source/recherche, pagination (total sur l'ensemble filtré), liste des auteurs proposés (au moins une offre, tri par nom), valeur invalide refusée (400), liste des auteurs réservée au staff (403). |
 | **Gamification** | `GamificationIntegrationTest.java` | 1 | Attribution et révocation de points XP, mise à jour du classement et passage dynamique de grades (Débutant → Intermédiaire → Avancé → Expert). |
 | **Journal d'Audit** | `AuditLogIntegrationTest.java` | 2 | Traçabilité des actions sensibles (`STAFF_USER_CREATED`, `CV_VALIDATED`, etc.), capture de l'adresse IP/User-Agent et filtrage multicritères. |
 | **Templates d'Emails** | `EmailTemplateServiceTest.java` | 7 | Rendu des modèles HTML d'emails (OTP de vérification, identifiants de compte staff, notification CV par statut/commentaire, rappel étudiant, refus de déclaration "sous contrat"). |
 | **Configuration Applicative** | `AppConfigurationIntegrationTest.java` | 4 | Seuils RGPD/métier configurables en BDD (`app_configuration`), lecture/écriture réservée `ADMIN`, prise en compte sans redémarrage. |
 | **Stockage Fichiers** | `FileAccessIntegrationTest.java` | 7 | Accès et upload de fichiers vers le stockage Cloud/Local (`ICloudStorage`), contrôle des permissions d'accès aux fichiers privés. |
 
-**Total : 335 tests automatisés (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+**Total : 342 tests automatisés (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -50,7 +51,7 @@ L'exécution des tests est strictement intégrée au pipeline d'intégration et 
 
 ### Fonctionnement de la Pipeline :
 1. **Étape Build Backend** : Commande `mvn -B package` (sans l'option `-DskipTests`).
-2. **Exécution des 335 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
+2. **Exécution des 342 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
 3. **Protection contre le Déploiement Cassé** : Si une assertion échoue ou qu'un bug est introduit, le job `build-and-compile` échoue immédiatement.
 4. **Annulation Automatique** : Le job de déploiement `deploy` (qui dépend de la réussite du build) est automatiquement **annulé**, et une alerte explicite contenant le commit et l'erreur est envoyée sur Discord.
 

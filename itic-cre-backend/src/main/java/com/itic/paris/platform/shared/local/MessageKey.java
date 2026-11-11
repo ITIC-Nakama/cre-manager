@@ -83,6 +83,7 @@ public enum MessageKey {
     JOB_OFFER_DELETED("job-offer-deleted", "Offre d'emploi supprimée", "Job offer deleted"),
     JOB_OFFER_WIPED("job-offer-wiped", "Offres supprimées avec succès", "Job offers wiped successfully"),
     JOB_OFFER_WIPE_INVALID_SCOPE("job-offer-wipe-invalid-scope", "Portée invalide : MANUAL, EXTERNAL ou ALL attendu", "Invalid scope: expected MANUAL, EXTERNAL or ALL"),
+    JOB_OFFER_INVALID_POSTED_BY("job-offer-invalid-posted-by", "Filtre « Déposée par » invalide : identifiant de conseiller ou EXTERNAL attendu", "Invalid postedBy filter: expected an advisor id or EXTERNAL"),
     CONTRACT_TYPE_CREATED("contract-type-created", "Type de contrat créé avec succès", "Contract type created successfully"),
     CONTRACT_TYPE_LABEL_ALREADY_EXISTS("contract-type-label-already-exists", "Un type de contrat avec ce label existe déjà", "A contract type with this label already exists"),
     SECTOR_LABEL_ALREADY_EXISTS("sector-label-already-exists", "Un secteur avec ce label existe déjà", "A sector with this label already exists"),

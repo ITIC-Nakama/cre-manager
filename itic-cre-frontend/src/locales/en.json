@@ -724,6 +724,16 @@
         "bonne_alternance": "La Bonne Alternance",
         "adzuna": "Adzuna"
       },
+      "posted_by_filter": {
+        "label": "Posted by",
+        "all": "Posted by: anyone",
+        "external": "External offers",
+        "mine": "My offers",
+        "mine_hint": "Show only the offers I posted",
+        "search": "Search an advisor…",
+        "none": "No advisor found",
+        "external_author": "External · {{source}}"
+      },
       "external_sync_button": "External offers",
       "wipe_button": "Delete all",
       "wipe_dialog": {
@@ -786,6 +796,7 @@
         "location": "Location",
         "contract": "Contract type",
         "sector": "Sector",
+        "posted_by": "Posted by",
         "source": "Source",
         "applications": "Applications",
         "status": "Status",
