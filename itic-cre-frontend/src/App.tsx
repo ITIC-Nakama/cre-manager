@@ -117,6 +117,7 @@ function App() {
         <Route element={<SupervisorLayout />}>
           <Route path="/supervisor/dashboard"     element={<AdvisorDashboard />} />
           <Route path="/supervisor/etudiants"     element={<EtudiantsPage />} />
+          <Route path="/supervisor/etudiants/:studentId" element={<EtudiantsPage />} />
           <Route path="/supervisor/candidatures"  element={<CandidaturesPage />} />
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
           <Route path="/supervisor/offres/categories" element={<OffresCategoriesPage />} />

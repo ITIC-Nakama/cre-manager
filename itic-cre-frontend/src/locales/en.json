@@ -1605,7 +1605,8 @@
         "delete_comment": "Delete comment",
         "add_comment": "Add a comment",
         "comment_placeholder": "Write advice or correction request...",
-        "send_comment": "Send comment"
+        "send_comment": "Send comment",
+        "open_student": "Open {{name}}’s profile"
       },
       "filter_all_statuts": "All statuses",
       "table": {

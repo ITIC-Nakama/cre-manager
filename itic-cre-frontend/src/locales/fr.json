@@ -1605,7 +1605,8 @@
         "delete_comment": "Supprimer ce commentaire",
         "add_comment": "Ajouter un commentaire",
         "comment_placeholder": "Rédiger un conseil ou une demande de correction...",
-        "send_comment": "Envoyer le commentaire"
+        "send_comment": "Envoyer le commentaire",
+        "open_student": "Ouvrir la fiche de {{name}}"
       },
       "filter_all_statuts": "Tous les statuts",
       "table": {
