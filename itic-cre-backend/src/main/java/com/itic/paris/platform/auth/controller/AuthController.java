@@ -84,6 +84,13 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.createStaffUser(dto));
     }
 
+    @GetMapping("/admin/governance")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Plafond d'administrateurs actifs (configuration ADMIN_MAX_ACTIVE) et nombre d'admins actifs")
+    public ResponseEntity<AdminGovernanceDto> getAdminGovernance() {
+        return ResponseEntity.ok(userProfileService.getAdminGovernance());
+    }
+
     @PutMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Mettre à jour le profil d'un autre utilisateur", description = "Réservé aux administrateurs — un utilisateur met à jour son propre profil via /users/me")

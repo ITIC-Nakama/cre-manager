@@ -59,6 +59,7 @@ function scrollContainer(): HTMLElement | null {
 /** Gris neutre (slate-500) de la puce « Comptes désactivés », même modèle que les puces de statut. */
 const DISABLED_ACCOUNTS_CHIP_COLOR = '#64748B';
 const UNDER_CONTRACT_CHIP_COLOR = '#059669';
+const PAUSED_STATUT_COLOR = '#94A3B8';
 
 const col = createColumnHelper<CVRow>();
 
@@ -165,10 +166,16 @@ export default function CVValidationPage() {
 
     const { data: statuts = [] } = useCVStatuts();
     // Puces de statut : comptes actifs uniquement, quelle que soit la vue.
-    const { data: stats = [] } = useCVStats(advisorFilter || undefined);
-    const { data: disabledStats = [] } = useCVStats(advisorFilter || undefined, false);
+    // Les puces reprennent les filtres de la liste (recherche, étoiles, conseiller) : une puce annonce toujours le
+    // nombre de lignes affichées une fois choisie.
+    const statsFilters = useMemo(() => ({
+        search: search.trim() || undefined,
+        starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+    }), [search, starredFilter]);
+    const { data: stats = [] } = useCVStats(advisorFilter || undefined, undefined, undefined, statsFilters);
+    const { data: disabledStats = [] } = useCVStats(advisorFilter || undefined, false, undefined, statsFilters);
     const disabledCount = disabledStats.reduce((sum, s) => sum + s.count, 0);
-    const { data: underContractStats = [] } = useCVStats(advisorFilter || undefined, undefined, true);
+    const { data: underContractStats = [] } = useCVStats(advisorFilter || undefined, undefined, true, statsFilters);
     const underContractCount = underContractStats.reduce((sum, s) => sum + s.count, 0);
     const { data: advisors = [] } = useAllAdvisors();
     const params = useMemo(() => ({
@@ -298,7 +305,10 @@ export default function CVValidationPage() {
             header: t('dashboard.cv.table.status', 'Statut'),
             cell: ({ getValue }) => {
                 const s = getValue();
-                return <StatutBadge nom={s.nom} couleur={s.couleur} />;
+                // Vue « Sous contrat » : la relecture est en pause, le statut s'affiche grisé pour ne pas inviter à agir.
+                return underContractOnly
+                    ? <StatutBadge nom={`${s.nom} · ${t('dashboard.cv.status_paused', 'en pause')}`} couleur={PAUSED_STATUT_COLOR} />
+                    : <StatutBadge nom={s.nom} couleur={s.couleur} />;
             },
         }),
         col.accessor('uploadedAt', {

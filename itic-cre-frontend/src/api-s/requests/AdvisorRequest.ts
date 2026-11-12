@@ -8,6 +8,7 @@ import type {
   UpdateAdvisorData,
   DeleteOrDeactivateResult,
   AdvisorDirectoryEntry,
+  AdminGovernance,
 } from '../../types/models/Advisor';
 
 
@@ -26,6 +27,11 @@ export function fetchAdmins(params: AdvisorListParams = {}): Promise<AdvisorPage
  */
 export function fetchAllAdvisors(): Promise<Advisor[]> {
   return apiClient.get('/advisors/all').then((r) => unwrap<Advisor[]>(r));
+}
+
+/** Plafond d'administrateurs actifs (configuration serveur) et nombre d'admins actifs — réservé aux admins. */
+export function fetchAdminGovernance(): Promise<AdminGovernance> {
+  return apiClient.get('/auth/admin/governance').then((r) => unwrap<AdminGovernance>(r));
 }
 
 export function createAdvisor(data: CreateAdvisorData): Promise<Advisor> {

@@ -41,21 +41,14 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
 
     long countByStudentPromotionId(UUID promotionId);
 
-    // Les comptages par statut (puces de « Validation des CVs », badge, tuile « CVs a examiner ») suivent la
-    // liste (CVSpecification) : sinon un CV compte sans apparaitre. Par defaut, CV a relire (IN_VALIDATION) ;
-    // les puces des vues « Comptes desactives » et « Sous contrat » ont leurs propres requetes.
+    // Les comptages du tableau de bord (graphique par statut, badge, tuile « CVs a examiner ») suivent la liste
+    // par defaut (IN_VALIDATION) : sinon un CV compte sans apparaitre. Les puces de « Validation des CVs » sont
+    // calculees par CVService.getCVStats avec la specification de la liste elle-meme.
 
     @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE " + IN_VALIDATION
             + " GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
     List<Object[]> countGroupedByStatut();
 
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.active = false"
-            + " GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatutOfDeactivatedAccounts();
-
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.active = true AND "
-            + STUDENT_UNDER_CONTRACT + " GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatutUnderContract();
 
     @Query("SELECT c.student.id FROM CV c WHERE c.student.id IN :studentIds")
     List<UUID> findStudentIdsWithCv(List<UUID> studentIds);
@@ -83,14 +76,6 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
             + IN_VALIDATION + " GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
     List<Object[]> countGroupedByStatutForStudents(@Param("studentIds") List<UUID> studentIds);
 
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.id IN :studentIds"
-            + " AND c.student.active = false GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatutOfDeactivatedAccountsForStudents(@Param("studentIds") List<UUID> studentIds);
-
-    @Query("SELECT c.statut.id, c.statut.nom, c.statut.couleur, COUNT(c) FROM CV c WHERE c.student.id IN :studentIds"
-            + " AND c.student.active = true AND " + STUDENT_UNDER_CONTRACT
-            + " GROUP BY c.statut.id, c.statut.nom, c.statut.couleur ORDER BY COUNT(c) DESC")
-    List<Object[]> countGroupedByStatutUnderContractForStudents(@Param("studentIds") List<UUID> studentIds);
 
     @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND " + IN_VALIDATION + " AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
     long countNotInFinalStatutForStudents(@Param("studentIds") List<UUID> studentIds);

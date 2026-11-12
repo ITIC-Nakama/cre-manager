@@ -12,6 +12,7 @@ import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
 import com.itic.paris.platform.shared.notification.event.StudentAccountReactivatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import com.itic.paris.platform.auth.model.dtos.AdminGovernanceDto;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
@@ -99,6 +100,13 @@ public class UserProfileService {
             }
         }
         return userRepository.save(user);
+    }
+
+    /** Plafond configure et nombre d'admins actifs, pour l'ecran de gestion des admins (lecture seule, sans verrou). */
+    @Transactional(readOnly = true)
+    public AdminGovernanceDto getAdminGovernance() {
+        long active = userRepository.countActiveByRole(RoleEnum.ADMIN);
+        return new AdminGovernanceDto(adminMaxActive, active, active >= adminMaxActive);
     }
 
     /** Compte les admins actifs sous verrou (voir findActiveByRoleForUpdate) — a appeler dans une transaction deja ouverte. */

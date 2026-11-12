@@ -16,6 +16,13 @@ export interface Advisor {
   };
 }
 
+/** GET /auth/admin/governance — plafond d'admins actifs issu de la configuration (ADMIN_MAX_ACTIVE). */
+export interface AdminGovernance {
+  maxActiveAdmins: number;
+  activeAdmins: number;
+  capReached: boolean;
+}
+
 export interface AdvisorPage {
   content: Advisor[];
   totalElements: number;

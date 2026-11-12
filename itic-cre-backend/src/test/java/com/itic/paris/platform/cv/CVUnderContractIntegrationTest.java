@@ -157,6 +157,44 @@ class CVUnderContractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Puces et liste avec une recherche : même nombre dans chaque vue ; l'homonyme sous contrat n'est pas compté « À corriger »")
+    void chipsFollowTheSearchLikeTheList() throws Exception {
+        // Cas de la recette : deux étudiantes au même prénom et au CV « À corriger », l'une sous contrat vérifié.
+        CVStatut aCorriger = cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().stream()
+                .filter(s -> s.getNom().toLowerCase().contains("corriger"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Statut « À corriger » absent du seed"));
+        Student inesLibre = student("ines.libre.cv-contrat@itic.fr", "Inès");
+        Student inesContrat = student("ines.contrat.cv-contrat@itic.fr", "Inès");
+        cv(inesLibre, aCorriger);
+        cv(inesContrat, aCorriger);
+        contract(inesContrat, true, null);
+
+        String search = portfolio + "&search=inès";
+
+        // Vue par défaut : seule l'étudiante hors contrat, et la puce « À corriger » compte 1.
+        assertThat(listedStudentIds(search)).containsExactly(inesLibre.getId());
+        Map<UUID, Long> defaultStats = stats(search);
+        assertThat(defaultStats.get(aCorriger.getId())).isEqualTo(1);
+        assertThat(total(defaultStats)).isEqualTo(listedTotal(search));
+
+        // Vue « Sous contrat » : la puce et la liste donnent le même nombre (avant : la puce ignorait la recherche).
+        assertThat(listedStudentIds(search + "&underContract=true")).containsExactly(inesContrat.getId());
+        assertThat(total(stats(search + "&underContract=true"))).isEqualTo(1).isEqualTo(listedTotal(search + "&underContract=true"));
+
+        // Sans recherche, la puce « Sous contrat » compte Bruno et l'homonyme : toujours égale à la liste.
+        assertThat(total(stats(portfolio + "&underContract=true"))).isEqualTo(2)
+                .isEqualTo(listedTotal(portfolio + "&underContract=true"));
+
+        // Vue « Comptes désactivés » avec recherche : même règle.
+        inesContrat.setActive(false);
+        inesContrat.setDeactivatedAt(Instant.now());
+        studentRepository.save(inesContrat);
+        assertThat(total(stats(search + "&accountActive=false"))).isEqualTo(1)
+                .isEqualTo(listedTotal(search + "&accountActive=false"));
+    }
+
+    @Test
     @DisplayName("Fin ou rupture du contrat (date de fin saisie et passée) : le CV revient tout seul en validation")
     void endedContractBringsCvBack() throws Exception {
         long pendingBefore = pendingCount();

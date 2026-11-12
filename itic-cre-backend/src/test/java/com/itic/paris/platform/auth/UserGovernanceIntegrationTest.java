@@ -32,6 +32,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -129,6 +130,54 @@ public class UserGovernanceIntegrationTest {
                         .content(objectMapper.writeValueAsString(newAdminPayload("admin4.gov@itic.fr", "Quatre"))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.messageKey").value(MessageKey.ADMIN_CAP_REACHED.getKey()));
+    }
+
+    @Test
+    public void testAdminGovernance_ExposesConfiguredCapAndActiveCount() throws Exception {
+        // Le bandeau « Gouvernance » et le refus immediat du front s'appuient sur cette reponse, jamais sur un
+        // chiffre ecrit dans le code : plafond = configuration (3 par defaut), nombre d'admins actifs reel.
+        long activeBefore = countActiveAdmins();
+        mockMvc.perform(get("/auth/admin/governance")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.maxActiveAdmins").value(3))
+                .andExpect(jsonPath("$.data.activeAdmins").value(activeBefore))
+                .andExpect(jsonPath("$.data.capReached").value(activeBefore >= 3));
+
+        while (countActiveAdmins() < 3) {
+            saveActiveAdmin("admin.cap" + countActiveAdmins() + ".gov@itic.fr", "Cap");
+        }
+        mockMvc.perform(get("/auth/admin/governance")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeAdmins").value(3))
+                .andExpect(jsonPath("$.data.capReached").value(true));
+    }
+
+    @Test
+    public void testAdminGovernance_IsReservedToAdmins() throws Exception {
+        Advisor advisor = new Advisor();
+        advisor.setEmail("advisor.governance@itic.fr");
+        advisor.setFirstName("Advisor");
+        advisor.setLastName("Governance");
+        advisor.setPassword(passwordEncoder.encode("Password123!"));
+        advisor.setEmailVerified(true);
+        advisor.setActive(true);
+        advisor.setRole(advisorRole);
+        advisor = userRepository.save(advisor);
+        String advisorToken = (String) jwtAuthProvider.createToken(CustomUserDetails.builder()
+                .id(advisor.getId()).email(advisor.getEmail()).role(advisor.getRole())
+                .lang("fr").mustChangePassword(false).build()).get("token");
+
+        mockMvc.perform(get("/auth/admin/governance")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                .andExpect(status().isForbidden());
+    }
+
+    private long countActiveAdmins() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.isActive() && u.getRole() != null && u.getRole().getName() == RoleEnum.ADMIN)
+                .count();
     }
 
     private void saveActiveAdmin(String email, String lastName) {

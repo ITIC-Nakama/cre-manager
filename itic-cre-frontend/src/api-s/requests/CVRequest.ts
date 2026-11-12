@@ -46,10 +46,19 @@ export function deleteCVComment(commentId: string): Promise<void> {
     return apiClient.delete(`/cv/comments/${commentId}`).then(() => undefined);
 }
 
-/** GET /cv/stats — nombre de CV par statut (accountActive=false : comptes désactivés ; underContract=true : étudiants sous contrat) */
-export function fetchCVStats(advisorId?: string, accountActive?: boolean, underContract?: boolean): Promise<CVStatCount[]> {
+/** Filtres de la liste repris par les puces (GET /cv/stats), pour qu'une puce affiche le nombre de lignes de la liste. */
+export interface CVStatsFilters {
+    search?: string;
+    starred?: boolean;
+}
+
+/** GET /cv/stats — nombre de CV par statut, mêmes filtres que la liste (accountActive=false : comptes désactivés ; underContract=true : étudiants sous contrat) */
+export function fetchCVStats(advisorId?: string, accountActive?: boolean, underContract?: boolean,
+                             filters: CVStatsFilters = {}): Promise<CVStatCount[]> {
     const params: Record<string, unknown> = {};
     if (advisorId) params.advisorId = advisorId;
+    if (filters.search) params.search = filters.search;
+    if (filters.starred !== undefined) params.starred = filters.starred;
     if (accountActive !== undefined) params.accountActive = accountActive;
     if (underContract !== undefined) params.underContract = underContract;
     return apiClient.get('/cv/stats', { params }).then((r) => unwrap<CVStatCount[]>(r));

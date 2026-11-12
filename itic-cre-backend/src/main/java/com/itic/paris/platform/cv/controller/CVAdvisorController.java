@@ -47,13 +47,15 @@ public class CVAdvisorController {
     }
 
     @GetMapping("/stats")
-    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller. Mêmes vues que la "
-            + "liste : CV à relire par défaut ; accountActive=false = comptes désactivés ; underContract=true = "
-            + "étudiants sous contrat")
+    @Operation(summary = "Nombre de CVs par statut, avec les mêmes filtres que la liste (advisorId, search, starred) "
+            + "et les mêmes vues : CV à relire par défaut ; accountActive=false = comptes désactivés ; "
+            + "underContract=true = étudiants sous contrat")
     public ResponseEntity<?> getStats(@RequestParam(required = false) UUID advisorId,
+                                      @RequestParam(required = false) String search,
+                                      @RequestParam(required = false) Boolean starred,
                                       @RequestParam(required = false) Boolean accountActive,
                                       @RequestParam(required = false) Boolean underContract) {
-        return ResponseEntity.ok(cvService.getCVStats(advisorId, accountActive, underContract));
+        return ResponseEntity.ok(cvService.getCVStats(advisorId, search, starred, accountActive, underContract));
     }
 
     @GetMapping("/student/{studentId}")
