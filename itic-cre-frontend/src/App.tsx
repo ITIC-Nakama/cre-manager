@@ -1,4 +1,6 @@
 import './App.css'
+import { lazy, Suspense, type ReactNode } from 'react'
+import { Loader2 } from 'lucide-react'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import OfflineBanner from './components/common/OfflineBanner'
@@ -16,11 +18,22 @@ import { Role } from './types/models/Auth'
 import { Toaster } from 'sonner'
 import StudentDashboard from './pages/student/dashboard/StudentDashboard'
 import StudentCVPage from './pages/student/cv/StudentCVPage'
-import CVBuilderPage from './pages/student/cv-builder/CVBuilderPage'
+// Pages chargées à la demande : leurs dépendances lourdes (éditeur Tiptap/ProseMirror, assistant de CV) restent
+// hors du bundle principal, qui doit tenir sous la limite de précache de la PWA (workbox, 2 Mo).
+const CVBuilderPage = lazy(() => import('./pages/student/cv-builder/CVBuilderPage'))
+const ContenuPage = lazy(() => import('./pages/advisor/formation/ContenuPage'))
+const SkillTreePage = lazy(() => import('./pages/student/connaissances/SkillTreePage'))
+
+function LazyPage({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="h-6 w-6 text-slate-400 animate-spin" /></div>}>
+      {children}
+    </Suspense>
+  )
+}
 import StudentOffresPage from './pages/student/offres/OffresPage'
 import CandidaturesListPage from './pages/student/candidatures/CandidaturesListPage'
 import CandidatureDetailPage from './pages/student/candidatures/CandidatureDetailPage'
-import SkillTreePage from './pages/student/connaissances/SkillTreePage'
 import CategoryArticlesPage from './pages/student/connaissances/CategoryArticlesPage'
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
 import QuizPage from './pages/student/connaissances/QuizPage'
@@ -33,7 +46,6 @@ import OffresCategoriesPage from './pages/advisor/offres/CategoriesPage'
 import ExternalSyncPage from './pages/advisor/offres/ExternalSyncPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
-import ContenuPage from './pages/advisor/formation/ContenuPage'
 import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import ReclamationsPage from './pages/advisor/reclamations/ReclamationsPage'
 import AlumniPage from './pages/advisor/alumni/AlumniPage'
@@ -106,12 +118,12 @@ function App() {
           <Route path="/student/candidatures/:id" element={<CandidatureDetailPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/conseillers"   element={<ConseillersPage />} />
-          <Route path="/student/connaissances"                        element={<SkillTreePage />} />
+          <Route path="/student/connaissances"                        element={<LazyPage><SkillTreePage /></LazyPage>} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
           <Route path="/student/cv"            element={<StudentCVPage />} />
-          <Route path="/student/cv/assistant"  element={<CVBuilderPage />} />
+          <Route path="/student/cv/assistant"  element={<LazyPage><CVBuilderPage /></LazyPage>} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 
@@ -124,7 +136,7 @@ function App() {
           <Route path="/supervisor/offres"        element={<SupervisorOffresPage />} />
           <Route path="/supervisor/offres/categories" element={<OffresCategoriesPage />} />
           <Route path="/supervisor/cv"            element={<CVValidationPage />} />
-          <Route path="/supervisor/contenu"       element={<ContenuPage />} />
+          <Route path="/supervisor/contenu"       element={<LazyPage><ContenuPage /></LazyPage>} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />
           <Route path="/supervisor/reclamations"  element={<ReclamationsPage />} />
           <Route path="/supervisor/alumni"        element={<AlumniPage />} />
