@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <!--
-  Fragments communs aux modeles de CV (classique.html, moderne.html).
+  Fragments communs aux modeles de CV.
   Contraintes openhtmltopdf : XHTML bien forme (balises fermees, pas d'entites nommees comme &nbsp;),
-  CSS 2.1 (pas de flexbox ni de grid : float et tableaux). Les textes saisis passent tous par th:text (echappes).
+  CSS 2.1 (pas de flexbox ni de grid). Les textes saisis passent tous par th:text (echappes).
+  Lisibilite par les logiciels de tri (ATS) : AUCUN texte en float — openhtmltopdf ecrit les floats avant le
+  reste du flux, ce qui faisait sortir les dates avant le nom. Titre et date d'une entree partagent une ligne de
+  tableau : le texte extrait suit l'ordre visuel (verifie par CvAtsExtractionTest).
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -16,13 +19,19 @@
   ul { margin: 1mm 0 0 0; padding: 0 0 0 4.5mm; }
   li { margin: 0 0 0.6mm 0; }
   .clear { clear: both; }
-  .entry { margin: 0 0 3.2mm 0; page-break-inside: avoid; }
-  .entry-date { float: right; margin-left: 4mm; color: #6b7280; font-size: 8.8pt; white-space: nowrap; }
+  /* Espacements AU-DESSUS des blocs (jamais en dessous) : une marge basse en fin de document pouvait creer une
+     page blanche quand le contenu remplissait juste la page. */
+  .entry { margin: 2.6mm 0 0 0; page-break-inside: avoid; }
+  .section-title + .entry { margin-top: 0; }
+  .entry-head { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .entry-head td { padding: 0; vertical-align: top; }
+  .entry-head td.entry-date { width: 40mm; padding-left: 3mm; text-align: right; color: #6b7280; font-size: 8.8pt; }
   .entry-title { font-weight: 700; }
   .entry-sub { color: #4b5563; }
+  .entry-facts { color: #4b5563; font-style: italic; font-size: 8.9pt; }
   .entry-text { margin-top: 0.8mm; }
   .muted { color: #6b7280; }
-  .section { margin: 0 0 3mm 0; }
+  .section { margin: 3.4mm 0 0 0; }
   .section-title { page-break-after: avoid; }
   @media screen {
     html { background: #e5e7eb; }
@@ -47,11 +56,16 @@
 <div th:fragment="experiences" class="section section-experiences">
   <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
   <div class="entry" th:each="e : ${cv.experiences}">
-    <span class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</span>
-    <div class="entry-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</div>
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</td>
+      <td class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</td>
+    </tr></table>
     <div class="entry-sub" th:text="${fmt.join(' · ', e.entreprise, e.ville)}">Entreprise</div>
+    <th:block th:with="facts=${fmt.companyFacts(e.chiffreAffaires, e.effectif, e.secteur, #messages.msg('cv.company.revenue'), #messages.msg('cv.company.headcount'))}">
+      <div class="entry-facts" th:if="${fmt.present(facts)}" th:text="${facts}">CA 3 M€ – effectif 35 (secteur)</div>
+    </th:block>
     <ul th:if="${!e.points.isEmpty()}">
-      <li th:each="p : ${e.points}" th:text="${p}">Point</li>
+      <li th:each="p : ${e.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
     </ul>
   </div>
 </div>
@@ -59,17 +73,22 @@
 <div th:fragment="formations" class="section section-formations">
   <h2 class="section-title" th:text="#{cv.section.formations}">Formation</h2>
   <div class="entry" th:each="f : ${cv.formations}">
-    <span class="entry-date" th:text="${fmt.period(f.debut, f.fin, f.enCours, #messages.msg('cv.ongoing'))}">2025</span>
-    <div class="entry-title" th:text="${f.diplome}">Diplôme</div>
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${f.diplome}">Diplôme</td>
+      <td class="entry-date" th:text="${fmt.period(f.debut, f.fin, f.enCours, #messages.msg('cv.ongoing'))}">2025</td>
+    </tr></table>
     <div class="entry-sub" th:text="${fmt.join(' · ', f.etablissement, f.ville, f.mention)}">Établissement</div>
+    <ul th:if="${!f.points.isEmpty()}">
+      <li th:each="p : ${f.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+    </ul>
   </div>
 </div>
 
 <div th:fragment="projets" class="section section-projets">
   <h2 class="section-title" th:text="#{cv.section.projets}">Projets</h2>
   <div class="entry" th:each="p : ${cv.projets}">
-    <span class="entry-date" th:if="${fmt.present(p.lien)}"><a th:href="${p.lien}" th:text="${fmt.displayUrl(p.lien)}">lien</a></span>
     <div class="entry-title" th:text="${p.nom}">Projet</div>
+    <div class="entry-sub" th:if="${fmt.present(p.lien)}"><a th:href="${p.lien}" th:text="${fmt.displayUrl(p.lien)}">lien</a></div>
     <div class="entry-text" th:if="${fmt.present(p.description)}" th:text="${p.description}">Description</div>
     <div class="entry-sub" th:if="${!p.technos.isEmpty()}">
       <span class="muted" th:text="|#{cv.technos}#{cv.colon}|">Technologies : </span><span th:text="${#strings.listJoin(p.technos, ', ')}">Java</span>
@@ -104,8 +123,10 @@
 <div th:fragment="certifications" class="section section-certifications">
   <h2 class="section-title" th:text="#{cv.section.certifications}">Certifications</h2>
   <div class="entry" th:each="c : ${cv.certifications}">
-    <span class="entry-date" th:text="${fmt.month(c.date)}">2025</span>
-    <div class="entry-title" th:text="${c.nom}">Certification</div>
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${c.nom}">Certification</td>
+      <td class="entry-date" th:text="${fmt.month(c.date)}">2025</td>
+    </tr></table>
     <div class="entry-sub" th:if="${fmt.present(c.organisme)}" th:text="${c.organisme}">Organisme</div>
   </div>
 </div>
@@ -114,6 +135,11 @@
   <h2 class="section-title" th:text="#{cv.section.centresInteret}">Centres d'intérêt</h2>
   <div class="skill-items"><span class="tag" th:each="i : ${cv.centresInteret}" th:text="${i}">Basket</span></div>
 </div>
+
+<!-- Puce avec mise en gras : "**+15 %**" -> <strong>. Chaque morceau passe par th:text (echappe).
+     Les morceaux normaux sont aussi dans un <span> : openhtmltopdf ecrit le texte direct d'un element AVANT ses
+     elements imbriques ; sans ce <span>, le gras sortait apres la fin de la phrase dans le flux du PDF (ATS). -->
+<th:block th:fragment="rich(text)"><th:block th:each="seg : ${fmt.rich(text)}"><strong th:if="${seg.bold}" th:text="${seg.text}">gras</strong><span th:unless="${seg.bold}" th:text="${seg.text}">texte</span></th:block></th:block>
 
 <!-- Liens (LinkedIn, GitHub…) : libelle + URL lisible, cliquables dans le PDF. -->
 <th:block th:fragment="links">

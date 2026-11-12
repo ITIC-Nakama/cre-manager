@@ -479,6 +479,15 @@ ci-dessous).
 - **Dépôt manuel conservé** : un étudiant sans CV choisit entre l'assistant (recommandé) et le dépôt d'un PDF ; « Modifier dans l'assistant » n'apparaît que pour un CV généré.
 - **Lecture conseiller / admin** : `GET /cv/student/{studentId}/builder`, lecture seule (404 sans brouillon).
 - **RGPD** : le brouillon figure dans l'export (`cvDraft`) et est **supprimé** (pas anonymisé) lors de l'anonymisation d'un étudiant, avec son CV.
+- **Lisibilité par les logiciels de tri des recruteurs (ATS)**, vérifiée pour **chaque modèle**, avec et sans photo, par `CvAtsExtractionTest` (texte extrait du PDF avec PDFBox, dans l'ordre du flux et dans l'ordre de position) :
+  - vrai texte sélectionnable, polices embarquées avec table de correspondance Unicode (accents, €, apostrophes) ;
+  - ordre de lecture = ordre affiché : nom, coordonnées, profil, puis les sections dans l'ordre choisi par l'étudiant ; chaque entrée reste groupée. **Aucun texte en `float`** dans les modèles (openhtmltopdf écrit les floats avant le reste : les dates sortaient avant le nom) ; titre et date d'une entrée partagent une ligne de tableau ;
+  - dans une puce, le gras (`**…**`) et le texte normal sont chacun dans leur élément : sinon le gras sortait après la fin de la phrase dans le flux du PDF ;
+  - titres de section standards (Profil, Expériences professionnelles, Formation, Projets, Compétences, Langues, Certifications, Centres d'intérêt) ;
+  - coordonnées dans le corps du document : aucun texte dans les marges de page (pas d'en-tête ni de pied de page) ;
+  - la photo est une image décorative (`alt` vide) : avec ou sans photo, le texte extrait est identique.
+  - Modèle Moderne sur **une seule colonne** (l'ancienne colonne latérale faisait sortir contact, compétences et langues avant le profil).
+- **Champs ajoutés pour le modèle linéaire** (facultatifs, stockés dans le JSON du brouillon, sans migration) : pour une expérience, chiffre d'affaires, effectif et secteur de l'entreprise, rendus sur une ligne en italique « CA 3 M€ – effectif 35 collaborateurs (secteur) » ; pour une formation, jusqu'à 4 puces ; dans les puces, `**texte**` met en gras (le texte reste échappé : aucun HTML n'est interprété). Limites : 150 caractères par champ, 200 par puce.
 
 ---
 

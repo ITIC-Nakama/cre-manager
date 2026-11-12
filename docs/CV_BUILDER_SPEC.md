@@ -123,6 +123,8 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 
 ## 6. Modèles PDF
 
+> Lisibilité ATS (12/11/2026) : aucun texte en `float`, une seule colonne, gras de puce dans des éléments frères ; vérifiée par `CvAtsExtractionTest` pour chaque modèle (voir `REGLES_METIER.md`, assistant de CV).
+
 - `src/main/resources/templates/cv/classique.html` et `moderne.html`, partageant des fragments Thymeleaf (`cv/fragments.html`).
 - A4, marges 15 mm, CSS imprimable compatible openhtmltopdf (pas de flexbox avancé : tableaux ou `float` pour Moderne).
 - Libellés de sections traduits fr/en via les messages Thymeleaf.

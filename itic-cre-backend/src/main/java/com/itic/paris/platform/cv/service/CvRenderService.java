@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Rendu des modeles de CV (templates/cv/*.html) : HTML pour l'apercu, PDF pour le telechargement et l'envoi.
@@ -39,9 +38,6 @@ import java.util.Set;
 @Slf4j
 @Service
 public class CvRenderService {
-
-    /** Colonne laterale du modele Moderne ; le reste va dans la colonne principale. */
-    private static final Set<String> SIDEBAR_SECTIONS = Set.of("competences", "langues", "centresInteret");
 
     /** Polices embarquees (l'image Docker alpine n'en a aucune) : famille CSS, fichier, graisse, style. */
     private record FontFile(String family, String file, int weight, BaseRendererBuilder.FontStyle style) {}
@@ -78,8 +74,6 @@ public class CvRenderService {
         context.setVariable("fmt", new CvTemplateHelper(locale));
         List<String> sections = visibleSections(cv);
         context.setVariable("sections", sections);
-        context.setVariable("mainSections", sections.stream().filter(s -> !SIDEBAR_SECTIONS.contains(s)).toList());
-        context.setVariable("sideSections", sections.stream().filter(SIDEBAR_SECTIONS::contains).toList());
         context.setVariable("accent", options.accentColor());
         context.setVariable("accentLight", tint(options.accentColor(), 0.90));
         context.setVariable("fullName", fullName(cv));
@@ -124,6 +118,7 @@ public class CvRenderService {
         cv.getExperiences().removeIf(e -> isBlank(e.getPoste()) && isBlank(e.getEntreprise()));
         cv.getExperiences().forEach(e -> e.getPoints().removeIf(CvRenderService::isBlank));
         cv.getFormations().removeIf(f -> isBlank(f.getDiplome()) && isBlank(f.getEtablissement()));
+        cv.getFormations().forEach(f -> f.getPoints().removeIf(CvRenderService::isBlank));
         cv.getProjets().removeIf(p -> isBlank(p.getNom()) && isBlank(p.getDescription()));
         cv.getProjets().forEach(p -> p.getTechnos().removeIf(CvRenderService::isBlank));
         cv.getCompetences().getTechniques().removeIf(CvRenderService::isBlank);

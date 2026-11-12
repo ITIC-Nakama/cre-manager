@@ -12,7 +12,7 @@
   <style th:replace="~{cv/fragments :: pageCss}"></style>
   <style th:inline="css">
     body { font-family: 'PT Serif', 'Roboto', serif; }
-    .header { text-align: center; padding-bottom: 3mm; margin-bottom: 4mm; border-bottom: 0.6mm solid [(${accent})]; }
+    .header { text-align: center; padding-bottom: 3mm; margin-bottom: 1mm; border-bottom: 0.6mm solid [(${accent})]; }
     .header.with-photo { text-align: left; min-height: 30mm; }
     .photo { float: right; width: 26mm; height: 30mm; margin-left: 5mm; border: 0.3mm solid #d1d5db; }
     .name { font-size: 22pt; font-weight: 700; letter-spacing: 0.3pt; color: #111827; line-height: 1.1; }
@@ -21,7 +21,7 @@
     .contact .sep { color: #9ca3af; }
     .link { margin: 0 2mm; white-space: nowrap; }
     .link-type { color: #6b7280; }
-    .summary { margin: 0 0 4mm 0; text-align: justify; }
+    .summary { margin: 0; text-align: justify; }
     .section-title { font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1pt;
                      color: [(${accent})]; margin: 0 0 2mm 0; padding-bottom: 0.8mm; border-bottom: 0.25mm solid #d1d5db; }
     .skill-group { margin-bottom: 1.2mm; }

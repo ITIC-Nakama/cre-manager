@@ -24,6 +24,7 @@ export const CV_LIMITS = {
     formations: 10,
     projets: 10,
     points: 6,
+    formationPoints: 4,
     pointLength: 200,
     summaryLength: 400,
     shortText: 150,
@@ -58,6 +59,11 @@ export interface CvExperience {
     debut: string;
     fin: string | null;
     enCours: boolean;
+    /** Presentation facultative de l'entreprise : « CA 3 M€ – effectif 35 collaborateurs (secteur) ». */
+    chiffreAffaires?: string;
+    effectif?: string;
+    secteur?: string;
+    /** Puces de realisations ; « **texte** » met en gras. */
     points: string[];
     /** Proposee depuis une candidature au contrat valide : a confirmer par l'etudiant. */
     aConfirmer: boolean;
@@ -72,6 +78,8 @@ export interface CvFormation {
     fin: string;
     enCours: boolean;
     mention: string;
+    /** Puces facultatives (4 au plus) ; « **texte** » met en gras. */
+    points?: string[];
 }
 
 export interface CvProjet {

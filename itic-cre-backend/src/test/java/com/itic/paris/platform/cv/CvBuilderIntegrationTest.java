@@ -371,8 +371,10 @@ public class CvBuilderIntegrationTest {
                     fonts.add(page.getResources().getFont(name));
                 }
                 assertThat(fonts).isNotEmpty().allMatch(PDFont::isEmbedded);
-                // Texte selectionnable (pas une image) : on retrouve le contenu saisi.
-                assertThat(new PDFTextStripper().getText(document)).contains("Capgemini", "Amina Diallo");
+                // Texte selectionnable (pas une image) : on retrouve le contenu saisi. Casse ignoree : le modele
+                // Moderne affiche le nom en capitales (text-transform), comme la maquette.
+                assertThat(new PDFTextStripper().getText(document).toLowerCase(java.util.Locale.FRENCH))
+                        .contains("capgemini", "amina diallo");
             }
         }
     }

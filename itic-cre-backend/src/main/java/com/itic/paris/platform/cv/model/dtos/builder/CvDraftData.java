@@ -58,6 +58,11 @@ public class CvDraftData {
         private String debut = "";
         private String fin;
         private Boolean enCours = false;
+        /** Presentation facultative de l'entreprise, sur une ligne : "CA 3 M€ – effectif 35 collaborateurs (secteur)". */
+        private String chiffreAffaires = "";
+        private String effectif = "";
+        private String secteur = "";
+        /** Puces de realisations ; "**texte**" met en gras (resultats chiffres). */
         private List<String> points = new ArrayList<>();
         /** Proposee par le prerempli depuis une candidature au contrat valide : a confirmer par l'etudiant. */
         @JsonProperty("aConfirmer")
@@ -74,6 +79,8 @@ public class CvDraftData {
         private String fin = "";
         private Boolean enCours = false;
         private String mention = "";
+        /** Puces facultatives (matieres, projets marquants) ; "**texte**" met en gras. */
+        private List<String> points = new ArrayList<>();
     }
 
     @Data
