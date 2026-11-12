@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
     X, Briefcase, Building2, MapPin, FileSignature, Layers,
     Calendar, ExternalLink, CheckCircle2, UserMinus, Loader2,
-    Globe, Power, PowerOff, Trash2, User, Users
+    Globe, Mail, Power, PowerOff, Trash2, User, Users
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -15,6 +15,8 @@ interface Props {
     onClose: () => void;
     isApplied?: boolean;
     onApply?: (offerId: string) => Promise<void> | void;
+    /** Bouton « Postuler » (étudiant) : lien, e-mail ou rien selon le canal de l'offre. */
+    onPostuler?: (offer: JobOffer) => void;
     onWithdraw?: (offer: JobOffer) => void;
     isApplying?: boolean;
     onEdit?: (offer: JobOffer) => void;
@@ -38,6 +40,7 @@ export default function JobOfferDetailModal({
     onClose,
     isApplied = false,
     onApply,
+    onPostuler,
     onWithdraw,
     isApplying = false,
     onEdit,
@@ -65,6 +68,11 @@ export default function JobOfferDetailModal({
     useLockBodyScroll(scrollRef, shouldRender);
     const lastOfferRef = useRef<JobOffer | null>(null);
     if (offerProp) lastOfferRef.current = offerProp;
+    // Canal de candidature lu sur la prop (et non sur la ref gardee pour l'animation de fermeture) :
+    // pendant la fermeture, l'encart e-mail et le bouton « Postuler » disparaissent simplement.
+    const emailNotice = offerProp && !offerProp.externalLink?.trim() ? offerProp.emailCandidature : null;
+    const postulerTarget = offerProp && (offerProp.externalLink?.trim() || offerProp.emailCandidature) ? offerProp : null;
+    const postulerByLink = !!postulerTarget?.externalLink?.trim();
 
     if (!shouldRender || !lastOfferRef.current) return null;
     const offer = lastOfferRef.current;
@@ -191,6 +199,16 @@ export default function JobOfferDetailModal({
                         </div>
                     </div>
 
+                    {/* Candidature par e-mail (adresse trouvee dans la description), sans lien externe */}
+                    {emailNotice && (
+                        <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-start gap-2.5">
+                            <Mail className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                            <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 break-all">
+                                {t('dashboard.offres.detail_modal.email_notice', { email: emailNotice, defaultValue: 'Candidature par e-mail à {{email}}.' })}
+                            </p>
+                        </div>
+                    )}
+
                     {/* External Link Notice (le lien d'action equivalent est dans le footer, toujours visible sans scroll) */}
                     {offer.externalLink && (
                         <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-start gap-2.5">
@@ -273,19 +291,28 @@ export default function JobOfferDetailModal({
                             </button>
                         )}
 
-                        {/* Student Apply / Withdraw Buttons */}
+                        {/* Student Apply / Withdraw Buttons : « J'ai postulé ✓ » en secondaire, « Postuler » en principal */}
                         {onApply && !isApplied && (
                             <button
                                 onClick={() => onApply(offer.id)}
                                 disabled={isApplying}
-                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 active:scale-[0.98] text-sm font-semibold transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {isApplying ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <CheckCircle2 className="h-4 w-4" />
                                 )}
-                                {t('dashboard.offres.apply_button', 'Marquer comme posté')}
+                                {t('dashboard.offres.apply_button', 'J’ai postulé ✓')}
+                            </button>
+                        )}
+                        {onPostuler && !isApplied && postulerTarget && (
+                            <button
+                                onClick={() => onPostuler(postulerTarget)}
+                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer"
+                            >
+                                {postulerByLink ? <ExternalLink className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+                                {t('dashboard.offres.postuler_button', 'Postuler')}
                             </button>
                         )}
 

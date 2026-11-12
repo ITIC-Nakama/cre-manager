@@ -1,4 +1,4 @@
-import { FileSignature, Globe, Layers, Loader2, MapPin, Search, SlidersHorizontal, UserCheck, UserRound, X } from 'lucide-react';
+import { FileSignature, Globe, Layers, Loader2, MapPin, Search, Send, SlidersHorizontal, UserCheck, UserRound, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect, { type SelectOption } from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
@@ -27,6 +27,9 @@ interface Props {
     activeFilter: string;
     activeFilterOptions: SelectOption[];
     onActiveFilterChange: (value: string) => void;
+    applyChannelFilter: string;
+    applyChannelOptions: SelectOption[];
+    onApplyChannelChange: (value: string) => void;
     activeFilterCount: number;
     onReset: () => void;
     isFetching: boolean;
@@ -41,6 +44,7 @@ export default function OffresFiltersBar({
     contractTypeFilter, contractTypeOptions, onContractTypeChange,
     isInternalSource, sectorFilter, sectorOptions, onSectorChange,
     activeFilter, activeFilterOptions, onActiveFilterChange,
+    applyChannelFilter, applyChannelOptions, onApplyChannelChange,
     activeFilterCount, onReset, isFetching, isLoading,
 }: Props) {
     const { t } = useTranslation();
@@ -147,6 +151,18 @@ export default function OffresFiltersBar({
                         options={activeFilterOptions}
                         onChange={onActiveFilterChange}
                         icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                        className="w-full"
+                    />
+                </div>
+                <div className="py-3 first:pt-3 last:pb-3">
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                        {t('dashboard.offres.apply_channel_filter.label', 'Moyen de postuler')}
+                    </label>
+                    <CustomSelect
+                        value={applyChannelFilter}
+                        options={applyChannelOptions}
+                        onChange={onApplyChannelChange}
+                        icon={<Send className="h-4 w-4 text-slate-400" />}
                         className="w-full"
                     />
                 </div>

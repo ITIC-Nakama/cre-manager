@@ -35,6 +35,8 @@ export interface JobOffer {
     /** Conseiller/admin ayant créé l'offre, null pour les offres externes (source != MANUAL). */
     createdByFirstName: string | null;
     createdByLastName: string | null;
+    /** Adresse e-mail de candidature trouvée dans la description (bouton « Postuler » par e-mail), null sinon. */
+    emailCandidature: string | null;
 }
 
 export interface JobOfferPage {
@@ -74,6 +76,8 @@ export interface JobOfferListParams {
     location?: string;
     /** Filtre « Déposée par » (liste staff) : id du conseiller/admin auteur, ou 'EXTERNAL'. */
     postedBy?: string;
+    /** Liste staff : uniquement les offres sans lien ni adresse e-mail de candidature. */
+    noApplyChannel?: boolean;
     sort?: string;
 }
 

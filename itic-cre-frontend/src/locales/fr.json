@@ -783,7 +783,35 @@
         "toast_error": "Une erreur est survenue.",
         "toast_delete_error": "Échec de la suppression — vérifiez qu'aucune offre ne l'utilise encore."
       },
-      "apply_button": "Marquer comme posté",
+      "apply_button": "J’ai postulé ✓",
+      "postuler_button": "Postuler",
+      "channel": {
+        "email": "📧 Par mail",
+        "link": "🔗 Lien externe"
+      },
+      "email_dialog": {
+        "title": "Postuler par e-mail",
+        "intro": "Ta messagerie devrait s’ouvrir avec l’objet déjà rempli. Si rien ne s’ouvre, copie l’adresse et l’objet ci-dessous.",
+        "address": "Adresse",
+        "subject": "Objet",
+        "copy": "Copier",
+        "copied": "Copié",
+        "copy_error": "Copie impossible : sélectionne le texte à la main.",
+        "open_mail": "Ouvrir ma messagerie",
+        "close": "Fermer"
+      },
+      "follow_up": {
+        "question": "Tu as envoyé ta candidature ?",
+        "confirm": "Oui, marquer comme postée",
+        "later": "Pas encore"
+      },
+      "no_channel_badge": "Sans moyen de postuler",
+      "no_channel_hint": "Ni lien ni adresse e-mail : les étudiants ne savent pas comment postuler.",
+      "apply_channel_filter": {
+        "label": "Moyen de postuler",
+        "all": "Tous",
+        "none": "Sans moyen de postuler"
+      },
       "already_applied": "Déjà postulé",
       "withdraw_hint": "Retirer ma candidature — la carte correspondante sera aussi supprimée de mon suivi de candidatures.",
       "withdraw_confirm_title": "Retirer ma candidature",
@@ -841,7 +869,10 @@
         "required_field_error": "Ce champ est obligatoire.",
         "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
         "invalid_link_error": "Le lien n'est pas une URL valide (doit commencer par http:// ou https://).",
-        "save_error": "Échec de l'enregistrement de l'offre."
+        "save_error": "Échec de l'enregistrement de l'offre.",
+        "no_channel_error": "Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.",
+        "channel_link": "Les étudiants postuleront via ce lien.",
+        "channel_email": "Les étudiants postuleront par e-mail à {{email}}."
       },
       "detail_modal": {
         "title": "Détails de l'offre",
@@ -858,7 +889,8 @@
         "status_applied": "Vous avez déjà postulé à cette offre",
         "close": "Fermer",
         "view_applicants_one": "{{count}} candidat",
-        "view_applicants_other": "{{count}} candidats"
+        "view_applicants_other": "{{count}} candidats",
+        "email_notice": "Candidature par e-mail à {{email}}."
       },
       "applicants_modal": {
         "title": "Candidats",
@@ -875,9 +907,9 @@
         "activated": "Offre réactivée.",
         "deleted": "Offre supprimée.",
         "action_error": "Une erreur est survenue.",
-        "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
+        "applied": "Candidature notée. Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",
-        "apply_error": "Impossible d'envoyer la candidature.",
+        "apply_error": "Impossible d’enregistrer la candidature.",
         "withdrawn": "Candidature retirée.",
         "withdrawn_xp_revoked": "Candidature retirée — {{xp}} XP repris.",
         "withdraw_error": "Impossible de retirer la candidature."

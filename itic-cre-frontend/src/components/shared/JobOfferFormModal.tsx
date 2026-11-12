@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, Briefcase, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { findApplicationEmail } from '../../utils/applyChannel';
 import { toast } from 'sonner';
 import CustomSelect from '../basics/CustomSelect';
 import { useContractTypes } from '../../hooks/useApplications';
@@ -48,6 +49,16 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
     const [saving, setSaving] = useState(false);
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    // Dès que le lien ou la description change, l'erreur affichée sous le lien (dont « aucun moyen de
+    // postuler ») est retirée : l'aperçu en direct du canal prend le relais jusqu'au prochain envoi.
+    const clearLinkError = () => {
+        setFieldErrors((prev) => {
+            if (!prev.externalLink) return prev;
+            const next = { ...prev };
+            delete next.externalLink;
+            return next;
+        });
+    };
 
     const contractTypeOptions = (contractTypes ?? []).map((c) => ({ value: c.id, label: c.label }));
     const sectorOptions = [
@@ -86,6 +97,10 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         if (trimmedLink && !isValidHttpUrl(trimmedLink)) {
             errors.externalLink = t('dashboard.offres.form.invalid_link_error');
         }
+        // Bloquant : sans lien ni adresse e-mail dans la description, l'etudiant ne peut pas postuler.
+        if (!trimmedLink && !findApplicationEmail(description)) {
+            errors.externalLink = t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.');
+        }
         return errors;
     };
 
@@ -112,7 +127,9 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
             onClose();
         } catch (err: any) {
             const serverFieldErrors = err?.response?.data?.data;
-            if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
+            if (err?.response?.data?.messageKey === 'job-offer-no-apply-channel') {
+                setFieldErrors({ externalLink: t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.') });
+            } else if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
                 setFieldErrors(serverFieldErrors);
             } else {
                 setGeneralError(t('dashboard.offres.form.save_error'));
@@ -203,7 +220,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                          <textarea
                             value={description}
                             disabled={isReadOnly}
-                            onChange={(e) => setDescription(e.target.value)}
+                            onChange={(e) => { setDescription(e.target.value); clearLinkError(); }}
                             maxLength={LIMITS.description.max}
                             rows={6}
                             className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
@@ -318,7 +335,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                             type="text"
                             value={externalLink ?? ''}
                             disabled={isReadOnly}
-                            onChange={(e) => setExternalLink(e.target.value)}
+                            onChange={(e) => { setExternalLink(e.target.value); clearLinkError(); }}
                             maxLength={LIMITS.externalLink.max}
                             placeholder="https://..."
                             className={`w-full rounded-xl bg-slate-50 dark:bg-slate-950 border px-3 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-70 disabled:bg-slate-100/50 dark:disabled:bg-slate-950/50 ${
@@ -326,6 +343,17 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                             }`}
                         />
                         {fieldErrors.externalLink && <p className="text-xs text-rose-500">{fieldErrors.externalLink}</p>}
+                        {!isReadOnly && !fieldErrors.externalLink && (() => {
+                            if (externalLink.trim()) {
+                                return <p className="text-xs text-emerald-600 dark:text-emerald-400">{t('dashboard.offres.form.channel_link', 'Les étudiants postuleront via ce lien.')}</p>;
+                            }
+                            const email = findApplicationEmail(description);
+                            return email ? (
+                                <p className="text-xs text-emerald-600 dark:text-emerald-400">{t('dashboard.offres.form.channel_email', { email, defaultValue: 'Les étudiants postuleront par e-mail à {{email}}.' })}</p>
+                            ) : (
+                                <p className="text-xs font-medium text-amber-600 dark:text-amber-400">{t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.')}</p>
+                            );
+                        })()}
                     </div>
                 </div>
 

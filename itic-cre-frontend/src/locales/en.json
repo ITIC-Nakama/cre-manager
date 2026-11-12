@@ -783,7 +783,35 @@
         "toast_error": "Something went wrong.",
         "toast_delete_error": "Failed to delete — check that no job offer still uses it."
       },
-      "apply_button": "Mark as applied",
+      "apply_button": "I applied ✓",
+      "postuler_button": "Apply",
+      "channel": {
+        "email": "📧 By email",
+        "link": "🔗 External link"
+      },
+      "email_dialog": {
+        "title": "Apply by email",
+        "intro": "Your mail app should open with the subject already filled in. If nothing opens, copy the address and subject below.",
+        "address": "Address",
+        "subject": "Subject",
+        "copy": "Copy",
+        "copied": "Copied",
+        "copy_error": "Copy failed: select the text manually.",
+        "open_mail": "Open my mail app",
+        "close": "Close"
+      },
+      "follow_up": {
+        "question": "Did you send your application?",
+        "confirm": "Yes, mark as applied",
+        "later": "Not yet"
+      },
+      "no_channel_badge": "No way to apply",
+      "no_channel_hint": "No link and no email address: students do not know how to apply.",
+      "apply_channel_filter": {
+        "label": "Way to apply",
+        "all": "All",
+        "none": "No way to apply"
+      },
       "already_applied": "Already applied",
       "withdraw_hint": "Withdraw my application — the matching card will also be deleted from my application tracker.",
       "withdraw_confirm_title": "Withdraw application",
@@ -841,7 +869,10 @@
         "required_field_error": "This field is required.",
         "length_error": "Must be between {{min}} and {{max}} characters.",
         "invalid_link_error": "This link is not a valid URL (must start with http:// or https://).",
-        "save_error": "Failed to save the offer."
+        "save_error": "Failed to save the offer.",
+        "no_channel_error": "No way to apply: add a link to the offer, or an email address in the description.",
+        "channel_link": "Students will apply through this link.",
+        "channel_email": "Students will apply by email to {{email}}."
       },
       "detail_modal": {
         "title": "Job Offer Details",
@@ -858,7 +889,8 @@
         "status_applied": "You have already applied to this offer",
         "close": "Close",
         "view_applicants_one": "{{count}} applicant",
-        "view_applicants_other": "{{count}} applicants"
+        "view_applicants_other": "{{count}} applicants",
+        "email_notice": "Apply by email to {{email}}."
       },
       "applicants_modal": {
         "title": "Applicants",
@@ -875,9 +907,9 @@
         "activated": "Offer reactivated.",
         "deleted": "Offer deleted.",
         "action_error": "Something went wrong.",
-        "applied": "Application sent! It has been added to your tracker.",
+        "applied": "Application recorded. It has been added to your tracking.",
         "already_applied": "You already applied to this offer.",
-        "apply_error": "Unable to send the application.",
+        "apply_error": "Could not record the application.",
         "withdrawn": "Application withdrawn.",
         "withdrawn_xp_revoked": "Application withdrawn — {{xp}} XP taken back.",
         "withdraw_error": "Unable to withdraw the application."

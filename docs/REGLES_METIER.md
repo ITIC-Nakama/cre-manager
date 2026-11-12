@@ -277,6 +277,34 @@ ci-dessous).
 - XP attribuée (quand le seuil le permet) : le `gainXP` du statut "Postulé" s'il est **> 0**, sinon
   repli sur la config générique `CANDIDATURE_CREATED` (jamais les deux à la fois).
 
+### Bouton « Postuler » et canal de candidature
+- **Deux boutons distincts côté étudiant** (carte et détail de l'offre) :
+  - « **Postuler** » (principal) n'enregistre rien : il emmène vers le canal de l'offre ;
+  - « **J'ai postulé ✓** » (secondaire, contour ; ex-« Marquer comme posté ») enregistre la
+    candidature (`POST /jobboard/applications/{id}/apply`, règles ci-dessus).
+- **Canal de candidature**, dans cet ordre :
+  1. lien (`externalLink`) → ouvert dans un nouvel onglet ;
+  2. sinon adresse e-mail (`emailCandidature`) → `mailto:` avec l'objet
+     « Candidature alternance – [intitulé] – [Prénom Nom] », « Candidature stage – … » selon le
+     type de contrat (libellé contenant « alternance » ou « stage »), « Candidature – … » pour les
+     autres. Une petite fenêtre reprend l'adresse et l'objet, avec un bouton « Copier » chacun, au cas
+     où la messagerie ne s'ouvre pas ;
+  3. sinon → le détail de l'offre.
+- **Badge du canal** sur la carte : « 📧 Par mail » ou « 🔗 Lien externe » (rien sans canal).
+- **Au retour sur la page** après « Postuler » (onglet du lien quitté, ou fenêtre e-mail fermée) :
+  « Tu as envoyé ta candidature ? [Oui, marquer comme postée] [Pas encore] ». « Oui » équivaut à
+  « J'ai postulé ✓ ». La question n'apparaît pas si la candidature est déjà enregistrée.
+- **`email_candidature`** (V45) : première adresse e-mail trouvée dans la **description**, en
+  minuscules (`ApplicationEmailExtractor`, motif `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`).
+  Recalculée à chaque création ou modification par le staff, et à chaque import d'offre externe.
+  Les offres existantes ont été rattrapées une fois par la migration V45, avec le même motif.
+- **Offre déposée par le staff sans moyen de postuler refusée** : sans lien ni adresse e-mail dans
+  la description, création et modification sont bloquées (formulaire, puis
+  `400 job-offer-no-apply-channel` côté serveur). Le formulaire indique en direct le canal retenu.
+- **Repère et filtre staff** « Sans moyen de postuler » : badge sur la ligne de l'offre, et
+  `GET /jobboard/offers/all?noApplyChannel=true` (ni lien, vide compris, ni adresse) — utile pour
+  les offres externes et les offres créées avant cette règle.
+
 ### Découplage offre/candidature (V14/V15 — supprimer une offre ne bloque plus jamais)
 - `Application.sourceJobOffer` reste une vraie clé étrangère (seul usage restant : retrouver la
   candidature à supprimer lors d'un retrait côté jobboard), mais en `ON DELETE SET NULL` :
