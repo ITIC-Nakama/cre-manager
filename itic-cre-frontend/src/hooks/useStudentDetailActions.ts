@@ -30,6 +30,8 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
     const [anonymizing, setAnonymizing] = useState(false);
     const [deactivateTarget, setDeactivateTarget] = useState<StudentRow | null>(null);
     const [deactivateLoading, setDeactivateLoading] = useState(false);
+    const [reactivateTarget, setReactivateTarget] = useState<StudentRow | null>(null);
+    const [reactivateLoading, setReactivateLoading] = useState(false);
 
     const { data: studentCv, isLoading: studentCvLoading } = useCVByStudent(viewingCvStudentId);
     const { data: cvStatuts = [] } = useCVStatuts();
@@ -61,13 +63,21 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
         }
     };
 
-    const handleReactivateStudent = async (student: StudentRow) => {
+    // Réactivation : confirmation d'abord (ReactivateAccountDialog), comme pour la désactivation.
+    const handleReactivateStudent = (student: StudentRow) => setReactivateTarget(student);
+
+    const handleConfirmReactivate = async () => {
+        if (!reactivateTarget) return;
+        setReactivateLoading(true);
         try {
-            await reactivateMutation.mutateAsync(student.id);
+            await reactivateMutation.mutateAsync(reactivateTarget.id);
             toast.success(t('dashboard.etudiants.toast_reactivated'));
+            setReactivateTarget(null);
         } catch (err) {
             console.error(err);
             toast.error(t('dashboard.etudiants.toast_reactivate_error'));
+        } finally {
+            setReactivateLoading(false);
         }
     };
 
@@ -109,6 +119,11 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
         deactivateLoading,
         closeDeactivateConfirm: () => setDeactivateTarget(null),
         handleConfirmDeactivate,
+
+        reactivateTarget,
+        reactivateLoading,
+        closeReactivateConfirm: () => setReactivateTarget(null),
+        handleConfirmReactivate,
 
         anonymizeTarget,
         anonymizing,

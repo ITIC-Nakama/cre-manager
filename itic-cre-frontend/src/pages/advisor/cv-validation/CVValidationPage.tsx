@@ -10,14 +10,17 @@ import {
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle, Users, Star,
-    ChevronUp, ChevronDown, ChevronsUpDown, X,
+    ChevronUp, ChevronDown, ChevronsUpDown, X, UserCheck,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAllCVsInfinite, useCVStatuts, useCVStats } from '../../../hooks/useCV';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
+import { useReactivateStudent } from '../../../hooks/useDashboard';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
+import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import StudentActivityBadge from '../../../components/shared/StudentActivityBadge';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
@@ -121,6 +124,9 @@ export default function CVValidationPage() {
     const [statutFilter, setStatutFilter] = useState(() => searchParams.get('statut') ?? '');
     const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
     const [selectedCV, setSelectedCV] = useState<CVRow | null>(null);
+    // CV dont on confirme la réactivation du compte (vue « Comptes désactivés »).
+    const [reactivatingCv, setReactivatingCv] = useState<CVRow | null>(null);
+    const reactivateMutation = useReactivateStudent();
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
     // Dans l'URL, 'all' = « tous les conseillers » choisi explicitement par un conseiller.
@@ -209,6 +215,20 @@ export default function CVValidationPage() {
 
     // La fiche étudiant est réservée au staff (conseillers et admins, voir /dashboard/students/** côté API).
     const canOpenStudentProfile = currentUser?.role === Role.ADVISOR || currentUser?.role === Role.ADMIN;
+    // Réactiver un compte étudiant : conseillers et admins (l'API refuse toute cible qui n'est pas un étudiant).
+    const canReactivateAccount = canOpenStudentProfile;
+
+    const handleConfirmReactivate = async () => {
+        if (!reactivatingCv) return;
+        try {
+            await reactivateMutation.mutateAsync(reactivatingCv.studentId);
+            toast.success(t('dashboard.etudiants.toast_reactivated'));
+            setReactivatingCv(null);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_reactivate_error'));
+        }
+    };
 
     const statutOptions = useMemo(() => [
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
@@ -485,13 +505,28 @@ export default function CVValidationPage() {
                                             </td>
                                         ))}
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => setSelectedCV(row.original)}
-                                                className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                                                title={t('dashboard.cv.actions.review', 'Examiner le CV')}
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
+                                            <div className="inline-flex items-center justify-end gap-2">
+                                                {canReactivateAccount && row.original.student?.accountActive === false && row.original.studentId && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setReactivatingCv(row.original)}
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors cursor-pointer"
+                                                        aria-label={t('dashboard.etudiants.actions.reactivate_account_of', {
+                                                            name: `${row.original.student.firstName} ${row.original.student.lastName}`,
+                                                        })}
+                                                    >
+                                                        <UserCheck className="h-3.5 w-3.5" />
+                                                        <span>{t('dashboard.etudiants.actions.reactivate_account')}</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => setSelectedCV(row.original)}
+                                                    className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
+                                                    title={t('dashboard.cv.actions.review', 'Examiner le CV')}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -520,6 +555,13 @@ export default function CVValidationPage() {
                         : undefined}
                 />
             )}
+
+            <ReactivateAccountDialog
+                student={reactivatingCv?.student ?? null}
+                loading={reactivateMutation.isPending}
+                onConfirm={handleConfirmReactivate}
+                onClose={() => setReactivatingCv(null)}
+            />
         </div>
     );
 }
