@@ -135,9 +135,9 @@ public class CVService {
 
     @Transactional(readOnly = true)
     public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred,
-                                                        Boolean accountActive, Pageable pageable) {
+                                                        Boolean accountActive, Boolean underContract, Pageable pageable) {
         Page<CV> page = cvRepository.findAll(
-                CVSpecification.withFilters(statutId, search, advisorId, starred, accountActive), pageable);
+                CVSpecification.withFilters(statutId, search, advisorId, starred, accountActive, underContract), pageable);
         return page.map(this::buildCVResponse);
     }
 
@@ -331,16 +331,30 @@ public class CVService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCVStats(UUID advisorId) {
-        return getCVStats(advisorId, null);
+        return getCVStats(advisorId, null, null);
     }
 
-    /** @param accountActive null ou true = comptes actifs (defaut) ; false = comptes desactives (memes regles que la liste). */
+    /**
+     * Memes vues que la liste (CVSpecification) : par defaut, CV a relire ; accountActive=false, comptes
+     * desactives ; underContract=true, etudiants sous contrat.
+     */
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCVStats(UUID advisorId, Boolean accountActive) {
-        boolean active = !Boolean.FALSE.equals(accountActive);
-        List<Object[]> rows = advisorId != null
-                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId), active)
-                : cvRepository.countGroupedByStatut(active);
+    public List<Map<String, Object>> getCVStats(UUID advisorId, Boolean accountActive, Boolean underContract) {
+        List<UUID> studentIds = advisorId != null ? studentRepository.findIdsByAdvisorId(advisorId) : null;
+        List<Object[]> rows;
+        if (Boolean.FALSE.equals(accountActive)) {
+            rows = studentIds != null
+                    ? cvRepository.countGroupedByStatutOfDeactivatedAccountsForStudents(studentIds)
+                    : cvRepository.countGroupedByStatutOfDeactivatedAccounts();
+        } else if (Boolean.TRUE.equals(underContract)) {
+            rows = studentIds != null
+                    ? cvRepository.countGroupedByStatutUnderContractForStudents(studentIds)
+                    : cvRepository.countGroupedByStatutUnderContract();
+        } else {
+            rows = studentIds != null
+                    ? cvRepository.countGroupedByStatutForStudents(studentIds)
+                    : cvRepository.countGroupedByStatut();
+        }
         return rows.stream().map(row -> {
             Map<String, Object> map = new HashMap<>();
             map.put("statutId", row[0]);

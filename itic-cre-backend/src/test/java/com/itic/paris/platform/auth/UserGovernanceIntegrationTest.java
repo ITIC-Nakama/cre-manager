@@ -102,33 +102,55 @@ public class UserGovernanceIntegrationTest {
     }
 
     @Test
-    public void testCreateAdmin_WhenTwoActiveAdminsExist_ShouldReturnForbiddenAdminCapReached() throws Exception {
-        // Deuxième admin actif
-        Admin secondAdmin = new Admin();
-        secondAdmin.setEmail("admin2.gov@itic.fr");
-        secondAdmin.setFirstName("Admin");
-        secondAdmin.setLastName("Deux");
-        secondAdmin.setPassword(passwordEncoder.encode("Password123!"));
-        secondAdmin.setEmailVerified(true);
-        secondAdmin.setActive(true);
-        secondAdmin.setRole(adminRole);
-        userRepository.save(secondAdmin);
-
-        // Tentative de création d'un 3ème admin
-        Map<String, Object> createAdminMap = Map.of(
-                "email", "admin3.gov@itic.fr",
-                "firstName", "Admin",
-                "lastName", "Trois",
-                "password", "Password123!",
-                "role", "ADMIN"
-        );
+    public void testCreateThirdAdmin_WhenTwoActiveAdminsExist_ShouldSucceed() throws Exception {
+        // Plafond = 3 admins actifs : avec 2 admins actifs (primaryAdmin + un second), le 3ème est accepté.
+        saveActiveAdmin("admin2.gov@itic.fr", "Deux");
 
         mockMvc.perform(post("/auth/admin/users")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createAdminMap)))
+                        .content(objectMapper.writeValueAsString(newAdminPayload("admin3.gov@itic.fr", "Trois"))))
+                .andExpect(status().isCreated());
+
+        assertThat(userRepository.findAll().stream()
+                .filter(u -> u.isActive() && u.getRole() != null && u.getRole().getName() == RoleEnum.ADMIN)
+                .count()).isEqualTo(3);
+    }
+
+    @Test
+    public void testCreateAdmin_WhenThreeActiveAdminsExist_ShouldReturnForbiddenAdminCapReached() throws Exception {
+        saveActiveAdmin("admin2.gov@itic.fr", "Deux");
+        saveActiveAdmin("admin3.gov@itic.fr", "Trois");
+
+        // Tentative de création d'un 4ème admin
+        mockMvc.perform(post("/auth/admin/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newAdminPayload("admin4.gov@itic.fr", "Quatre"))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.messageKey").value(MessageKey.ADMIN_CAP_REACHED.getKey()));
+    }
+
+    private void saveActiveAdmin(String email, String lastName) {
+        Admin admin = new Admin();
+        admin.setEmail(email);
+        admin.setFirstName("Admin");
+        admin.setLastName(lastName);
+        admin.setPassword(passwordEncoder.encode("Password123!"));
+        admin.setEmailVerified(true);
+        admin.setActive(true);
+        admin.setRole(adminRole);
+        userRepository.save(admin);
+    }
+
+    private Map<String, Object> newAdminPayload(String email, String lastName) {
+        return Map.of(
+                "email", email,
+                "firstName", "Admin",
+                "lastName", lastName,
+                "password", "Password123!",
+                "role", "ADMIN"
+        );
     }
 
     @Test

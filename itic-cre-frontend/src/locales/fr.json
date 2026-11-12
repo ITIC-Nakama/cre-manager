@@ -1428,7 +1428,7 @@
       "toast_reactivated": "Compte réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
       "errors": {
-        "admin_cap_reached": "Le plafond de 2 administrateurs actifs est atteint.",
+        "admin_cap_reached": "Le plafond de 3 administrateurs actifs est atteint.",
         "cannot_self_deactivate": "Vous ne pouvez pas désactiver votre propre compte.",
         "last_admin_protection": "Impossible de désactiver le dernier administrateur actif.",
         "admin_cannot_be_deleted": "Un administrateur ne peut pas être supprimé physiquement.",

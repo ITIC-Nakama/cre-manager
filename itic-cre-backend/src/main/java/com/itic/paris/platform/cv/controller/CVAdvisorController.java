@@ -32,23 +32,28 @@ public class CVAdvisorController {
 
     @GetMapping
     @Operation(summary = "Lister tous les CVs paginés (filtres statutId/recherche/advisorId/starred optionnels). "
-            + "Comptes actifs par défaut ; accountActive=false = seulement les comptes désactivés")
+            + "Par défaut, CV à relire (comptes actifs, étudiants pas sous contrat) ; accountActive=false = seulement "
+            + "les comptes désactivés ; underContract=true = seulement les étudiants sous contrat")
     public ResponseEntity<?> listAll(
             @RequestParam(required = false) UUID statutId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID advisorId,
             @RequestParam(required = false) Boolean starred,
             @RequestParam(required = false) Boolean accountActive,
+            @RequestParam(required = false) Boolean underContract,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, advisorId, starred, accountActive, pageable));
+        return ResponseEntity.ok(cvService.getAllCVsPaginated(statutId, search, advisorId, starred, accountActive,
+                underContract, pageable));
     }
 
     @GetMapping("/stats")
-    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller. "
-            + "Comptes actifs par défaut ; accountActive=false = seulement les comptes désactivés")
+    @Operation(summary = "Obtenir les statistiques des CVs par statut — filtrable par conseiller. Mêmes vues que la "
+            + "liste : CV à relire par défaut ; accountActive=false = comptes désactivés ; underContract=true = "
+            + "étudiants sous contrat")
     public ResponseEntity<?> getStats(@RequestParam(required = false) UUID advisorId,
-                                      @RequestParam(required = false) Boolean accountActive) {
-        return ResponseEntity.ok(cvService.getCVStats(advisorId, accountActive));
+                                      @RequestParam(required = false) Boolean accountActive,
+                                      @RequestParam(required = false) Boolean underContract) {
+        return ResponseEntity.ok(cvService.getCVStats(advisorId, accountActive, underContract));
     }
 
     @GetMapping("/student/{studentId}")

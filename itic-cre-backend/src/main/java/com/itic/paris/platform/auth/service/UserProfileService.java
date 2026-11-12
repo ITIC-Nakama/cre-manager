@@ -10,6 +10,8 @@ import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.model.enums.RoleEnum;
+import com.itic.paris.platform.shared.notification.event.StudentAccountReactivatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.itic.paris.platform.auth.model.dtos.UserUpdateDto;
 import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.AdvisorRepository;
@@ -69,6 +71,7 @@ public class UserProfileService {
     private final JobApplicationRepository jobApplicationRepository;
     private final PromotionRepository promotionRepository;
     private final AdvisorRepository advisorRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public record DeleteOrDeactivateResult(boolean deleted, User user) {}
 
@@ -79,7 +82,7 @@ public class UserProfileService {
     private long maxImageSizeMb;
 
     /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
-    @Value("${app.admin.max-active:2}")
+    @Value("${app.admin.max-active:3}")
     private long adminMaxActive;
 
     /**
@@ -365,6 +368,11 @@ public class UserProfileService {
 
         auditLogService.log(AuditAction.USER_REACTIVATED, actor, user.getId(),
                 "Compte réactivé : " + user.getFirstName() + " " + user.getLastName() + " (" + targetRole + ")");
+
+        // L'étudiant est prévenu par email, envoyé après validation de la transaction (NotificationEmailService).
+        if (targetRole == RoleEnum.STUDENT) {
+            eventPublisher.publishEvent(new StudentAccountReactivatedEvent(user.getEmail(), user.getFirstName(), user.getLang()));
+        }
         return saved;
     }
 

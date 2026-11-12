@@ -156,8 +156,8 @@ public enum MessageKey {
     TASK_UPDATE_PROMOTION("task-update-promotion", "Pensez à mettre à jour votre promotion", "Remember to update your promotion"),
     // Admin governance messages
     ADMIN_CAP_REACHED("admin-cap-reached",
-            "Le plafond de 2 administrateurs actifs est atteint. Désactivez un administrateur existant avant d'en créer un nouveau.",
-            "The maximum of 2 active administrators has been reached. Deactivate an existing administrator before creating a new one."),
+            "Le plafond de 3 administrateurs actifs est atteint. Désactivez un administrateur existant avant d'en créer un nouveau.",
+            "The maximum of 3 active administrators has been reached. Deactivate an existing administrator before creating a new one."),
     CANNOT_SELF_DEACTIVATE("cannot-self-deactivate",
             "Vous ne pouvez pas désactiver ou supprimer votre propre compte.",
             "You cannot deactivate or delete your own account."),

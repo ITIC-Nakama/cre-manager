@@ -10,7 +10,7 @@ import {
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle, Users, Star,
-    ChevronUp, ChevronDown, ChevronsUpDown, X, UserCheck,
+    ChevronUp, ChevronDown, ChevronsUpDown, X, UserCheck, FileSignature,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +58,7 @@ function scrollContainer(): HTMLElement | null {
 
 /** Gris neutre (slate-500) de la puce « Comptes désactivés », même modèle que les puces de statut. */
 const DISABLED_ACCOUNTS_CHIP_COLOR = '#64748B';
+const UNDER_CONTRACT_CHIP_COLOR = '#059669';
 
 const col = createColumnHelper<CVRow>();
 
@@ -139,6 +140,9 @@ export default function CVValidationPage() {
     // Les CV des comptes desactives sont masques partout (filtre serveur) ; la puce « Comptes désactivés »
     // permet de les retrouver. Une seule puce active a la fois : choisir un statut ramene a la vue normale.
     const [disabledAccountsOnly, setDisabledAccountsOnly] = useState(() => searchParams.get('desactives') === '1');
+    // Meme principe pour les etudiants sous contrat (contrat verifie en cours) : leur CV n'a plus besoin d'etre relu,
+    // il sort des listes et revient tout seul a la fin du contrat. La puce « Sous contrat » permet de les retrouver.
+    const [underContractOnly, setUnderContractOnly] = useState(() => searchParams.get('contrat') === '1');
     const [sorting, setSorting] = useState<SortingState>(() => parseSortParam(searchParams.get('tri')));
 
     useEffect(() => {
@@ -149,19 +153,23 @@ export default function CVValidationPage() {
             conseiller: advisorFilter === defaultAdvisorFilter ? '' : (advisorFilter || 'all'),
             etoiles: starredFilter === 'all' ? '' : starredFilter,
             desactives: disabledAccountsOnly ? '1' : '',
+            contrat: underContractOnly ? '1' : '',
             tri: firstSort ? `${firstSort.id}:${firstSort.desc ? 'desc' : 'asc'}` : '',
         });
         if (next !== new URLSearchParams(window.location.search).toString()) {
             setSearchParams(new URLSearchParams(next), { replace: true });
         }
-    }, [statutFilter, search, advisorFilter, defaultAdvisorFilter, starredFilter, disabledAccountsOnly, sorting, setSearchParams]);
+    }, [statutFilter, search, advisorFilter, defaultAdvisorFilter, starredFilter, disabledAccountsOnly, underContractOnly, sorting, setSearchParams]);
     const accountActive = disabledAccountsOnly ? false : undefined;
+    const underContract = underContractOnly ? true : undefined;
 
     const { data: statuts = [] } = useCVStatuts();
     // Puces de statut : comptes actifs uniquement, quelle que soit la vue.
     const { data: stats = [] } = useCVStats(advisorFilter || undefined);
     const { data: disabledStats = [] } = useCVStats(advisorFilter || undefined, false);
     const disabledCount = disabledStats.reduce((sum, s) => sum + s.count, 0);
+    const { data: underContractStats = [] } = useCVStats(advisorFilter || undefined, undefined, true);
+    const underContractCount = underContractStats.reduce((sum, s) => sum + s.count, 0);
     const { data: advisors = [] } = useAllAdvisors();
     const params = useMemo(() => ({
         size: PAGE_SIZE_LOCAL,
@@ -170,8 +178,9 @@ export default function CVValidationPage() {
         advisorId: advisorFilter || undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
         accountActive,
+        underContract,
         sort: toSortParam(sorting),
-    }), [statutFilter, search, advisorFilter, starredFilter, accountActive, sorting]);
+    }), [statutFilter, search, advisorFilter, starredFilter, accountActive, underContract, sorting]);
 
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -264,6 +273,14 @@ export default function CVValidationPage() {
                             <StudentActivityBadge accountActive={false} isActive={false} lastActivity={null} />
                         </div>
                     )}
+                    {underContractOnly && row.original.student?.accountActive !== false && (
+                        <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <FileSignature className="h-3 w-3" />
+                                {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
+                            </span>
+                        </div>
+                    )}
                 </div>
             ),
         }),
@@ -297,7 +314,7 @@ export default function CVValidationPage() {
             ),
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [t]);
+    ], [t, underContractOnly]);
 
     const coreRowModel = useMemo(() => getCoreRowModel(), []);
 
@@ -310,14 +327,23 @@ export default function CVValidationPage() {
         manualSorting: true,
     });
 
+    // Une seule puce active a la fois : un statut, « Comptes désactivés » ou « Sous contrat ».
     const handleStatutChange = (val: string) => {
         setStatutFilter(val);
         setDisabledAccountsOnly(false);
+        setUnderContractOnly(false);
     };
 
     const handleDisabledAccountsChip = () => {
         setStatutFilter('');
+        setUnderContractOnly(false);
         setDisabledAccountsOnly((active) => !active);
+    };
+
+    const handleUnderContractChip = () => {
+        setStatutFilter('');
+        setDisabledAccountsOnly(false);
+        setUnderContractOnly((active) => !active);
     };
 
     const handleSearch = (val: string) => {
@@ -351,6 +377,7 @@ export default function CVValidationPage() {
                     <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
                         {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
                         {disabledAccountsOnly && ` · ${t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')}`}
+                        {underContractOnly && ` · ${t('dashboard.etudiants.filter_contract_under', 'Sous contrat')}`}
                     </p>
                 </div>
 
@@ -448,6 +475,18 @@ export default function CVValidationPage() {
                             }}
                         >
                             {t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')} · {disabledCount}
+                        </button>
+                        <button
+                            onClick={handleUnderContractChip}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${underContractOnly ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                }`}
+                            style={{
+                                background: `${UNDER_CONTRACT_CHIP_COLOR}18`,
+                                color: UNDER_CONTRACT_CHIP_COLOR,
+                                border: `1px solid ${UNDER_CONTRACT_CHIP_COLOR}44`,
+                            }}
+                        >
+                            {t('dashboard.etudiants.filter_contract_under', 'Sous contrat')} · {underContractCount}
                         </button>
                     </div>
                 )}
