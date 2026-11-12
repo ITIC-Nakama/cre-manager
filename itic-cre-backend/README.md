@@ -226,7 +226,7 @@ Les promotions sont créées par un administrateur et sélectionnées par l'étu
 
 ## Gouvernance Multi-Admin & RBAC (Sécurité & RGPD)
 
-- **Plafond d'administrateurs actifs** : Configurable via `ADMIN_MAX_ACTIVE=2` (bloque la création ou réactivation d'un 3ème admin actif).
+- **Plafond d'administrateurs actifs** : Configurable via `ADMIN_MAX_ACTIVE` (3 par défaut : bloque la création ou réactivation d'un 4ème admin actif).
 - **Protections d'intégrité & Auditability** :
   - Auto-désactivation interdite pour les comptes administrateurs (`CANNOT_SELF_DEACTIVATE`).
   - Protection du dernier administrateur actif (`LAST_ADMIN_PROTECTION` si `activeAdmins <= 1`).

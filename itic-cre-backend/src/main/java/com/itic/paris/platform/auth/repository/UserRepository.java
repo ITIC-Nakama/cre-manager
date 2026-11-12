@@ -30,6 +30,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.active = true")
     List<User> findActiveByRoleForUpdate(@Param("role") RoleEnum role);
 
+    /** Comptage simple, sans verrou (affichage) — le controle du plafond, lui, passe par findActiveByRoleForUpdate. */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role.name = :role AND u.active = true")
+    long countActiveByRole(@Param("role") RoleEnum role);
+
     /** Étudiants désactivés depuis plus de X jours — utilisé par le scheduler RGPD pour l'anonymisation. */
     @Query("SELECT u FROM User u WHERE TYPE(u) = com.itic.paris.platform.auth.model.Student " +
             "AND u.active = false AND u.deactivatedAt IS NOT NULL AND u.deactivatedAt < :cutoff")

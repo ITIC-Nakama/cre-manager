@@ -4,6 +4,7 @@ import {
   fetchAdvisors,
   fetchAllAdvisors,
   fetchAdmins,
+  fetchAdminGovernance,
   createAdvisor,
   updateAdvisor,
   deleteAdvisor,
@@ -38,6 +39,15 @@ export function useAdminsInfinite(params: AdvisorListParams = {}) {
   return useInfiniteListQuery(['admins', 'infinite', params], fetchAdmins, params);
 }
 
+/** Plafond d'admins actifs et nombre d'admins actifs (bandeau « Gouvernance », refus immédiat à la création). */
+export function useAdminGovernance(enabled = true) {
+  return useQuery({
+    queryKey: ['admin-governance'],
+    queryFn: fetchAdminGovernance,
+    enabled,
+  });
+}
+
 export function useCreateAdvisor() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -45,6 +55,7 @@ export function useCreateAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
     },
   });
 }
@@ -56,6 +67,7 @@ export function useUpdateAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
     },
   });
 }
@@ -67,6 +79,7 @@ export function useDeleteAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
     },
   });
 }
@@ -78,6 +91,7 @@ export function useDeactivateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
     },
   });
 }
@@ -89,6 +103,7 @@ export function useReactivateAdvisor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
     },
   });
 }
@@ -129,6 +144,7 @@ export function useUploadAdvisorPublicPicture() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['advisors'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-governance'] });
       queryClient.invalidateQueries({ queryKey: ['advisor-directory'] });
     },
   });

@@ -13,6 +13,8 @@ interface Props {
   loading?: boolean;
   /** 'danger' (défaut) : action destructive, en rouge. 'positive' : action qui rétablit quelque chose, en vert. */
   tone?: 'danger' | 'positive';
+  /** Fenêtre d'information : un seul bouton (confirmLabel), pas d'« Annuler ». */
+  hideCancel?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -25,6 +27,7 @@ export default function ConfirmDialog({
   cancelLabel,
   loading = false,
   tone = 'danger',
+  hideCancel = false,
   onConfirm,
   onClose
 }: Props) {
@@ -72,13 +75,15 @@ export default function ConfirmDialog({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {cancelLabel ?? t('common.confirm_dialog.cancel')}
-          </button>
+          {!hideCancel && (
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {cancelLabel ?? t('common.confirm_dialog.cancel')}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             disabled={loading}

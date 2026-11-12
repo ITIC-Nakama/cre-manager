@@ -12,7 +12,7 @@ import {
     fetchMyCV,
     fetchMyComments,
     uploadMyCV,
-    fetchCVByStudent,
+    fetchCVByStudent, type CVStatsFilters
 } from '../api-s/requests/CVRequest';
 import type { CVListParams } from '../types/models/CV';
 import type { CVStatut } from '../types/models/CV';
@@ -81,10 +81,10 @@ export function useUpdateCVStatutConfig() {
     });
 }
 
-export function useCVStats(advisorId?: string, accountActive?: boolean) {
+export function useCVStats(advisorId?: string, accountActive?: boolean, underContract?: boolean, filters: CVStatsFilters = {}) {
     return useQuery({
-        queryKey: ['cv-stats', advisorId, accountActive],
-        queryFn: () => fetchCVStats(advisorId, accountActive),
+        queryKey: ['cv-stats', advisorId, accountActive, underContract, filters.search ?? '', filters.starred],
+        queryFn: () => fetchCVStats(advisorId, accountActive, underContract, filters),
     });
 }
 

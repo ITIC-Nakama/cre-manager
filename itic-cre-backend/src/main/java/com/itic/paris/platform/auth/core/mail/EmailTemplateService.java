@@ -82,6 +82,15 @@ public class EmailTemplateService {
         return templateEngine.process("email/advisor-assigned", context);
     }
 
+    public String renderAccountReactivatedEmail(String lang, String firstName) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/account-reactivated", context);
+    }
+
     public String renderReclamationCreatedEmail(String lang, String studentFullName, String studentPhoneNumber, String message) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));

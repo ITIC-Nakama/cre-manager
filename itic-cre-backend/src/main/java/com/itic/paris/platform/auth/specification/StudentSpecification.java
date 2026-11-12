@@ -267,7 +267,9 @@ public class StudentSpecification {
      * encore en attente de verification (avec son badge "a verifier"), sans quoi personne ne
      * serait jamais alerte d'une nouvelle declaration a traiter.
      */
-    private static Predicate underContractPredicate(Root<Student> root, CriteriaQuery<?> query, CriteriaBuilder cb, Boolean underContract) {
+    // Public : aussi utilise par CVSpecification (vue « Sous contrat » de la validation des CV), avec la jointure
+    // CV -> etudiant a la place de la racine Student — une seule definition de « sous contrat ».
+    public static Predicate underContractPredicate(Expression<?> root, CriteriaQuery<?> query, CriteriaBuilder cb, Boolean underContract) {
         Subquery<UUID> contractSubquery = query.subquery(UUID.class);
         Root<Application> appRoot = contractSubquery.from(Application.class);
         Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);

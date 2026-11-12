@@ -44,6 +44,8 @@ export interface CVListParams {
     starred?: boolean;
     /** Absent = comptes actifs (defaut serveur) ; false = seulement les comptes desactives. */
     accountActive?: boolean;
+    /** true = vue « Sous contrat » (étudiants dont le contrat vérifié est en cours). */
+    underContract?: boolean;
     sort?: string;
 }
 

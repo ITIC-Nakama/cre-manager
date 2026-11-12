@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 import {
   useAdvisorsInfinite, useAdminsInfinite, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor,
-  useDeactivateUser, useReactivateAdvisor,
+  useDeactivateUser, useReactivateAdvisor, useAdminGovernance,
 } from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
 
@@ -73,6 +73,20 @@ export default function AdvisorPage() {
   const advisorTotalCount = advisorQuery.totalElements;
   const adminTotalCount = adminQuery.totalElements;
 
+  // Plafond d'admins actifs : valeur de la configuration serveur (ADMIN_MAX_ACTIVE), jamais écrite dans le front.
+  const { data: governance, refetch: refetchGovernance } = useAdminGovernance();
+  const [capDialogOpen, setCapDialogOpen] = useState(false);
+  const capMessage = governance
+    ? t('dashboard.conseillers.errors.admin_cap_reached', { max: governance.maxActiveAdmins })
+    : t('dashboard.conseillers.errors.admin_cap_reached_generic');
+
+  /** Refus immédiat quand le plafond est atteint (le serveur refuse de toute façon, ADMIN_CAP_REACHED). */
+  const refuseIfCapReached = (): boolean => {
+    if (!governance?.capReached) return false;
+    setCapDialogOpen(true);
+    return true;
+  };
+
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
   const deleteMutation = useDeleteAdvisor();
@@ -107,7 +121,7 @@ export default function AdvisorPage() {
     const e = err as { response?: { data?: { messageKey?: string } } };
     const key = e?.response?.data?.messageKey;
     const map: Record<string, string> = {
-      'admin-cap-reached': t('dashboard.conseillers.errors.admin_cap_reached'),
+      'admin-cap-reached': capMessage,
       'cannot-self-deactivate': t('dashboard.conseillers.errors.cannot_self_deactivate'),
       'last-admin-protection': t('dashboard.conseillers.errors.last_admin_protection'),
       'admin-cannot-be-deleted': t('dashboard.conseillers.errors.admin_cannot_be_deleted'),
@@ -179,7 +193,10 @@ export default function AdvisorPage() {
       if (e?.response?.data?.messageKey === 'email-already-in-use') {
         toast.error(t('dashboard.conseillers.toast_email_exists'));
       } else if (e?.response?.data?.messageKey === 'admin-cap-reached') {
-        toast.error(t('dashboard.conseillers.errors.admin_cap_reached'));
+        // Plafond atteint entre-temps (autre admin, autre onglet) : même fenêtre que le refus immédiat.
+        setModal({ isOpen: false, mode: 'create' });
+        await refetchGovernance();
+        setCapDialogOpen(true);
       } else {
         toast.error(t('dashboard.conseillers.toast_save_error'));
       }
@@ -247,6 +264,7 @@ export default function AdvisorPage() {
   };
 
   const handleReactivate = async (user: Advisor) => {
+    if (user.role?.name === 'ADMIN' && refuseIfCapReached()) return;
     try {
       await reactivateMutation.mutateAsync(user.id);
       toast.success(t('dashboard.conseillers.toast_reactivated'));
@@ -270,7 +288,10 @@ export default function AdvisorPage() {
             </p>
           </div>
           <button
-            onClick={() => setModal({ isOpen: true, mode: 'create' })}
+            onClick={() => {
+              if (isAdminsTab && refuseIfCapReached()) return;
+              setModal({ isOpen: true, mode: 'create' });
+            }}
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-semibold transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="h-4 w-4" />
@@ -289,10 +310,13 @@ export default function AdvisorPage() {
         />
 
         {/* ── Info banner for admins tab ── */}
-        {isAdminsTab && (
+        {isAdminsTab && governance && (
           <div className="flex items-start gap-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 px-4 py-3 text-sm text-purple-800 dark:text-purple-300">
             <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>{t('dashboard.conseillers.governance_banner')}</span>
+            <span>{t('dashboard.conseillers.governance_banner', {
+              max: governance.maxActiveAdmins,
+              active: governance.activeAdmins,
+            })}</span>
           </div>
         )}
 
@@ -356,6 +380,16 @@ export default function AdvisorPage() {
         saving={resettingPassword}
         onClose={() => setResetPasswordModal({ isOpen: false })}
         onConfirm={handleResetPassword}
+      />
+
+      <ConfirmDialog
+        isOpen={capDialogOpen}
+        title={t('dashboard.conseillers.cap_dialog_title')}
+        message={capMessage}
+        confirmLabel={t('dashboard.conseillers.cap_dialog_ok')}
+        hideCancel
+        onConfirm={() => setCapDialogOpen(false)}
+        onClose={() => setCapDialogOpen(false)}
       />
 
       <ConfirmDialog

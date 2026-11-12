@@ -1348,7 +1348,9 @@
         "advisors": "Advisors",
         "admins": "Administrators"
       },
-      "governance_banner": "Governance: The system limits to 2 active administrators simultaneously. Physical deletion of admin accounts is disabled to ensure system auditability.",
+      "governance_banner": "Governance: the system allows at most {{max}} active administrators at the same time ({{active}} currently). Physically deleting an admin account is disabled to keep the system auditable.",
+      "cap_dialog_title": "Administrator limit reached",
+      "cap_dialog_ok": "Got it",
       "empty_admins": "No administrators found.",
       "badges": {
         "admin": "Admin",
@@ -1428,7 +1430,8 @@
       "toast_reactivated": "Account successfully reactivated!",
       "toast_reactivate_error": "Error reactivating account.",
       "errors": {
-        "admin_cap_reached": "The limit of 2 active administrators has been reached.",
+        "admin_cap_reached": "The limit of {{max}} active administrators has been reached. Deactivate an administrator before creating or reactivating another one.",
+        "admin_cap_reached_generic": "The limit of active administrators has been reached. Deactivate an administrator before creating or reactivating another one.",
         "cannot_self_deactivate": "You cannot deactivate your own account.",
         "last_admin_protection": "Cannot deactivate the last active administrator.",
         "admin_cannot_be_deleted": "An administrator account cannot be physically deleted.",
@@ -1619,6 +1622,7 @@
       "logout": "Log out"
     },
     "cv": {
+      "status_paused": "on hold",
       "toast": {
         "status_updated": "CV status updated!",
         "comment_added": "Comment added to CV!",

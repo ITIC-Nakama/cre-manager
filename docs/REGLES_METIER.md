@@ -30,7 +30,9 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Réinitialisation / modification de mot de passe par un tiers interdite pour les comptes `ADMIN`** (`ADMIN_PASSWORD_RESET_FORBIDDEN`, HTTP 403) — un admin ne peut pas réinitialiser le mot de passe d'un autre admin via l'interface ou l'API.
 
 ### Gouvernance Multi-Admin & Désactivation RBAC
-- **Plafond d'administrateurs actifs** : Limité à 2 admins actifs simultanément (`ADMIN_MAX_ACTIVE=2`). Tout ajout ou réactivation d'un 3ème admin est bloqué avec `ADMIN_CAP_REACHED`.
+- **Plafond d'administrateurs actifs** : Limité à 3 admins actifs simultanément (`ADMIN_MAX_ACTIVE`, 3 par défaut). Tout ajout ou réactivation d'un 4ème admin est bloqué avec `ADMIN_CAP_REACHED`. Si la variable `ADMIN_MAX_ACTIVE` est présente dans le `.env` d'un environnement, c'est elle qui fait foi.
+  - L'écran de gestion des admins lit la limite et le nombre d'admins actifs sur `GET /auth/admin/governance` (admins uniquement) : le bandeau « Gouvernance » affiche la valeur de la configuration, jamais un chiffre écrit dans le front.
+  - Plafond atteint : le clic sur « Créer un admin » ou sur « Réactiver » d'un admin ouvre **tout de suite** la fenêtre de refus, sans formulaire à remplir. Le contrôle côté serveur (`ADMIN_CAP_REACHED`, sous verrou) reste en place ; s'il refuse quand même (plafond atteint entre-temps), la même fenêtre s'affiche.
 - **Règles de désactivation par rôle** :
   - **`ADMIN`** : Peut désactiver des comptes étudiants, conseillers et administrateurs.
   - **`ADVISOR`** : Peut désactiver **uniquement** des comptes étudiants (`STUDENT`). Toute tentative de désactiver un conseiller ou admin renvoie **403 Access Denied**.
@@ -40,6 +42,7 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
   - **`STUDENT`** : jamais (403) ; un compte désactivé est de toute façon refusé dès le filtre JWT (401 `ACCOUNT_DEACTIVATED`).
   - Un compte **anonymisé RGPD** n'est jamais réactivable (403 `ANONYMIZED_USER_CANNOT_BE_REACTIVATED`).
   - Effets : `active = true`, `deactivatedAt` remis à vide (ce qui arrête le décompte de la purge RGPD des comptes désactivés), entrée `USER_REACTIVATED` au journal d'audit. L'étudiant peut se reconnecter, et ses CV reviennent dans la validation des CV avec leur statut.
+  - **Email à l'étudiant** : un compte **étudiant** réactivé reçoit « Votre compte … est de nouveau actif » (modèle `account-reactivated.html`, en français, ou en anglais si l'étudiant a choisi l'anglais), avec un lien vers la page de connexion et un rappel de « Mot de passe oublié ». Envoi asynchrone après validation de la transaction (`StudentAccountReactivatedEvent`) : rien ne part si la réactivation échoue. Pas d'email pour un compte staff réactivé par l'admin.
   - Interface : bouton « Réactiver le compte » sur la fiche étudiant (page Étudiants, candidats d'une offre) et sur chaque ligne de la vue « Comptes désactivés » de la validation des CV. Il ouvre toujours une **confirmation** (verte), comme la désactivation.
 - **Protections d'intégrité** :
   - **Auto-désactivation interdite** pour les comptes administrateurs (`CANNOT_SELF_DEACTIVATE`).
@@ -447,6 +450,12 @@ ci-dessous).
   - Dans la vue « Comptes désactivés », chaque ligne propose « Réactiver le compte » (conseillers et admins, avec confirmation) ; une fois le compte réactivé, son CV quitte cette vue et revient dans la liste normale.
   - La puce grise « Comptes désactivés · N » (N = leurs CV, tous statuts confondus) affiche uniquement ces CV, avec le badge « Compte désactivé ». Côté API : `accountActive=false` sur `GET /cv` et `GET /cv/stats` ; sans ce paramètre, seuls les comptes actifs sont renvoyés. La réponse indique `student.accountActive`.
   - La fiche étudiant (`GET /cv/student/{id}`) affiche toujours le CV, compte actif ou non.
+- **CV des étudiants sous contrat** : même logique que les comptes désactivés. Le CV d'un étudiant « sous contrat » n'a plus besoin d'être relu : il sort de la liste par défaut de « Validation des CVs », des puces par statut, du badge de la sidebar, de la tuile « CVs à examiner » (et de son sous-titre « N CVs déposés ») et du graphique des CV par statut du tableau de bord.
+  - « Sous contrat » = **la même règle que le tableau de bord** : dernière déclaration au statut `compteCommeContrat` (« Offre reçue »), **vérifiée** par un conseiller, date de fin vide ou pas encore passée (`StudentSpecification.underContractPredicate`, `ApplicationRepository.CONFIRMED_ACTIVE_CONTRACT`, réutilisés par `CVSpecification` et `CVRepository.STUDENT_UNDER_CONTRACT`). Une déclaration **pas encore vérifiée** ne compte pas : le CV reste à relire.
+  - Rien n'est stocké ni modifié : la règle est recalculée à chaque requête. Le CV **revient de lui-même**, avec son statut, quand la date de fin est passée (fin du contrat, ou **rupture** saisie par un conseiller en avançant la date de fin via « dates du contrat »), ou quand la déclaration est **invalidée**. Un contrat qui se termine aujourd'hui compte encore jusqu'au soir.
+  - La puce verte « Sous contrat · N » affiche uniquement ces CV, avec le badge « Sous contrat ». Le statut du CV y est **grisé et suivi de « en pause »** (ex. « À corriger · en pause ») : rien à faire tant que le contrat court. Côté API : `underContract=true` sur `GET /cv` et `GET /cv/stats`. Une seule puce active à la fois (un statut, « Comptes désactivés » ou « Sous contrat »). Un compte désactivé sous contrat n'apparaît que dans « Comptes désactivés ».
+  - La fiche étudiant affiche toujours le CV.
+- **Puces de « Validation des CVs » = la liste** : chaque puce (statuts, « Comptes désactivés », « Sous contrat ») est calculée avec la **même spécification que la liste** (`CVService.getCVStats` → `CVSpecification`), avec les mêmes filtres : conseiller, **recherche** et **étoiles** (`GET /cv/stats?search=…&starred=…`). Une puce annonce donc toujours le nombre de lignes que la liste affichera une fois choisie. Avant, les puces ignoraient la recherche et les étoiles.
 - **Lien vers la fiche étudiant** (« Validation des CVs ») : dans la fenêtre d'un CV (icône œil), l'en-tête
   (photo, nom, e-mail) est un lien vers la fiche de l'étudiant, `/supervisor/etudiants/{id}` (page Étudiants,
   fiche ouverte).

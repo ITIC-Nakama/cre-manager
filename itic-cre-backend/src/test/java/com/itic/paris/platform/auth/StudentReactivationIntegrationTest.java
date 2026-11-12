@@ -17,6 +17,7 @@ import com.itic.paris.platform.cv.model.CVStatut;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.cv.repository.CVStatutRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.event.StudentAccountReactivatedEvent;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +29,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,11 +55,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>un compte anonymisé RGPD n'est jamais réactivable.</li>
  * </ul>
  * Effets vérifiés : compte actif, date de désactivation effacée (fin du décompte de la purge RGPD),
- * entrée {@code USER_REACTIVATED} au journal d'audit, CV de retour dans la validation des CV.
+ * entrée {@code USER_REACTIVATED} au journal d'audit, CV de retour dans la validation des CV, et email de
+ * prévenance à l'étudiant (événement {@link StudentAccountReactivatedEvent}, envoyé après validation de la
+ * transaction ; jamais pour un compte staff ni pour une réactivation refusée).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@RecordApplicationEvents
 class StudentReactivationIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
@@ -68,6 +74,7 @@ class StudentReactivationIntegrationTest {
     @Autowired private AuditLogRepository auditLogRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JWTAuthProvider jwtAuthProvider;
+    @Autowired private ApplicationEvents applicationEvents;
 
     @MockitoBean
     private JavaMailSender javaMailSender;
@@ -125,6 +132,8 @@ class StudentReactivationIntegrationTest {
         assertThat(reloaded.isActive()).isTrue();
         assertThat(reloaded.getDeactivatedAt()).isNull();
         assertThat(reactivationAudited(deactivatedStudent.getId(), otherAdvisor.getId())).isTrue();
+        assertThat(reactivationEmails()).containsExactly(
+                new StudentAccountReactivatedEvent(deactivatedStudent.getEmail(), "Etudiant", "fr"));
 
         // Effet de la #63 : le CV revient dans la liste par défaut, avec son statut, et quitte la vue « Comptes désactivés ».
         assertThat(listedStudentIds("")).contains(deactivatedStudent.getId());
@@ -143,6 +152,8 @@ class StudentReactivationIntegrationTest {
         assertThat(reloaded.isActive()).isTrue();
         assertThat(reloaded.getDeactivatedAt()).isNull();
         assertThat(reactivationAudited(deactivatedStudent.getId(), admin.getId())).isTrue();
+        assertThat(reactivationEmails()).extracting(StudentAccountReactivatedEvent::studentEmail)
+                .containsExactly(deactivatedStudent.getEmail());
     }
 
     @Test
@@ -191,6 +202,8 @@ class StudentReactivationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").value(true));
         assertThat(userRepository.findById(deactivatedAdvisor.getId()).orElseThrow().isActive()).isTrue();
+        // Le mail de réactivation ne concerne que les étudiants.
+        assertThat(reactivationEmails()).isEmpty();
     }
 
     @Test
@@ -248,6 +261,12 @@ class StudentReactivationIntegrationTest {
         assertThat(reloaded.getDeactivatedAt()).isEqualTo(deactivatedAt);
         assertThat(auditLogRepository.findAll()).noneMatch(log ->
                 log.getAction() == AuditAction.USER_REACTIVATED && userId.equals(log.getTargetId()));
+        assertThat(reactivationEmails()).extracting(StudentAccountReactivatedEvent::studentEmail)
+                .doesNotContain(reloaded.getEmail());
+    }
+
+    private List<StudentAccountReactivatedEvent> reactivationEmails() {
+        return applicationEvents.stream(StudentAccountReactivatedEvent.class).toList();
     }
 
     private boolean reactivationAudited(UUID targetId, UUID actorId) {

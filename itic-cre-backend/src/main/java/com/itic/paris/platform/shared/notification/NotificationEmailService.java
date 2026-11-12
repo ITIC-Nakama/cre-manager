@@ -10,6 +10,7 @@ import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
 import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
 import com.itic.paris.platform.shared.notification.event.ReclamationRefusedEvent;
 import com.itic.paris.platform.shared.notification.event.ReclamationResolvedEvent;
+import com.itic.paris.platform.shared.notification.event.StudentAccountReactivatedEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +83,16 @@ public class NotificationEmailService {
         String subject = "en".equals(event.studentLang())
                 ? "Your advisor has been assigned"
                 : "Votre conseiller a été assigné";
+        sendHtml(event.studentEmail(), subject, html);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onStudentAccountReactivated(StudentAccountReactivatedEvent event) {
+        String html = emailTemplateService.renderAccountReactivatedEmail(event.studentLang(), event.studentFirstName());
+        String subject = "en".equals(event.studentLang())
+                ? "Your " + brandName + " account is active again"
+                : "Votre compte " + brandName + " est de nouveau actif";
         sendHtml(event.studentEmail(), subject, html);
     }
 

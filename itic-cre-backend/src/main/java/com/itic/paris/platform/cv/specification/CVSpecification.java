@@ -1,6 +1,7 @@
 package com.itic.paris.platform.cv.specification;
 
 import com.itic.paris.platform.auth.model.Student;
+import com.itic.paris.platform.auth.specification.StudentSpecification;
 import com.itic.paris.platform.cv.model.CV;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,26 +12,44 @@ import java.util.UUID;
 
 public class CVSpecification {
 
-    /** Comptes actifs uniquement — voir la variante avec accountActive. */
+    /** CV a relire (vue par defaut) — voir la variante complete. */
     public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred) {
-        return withFilters(statutId, search, advisorId, starred, null);
+        return withFilters(statutId, search, advisorId, starred, null, null);
+    }
+
+    /** CV a relire ou vue « Comptes desactives » — voir la variante complete. */
+    public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred,
+                                                Boolean accountActive) {
+        return withFilters(statutId, search, advisorId, starred, accountActive, null);
     }
 
     /**
-     * @param accountActive null ou true = comptes actifs (defaut) ; false = seulement les comptes desactives
-     *                      (vue « Comptes desactives » pour retrouver leurs CV).
+     * Trois vues, exclusives :
+     * <ul>
+     *   <li>par defaut : CV a relire, comptes actifs et etudiants pas sous contrat ;</li>
+     *   <li>{@code accountActive=false} : vue « Comptes desactives » (contrat ou non) ;</li>
+     *   <li>{@code underContract=true} : vue « Sous contrat », comptes actifs sous contrat.</li>
+     * </ul>
+     * Simple filtre : le CV n'est jamais modifie et revient dans la vue par defaut a la reactivation du compte,
+     * a la fin ou a la rupture du contrat (date de fin passee), ou si la declaration est invalidee. Memes regles
+     * que CVRepository (puces, badge, tuile).
      */
     public static Specification<CV> withFilters(UUID statutId, String search, UUID advisorId, Boolean starred,
-                                                Boolean accountActive) {
+                                                Boolean accountActive, Boolean underContract) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Join student
             Join<CV, Student> studentJoin = root.join("student", JoinType.INNER);
 
-            // Un compte desactive sort des listes, quel que soit le statut : simple filtre, le CV n'est pas
-            // modifie et revient a la reactivation. Meme regle que CVRepository (puces, badge, tuile).
-            predicates.add(cb.equal(studentJoin.get("active"), !Boolean.FALSE.equals(accountActive)));
+            if (Boolean.FALSE.equals(accountActive)) {
+                predicates.add(cb.isFalse(studentJoin.get("active")));
+            } else {
+                predicates.add(cb.isTrue(studentJoin.get("active")));
+                // « Sous contrat » : meme definition que le tableau de bord (StudentSpecification).
+                predicates.add(StudentSpecification.underContractPredicate(
+                        studentJoin, query, cb, Boolean.TRUE.equals(underContract)));
+            }
 
             // Filter by statut
             if (statutId != null) {
