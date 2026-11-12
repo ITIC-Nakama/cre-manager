@@ -417,7 +417,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
                                         >
                                             <UserCheck className="h-3.5 w-3.5" />
-                                            <span>{t('dashboard.etudiants.actions.reactivate')}</span>
+                                            <span>{t('dashboard.etudiants.actions.reactivate_account')}</span>
                                         </button>
                                     )
                                 )}

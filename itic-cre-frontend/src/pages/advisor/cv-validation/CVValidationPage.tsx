@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigationType, useSearchParams } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -9,15 +10,19 @@ import {
 import {
     Search, SlidersHorizontal, Loader2, FileText, FileCheck,
     Eye, CheckCircle, Clock, AlertTriangle, Users, Star,
-    ChevronUp, ChevronDown, ChevronsUpDown, X,
+    ChevronUp, ChevronDown, ChevronsUpDown, X, UserCheck, FileSignature,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useAllCVsInfinite, useCVStatuts, useCVStats } from '../../../hooks/useCV';
 import { useAllAdvisors } from '../../../hooks/useAdvisors';
+import { useReactivateStudent } from '../../../hooks/useDashboard';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import CVSourceBadge from '../../../components/shared/CVSourceBadge';
+import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
+import StudentActivityBadge from '../../../components/shared/StudentActivityBadge';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import TruncatedText from '../../../components/shared/TruncatedText';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -27,6 +32,35 @@ import { Role } from '../../../types/models/Auth';
 import type { StarredFilter } from '../etudiants/components/EtudiantsFilters';
 
 const PAGE_SIZE_LOCAL = 20;
+
+/** Position de défilement mémorisée en quittant la page (ex. vers la fiche d'un étudiant). */
+const SCROLL_STORAGE_KEY = 'cv-validation-scroll';
+
+/** Filtres recopiés dans l'URL : retour arrière et lien partagé retrouvent la même vue. */
+function buildFilterSearch(current: string, filters: Record<string, string>): string {
+    const next = new URLSearchParams(current);
+    for (const [key, value] of Object.entries(filters)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+    }
+    return next.toString();
+}
+
+function parseSortParam(value: string | null): SortingState {
+    if (!value) return [];
+    const [id, dir] = value.split(':');
+    return id ? [{ id, desc: dir === 'desc' }] : [];
+}
+
+/** Conteneur qui défile dans le layout staff (SupervisorLayout) — la page elle-même ne défile pas. */
+function scrollContainer(): HTMLElement | null {
+    return document.querySelector('main');
+}
+
+/** Gris neutre (slate-500) de la puce « Comptes désactivés », même modèle que les puces de statut. */
+const DISABLED_ACCOUNTS_CHIP_COLOR = '#64748B';
+const UNDER_CONTRACT_CHIP_COLOR = '#059669';
+const PAUSED_STATUT_COLOR = '#94A3B8';
 
 const col = createColumnHelper<CVRow>();
 
@@ -86,17 +120,64 @@ export default function CVValidationPage() {
     const currentUser = useUserStore((state) => state.user);
     const isAdmin = currentUser?.role === Role.ADMIN;
 
-    const [statutFilter, setStatutFilter] = useState('');
-    const [search, setSearch] = useState('');
+    // Etat initial lu dans l'URL : en revenant de la fiche d'un étudiant (ou par un lien partagé),
+    // on retrouve les mêmes filtres.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const defaultAdvisorFilter = !isAdmin && currentUser ? String(currentUser.id) : '';
+    const [statutFilter, setStatutFilter] = useState(() => searchParams.get('statut') ?? '');
+    const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
     const [selectedCV, setSelectedCV] = useState<CVRow | null>(null);
+    // CV dont on confirme la réactivation du compte (vue « Comptes désactivés »).
+    const [reactivatingCv, setReactivatingCv] = useState<CVRow | null>(null);
+    const reactivateMutation = useReactivateStudent();
     // Un conseiller voit par defaut uniquement les CV de son portefeuille ;
     // un admin voit tout le monde par defaut, avec la possibilite de filtrer par conseiller.
-    const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
-    const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
-    const [sorting, setSorting] = useState<SortingState>([]);
+    // Dans l'URL, 'all' = « tous les conseillers » choisi explicitement par un conseiller.
+    const [advisorFilter, setAdvisorFilter] = useState(() => {
+        const value = searchParams.get('conseiller');
+        if (value === null) return defaultAdvisorFilter;
+        return value === 'all' ? '' : value;
+    });
+    const [starredFilter, setStarredFilter] = useState<StarredFilter>(() => (searchParams.get('etoiles') as StarredFilter | null) ?? 'all');
+    // Les CV des comptes desactives sont masques partout (filtre serveur) ; la puce « Comptes désactivés »
+    // permet de les retrouver. Une seule puce active a la fois : choisir un statut ramene a la vue normale.
+    const [disabledAccountsOnly, setDisabledAccountsOnly] = useState(() => searchParams.get('desactives') === '1');
+    // Meme principe pour les etudiants sous contrat (contrat verifie en cours) : leur CV n'a plus besoin d'etre relu,
+    // il sort des listes et revient tout seul a la fin du contrat. La puce « Sous contrat » permet de les retrouver.
+    const [underContractOnly, setUnderContractOnly] = useState(() => searchParams.get('contrat') === '1');
+    const [sorting, setSorting] = useState<SortingState>(() => parseSortParam(searchParams.get('tri')));
+
+    useEffect(() => {
+        const [firstSort] = sorting;
+        const next = buildFilterSearch(window.location.search, {
+            statut: statutFilter,
+            q: search.trim(),
+            conseiller: advisorFilter === defaultAdvisorFilter ? '' : (advisorFilter || 'all'),
+            etoiles: starredFilter === 'all' ? '' : starredFilter,
+            desactives: disabledAccountsOnly ? '1' : '',
+            contrat: underContractOnly ? '1' : '',
+            tri: firstSort ? `${firstSort.id}:${firstSort.desc ? 'desc' : 'asc'}` : '',
+        });
+        if (next !== new URLSearchParams(window.location.search).toString()) {
+            setSearchParams(new URLSearchParams(next), { replace: true });
+        }
+    }, [statutFilter, search, advisorFilter, defaultAdvisorFilter, starredFilter, disabledAccountsOnly, underContractOnly, sorting, setSearchParams]);
+    const accountActive = disabledAccountsOnly ? false : undefined;
+    const underContract = underContractOnly ? true : undefined;
 
     const { data: statuts = [] } = useCVStatuts();
-    const { data: stats = [] } = useCVStats(advisorFilter || undefined);
+    // Puces de statut : comptes actifs uniquement, quelle que soit la vue.
+    // Les puces reprennent les filtres de la liste (recherche, étoiles, conseiller) : une puce annonce toujours le
+    // nombre de lignes affichées une fois choisie.
+    const statsFilters = useMemo(() => ({
+        search: search.trim() || undefined,
+        starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+    }), [search, starredFilter]);
+    const { data: stats = [] } = useCVStats(advisorFilter || undefined, undefined, undefined, statsFilters);
+    const { data: disabledStats = [] } = useCVStats(advisorFilter || undefined, false, undefined, statsFilters);
+    const disabledCount = disabledStats.reduce((sum, s) => sum + s.count, 0);
+    const { data: underContractStats = [] } = useCVStats(advisorFilter || undefined, undefined, true, statsFilters);
+    const underContractCount = underContractStats.reduce((sum, s) => sum + s.count, 0);
     const { data: advisors = [] } = useAllAdvisors();
     const params = useMemo(() => ({
         size: PAGE_SIZE_LOCAL,
@@ -104,12 +185,67 @@ export default function CVValidationPage() {
         search: search.trim() || undefined,
         advisorId: advisorFilter || undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+        accountActive,
+        underContract,
         sort: toSortParam(sorting),
-    }), [statutFilter, search, advisorFilter, starredFilter, sorting]);
+    }), [statutFilter, search, advisorFilter, starredFilter, accountActive, underContract, sorting]);
 
     const {
         items: pagedCVs, totalElements, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useAllCVsInfinite(params);
+
+    // « Page » de la liste à défilement infini : la position est mémorisée pendant le défilement (avec
+    // les filtres de l'URL) et rétablie sur un retour arrière (fermeture de la fiche étudiant, bouton
+    // Précédent), une fois les lignes en cache réaffichées. Une visite par le menu repart du haut.
+    const navigationType = useNavigationType();
+    const scrollRestored = useRef(false);
+    useEffect(() => {
+        const container = scrollContainer();
+        if (!container) return;
+        let frame = 0;
+        const save = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                sessionStorage.setItem(SCROLL_STORAGE_KEY, JSON.stringify({ search: window.location.search, top: container.scrollTop }));
+            });
+        };
+        container.addEventListener('scroll', save, { passive: true });
+        return () => {
+            cancelAnimationFrame(frame);
+            container.removeEventListener('scroll', save);
+        };
+    }, []);
+    useEffect(() => {
+        if (scrollRestored.current || isLoading) return;
+        scrollRestored.current = true;
+        const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+        if (!saved || navigationType !== 'POP') return;
+        const { search: savedSearch, top } = JSON.parse(saved) as { search: string; top: number };
+        const container = scrollContainer();
+        if (!container || savedSearch !== window.location.search) return;
+        // À l'image suivante : le layout staff remonte en haut à chaque changement de page
+        // (useResetScrollOnNavigate, effet du parent, exécuté après celui-ci).
+        requestAnimationFrame(() => {
+            container.scrollTop = top;
+        });
+    }, [isLoading, navigationType]);
+
+    // La fiche étudiant est réservée au staff (conseillers et admins, voir /dashboard/students/** côté API).
+    const canOpenStudentProfile = currentUser?.role === Role.ADVISOR || currentUser?.role === Role.ADMIN;
+    // Réactiver un compte étudiant : conseillers et admins (l'API refuse toute cible qui n'est pas un étudiant).
+    const canReactivateAccount = canOpenStudentProfile;
+
+    const handleConfirmReactivate = async () => {
+        if (!reactivatingCv) return;
+        try {
+            await reactivateMutation.mutateAsync(reactivatingCv.studentId);
+            toast.success(t('dashboard.etudiants.toast_reactivated'));
+            setReactivatingCv(null);
+        } catch (err) {
+            console.error(err);
+            toast.error(t('dashboard.etudiants.toast_reactivate_error'));
+        }
+    };
 
     const statutOptions = useMemo(() => [
         { value: '', label: t('dashboard.cv.filter_all_statuts', 'Tous les statuts') },
@@ -140,6 +276,19 @@ export default function CVValidationPage() {
                     {row.original.student?.email && (
                         <TruncatedText text={row.original.student.email} className="text-xs text-slate-400" />
                     )}
+                    {row.original.student?.accountActive === false && (
+                        <div className="mt-1">
+                            <StudentActivityBadge accountActive={false} isActive={false} lastActivity={null} />
+                        </div>
+                    )}
+                    {underContractOnly && row.original.student?.accountActive !== false && (
+                        <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <FileSignature className="h-3 w-3" />
+                                {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
+                            </span>
+                        </div>
+                    )}
                 </div>
             ),
         }),
@@ -157,9 +306,12 @@ export default function CVValidationPage() {
             header: t('dashboard.cv.table.status', 'Statut'),
             cell: ({ getValue, row }) => {
                 const s = getValue();
+                // Vue « Sous contrat » : la relecture est en pause, le statut s'affiche grisé pour ne pas inviter à agir.
                 return (
                     <div className="flex flex-wrap items-center gap-1.5">
-                        <StatutBadge nom={s.nom} couleur={s.couleur} />
+                        {underContractOnly
+                            ? <StatutBadge nom={`${s.nom} · ${t('dashboard.cv.status_paused', 'en pause')}`} couleur={PAUSED_STATUT_COLOR} />
+                            : <StatutBadge nom={s.nom} couleur={s.couleur} />}
                         <CVSourceBadge source={row.original.source} templateCode={row.original.templateCode} compact />
                     </div>
                 );
@@ -178,7 +330,7 @@ export default function CVValidationPage() {
             ),
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [t]);
+    ], [t, underContractOnly]);
 
     const coreRowModel = useMemo(() => getCoreRowModel(), []);
 
@@ -191,8 +343,23 @@ export default function CVValidationPage() {
         manualSorting: true,
     });
 
+    // Une seule puce active a la fois : un statut, « Comptes désactivés » ou « Sous contrat ».
     const handleStatutChange = (val: string) => {
         setStatutFilter(val);
+        setDisabledAccountsOnly(false);
+        setUnderContractOnly(false);
+    };
+
+    const handleDisabledAccountsChip = () => {
+        setStatutFilter('');
+        setUnderContractOnly(false);
+        setDisabledAccountsOnly((active) => !active);
+    };
+
+    const handleUnderContractChip = () => {
+        setStatutFilter('');
+        setDisabledAccountsOnly(false);
+        setUnderContractOnly((active) => !active);
     };
 
     const handleSearch = (val: string) => {
@@ -225,6 +392,8 @@ export default function CVValidationPage() {
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-[#9aa0a6] mt-1">
                         {`${totalElements} CV${totalElements !== 1 ? 's' : ''} déposé${totalElements !== 1 ? 's' : ''}`}
+                        {disabledAccountsOnly && ` · ${t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')}`}
+                        {underContractOnly && ` · ${t('dashboard.etudiants.filter_contract_under', 'Sous contrat')}`}
                     </p>
                 </div>
 
@@ -311,6 +480,30 @@ export default function CVValidationPage() {
                                 </button>
                             );
                         })}
+                        <button
+                            onClick={handleDisabledAccountsChip}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${disabledAccountsOnly ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                }`}
+                            style={{
+                                background: `${DISABLED_ACCOUNTS_CHIP_COLOR}18`,
+                                color: DISABLED_ACCOUNTS_CHIP_COLOR,
+                                border: `1px solid ${DISABLED_ACCOUNTS_CHIP_COLOR}44`,
+                            }}
+                        >
+                            {t('dashboard.etudiants.filter_disabled', 'Comptes désactivés')} · {disabledCount}
+                        </button>
+                        <button
+                            onClick={handleUnderContractChip}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${underContractOnly ? 'ring-2 ring-offset-1' : 'opacity-80 hover:opacity-100'
+                                }`}
+                            style={{
+                                background: `${UNDER_CONTRACT_CHIP_COLOR}18`,
+                                color: UNDER_CONTRACT_CHIP_COLOR,
+                                border: `1px solid ${UNDER_CONTRACT_CHIP_COLOR}44`,
+                            }}
+                        >
+                            {t('dashboard.etudiants.filter_contract_under', 'Sous contrat')} · {underContractCount}
+                        </button>
                     </div>
                 )}
             </div>
@@ -367,13 +560,28 @@ export default function CVValidationPage() {
                                             </td>
                                         ))}
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => setSelectedCV(row.original)}
-                                                className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
-                                                title={t('dashboard.cv.actions.review', 'Examiner le CV')}
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
+                                            <div className="inline-flex items-center justify-end gap-2">
+                                                {canReactivateAccount && row.original.student?.accountActive === false && row.original.studentId && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setReactivatingCv(row.original)}
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors cursor-pointer"
+                                                        aria-label={t('dashboard.etudiants.actions.reactivate_account_of', {
+                                                            name: `${row.original.student.firstName} ${row.original.student.lastName}`,
+                                                        })}
+                                                    >
+                                                        <UserCheck className="h-3.5 w-3.5" />
+                                                        <span>{t('dashboard.etudiants.actions.reactivate_account')}</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => setSelectedCV(row.original)}
+                                                    className="inline-flex p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
+                                                    title={t('dashboard.cv.actions.review', 'Examiner le CV')}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -397,8 +605,18 @@ export default function CVValidationPage() {
                     cv={selectedCV}
                     statuts={statuts}
                     onClose={() => setSelectedCV(null)}
+                    studentLink={canOpenStudentProfile && selectedCV.studentId
+                        ? { to: `/supervisor/etudiants/${selectedCV.studentId}`, state: { from: 'cv-validation' } }
+                        : undefined}
                 />
             )}
+
+            <ReactivateAccountDialog
+                student={reactivatingCv?.student ?? null}
+                loading={reactivateMutation.isPending}
+                onConfirm={handleConfirmReactivate}
+                onClose={() => setReactivatingCv(null)}
+            />
         </div>
     );
 }

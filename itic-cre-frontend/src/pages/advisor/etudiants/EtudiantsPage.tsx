@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -7,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { useStudentListInfinite } from '../../../hooks/useDashboard';
+import { useStudentListInfinite, useStudentRow } from '../../../hooks/useDashboard';
 import { useStudentDetailActions } from '../../../hooks/useStudentDetailActions';
 import { usePromotions, useAvailableStudyYears } from '../../../hooks/usePromotions';
 import { useAllAdvisors, useAssignStudentsToAdvisor, useRemoveStudentsFromAdvisor } from '../../../hooks/useAdvisors';
@@ -20,6 +21,7 @@ import StudentDetailModal from '../../../components/shared/StudentDetailModal';
 import DeclareContractModal from '../../../components/shared/DeclareContractModal';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -85,7 +87,28 @@ export default function EtudiantsPage() {
     const [includeAnonymized, setIncludeAnonymized] = useState(false);
     const { data: promotions } = usePromotions();
 
-    const studentActions = useStudentDetailActions({ isAdmin, onAnonymizeSuccess: () => setViewingStudent(null) });
+    // Fiche ouverte par lien direct (/supervisor/etudiants/:studentId), par ex. depuis l'en-tête d'un CV
+    // dans « Validation des CVs ». Fermer la fiche revient à la page d'origine (filtres compris) si on
+    // en vient, sinon à la liste des étudiants.
+    const { studentId: linkedStudentId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const linkedStudentQuery = useStudentRow(linkedStudentId ?? null);
+    const detailStudent = viewingStudent ?? (linkedStudentId ? linkedStudentQuery.data ?? null : null);
+    const closeStudentDetail = () => {
+        if (viewingStudent) {
+            setViewingStudent(null);
+            return;
+        }
+        if (!linkedStudentId) return;
+        if ((location.state as { from?: string } | null)?.from === 'cv-validation') {
+            navigate(-1);
+        } else {
+            navigate('/supervisor/etudiants', { replace: true });
+        }
+    };
+
+    const studentActions = useStudentDetailActions({ isAdmin, onAnonymizeSuccess: closeStudentDetail });
     const { data: advisors = [] } = useAllAdvisors();
 
     const columns = useStudentColumns({ isAdmin });
@@ -415,10 +438,10 @@ export default function EtudiantsPage() {
                 />
             )}
 
-            {viewingStudent && (
+            {detailStudent && (
                 <StudentDetailModal
-                    student={viewingStudent}
-                    onClose={() => setViewingStudent(null)}
+                    student={detailStudent}
+                    onClose={closeStudentDetail}
                     {...studentActions.studentDetailProps}
                 />
             )}
@@ -440,6 +463,13 @@ export default function EtudiantsPage() {
                 loading={studentActions.deactivateLoading}
                 onConfirm={studentActions.handleConfirmDeactivate}
                 onClose={studentActions.closeDeactivateConfirm}
+            />
+
+            <ReactivateAccountDialog
+                student={studentActions.reactivateTarget}
+                loading={studentActions.reactivateLoading}
+                onConfirm={studentActions.handleConfirmReactivate}
+                onClose={studentActions.closeReactivateConfirm}
             />
 
             <TypedConfirmDialog

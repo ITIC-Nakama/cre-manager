@@ -38,6 +38,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +65,10 @@ public class CVService {
     private final AuditLogService auditLogService;
     private final ApplicationEventPublisher eventPublisher;
     private final GamificationService gamificationService;
+
+    /** Comptage des puces par statut avec la specification de la liste (getCVStats). */
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Value("${storage.r2.public-folder:public}")
     private String publicFolder;
@@ -157,8 +168,10 @@ public class CVService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred, Pageable pageable) {
-        Page<CV> page = cvRepository.findAll(CVSpecification.withFilters(statutId, search, advisorId, starred), pageable);
+    public Page<Map<String, Object>> getAllCVsPaginated(UUID statutId, String search, UUID advisorId, Boolean starred,
+                                                        Boolean accountActive, Boolean underContract, Pageable pageable) {
+        Page<CV> page = cvRepository.findAll(
+                CVSpecification.withFilters(statutId, search, advisorId, starred, accountActive, underContract), pageable);
         return page.map(this::buildCVResponse);
     }
 
@@ -304,6 +317,7 @@ public class CVService {
         studentMap.put("firstName", student.getFirstName());
         studentMap.put("lastName", student.getLastName());
         studentMap.put("email", student.getEmail());
+        studentMap.put("accountActive", student.isActive());
         studentMap.put("profilePicture", student.getProfilePicture() != null
                 ? cloudStorage.getFile(student.getProfilePicture())
                 : null);
@@ -331,13 +345,29 @@ public class CVService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCVStats(UUID advisorId) {
-        List<Object[]> rows = advisorId != null
-                ? cvRepository.countGroupedByStatutForStudents(studentRepository.findIdsByAdvisorId(advisorId))
-                : cvRepository.countGroupedByStatut();
-        return rows.stream().map(row -> {
+        return getCVStats(advisorId, null, null, null, null);
+    }
+
+    /**
+     * Nombre de CV par statut pour les puces de « Validation des CVs ». Calcule avec la MEME specification que la
+     * liste (CVSpecification : vue par defaut, « Comptes desactives » ou « Sous contrat », conseiller, recherche,
+     * etoiles) : une puce affiche toujours le nombre de lignes que la liste montrera une fois la puce choisie.
+     * Seul le statut n'est pas filtre, puisque c'est lui qu'on compte.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCVStats(UUID advisorId, String search, Boolean starred,
+                                                Boolean accountActive, Boolean underContract) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<CV> root = query.from(CV.class);
+        Predicate filters = CVSpecification.withFilters(null, search, advisorId, starred, accountActive, underContract)
+                .toPredicate(root, query, cb);
+        Path<UUID> statutId = root.get("statut").get("id");
+        query.multiselect(statutId, cb.count(root)).where(filters).groupBy(statutId);
+        return entityManager.createQuery(query).getResultList().stream().map(row -> {
             Map<String, Object> map = new HashMap<>();
             map.put("statutId", row[0]);
-            map.put("count", row[3]);
+            map.put("count", row[1]);
             return map;
         }).toList();
     }

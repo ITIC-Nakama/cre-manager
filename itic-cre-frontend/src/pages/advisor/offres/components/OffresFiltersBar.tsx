@@ -1,4 +1,4 @@
-import { FileSignature, Globe, Layers, Loader2, MapPin, Search, SlidersHorizontal, X } from 'lucide-react';
+import { FileSignature, Globe, Layers, Loader2, MapPin, Search, Send, SlidersHorizontal, UserCheck, UserRound, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect, { type SelectOption } from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
@@ -10,6 +10,11 @@ interface Props {
     sourceFilter: string;
     sourceOptions: SelectOption[];
     onSourceChange: (value: string) => void;
+    postedByFilter: string;
+    postedByOptions: SelectOption[];
+    onPostedByChange: (value: string) => void;
+    myOffersActive: boolean;
+    onMyOffersToggle: () => void;
     locationFilter: string;
     onLocationChange: (value: string) => void;
     contractTypeFilter: string;
@@ -22,6 +27,9 @@ interface Props {
     activeFilter: string;
     activeFilterOptions: SelectOption[];
     onActiveFilterChange: (value: string) => void;
+    applyChannelFilter: string;
+    applyChannelOptions: SelectOption[];
+    onApplyChannelChange: (value: string) => void;
     activeFilterCount: number;
     onReset: () => void;
     isFetching: boolean;
@@ -31,10 +39,12 @@ interface Props {
 export default function OffresFiltersBar({
     search, onSearchChange, onClearSearch,
     sourceFilter, sourceOptions, onSourceChange,
+    postedByFilter, postedByOptions, onPostedByChange, myOffersActive, onMyOffersToggle,
     locationFilter, onLocationChange,
     contractTypeFilter, contractTypeOptions, onContractTypeChange,
     isInternalSource, sectorFilter, sectorOptions, onSectorChange,
     activeFilter, activeFilterOptions, onActiveFilterChange,
+    applyChannelFilter, applyChannelOptions, onApplyChannelChange,
     activeFilterCount, onReset, isFetching, isLoading,
 }: Props) {
     const { t } = useTranslation();
@@ -68,6 +78,28 @@ export default function OffresFiltersBar({
                 icon={<Globe className="h-4 w-4 text-slate-400" />}
                 className="min-w-48"
             />
+            <CustomSelect
+                value={postedByFilter}
+                options={postedByOptions}
+                onChange={onPostedByChange}
+                icon={<UserRound className="h-4 w-4 text-slate-400" />}
+                className="min-w-48"
+                searchable
+                searchPlaceholder={t('dashboard.offres.posted_by_filter.search', 'Rechercher un conseiller…')}
+                noResultsLabel={t('dashboard.offres.posted_by_filter.none', 'Aucun conseiller trouvé')}
+            />
+            <button
+                type="button"
+                onClick={onMyOffersToggle}
+                aria-pressed={myOffersActive}
+                title={t('dashboard.offres.posted_by_filter.mine_hint', 'Afficher uniquement les offres que j’ai déposées')}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${myOffersActive
+                    ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            >
+                <UserCheck className="h-4 w-4" />
+                {t('dashboard.offres.posted_by_filter.mine', 'Mes offres')}
+            </button>
             <FiltersPopover activeCount={activeFilterCount} onReset={onReset}>
                 <div className="py-3 first:pt-3 last:pb-3">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
@@ -119,6 +151,18 @@ export default function OffresFiltersBar({
                         options={activeFilterOptions}
                         onChange={onActiveFilterChange}
                         icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                        className="w-full"
+                    />
+                </div>
+                <div className="py-3 first:pt-3 last:pb-3">
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                        {t('dashboard.offres.apply_channel_filter.label', 'Moyen de postuler')}
+                    </label>
+                    <CustomSelect
+                        value={applyChannelFilter}
+                        options={applyChannelOptions}
+                        onChange={onApplyChannelChange}
+                        icon={<Send className="h-4 w-4 text-slate-400" />}
                         className="w-full"
                     />
                 </div>

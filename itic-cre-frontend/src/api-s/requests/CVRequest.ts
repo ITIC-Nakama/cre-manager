@@ -10,6 +10,8 @@ export function fetchAllCVs(params: CVListParams = {}): Promise<CVPage> {
     if (params.search)   query.search   = params.search;
     if (params.advisorId) query.advisorId = params.advisorId;
     if (params.starred !== undefined) query.starred = params.starred;
+    if (params.accountActive !== undefined) query.accountActive = params.accountActive;
+    if (params.underContract !== undefined) query.underContract = params.underContract;
     if (params.sort)     query.sort     = params.sort;
     return apiClient.get('/cv', { params: query }).then(unwrap<CVPage>);
 }
@@ -44,9 +46,22 @@ export function deleteCVComment(commentId: string): Promise<void> {
     return apiClient.delete(`/cv/comments/${commentId}`).then(() => undefined);
 }
 
-/** GET /cv/stats — obtenir le nombre de CV par statut */
-export function fetchCVStats(advisorId?: string): Promise<CVStatCount[]> {
-    return apiClient.get('/cv/stats', { params: advisorId ? { advisorId } : undefined }).then((r) => unwrap<CVStatCount[]>(r));
+/** Filtres de la liste repris par les puces (GET /cv/stats), pour qu'une puce affiche le nombre de lignes de la liste. */
+export interface CVStatsFilters {
+    search?: string;
+    starred?: boolean;
+}
+
+/** GET /cv/stats — nombre de CV par statut, mêmes filtres que la liste (accountActive=false : comptes désactivés ; underContract=true : étudiants sous contrat) */
+export function fetchCVStats(advisorId?: string, accountActive?: boolean, underContract?: boolean,
+                             filters: CVStatsFilters = {}): Promise<CVStatCount[]> {
+    const params: Record<string, unknown> = {};
+    if (advisorId) params.advisorId = advisorId;
+    if (filters.search) params.search = filters.search;
+    if (filters.starred !== undefined) params.starred = filters.starred;
+    if (accountActive !== undefined) params.accountActive = accountActive;
+    if (underContract !== undefined) params.underContract = underContract;
+    return apiClient.get('/cv/stats', { params }).then((r) => unwrap<CVStatCount[]>(r));
 }
 
 /** POST /cv/me/upload — déposer ou remplacer le CV de l'étudiant connecté */

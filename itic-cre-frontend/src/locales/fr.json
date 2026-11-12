@@ -430,6 +430,8 @@
         "notify": "Envoyer un message",
         "deactivate": "Désactiver",
         "reactivate": "Réactiver",
+        "reactivate_account": "Réactiver le compte",
+        "reactivate_account_of": "Réactiver le compte de {{name}}",
         "anonymize": "Supprimer le compte",
         "declare_contract": "Déclarer un contrat",
         "view_wip": "Dossier de {{name}} — en cours de développement",
@@ -441,6 +443,8 @@
       },
       "confirm_deactivate_title": "Désactiver l'étudiant",
       "confirm_deactivate": "Êtes-vous sûr de vouloir désactiver le compte de \"{{name}}\" ? Il ne pourra plus se connecter, mais son historique sera conservé. Vous pourrez le réactiver à tout moment.",
+      "confirm_reactivate_title": "Réactiver le compte",
+      "confirm_reactivate": "Réactiver le compte de \"{{name}}\" ? L'étudiant pourra de nouveau se connecter, ses CV réapparaîtront dans la validation des CV avec leur statut, et le délai de suppression automatique des comptes désactivés (RGPD) est annulé.",
       "toast_deactivated": "Compte désactivé avec succès !",
       "toast_deactivate_error": "Erreur lors de la désactivation du compte.",
       "toast_reactivated": "Compte réactivé avec succès !",
@@ -724,6 +728,16 @@
         "bonne_alternance": "La Bonne Alternance",
         "adzuna": "Adzuna"
       },
+      "posted_by_filter": {
+        "label": "Déposée par",
+        "all": "Déposée par : tous",
+        "external": "Offres externes",
+        "mine": "Mes offres",
+        "mine_hint": "Afficher uniquement les offres que j’ai déposées",
+        "search": "Rechercher un conseiller…",
+        "none": "Aucun conseiller trouvé",
+        "external_author": "Externe · {{source}}"
+      },
       "external_sync_button": "Offres externes",
       "wipe_button": "Tout supprimer",
       "wipe_dialog": {
@@ -773,7 +787,35 @@
         "toast_error": "Une erreur est survenue.",
         "toast_delete_error": "Échec de la suppression — vérifiez qu'aucune offre ne l'utilise encore."
       },
-      "apply_button": "Marquer comme posté",
+      "apply_button": "J’ai postulé ✓",
+      "postuler_button": "Postuler",
+      "channel": {
+        "email": "📧 Par mail",
+        "link": "🔗 Lien externe"
+      },
+      "email_dialog": {
+        "title": "Postuler par e-mail",
+        "intro": "Ta messagerie devrait s’ouvrir avec l’objet déjà rempli. Si rien ne s’ouvre, copie l’adresse et l’objet ci-dessous.",
+        "address": "Adresse",
+        "subject": "Objet",
+        "copy": "Copier",
+        "copied": "Copié",
+        "copy_error": "Copie impossible : sélectionne le texte à la main.",
+        "open_mail": "Ouvrir ma messagerie",
+        "close": "Fermer"
+      },
+      "follow_up": {
+        "question": "Tu as envoyé ta candidature ?",
+        "confirm": "Oui, marquer comme postée",
+        "later": "Pas encore"
+      },
+      "no_channel_badge": "Sans moyen de postuler",
+      "no_channel_hint": "Ni lien ni adresse e-mail : les étudiants ne savent pas comment postuler.",
+      "apply_channel_filter": {
+        "label": "Moyen de postuler",
+        "all": "Tous",
+        "none": "Sans moyen de postuler"
+      },
       "already_applied": "Déjà postulé",
       "withdraw_hint": "Retirer ma candidature — la carte correspondante sera aussi supprimée de mon suivi de candidatures.",
       "withdraw_confirm_title": "Retirer ma candidature",
@@ -786,6 +828,7 @@
         "location": "Lieu",
         "contract": "Type de contrat",
         "sector": "Secteur",
+        "posted_by": "Déposée par",
         "source": "Source",
         "applications": "Candidatures",
         "status": "Statut",
@@ -830,7 +873,10 @@
         "required_field_error": "Ce champ est obligatoire.",
         "length_error": "Doit contenir entre {{min}} et {{max}} caractères.",
         "invalid_link_error": "Le lien n'est pas une URL valide (doit commencer par http:// ou https://).",
-        "save_error": "Échec de l'enregistrement de l'offre."
+        "save_error": "Échec de l'enregistrement de l'offre.",
+        "no_channel_error": "Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.",
+        "channel_link": "Les étudiants postuleront via ce lien.",
+        "channel_email": "Les étudiants postuleront par e-mail à {{email}}."
       },
       "detail_modal": {
         "title": "Détails de l'offre",
@@ -847,7 +893,8 @@
         "status_applied": "Vous avez déjà postulé à cette offre",
         "close": "Fermer",
         "view_applicants_one": "{{count}} candidat",
-        "view_applicants_other": "{{count}} candidats"
+        "view_applicants_other": "{{count}} candidats",
+        "email_notice": "Candidature par e-mail à {{email}}."
       },
       "applicants_modal": {
         "title": "Candidats",
@@ -864,9 +911,9 @@
         "activated": "Offre réactivée.",
         "deleted": "Offre supprimée.",
         "action_error": "Une erreur est survenue.",
-        "applied": "Candidature envoyée ! Elle a été ajoutée à votre suivi.",
+        "applied": "Candidature notée. Elle a été ajoutée à votre suivi.",
         "already_applied": "Vous avez déjà postulé à cette offre.",
-        "apply_error": "Impossible d'envoyer la candidature.",
+        "apply_error": "Impossible d’enregistrer la candidature.",
         "withdrawn": "Candidature retirée.",
         "withdrawn_xp_revoked": "Candidature retirée — {{xp}} XP repris.",
         "withdraw_error": "Impossible de retirer la candidature."
@@ -1301,7 +1348,9 @@
         "advisors": "Conseillers",
         "admins": "Administrateurs"
       },
-      "governance_banner": "Gouvernance : Le système limite à 2 administrateurs actifs simultanément. La suppression physique d'un compte admin est désactivée pour garantir l'auditabilité du système.",
+      "governance_banner": "Gouvernance : le système limite à {{max}} administrateurs actifs simultanément ({{active}} actuellement). La suppression physique d'un compte admin est désactivée pour garantir l'auditabilité du système.",
+      "cap_dialog_title": "Plafond d'administrateurs atteint",
+      "cap_dialog_ok": "Compris",
       "empty_admins": "Aucun administrateur trouvé.",
       "badges": {
         "admin": "Admin",
@@ -1381,7 +1430,8 @@
       "toast_reactivated": "Compte réactivé avec succès !",
       "toast_reactivate_error": "Erreur lors de la réactivation du compte.",
       "errors": {
-        "admin_cap_reached": "Le plafond de 2 administrateurs actifs est atteint.",
+        "admin_cap_reached": "Le plafond de {{max}} administrateurs actifs est atteint. Désactivez un administrateur avant d'en créer ou d'en réactiver un autre.",
+        "admin_cap_reached_generic": "Le plafond d'administrateurs actifs est atteint. Désactivez un administrateur avant d'en créer ou d'en réactiver un autre.",
         "cannot_self_deactivate": "Vous ne pouvez pas désactiver votre propre compte.",
         "last_admin_protection": "Impossible de désactiver le dernier administrateur actif.",
         "admin_cannot_be_deleted": "Un administrateur ne peut pas être supprimé physiquement.",
@@ -1572,6 +1622,7 @@
       "logout": "Se déconnecter"
     },
     "cv": {
+      "status_paused": "en pause",
       "toast": {
         "status_updated": "Statut du CV mis à jour !",
         "comment_added": "Commentaire ajouté au CV !",
@@ -1595,7 +1646,8 @@
         "add_comment": "Ajouter un commentaire",
         "comment_placeholder": "Rédiger un conseil ou une demande de correction...",
         "send_comment": "Envoyer le commentaire",
-        "source": "Origine"
+        "source": "Origine",
+        "open_student": "Ouvrir la fiche de {{name}}"
       },
       "filter_all_statuts": "Tous les statuts",
       "table": {

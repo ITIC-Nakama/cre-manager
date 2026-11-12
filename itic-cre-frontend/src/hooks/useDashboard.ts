@@ -105,13 +105,19 @@ export function useUpdateStudentStarRating() {
     });
 }
 
+// Le CV d'un compte desactive sort des listes et compteurs de CV (filtre serveur) :
+// ['dashboard'] couvre la liste des etudiants, le badge « Validation CV » et la tuile « CVs a examiner ».
+function invalidateAfterAccountToggle(queryClient: ReturnType<typeof useQueryClient>) {
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['cvs'] });
+    queryClient.invalidateQueries({ queryKey: ['cv-stats'] });
+}
+
 export function useDeactivateStudent() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (studentId: string) => deactivateStudent(studentId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
-        },
+        onSuccess: () => invalidateAfterAccountToggle(queryClient),
     });
 }
 
@@ -119,9 +125,7 @@ export function useReactivateStudent() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (studentId: string) => reactivateStudent(studentId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['dashboard', 'students'] });
-        },
+        onSuccess: () => invalidateAfterAccountToggle(queryClient),
     });
 }
 

@@ -55,4 +55,8 @@ public class JobOfferDTO {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private String createdByLastName;
+
+    @Schema(description = "Adresse e-mail de candidature trouvée dans la description, null sinon (bouton « Postuler » par e-mail)",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private String emailCandidature;
 }

@@ -4,6 +4,7 @@ import { PENDING_LEVEL_UP_KEY } from './useGamification';
 import {
     fetchAllJobOffers,
     fetchActiveJobOffers,
+    fetchOfferAuthors,
     fetchSectors,
     createSector,
     createJobOffer,
@@ -31,6 +32,15 @@ import type { JobOfferListParams, JobOfferPayload, ExternalSourceCriteriaPayload
 
 export function useAllJobOffersInfinite(params: JobOfferListParams = {}) {
     return useInfiniteListQuery(['job-offers', 'all', 'infinite', params], fetchAllJobOffers, params);
+}
+
+// Advisor/admin — options du filtre « Déposée par » (rafraîchies avec les offres)
+export function useOfferAuthors() {
+    return useQuery({
+        queryKey: ['job-offers', 'authors'],
+        queryFn: fetchOfferAuthors,
+        staleTime: 5 * 60 * 1000,
+    });
 }
 
 export function useActiveJobOffersInfinite(params: JobOfferListParams = {}) {

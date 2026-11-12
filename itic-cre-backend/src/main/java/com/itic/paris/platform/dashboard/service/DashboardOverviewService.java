@@ -43,7 +43,7 @@ public class DashboardOverviewService {
         long anonymizedStudents = studentRepository.countAnonymizedStudents();
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
         long totalApplications = applicationRepository.countExcludingConfirmedContract();
-        long totalCvs = cvRepository.count();
+        long totalCvs = cvRepository.countInValidation();
         double averageXp = studentRepository.averageXp();
 
         Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
@@ -122,7 +122,7 @@ public class DashboardOverviewService {
         long anonymizedStudents = studentRepository.countAnonymizedByIdIn(studentIds);
         long totalStudents = nonAnonymizedStudents + anonymizedStudents;
         long totalApplications = applicationRepository.countExcludingConfirmedContractForStudents(studentIds);
-        long totalCvs = cvRepository.countByStudentIdIn(studentIds);
+        long totalCvs = cvRepository.countInValidationForStudents(studentIds);
         double averageXp = studentRepository.averageXpByIdIn(studentIds);
 
         Instant inactiveThreshold = Instant.now().minus(appConfigurationService.getInactiveStudentDays(), ChronoUnit.DAYS);
@@ -196,15 +196,16 @@ public class DashboardOverviewService {
 
     /**
      * CV a relire = CV au statut « En attente », le statut d'arrivee d'un CV depose ou envoye (meme regle
-     * que CVService.replaceActiveCv). Un CV « Validé » ou « À corriger » n'attend plus le conseiller.
+     * que CVService.replaceActiveCv), parmi ceux de la liste par defaut (compte actif, pas sous contrat).
+     * Un CV « Validé » ou « À corriger » n'attend plus le conseiller.
      * studentIds null = vue globale.
      */
     private long countCvsToReview(List<UUID> studentIds) {
         return cvStatutRepository.findFirstByActifTrueOrderByOrdreAsc()
                 .map(CVStatut::getId)
                 .map(statutId -> studentIds == null
-                        ? cvRepository.countByStatutId(statutId)
-                        : cvRepository.countByStatutIdAndStudentIdIn(statutId, studentIds))
+                        ? cvRepository.countInValidationByStatut(statutId)
+                        : cvRepository.countInValidationByStatutForStudents(statutId, studentIds))
                 .orElse(0L);
     }
 

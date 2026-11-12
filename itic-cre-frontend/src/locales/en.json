@@ -430,6 +430,8 @@
         "notify": "Send message",
         "deactivate": "Deactivate",
         "reactivate": "Reactivate",
+        "reactivate_account": "Reactivate account",
+        "reactivate_account_of": "Reactivate {{name}}'s account",
         "anonymize": "Delete account",
         "declare_contract": "Declare a contract",
         "view_wip": "Profile of {{name}} — under development",
@@ -441,6 +443,8 @@
       },
       "confirm_deactivate_title": "Deactivate student",
       "confirm_deactivate": "Are you sure you want to deactivate \"{{name}}\"'s account? They will no longer be able to log in, but their history will be kept. You can reactivate them at any time.",
+      "confirm_reactivate_title": "Reactivate account",
+      "confirm_reactivate": "Reactivate \"{{name}}\"'s account? The student will be able to log in again, their CVs will reappear in CV review with their status, and the automatic deletion delay for deactivated accounts (GDPR) is cancelled.",
       "toast_deactivated": "Account deactivated successfully!",
       "toast_deactivate_error": "Error deactivating account.",
       "toast_reactivated": "Account reactivated successfully!",
@@ -724,6 +728,16 @@
         "bonne_alternance": "La Bonne Alternance",
         "adzuna": "Adzuna"
       },
+      "posted_by_filter": {
+        "label": "Posted by",
+        "all": "Posted by: anyone",
+        "external": "External offers",
+        "mine": "My offers",
+        "mine_hint": "Show only the offers I posted",
+        "search": "Search an advisor…",
+        "none": "No advisor found",
+        "external_author": "External · {{source}}"
+      },
       "external_sync_button": "External offers",
       "wipe_button": "Delete all",
       "wipe_dialog": {
@@ -773,7 +787,35 @@
         "toast_error": "Something went wrong.",
         "toast_delete_error": "Failed to delete — check that no job offer still uses it."
       },
-      "apply_button": "Mark as applied",
+      "apply_button": "I applied ✓",
+      "postuler_button": "Apply",
+      "channel": {
+        "email": "📧 By email",
+        "link": "🔗 External link"
+      },
+      "email_dialog": {
+        "title": "Apply by email",
+        "intro": "Your mail app should open with the subject already filled in. If nothing opens, copy the address and subject below.",
+        "address": "Address",
+        "subject": "Subject",
+        "copy": "Copy",
+        "copied": "Copied",
+        "copy_error": "Copy failed: select the text manually.",
+        "open_mail": "Open my mail app",
+        "close": "Close"
+      },
+      "follow_up": {
+        "question": "Did you send your application?",
+        "confirm": "Yes, mark as applied",
+        "later": "Not yet"
+      },
+      "no_channel_badge": "No way to apply",
+      "no_channel_hint": "No link and no email address: students do not know how to apply.",
+      "apply_channel_filter": {
+        "label": "Way to apply",
+        "all": "All",
+        "none": "No way to apply"
+      },
       "already_applied": "Already applied",
       "withdraw_hint": "Withdraw my application — the matching card will also be deleted from my application tracker.",
       "withdraw_confirm_title": "Withdraw application",
@@ -786,6 +828,7 @@
         "location": "Location",
         "contract": "Contract type",
         "sector": "Sector",
+        "posted_by": "Posted by",
         "source": "Source",
         "applications": "Applications",
         "status": "Status",
@@ -830,7 +873,10 @@
         "required_field_error": "This field is required.",
         "length_error": "Must be between {{min}} and {{max}} characters.",
         "invalid_link_error": "This link is not a valid URL (must start with http:// or https://).",
-        "save_error": "Failed to save the offer."
+        "save_error": "Failed to save the offer.",
+        "no_channel_error": "No way to apply: add a link to the offer, or an email address in the description.",
+        "channel_link": "Students will apply through this link.",
+        "channel_email": "Students will apply by email to {{email}}."
       },
       "detail_modal": {
         "title": "Job Offer Details",
@@ -847,7 +893,8 @@
         "status_applied": "You have already applied to this offer",
         "close": "Close",
         "view_applicants_one": "{{count}} applicant",
-        "view_applicants_other": "{{count}} applicants"
+        "view_applicants_other": "{{count}} applicants",
+        "email_notice": "Apply by email to {{email}}."
       },
       "applicants_modal": {
         "title": "Applicants",
@@ -864,9 +911,9 @@
         "activated": "Offer reactivated.",
         "deleted": "Offer deleted.",
         "action_error": "Something went wrong.",
-        "applied": "Application sent! It has been added to your tracker.",
+        "applied": "Application recorded. It has been added to your tracking.",
         "already_applied": "You already applied to this offer.",
-        "apply_error": "Unable to send the application.",
+        "apply_error": "Could not record the application.",
         "withdrawn": "Application withdrawn.",
         "withdrawn_xp_revoked": "Application withdrawn — {{xp}} XP taken back.",
         "withdraw_error": "Unable to withdraw the application."
@@ -1301,7 +1348,9 @@
         "advisors": "Advisors",
         "admins": "Administrators"
       },
-      "governance_banner": "Governance: The system limits to 2 active administrators simultaneously. Physical deletion of admin accounts is disabled to ensure system auditability.",
+      "governance_banner": "Governance: the system allows at most {{max}} active administrators at the same time ({{active}} currently). Physically deleting an admin account is disabled to keep the system auditable.",
+      "cap_dialog_title": "Administrator limit reached",
+      "cap_dialog_ok": "Got it",
       "empty_admins": "No administrators found.",
       "badges": {
         "admin": "Admin",
@@ -1381,7 +1430,8 @@
       "toast_reactivated": "Account successfully reactivated!",
       "toast_reactivate_error": "Error reactivating account.",
       "errors": {
-        "admin_cap_reached": "The limit of 2 active administrators has been reached.",
+        "admin_cap_reached": "The limit of {{max}} active administrators has been reached. Deactivate an administrator before creating or reactivating another one.",
+        "admin_cap_reached_generic": "The limit of active administrators has been reached. Deactivate an administrator before creating or reactivating another one.",
         "cannot_self_deactivate": "You cannot deactivate your own account.",
         "last_admin_protection": "Cannot deactivate the last active administrator.",
         "admin_cannot_be_deleted": "An administrator account cannot be physically deleted.",
@@ -1572,6 +1622,7 @@
       "logout": "Log out"
     },
     "cv": {
+      "status_paused": "on hold",
       "toast": {
         "status_updated": "CV status updated!",
         "comment_added": "Comment added to CV!",
@@ -1595,7 +1646,8 @@
         "add_comment": "Add a comment",
         "comment_placeholder": "Write advice or correction request...",
         "send_comment": "Send comment",
-        "source": "Origin"
+        "source": "Origin",
+        "open_student": "Open {{name}}’s profile"
       },
       "filter_all_statuts": "All statuses",
       "table": {

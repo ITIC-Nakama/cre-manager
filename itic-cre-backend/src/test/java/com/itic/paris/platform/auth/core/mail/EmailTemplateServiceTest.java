@@ -69,12 +69,34 @@ class EmailTemplateServiceTest {
         String cvComment = emailTemplateService.renderCVCommentEmail("Jean", "Bon travail");
         String reminder = emailTemplateService.renderStudentReminderEmail("Jean", "M. Martin", "Relance tes candidatures");
         String contractInvalidated = emailTemplateService.renderContractDeclarationInvalidatedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
+        String reactivated = emailTemplateService.renderAccountReactivatedEmail("fr", "Jean");
 
-        for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractInvalidated}) {
+        for (String html : new String[]{otp, credentials, cvStatus, cvComment, reminder, contractInvalidated, reactivated}) {
             assertTrue(html.contains("name=\"color-scheme\" content=\"light dark\""));
             assertTrue(html.contains("name=\"supported-color-schemes\" content=\"light dark\""));
             assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
         }
+    }
+
+    @Test
+    void rendersAccountReactivatedEmailInFrench() {
+        String html = emailTemplateService.renderAccountReactivatedEmail("fr", "Jean");
+
+        assertTrue(html.contains("Bonjour"));
+        assertTrue(html.contains("Jean"));
+        assertTrue(html.contains("Votre compte est de nouveau actif"));
+        assertTrue(html.contains("a été réactivé"));
+        assertTrue(html.contains("/login"));
+        assertTrue(html.contains("#3B71FF"));
+    }
+
+    @Test
+    void rendersAccountReactivatedEmailInEnglish() {
+        String html = emailTemplateService.renderAccountReactivatedEmail("en", "John");
+
+        assertTrue(html.contains("Hello"));
+        assertTrue(html.contains("Your account is active again"));
+        assertTrue(!html.contains("réactivé"));
     }
 
     @Test

@@ -7,13 +7,14 @@ import {
     type SortingState,
 } from '@tanstack/react-table';
 import {
-    Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
+    AlertTriangle, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
     ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import TruncatedText from '../../../../components/shared/TruncatedText';
 import InfiniteScrollSentinel from '../../../../components/shared/InfiniteScrollSentinel';
 import type { JobOffer } from '../../../../types/models/JobOffer';
+import { getApplyChannel } from '../../../../utils/applyChannel';
 
 const col = createColumnHelper<JobOffer>();
 
@@ -64,6 +65,15 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                     <div className="min-w-0">
                         <span className="block font-semibold text-slate-900 dark:text-white line-clamp-2" title={row.original.title}>{row.original.title}</span>
                         <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
+                        {getApplyChannel(row.original) === 'none' && (
+                            <span
+                                className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-900/50"
+                                title={t('dashboard.offres.no_channel_hint', 'Ni lien ni adresse e-mail : les étudiants ne savent pas comment postuler.')}
+                            >
+                                <AlertTriangle className="h-3 w-3" />
+                                {t('dashboard.offres.no_channel_badge', 'Sans moyen de postuler')}
+                            </span>
+                        )}
                     </div>
                 </div>
             ),
@@ -94,6 +104,28 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                 const value = getValue();
                 return value ? (
                     <TruncatedText text={value} className="max-w-[140px] text-slate-600 dark:text-slate-400 text-sm" />
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">—</span>
+                );
+            },
+        }),
+        col.accessor((row) => [row.createdByFirstName, row.createdByLastName].filter(Boolean).join(' '), {
+            id: 'postedBy',
+            header: t('dashboard.offres.table.posted_by', 'Déposée par'),
+            // Pas de tri : les offres externes n'ont pas d'auteur (jointure qui les exclurait).
+            enableSorting: false,
+            cell: ({ getValue, row }) => {
+                const name = getValue();
+                if (row.original.source !== 'MANUAL') {
+                    const sourceLabel = t(`dashboard.offres.external.sources.${row.original.source}`, row.original.source);
+                    return (
+                        <span className="text-sm text-slate-400 dark:text-slate-500">
+                            {t('dashboard.offres.posted_by_filter.external_author', { source: sourceLabel, defaultValue: 'Externe · {{source}}' })}
+                        </span>
+                    );
+                }
+                return name ? (
+                    <TruncatedText text={name} className="max-w-[140px] text-slate-600 dark:text-slate-400 text-sm" />
                 ) : (
                     <span className="text-slate-300 dark:text-slate-600">—</span>
                 );

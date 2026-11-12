@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { AlertTriangle, Loader2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useDelayedUnmount } from '../../hooks/useModalClose';
@@ -11,6 +11,10 @@ interface Props {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
+  /** 'danger' (défaut) : action destructive, en rouge. 'positive' : action qui rétablit quelque chose, en vert. */
+  tone?: 'danger' | 'positive';
+  /** Fenêtre d'information : un seul bouton (confirmLabel), pas d'« Annuler ». */
+  hideCancel?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -22,6 +26,8 @@ export default function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   loading = false,
+  tone = 'danger',
+  hideCancel = false,
   onConfirm,
   onClose
 }: Props) {
@@ -42,9 +48,15 @@ export default function ConfirmDialog({
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="h-4.5 w-4.5 text-red-600 dark:text-red-400" />
-            </div>
+            {tone === 'positive' ? (
+              <div className="h-9 w-9 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-4.5 w-4.5 text-red-600 dark:text-red-400" />
+              </div>
+            )}
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
           </div>
           <button
@@ -63,20 +75,22 @@ export default function ConfirmDialog({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {cancelLabel ?? t('common.confirm_dialog.cancel')}
-          </button>
+          {!hideCancel && (
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {cancelLabel ?? t('common.confirm_dialog.cancel')}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 ${tone === 'positive' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}`}
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {confirmLabel ?? t('common.confirm_dialog.delete')}
+            {confirmLabel ?? (tone === 'positive' ? t('common.confirm_dialog.confirm') : t('common.confirm_dialog.delete'))}
           </button>
         </div>
       </div>

@@ -3,6 +3,7 @@ package com.itic.paris.platform.jobboard.controller;
 import com.itic.paris.platform.auth.service.helpers.ValidationHelper;
 import com.itic.paris.platform.jobboard.model.dtos.CreateJobOfferRequest;
 import com.itic.paris.platform.jobboard.model.dtos.JobOfferDTO;
+import com.itic.paris.platform.jobboard.model.dtos.OfferAuthorDTO;
 import com.itic.paris.platform.jobboard.service.JobOfferService;
 import com.itic.paris.platform.shared.local.LanguageUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -69,7 +71,10 @@ public class JobOfferController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
-    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels search/contractTypeId/sectorId/source/active/location")
+    @Operation(summary = "Lister toutes les offres (actives et inactives) — gestion advisor/admin, filtres optionnels "
+            + "search/contractTypeId/sectorId/source/active/location/postedBy/noApplyChannel (postedBy = id du "
+            + "conseiller/admin auteur, ou EXTERNAL pour les offres externes ; noApplyChannel=true : offres sans lien "
+            + "ni adresse e-mail de candidature)")
     public ResponseEntity<Page<JobOfferDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID contractTypeId,
@@ -77,8 +82,18 @@ public class JobOfferController {
             @RequestParam(required = false) String source,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String postedBy,
+            @RequestParam(required = false) Boolean noApplyChannel,
             @PageableDefault(size = 20, sort = {"priorityContract", "effectiveDate"}, direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location, pageable));
+        return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location,
+                postedBy, noApplyChannel, pageable));
+    }
+
+    @GetMapping("/authors")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Conseillers/admins ayant déposé au moins une offre (options du filtre « Déposée par »)")
+    public ResponseEntity<List<OfferAuthorDTO>> getAuthors() {
+        return ResponseEntity.ok(jobOfferService.getOfferAuthors());
     }
 
     @GetMapping("/search/company")

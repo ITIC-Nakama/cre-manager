@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2, Eye, Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2, Eye, Download, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useCVComments, useUpdateCVStatus, useAddCVComment, useDeleteCVComment } from '../../hooks/useCV';
@@ -12,10 +13,18 @@ import CVSourceBadge from './CVSourceBadge';
 import { downloadFileSecurely } from '../../utils/fileUtils';
 import { useModalLayer } from '../../hooks/useModalLayer';
 
+/** Lien vers la fiche de l'étudiant (page Étudiants), à passer seulement si l'utilisateur y a accès. */
+export interface StudentProfileLink {
+    to: string;
+    state?: unknown;
+}
+
 interface Props {
     cv: CVRow;
     statuts: CVStatut[];
     onClose: () => void;
+    /** En-tête (photo, nom, e-mail) cliquable vers la fiche étudiant ; absent = en-tête non cliquable. */
+    studentLink?: StudentProfileLink;
 }
 
 function formatDateTime(iso: string | null) {
@@ -32,7 +41,7 @@ function statutIcon(nom: string) {
     return <Clock className="h-4 w-4 text-slate-400" />;
 }
 
-export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props) {
+export default function CVDetailModal({ cv: initialCv, statuts, onClose, studentLink }: Props) {
     const { t } = useTranslation();
     const [cv, setCv] = useState<CVRow>(initialCv);
     const [newComment, setNewComment] = useState('');
@@ -94,6 +103,32 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
 
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+                    {cv.student && studentLink ? (
+                        // Vrai lien <a> : clic = fiche étudiant ; Ctrl/Cmd+clic ou clic molette = nouvel onglet.
+                        <Link
+                            to={studentLink.to}
+                            state={studentLink.state}
+                            className="group flex items-center gap-3 -m-1.5 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                            title={t('dashboard.cv.detail.open_student', {
+                                name: `${cv.student.firstName} ${cv.student.lastName}`,
+                                defaultValue: 'Ouvrir la fiche de {{name}}',
+                            })}
+                        >
+                            <UserAvatar
+                                profilePicture={cv.student.profilePicture}
+                                firstName={cv.student.firstName}
+                                lastName={cv.student.lastName}
+                                className="h-10 w-10"
+                            />
+                            <span className="block">
+                                <span className="flex items-center gap-1 text-base font-bold text-slate-900 dark:text-white group-hover:underline group-focus-visible:underline underline-offset-2">
+                                    {`${cv.student.firstName} ${cv.student.lastName}`}
+                                    <ArrowUpRight className="h-4 w-4 text-indigo-500 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" aria-hidden="true" />
+                                </span>
+                                <span className="block text-xs text-slate-400">{cv.student.email}</span>
+                            </span>
+                        </Link>
+                    ) : (
                     <div className="flex items-center gap-3">
                         {cv.student ? (
                             <UserAvatar
@@ -119,6 +154,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose }: Props
                             )}
                         </div>
                     </div>
+                    )}
                     <button
                         onClick={onClose}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
