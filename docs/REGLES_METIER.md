@@ -34,6 +34,13 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Règles de désactivation par rôle** :
   - **`ADMIN`** : Peut désactiver des comptes étudiants, conseillers et administrateurs.
   - **`ADVISOR`** : Peut désactiver **uniquement** des comptes étudiants (`STUDENT`). Toute tentative de désactiver un conseiller ou admin renvoie **403 Access Denied**.
+- **Règles de réactivation par rôle** (`PATCH /auth/users/{id}/reactivate`) :
+  - **`ADVISOR`** : réactive **uniquement** des comptes étudiants, y compris hors de son portefeuille (comme pour la désactivation). Un compte conseiller ou admin renvoie **403 `ACCESS_DENIED`**.
+  - **`ADMIN`** : réactive tous les comptes (étudiants et staff, page admin des conseillers), dans la limite du plafond d'admins actifs (`ADMIN_CAP_REACHED`).
+  - **`STUDENT`** : jamais (403) ; un compte désactivé est de toute façon refusé dès le filtre JWT (401 `ACCOUNT_DEACTIVATED`).
+  - Un compte **anonymisé RGPD** n'est jamais réactivable (403 `ANONYMIZED_USER_CANNOT_BE_REACTIVATED`).
+  - Effets : `active = true`, `deactivatedAt` remis à vide (ce qui arrête le décompte de la purge RGPD des comptes désactivés), entrée `USER_REACTIVATED` au journal d'audit. L'étudiant peut se reconnecter, et ses CV reviennent dans la validation des CV avec leur statut.
+  - Interface : bouton « Réactiver le compte » sur la fiche étudiant (page Étudiants, candidats d'une offre) et sur chaque ligne de la vue « Comptes désactivés » de la validation des CV. Il ouvre toujours une **confirmation** (verte), comme la désactivation.
 - **Protections d'intégrité** :
   - **Auto-désactivation interdite** pour les comptes administrateurs (`CANNOT_SELF_DEACTIVATE`).
   - **Dernier administrateur actif protégé** : Impossible de désactiver le dernier admin si `activeAdmins <= 1` (`LAST_ADMIN_PROTECTION`).
@@ -437,6 +444,7 @@ ci-dessous).
   - L'ajout d'un commentaire déclenche un email asynchrone d'alerte envoyé directement à l'étudiant concerné.
 - **CV des comptes désactivés** : la page « Validation des CVs » ne montre que les CV des comptes actifs (`users.active = true`). Le filtre est appliqué côté serveur sur la liste (`GET /cv`, avec ses filtres statut, conseiller et recherche), les puces par statut (`GET /cv/stats`), le badge « Validation CV » (`GET /dashboard/cv/pending-count`) et la tuile « CVs à examiner » (`cvsToReview` et `totalCvs`), en vue globale comme en portefeuille conseiller.
   - Rien n'est supprimé ni modifié : le CV garde son statut et réapparaît tel quel si le compte est réactivé.
+  - Dans la vue « Comptes désactivés », chaque ligne propose « Réactiver le compte » (conseillers et admins, avec confirmation) ; une fois le compte réactivé, son CV quitte cette vue et revient dans la liste normale.
   - La puce grise « Comptes désactivés · N » (N = leurs CV, tous statuts confondus) affiche uniquement ces CV, avec le badge « Compte désactivé ». Côté API : `accountActive=false` sur `GET /cv` et `GET /cv/stats` ; sans ce paramètre, seuls les comptes actifs sont renvoyés. La réponse indique `student.accountActive`.
   - La fiche étudiant (`GET /cv/student/{id}`) affiche toujours le CV, compte actif ou non.
 - **Lien vers la fiche étudiant** (« Validation des CVs ») : dans la fenêtre d'un CV (icône œil), l'en-tête

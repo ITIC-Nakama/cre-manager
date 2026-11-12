@@ -21,6 +21,7 @@ import StudentDetailModal from '../../../components/shared/StudentDetailModal';
 import DeclareContractModal from '../../../components/shared/DeclareContractModal';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
@@ -462,6 +463,13 @@ export default function EtudiantsPage() {
                 loading={studentActions.deactivateLoading}
                 onConfirm={studentActions.handleConfirmDeactivate}
                 onClose={studentActions.closeDeactivateConfirm}
+            />
+
+            <ReactivateAccountDialog
+                student={studentActions.reactivateTarget}
+                loading={studentActions.reactivateLoading}
+                onConfirm={studentActions.handleConfirmReactivate}
+                onClose={studentActions.closeReactivateConfirm}
             />
 
             <TypedConfirmDialog

@@ -18,6 +18,7 @@ import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import DeclareContractModal from '../../../components/shared/DeclareContractModal';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
+import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
 import WipeOffersDialog from '../../../components/shared/WipeOffersDialog';
 import OffresHeader from './components/OffresHeader';
@@ -463,6 +464,13 @@ export default function OffresPage() {
                 loading={studentActions.deactivateLoading}
                 onConfirm={studentActions.handleConfirmDeactivate}
                 onClose={studentActions.closeDeactivateConfirm}
+            />
+
+            <ReactivateAccountDialog
+                student={studentActions.reactivateTarget}
+                loading={studentActions.reactivateLoading}
+                onConfirm={studentActions.handleConfirmReactivate}
+                onClose={studentActions.closeReactivateConfirm}
             />
 
             <TypedConfirmDialog
