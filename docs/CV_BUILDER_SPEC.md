@@ -44,7 +44,7 @@ Bénéfices à montrer :
 
 ## 4. Modèle de données
 
-### Table `cv_drafts` (migration `V45__cv_builder.sql`, DDL explicite : `ddl-auto=validate`)
+### Table `cv_drafts` (migration `V46__cv_builder.sql`, ex-V45 renumérotée le 12/11/2026 car `main` a pris la V45 ; DDL explicite : `ddl-auto=validate`)
 
 | Colonne | Type | Notes |
 |---|---|---|
@@ -171,13 +171,13 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 10. Anonymisation RGPD : brouillon supprimé.
 11. Dépôt manuel : comportement inchangé (tests existants verts).
 
-Les tests tournent sur H2 sans Flyway : **jouer aussi `V45` sur le PostgreSQL de `docker-compose`** avant la démo.
+Les tests tournent sur H2 sans Flyway : **jouer aussi `V46` sur le PostgreSQL de `docker-compose`** avant la démo.
 
 ## 10. Données de démo
 Seeder de test (`@Order(20+)`, profil dev uniquement) : un étudiant « démo » sans CV avec une candidature au contrat validé (pour montrer le préremplissage), et un second avec un brouillon complet déjà envoyé au statut « À corriger » et un commentaire du conseiller.
 
 ## 11. Découpage en commits
-1. Migration `V45`, entité `CvDraft`, DTO, dépôt, validation, préremplissage + tests 1-3.
+1. Migration `V46` (ex-V45), entité `CvDraft`, DTO, dépôt, validation, préremplissage + tests 1-3.
 2. Moteur PDF : dépendance, polices, modèles Classique et Moderne, service de rendu + tests 4-5.
 3. Refactorisation `replaceActiveCv`, endpoint `submit`, audit, anti-abus + tests 6-8, 11.
 4. Page assistant (formulaire, aperçu, auto-sauvegarde, complétude).
@@ -195,7 +195,7 @@ Seeder de test (`@Order(20+)`, profil dev uniquement) : un étudiant « démo »
 - **Compteur « CV à relire »** (`CVRepository.countNotInFinalStatut`) : il compte `ordre < MAX(ordre)`. Avec « À corriger » en ordre 3, le badge compte *En attente + Validé* au lieu de *En attente* (ou *En attente + À corriger*).
   → **Corrigé le 4 novembre 2026** : le compteur ne compte plus que les CV « En attente », le statut d'arrivée d'un dépôt (`CVStatutRepository.findFirstByActifTrueOrderByOrdreAsc`, désormais partagé avec `CVService.replaceActiveCv`). Test : `DashboardControllerIntegrationTest.cvsToReviewCountsOnlyPendingCvs`.
 - **Tâche « Corriger votre CV »** détectée par `nom.contains("corriger")` : fragile si un admin renomme le statut.
-  → **Corrigé le 4 novembre 2026** : colonne `cv_statuts.code` (V46, `CVStatutCode.A_CORRIGER`, remplie à la migration à partir de l'ancienne règle). La tâche, le bandeau du tableau de bord étudiant et le seeder de démo reconnaissent le statut par ce code. Un statut qui porte un code ne peut plus être supprimé (409), sinon le recréer perdrait le code. Tests : `StudentDashboardIntegrationTest.testCvToCorrectTaskRecognizesStatusByCodeNotByName`, `CVStatutIntegrationTest`.
+  → **Corrigé le 4 novembre 2026** : colonne `cv_statuts.code` (V47, ex-V46, `CVStatutCode.A_CORRIGER`, remplie à la migration à partir de l'ancienne règle). La tâche, le bandeau du tableau de bord étudiant et le seeder de démo reconnaissent le statut par ce code. Un statut qui porte un code ne peut plus être supprimé (409), sinon le recréer perdrait le code. Tests : `StudentDashboardIntegrationTest.testCvToCorrectTaskRecognizesStatusByCodeNotByName`, `CVStatutIntegrationTest`.
 - **Règle §6 vs code** : la doc dit que l'historique est réinitialisé au remplacement, alors que le code garde les commentaires (et l'interface l'annonce). Choisir et aligner la doc.
 - **Taille maximale** : `REGLES_METIER` §7 annonce 512 Mo, la configuration est à 20 Mo.
 
@@ -226,7 +226,7 @@ Implémenté en 6 commits suivant le §11. Tests : `CvBuilderIntegrationTest` (2
 | Quitter la page | Avertissement | `beforeunload` (onglet fermé ou rechargé) + enregistrement immédiat lors d'une navigation interne | L'application utilise `BrowserRouter` : `useBlocker` n'y est pas disponible. |
 | En-têtes | `X-Page-Count` | Ajouté à `exposedHeaders` du CORS avec `Content-Disposition` | En local, front (:5173) et API (:8080) sont sur deux origines. |
 | Seeder « profil dev » | `@Order(20+)`, profil dev | `TestCvBuilderSeeder`, `@Order(30)`, activé par `app.test.seeders.enabled` comme les autres `Test*Seeder` | Le projet n'a pas de profil Spring « dev » ; on suit le mécanisme existant. |
-| V45 sur PostgreSQL | `docker-compose` (`postgres:16-alpine`) | Jouée sur le PostgreSQL 17 natif de l'environnement local (sans Docker) | Choix de travailler sans Docker. Le SQL n'utilise que des fonctions présentes en 16 (`gen_random_uuid`, contraintes CHECK) : à rejouer sur l'image 16 avant fusion. |
+| V46 (ex-V45) sur PostgreSQL | `docker-compose` (`postgres:16-alpine`) | Jouée sur le PostgreSQL 17 natif de l'environnement local (sans Docker) | Choix de travailler sans Docker. Le SQL n'utilise que des fonctions présentes en 16 (`gen_random_uuid`, contraintes CHECK) : à rejouer sur l'image 16 avant fusion. |
 
 ### Comptes de démo (seeder de test ; mot de passe : valeur de `app.test.student.password`)
 - `demo.assistant@itic.fr` (Inès Moreau) : sans CV, promotion « Bachelor Dev 2025-2026 », une candidature au contrat validé → montre le prérempli.
