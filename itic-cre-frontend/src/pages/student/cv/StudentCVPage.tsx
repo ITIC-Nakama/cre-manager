@@ -1,28 +1,32 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useMyCV, useMyComments, useUploadMyCV } from '../../../hooks/useCV';
 import CycleStrip from './components/CycleStrip';
 import CVSheet from './components/CVSheet';
 import CVDropzone from './components/CVDropzone';
 import CVComments from './components/CVComments';
 import CVReplaceModal from './components/CVReplaceModal';
-import CVStartChoice from './components/CVStartChoice';
-import { AlertCircle, RefreshCw, FileText, ArrowLeft } from 'lucide-react';
+import { AlertCircle, RefreshCw, FileText, FileUp, Loader2, PenLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 
-const CV_BUILDER_PATH = '/student/cv/assistant';
+// Assistant chargé à la demande (formulaire, aperçu, vignettes) : le bundle principal reste sous la limite PWA.
+const CVBuilderPage = lazy(() => import('../cv-builder/CVBuilderPage'));
 
-export default function StudentCVPage() {
+const CV_BUILDER_PATH = '/student/cv/assistant';
+const CV_UPLOAD_PATH = '/student/cv/depot';
+
+/** Onglet affiché : imposé par l'adresse, sinon l'assistant (pas de CV ou CV de l'assistant) ou le dépôt. */
+type CvPageMode = 'auto' | 'builder' | 'upload';
+
+export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: cv, isLoading: cvLoading, isError, error, refetch } = useMyCV();
   const { data: comments = [] } = useMyComments();
   const uploadMutation = useUploadMyCV();
 
-  // Sans CV : choix entre l'assistant et le dépôt d'un PDF (le dépôt affiche la zone habituelle).
-  const [uploadChosen, setUploadChosen] = useState(false);
   const [isReplaceOpen, setIsReplaceOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
@@ -124,8 +128,14 @@ export default function StudentCVPage() {
     );
   }
 
+  const activeTab: 'builder' | 'upload' = mode !== 'auto' ? mode : !cv || cv.source === 'BUILDER' ? 'builder' : 'upload';
+  const tabClass = (active: boolean) =>
+    `inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors motion-reduce:transition-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff] ${active
+      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-slate-700'
+      : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`;
+
   return (
-    <div className="flex flex-col gap-8  animate-fadeIn">
+    <div className="flex flex-col gap-6 animate-fadeIn motion-reduce:animate-none">
       {/* Titre */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -140,24 +150,36 @@ export default function StudentCVPage() {
       {/* Progression du Cycle Strip */}
       <CycleStrip currentStep={currentStep} />
 
-      {/* Grille de contenu principal */}
-      {!cv ? (
-        /* État A : Aucun CV encore téléversé — assistant (recommandé) ou dépôt d'un PDF */
-        <div className="max-w-3xl mx-auto w-full mt-4 flex flex-col gap-4">
-          {uploadChosen ? (
-            <>
-              <button
-                onClick={() => setUploadChosen(false)}
-                className="self-start inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                {t('studentCv.start.back', 'Revenir au choix')}
-              </button>
-              <CVDropzone onFileSelect={handleUpload} isUploading={uploadMutation.isPending} />
-            </>
-          ) : (
-            <CVStartChoice onCreateWithBuilder={() => navigate(CV_BUILDER_PATH)} onChooseUpload={() => setUploadChosen(true)} />
-          )}
+      {/* Deux façons d'avoir un CV : le créer avec un modèle ITIC, ou déposer un fichier. */}
+      <nav className="self-start flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
+        aria-label={t('studentCv.tabs.label', 'Comment veux-tu préparer ton CV ?')}>
+        <button type="button" className={tabClass(activeTab === 'builder')} aria-current={activeTab === 'builder' ? 'page' : undefined}
+          onClick={() => navigate(CV_BUILDER_PATH)}>
+          <PenLine className="h-4 w-4" />
+          {t('studentCv.tabs.builder', 'Créer avec un modèle ITIC')}
+          <span className="px-1.5 py-0.5 rounded-md bg-[#3f74ff]/15 text-[#3f74ff] dark:text-[#8fb0ff] text-[10px] font-bold uppercase tracking-wide">
+            {t('studentCv.tabs.new', 'Nouveau')}
+          </span>
+        </button>
+        <button type="button" className={tabClass(activeTab === 'upload')} aria-current={activeTab === 'upload' ? 'page' : undefined}
+          onClick={() => navigate(CV_UPLOAD_PATH)}>
+          <FileUp className="h-4 w-4" />
+          {t('studentCv.tabs.upload', 'Déposer un fichier')}
+        </button>
+      </nav>
+
+      {activeTab === 'builder' ? (
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-24 text-slate-400">
+            <Loader2 className="h-6 w-6 animate-spin motion-reduce:animate-none" />
+          </div>
+        }>
+          <CVBuilderPage />
+        </Suspense>
+      ) : !cv ? (
+        /* Aucun CV encore déposé : la zone de dépôt habituelle. */
+        <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
+          <CVDropzone onFileSelect={handleUpload} isUploading={uploadMutation.isPending} />
         </div>
       ) : (
         /* État B : CV téléversé, mise en page sur 2 colonnes */

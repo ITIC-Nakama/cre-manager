@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    downloadMyCvPdf, fetchMyCvDraft, fetchMyCvScore, saveMyCvDraft, submitMyCv,
+    downloadMyCvPdf, fetchMyCvDraft, fetchMyCvScore, resetMyCvDraft, saveMyCvDraft, submitMyCv,
 } from '../api-s/requests/CVBuilderRequest';
 import type { CvDraftPayload } from '../types/models/CVBuilder';
 
@@ -35,6 +35,17 @@ export function useSaveMyCvDraft() {
         mutationFn: (payload: CvDraftPayload) => saveMyCvDraft(payload),
         onSuccess: (saved) => {
             queryClient.setQueryData(CV_DRAFT_KEY, saved);
+            queryClient.invalidateQueries({ queryKey: CV_SCORE_KEY });
+        },
+    });
+}
+
+export function useResetMyCvDraft() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (version: number | null) => resetMyCvDraft(version),
+        onSuccess: (draft) => {
+            queryClient.setQueryData(CV_DRAFT_KEY, draft);
             queryClient.invalidateQueries({ queryKey: CV_SCORE_KEY });
         },
     });

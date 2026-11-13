@@ -16,12 +16,12 @@ Bénéfices à montrer :
 
 ## 2. Le parcours (ce que Jules verra en démo)
 
-1. L'étudiant sans CV ouvre « Mon CV ». Deux cartes : **« Créer mon CV avec l'assistant »** (recommandé) et « Déposer un PDF ».
+1. L'étudiant ouvre « Mon CV » : frise d'étapes, puis deux onglets, **« Créer avec un modèle ITIC »** (ouvert par défaut sans CV) et « Déposer un fichier ».
 2. L'assistant s'ouvre **prérempli** : nom, prénom, e-mail, téléphone (compte), formation en cours (promotion ITIC), expériences tirées des candidatures au contrat validé (proposées, à confirmer).
 3. À gauche, le formulaire par sections. À droite, **l'aperçu exact du PDF**, mis à jour pendant la saisie.
-4. En haut : choix du modèle (Linéaire / Classique / Moderne / Bandeau), langue du CV, état d'enregistrement (« Enregistré à 14:32 »), « Télécharger le PDF », **« Envoyer à mon conseiller »**.
+4. « 1. Choisis un modèle » : quatre cartes avec vignette (Linéaire, Classique, Moderne, Bandeau). « 2. Complète ton CV » : langue du CV, état d'enregistrement (« Brouillon enregistré · 14:32 »), « Réinitialiser », « Télécharger PDF », **« Envoyer en relecture »**.
 5. Un **indicateur de complétude** (score sur 100 + conseils concrets : « Ajoute une accroche », « Précise le niveau de tes langues », « Ton CV fait 2 pages : vise 1 page ») guide l'étudiant.
-6. « Envoyer à mon conseiller » : confirmation (même message que le remplacement actuel), puis le PDF part dans le circuit : statut « En attente », le conseiller le voit dans « Validation des CV ».
+6. « Envoyer en relecture » : confirmation (même message que le remplacement actuel), puis le PDF part dans le circuit : statut « En attente », le conseiller le voit dans « Validation des CV ».
 7. Le conseiller met « À corriger » avec un commentaire. L'étudiant clique **« Modifier dans l'assistant »**, corrige une ligne, renvoie. Le conseiller valide, l'étudiant gagne ses XP.
 
 ## 3. Décisions (valeurs par défaut, modifiables)
@@ -142,6 +142,7 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 
 - Les logos sont des PNG tirés des SVG de la plateforme (`templates/cv/assets/`), intégrés en `data:` URI.
 - Champs du Linéaire (chiffre d'affaires, effectif, secteur, puces de formation) : affichés aussi par les autres modèles quand ils sont remplis.
+- **CV en anglais** : tous les libellés fixes viennent de `messages_en.properties` ; le **type de contrat** (texte libre, souvent repris d'une candidature en français) est traduit au rendu quand c'est un type courant (`CvTemplateHelper.contractType` : Alternance → Apprenticeship, Stage → Internship, CDD → Fixed-term contract, CDI → Permanent contract, Job étudiant → Student job…), sinon gardé tel quel. « Inconnu » (offres externes sans type) n'est jamais affiché, ni repris au préremplissage.
 - Exemples PDF et captures de chaque modèle, avec et sans photo : `docs/cv-samples/`.
 - Texte sélectionnable (pas d'image), métadonnées PDF : titre « CV — Prénom Nom », auteur.
 - Nom du fichier téléchargé : `CV_Nom_Prenom.pdf` (même logique que `nomFichier`).
@@ -149,18 +150,39 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 ## 7. Interface
 
 ### Étudiant
-- `StudentCVPage` :
-  - sans CV : deux cartes (« Créer mon CV avec l'assistant », « Déposer un PDF ») au lieu du seul `CVDropzone` ;
-  - avec un CV généré : bouton **« Modifier dans l'assistant »** à côté de « Voir » et « Remplacer » ;
-  - le circuit (`CycleStrip`, commentaires) reste identique.
-- Nouvelle page `/student/cv/assistant` (`F/pages/student/cv-builder/`) :
-  - barre du haut : modèle, langue du CV, état d'enregistrement, « Télécharger », « Envoyer à mon conseiller » ;
+
+> Parcours des maquettes (13/11/2026) : tout se passe dans « Mon CV », sous la frise d'étapes.
+
+- `StudentCVPage` : frise (`CycleStrip`), puis deux onglets :
+  - **« Créer avec un modèle ITIC »** (badge « Nouveau », adresse `/student/cv/assistant`) : l'assistant, chargé à la demande ;
+  - **« Déposer un fichier »** (`/student/cv/depot`) : zone de dépôt sans CV, sinon la fiche du CV actuel (« Voir », « Remplacer », commentaires) ;
+  - sur `/student/cv`, l'onglet ouvert est l'assistant s'il n'y a pas de CV ou si le CV vient de l'assistant, sinon le dépôt ;
+  - les deux cartes de choix du premier dépôt (`CVStartChoice`) sont remplacées par ces onglets.
+- Assistant (`F/pages/student/cv-builder/`) :
+  - **« 1. Choisis un modèle »** : une carte par modèle avec une vraie vignette (haut de la page 1 des exemples de `docs/cv-samples`, `F/assets/cv-templates/`) et le profil à qui il convient ;
+  - **« 2. Complète ton CV »** : barre avec « Brouillon enregistré · hh:mm », langue du CV (FR/EN), **« Réinitialiser »** (avec confirmation), « Télécharger PDF », « Envoyer en relecture » ;
+  - après l'envoi, l'étudiant reste sur « Mon CV » (la frise passe à « Relecture conseiller ») ;
+  - champs du Linéaire dans le formulaire : « L'entreprise en une ligne » (chiffre d'affaires, effectif, secteur) et points clés de formation (4 au plus) ;
   - colonne gauche : sections repliables, `react-hook-form` + `useFieldArray` (ajouter, supprimer, réordonner les entrées), compteur de caractères, aide courte par champ ;
   - colonne droite : aperçu (`iframe srcdoc`, requête anti-rebond 600 ms), zoom, badge « 1 page » / « 2 pages » ;
   - panneau de complétude : score et conseils cliquables (ouvrent la section concernée) ;
   - mobile : onglets Formulaire / Aperçu ;
   - auto-sauvegarde anti-rebond 1,5 s + au changement de section ; avertissement si l'on quitte avec des changements non enregistrés ;
   - commentaires du conseiller visibles dans l'assistant (panneau latéral) pour corriger sans changer de page.
+- **Accompagnement** (13/11/2026, front uniquement ; textes dans `components/guidance.ts`, traduits sous `studentCvBuilder.guide|welcome|submitted|check|ats`) :
+  - **accueil** à la première visite : encouragement et 3 repères ; refermé, il ne revient plus (navigateur, par compte : `localStorage`) ;
+  - **conseil + exemple** en tête de chaque section, adaptés à l'alternance ;
+  - **exemples prêts à adapter** : 3 accroches (passages `[entre crochets]` à personnaliser, confirmation avant de remplacer un texte déjà écrit) et 5 réalisations chiffrées (« Ajouter » remplit une ligne vide ou en crée une, ne remplace jamais) ;
+  - **verbes d'action** proposés sous une réalisation vide, et une astuce après « j'ai aidé », « participer »… ;
+  - **score** : « Prochaine étape la plus utile » avec le gain (« tu passes à 67 % ») et un bouton qui ouvre la section ; plus de rouge ;
+  - **vérification avant envoi** dans la confirmation (jamais bloquante) : coordonnées, une expérience, une réalisation chiffrée, une page, format (e-mail, téléphone, dates, passages entre crochets restés), expériences proposées confirmées ; « Corriger » ferme la fenêtre et ouvre la section ;
+  - badge **« Lisible par les recruteurs »** dans l'aperçu (explication sans jargon ; orange s'il manque nom, e-mail ou téléphone) ;
+  - après l'envoi, **« C'est envoyé ! Et maintenant ? »** : relecture, e-mail à chaque avis du conseiller (statut ou commentaire), retour dans l'assistant pour corriger ;
+  - confort : focus visible au clavier, espaces insécables avant la ponctuation, **« réduire les animations »** respecté dans toute l'application (`index.css`).
+- **Finitions après recette** :
+  - tout l'onglet et ses fenêtres tutoient : la fenêtre d'envoi a son propre avertissement (`studentCvBuilder.submitModal.warning`), celui du dépôt d'un fichier ne change pas ;
+  - le pourcentage à côté du badge est le **zoom de l'aperçu**, libellé « Zoom 68 % » avec une infobulle (sans effet sur le CV) : le seul score reste « Complétude NN/100 » ;
+  - « Corriger » place le curseur dans le champ concerné (accroche, e-mail manquant, réalisation, date…) ; un passage `[entre crochets]` d'un exemple est sélectionné, il suffit de taper.
 - `F/api-s/requests/CVBuilderRequest.ts`, `F/hooks/useCVBuilder.ts` (TanStack Query), types `F/types/models/CVBuilder.ts`, i18n `studentCvBuilder` dans `fr.json` et `en.json`.
 - PWA : exclure `/api/v1/cv/builder/` du cache NetworkFirst (`vite.config.ts`).
 

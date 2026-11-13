@@ -16,6 +16,8 @@ interface Props {
   confirmLabel?: string;
   /** false : pas de CV actif à remplacer, l'avertissement de remplacement est masqué. */
   showWarning?: boolean;
+  /** Avertissement propre à l'appelant (l'assistant tutoie) ; par défaut, celui du dépôt d'un fichier. */
+  warningText?: string;
 }
 
 export default function CVReplaceModal({
@@ -28,6 +30,7 @@ export default function CVReplaceModal({
   body,
   confirmLabel,
   showWarning = true,
+  warningText,
 }: Props) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -73,7 +76,7 @@ export default function CVReplaceModal({
           </p>
           {showWarning && (
             <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
-              {t('studentCv.replaceModal.warning', "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.")}
+              {warningText ?? t('studentCv.replaceModal.warning', "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.")}
             </div>
           )}
         </div>
