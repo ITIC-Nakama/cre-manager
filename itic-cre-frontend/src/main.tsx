@@ -10,11 +10,22 @@ import { toast } from 'sonner'
 import { queryClient } from './queryClient'
 
 // Auto-update du Service Worker en arrière-plan avec alerte Toast
+const SW_UPDATE_INTERVAL_MS = 15 * 60 * 1000;
+
 registerSW({
   immediate: true,
   onNeedRefresh() {
     toast.info(i18n.t('pwa.update_available'));
-  }
+  },
+  // Le navigateur ne cherche une nouvelle version du service worker qu'à la navigation (et parfois tard) : un onglet
+  // resté ouvert gardait l'ancienne version de l'application après un déploiement. On vérifie donc toutes les
+  // 15 minutes et à chaque retour sur l'onglet.
+  onRegisteredSW(_swUrl, registration) {
+    if (!registration) return;
+    const check = () => { if (navigator.onLine) void registration.update().catch(() => undefined); };
+    setInterval(check, SW_UPDATE_INTERVAL_MS);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+  },
 });
 
 createRoot(document.getElementById('root')!).render(
