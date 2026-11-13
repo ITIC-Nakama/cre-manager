@@ -1,3 +1,6 @@
+/** Code technique d'un statut reconnu par l'application (le nom reste libre pour l'admin). */
+export type CVStatutCode = 'A_CORRIGER';
+
 export interface CVStatut {
     id: string;
     nom: string;
@@ -5,7 +8,11 @@ export interface CVStatut {
     couleur: string;
     actif: boolean;
     gainXP: number;
+    code: CVStatutCode | null;
 }
+
+/** Origine du CV actif : dépôt d'un PDF ou génération par l'assistant. */
+export type CVSource = 'UPLOAD' | 'BUILDER';
 
 export interface CVStudentInfo {
     id: string;
@@ -26,6 +33,8 @@ export interface CVRow {
     url: string;
     studentId: string;
     student?: CVStudentInfo;
+    source?: CVSource;
+    templateCode?: string | null;
 }
 
 export interface CVPage {
@@ -63,6 +72,8 @@ export interface CVResponse {
     xpAwarded: boolean;
     statut: CVStatut;
     studentId: string;
+    source?: CVSource;
+    templateCode?: string | null;
 }
 
 export interface CVComment {

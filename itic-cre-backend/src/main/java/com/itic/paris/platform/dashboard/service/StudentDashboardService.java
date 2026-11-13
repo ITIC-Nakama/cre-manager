@@ -8,6 +8,7 @@ import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.service.AdvisorService;
 import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
+import com.itic.paris.platform.cv.model.CVStatutCode;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.dashboard.model.dtos.*;
 import com.itic.paris.platform.gamification.model.Grade;
@@ -222,8 +223,8 @@ public class StudentDashboardService {
             tasks.add(new TaskDTO("NO_CV", MessageKey.TASK_NO_CV.translate(lang), null));
         } else {
             cvRepository.findByStudentId(studentId).ifPresent(cv -> {
-                String statutNom = cv.getStatut().getNom().toLowerCase();
-                if (statutNom.contains("corriger") || statutNom.contains("à corriger")) {
+                // Par code et non par nom : l'admin peut renommer le statut sans casser la tache.
+                if (cv.getStatut().getCode() == CVStatutCode.A_CORRIGER) {
                     tasks.add(new TaskDTO(
                             "CV_TO_CORRECT",
                             MessageKey.TASK_CV_TO_CORRECT.translate(lang),

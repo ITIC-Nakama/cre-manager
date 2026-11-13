@@ -29,6 +29,8 @@ public enum AuditAction {
     CV_DELETED,
     CV_STATUS_UPDATED,
     CV_COMMENTED,
+    // CV genere puis envoye depuis l'assistant de creation (equivalent de CV_UPLOADED pour un depot manuel).
+    CV_GENERATED,
 
     // --- Actions de gestion des Tutoriels ---
     TUTO_CREATED,

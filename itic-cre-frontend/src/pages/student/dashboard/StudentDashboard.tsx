@@ -73,7 +73,8 @@ export default function StudentDashboard() {
     );
   }
 
-  const cvNeedsCorrection = data?.cv.hasCv && data.cv.statut && (data.cv.statut.toLowerCase().includes('corriger') || data.cv.statut.toLowerCase().includes('à corriger'));
+  // Même règle que la tâche « Corriger votre CV » : statut reconnu par son code côté backend, pas par son nom.
+  const cvNeedsCorrection = data?.afaireAujourdhui.some((task) => task.type === 'CV_TO_CORRECT') ?? false;
 
   return (
     <div className="flex flex-col gap-8  animate-fadeIn">

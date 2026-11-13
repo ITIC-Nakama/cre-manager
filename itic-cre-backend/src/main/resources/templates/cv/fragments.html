@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+  Fragments communs aux modeles de CV.
+  Contraintes openhtmltopdf : XHTML bien forme (balises fermees, pas d'entites nommees comme &nbsp;),
+  CSS 2.1 (pas de flexbox ni de grid). Les textes saisis passent tous par th:text (echappes).
+  Lisibilite par les logiciels de tri (ATS) : AUCUN texte en float — openhtmltopdf ecrit les floats avant le
+  reste du flux, ce qui faisait sortir les dates avant le nom. Titre et date d'une entree partagent une ligne de
+  tableau : le texte extrait suit l'ordre visuel (verifie par CvAtsExtractionTest).
+  Espacement des lettres : 0.6pt au plus. Au-dela (1.2pt), les extracteurs inserent des espaces entre les lettres
+  (« C E R T I F I C A T I O N S ») et le titre de section n'est plus reconnu.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Mise en page A4 commune + rendu "feuille" dans l'iframe d'apercu (media screen, ignore par le PDF). -->
+<style th:fragment="pageCss">
+  @page { size: A4; margin: 15mm; }
+  html, body { margin: 0; padding: 0; }
+  body { color: #1f2937; font-family: 'Roboto', sans-serif; font-size: 9.4pt; line-height: 1.34; }
+  /* Pas de ligne isolee en bas ou en haut de page. */
+  p, li, .entry-sub, .entry-facts { orphans: 2; widows: 2; }
+  a { color: inherit; text-decoration: none; }
+  ul { margin: 1mm 0 0 0; padding: 0 0 0 4.5mm; }
+  li { margin: 0.4mm 0 0 0; }
+  .clear { clear: both; }
+  /* Espacements AU-DESSUS des blocs (jamais en dessous) : une marge basse en fin de document pouvait creer une
+     page blanche quand le contenu remplissait juste la page. */
+  .entry { margin: 2.2mm 0 0 0; page-break-inside: avoid; }
+  .section-title + .entry { margin-top: 0; }
+  .entry-head { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .entry-head td { padding: 0; vertical-align: top; }
+  .entry-head td.entry-date { width: 40mm; padding-left: 3mm; text-align: right; color: #6b7280; font-size: 8.8pt; }
+  .entry-title { font-weight: 700; }
+  .entry-sub { color: #4b5563; }
+  .entry-facts { color: #4b5563; font-style: italic; font-size: 8.9pt; }
+  .entry-text { margin-top: 0.8mm; }
+  .muted { color: #6b7280; }
+  .section { margin: 3mm 0 0 0; }
+  .section-title { page-break-after: avoid; }
+  /* Competences, langues, centres d'interet : listes simples separees par des virgules (lisibles par les ATS). */
+  .skill-group + .skill-group { margin-top: 0.8mm; }
+  .skill-label { display: inline; font-weight: 500; }
+  .skill-items { display: inline; }
+  .lang-row + .lang-row { margin-top: 0.5mm; }
+  .lang-row .muted { color: #6b7280; }
+  /* Pied « Etudiant(e) ITIC Paris » : dans le corps du document (pas un pied de page), apres la derniere section. */
+  .itic-footer { margin-top: 4.5mm; padding-top: 1.6mm; border-top: 0.25mm solid #d5dbe5; page-break-inside: avoid; }
+  .itic-footer table { border-collapse: collapse; }
+  .itic-footer td { padding: 0; vertical-align: middle; }
+  .itic-footer img { height: 4.2mm; width: auto; margin-right: 2mm; }
+  .itic-footer .text { font-size: 7.6pt; color: #6b7280; }
+  @media screen {
+    html { background: #e5e7eb; }
+    body { width: 180mm; min-height: 267mm; margin: 16px auto; padding: 15mm; background: #ffffff;
+           box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18); }
+  }
+</style>
+
+<!-- Aiguillage : rend la section demandee (nom issu de CvBuilderOptions.SECTIONS). -->
+<th:block th:fragment="section(name)">
+  <th:block th:switch="${name}">
+    <th:block th:case="'experiences'"><th:block th:replace="~{cv/fragments :: experiences}"></th:block></th:block>
+    <th:block th:case="'formations'"><th:block th:replace="~{cv/fragments :: formations}"></th:block></th:block>
+    <th:block th:case="'projets'"><th:block th:replace="~{cv/fragments :: projets}"></th:block></th:block>
+    <th:block th:case="'competences'"><th:block th:replace="~{cv/fragments :: competences}"></th:block></th:block>
+    <th:block th:case="'langues'"><th:block th:replace="~{cv/fragments :: langues}"></th:block></th:block>
+    <th:block th:case="'certifications'"><th:block th:replace="~{cv/fragments :: certifications}"></th:block></th:block>
+    <th:block th:case="'centresInteret'"><th:block th:replace="~{cv/fragments :: centresInteret}"></th:block></th:block>
+  </th:block>
+</th:block>
+
+<div th:fragment="experiences" class="section section-experiences">
+  <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
+  <div class="entry" th:each="e : ${cv.experiences}">
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</td>
+      <td class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</td>
+    </tr></table>
+    <div class="entry-sub" th:text="${fmt.join(' · ', e.entreprise, e.ville)}">Entreprise</div>
+    <th:block th:with="facts=${fmt.companyFacts(e.chiffreAffaires, e.effectif, e.secteur, #messages.msg('cv.company.revenue'), #messages.msg('cv.company.headcount'))}">
+      <div class="entry-facts" th:if="${fmt.present(facts)}" th:text="${facts}">CA 3 M€ – effectif 35 (secteur)</div>
+    </th:block>
+    <ul th:if="${!e.points.isEmpty()}">
+      <li th:each="p : ${e.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+    </ul>
+  </div>
+</div>
+
+<div th:fragment="formations" class="section section-formations">
+  <h2 class="section-title" th:text="#{cv.section.formations}">Formation</h2>
+  <div class="entry" th:each="f : ${cv.formations}">
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${f.diplome}">Diplôme</td>
+      <td class="entry-date" th:text="${fmt.period(f.debut, f.fin, f.enCours, #messages.msg('cv.ongoing'))}">2025</td>
+    </tr></table>
+    <div class="entry-sub" th:text="${fmt.join(' · ', f.etablissement, f.ville, f.mention)}">Établissement</div>
+    <ul th:if="${!f.points.isEmpty()}">
+      <li th:each="p : ${f.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+    </ul>
+  </div>
+</div>
+
+<div th:fragment="projets" class="section section-projets">
+  <h2 class="section-title" th:text="#{cv.section.projets}">Projets</h2>
+  <div class="entry" th:each="p : ${cv.projets}">
+    <div class="entry-title" th:text="${p.nom}">Projet</div>
+    <div class="entry-sub" th:if="${fmt.present(p.lien)}"><a th:href="${p.lien}" th:text="${fmt.displayUrl(p.lien)}">lien</a></div>
+    <div class="entry-text" th:if="${fmt.present(p.description)}" th:text="${p.description}">Description</div>
+    <div class="entry-sub" th:if="${!p.technos.isEmpty()}">
+      <span class="muted" th:text="|#{cv.technos}#{cv.colon}|">Technologies : </span><span th:text="${#strings.listJoin(p.technos, ', ')}">Java</span>
+    </div>
+  </div>
+</div>
+
+<div th:fragment="competences" class="section section-competences">
+  <h2 class="section-title" th:text="#{cv.section.competences}">Compétences</h2>
+  <div class="skill-group" th:if="${!cv.competences.techniques.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.techniques}">Techniques</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.techniques})}"></th:block></div>
+  </div>
+  <div class="skill-group" th:if="${!cv.competences.outils.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.outils}">Outils</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.outils})}"></th:block></div>
+  </div>
+  <div class="skill-group" th:if="${!cv.competences.savoirEtre.isEmpty()}">
+    <div class="skill-label"><span th:text="#{cv.skills.savoirEtre}">Savoir-être</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.savoirEtre})}"></th:block></div>
+  </div>
+</div>
+
+<div th:fragment="langues" class="section section-langues">
+  <h2 class="section-title" th:text="#{cv.section.langues}">Langues</h2>
+  <div class="lang-row" th:each="l : ${cv.langues}">
+    <span class="entry-title" th:text="${l.langue}">Anglais</span>
+    <span class="muted" th:if="${fmt.present(l.niveau)}" th:text="|— ${#messages.msg('cv.level.' + l.niveau)}|">— C1</span>
+  </div>
+</div>
+
+<div th:fragment="certifications" class="section section-certifications">
+  <h2 class="section-title" th:text="#{cv.section.certifications}">Certifications</h2>
+  <div class="entry" th:each="c : ${cv.certifications}">
+    <table class="entry-head"><tr>
+      <td class="entry-title" th:text="${c.nom}">Certification</td>
+      <td class="entry-date" th:text="${fmt.month(c.date)}">2025</td>
+    </tr></table>
+    <div class="entry-sub" th:if="${fmt.present(c.organisme)}" th:text="${c.organisme}">Organisme</div>
+  </div>
+</div>
+
+<div th:fragment="centresInteret" class="section section-centresInteret">
+  <h2 class="section-title" th:text="#{cv.section.centresInteret}">Centres d'intérêt</h2>
+  <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.centresInteret})}"></th:block></div>
+</div>
+
+<!-- ─── Modele Lineaire : frise (dates et ville a gauche, point sur la ligne de temps, contenu a droite) ───
+     Une ligne de tableau par entree : le texte extrait reste groupe par entree (dates, ville, poste, entreprise,
+     puces). Experiences et formation passent par la frise ; les autres sections gardent les fragments communs. -->
+<th:block th:fragment="timelineSection(name)">
+  <th:block th:switch="${name}">
+    <th:block th:case="'experiences'"><th:block th:replace="~{cv/fragments :: tlExperiences}"></th:block></th:block>
+    <th:block th:case="'formations'"><th:block th:replace="~{cv/fragments :: tlFormations}"></th:block></th:block>
+    <th:block th:case="*"><th:block th:replace="~{cv/fragments :: section(${name})}"></th:block></th:block>
+  </th:block>
+</th:block>
+
+<!-- Periode sur une ou deux lignes, sans couper une date en deux (« sept. 2024 – » / « aujourd'hui »). -->
+<th:block th:fragment="tlPeriod(start, end)"><span class="nw" th:if="${fmt.present(start)}" th:text="${start}">sept. 2024</span><span th:if="${fmt.present(start) and fmt.present(end)}" th:text="' – '"> – </span><span class="nw" th:if="${fmt.present(end)}" th:text="${end}">aujourd’hui</span></th:block>
+
+<div th:fragment="tlExperiences" class="section section-experiences">
+  <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
+  <table class="tl">
+    <tr class="tl-row" th:each="e : ${cv.experiences}">
+      <td class="tl-when">
+        <div class="tl-date"><th:block th:replace="~{cv/fragments :: tlPeriod(${fmt.month(e.debut)}, ${e.enCours != null and e.enCours ? #messages.msg('cv.ongoing') : fmt.month(e.fin)})}"></th:block></div>
+        <div class="tl-place" th:if="${fmt.present(e.ville)}" th:text="${e.ville}">Paris</div>
+      </td>
+      <td class="tl-rail"><div class="tl-dot"></div></td>
+      <td class="tl-body">
+        <div class="tl-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</div>
+        <div class="tl-org" th:if="${fmt.present(e.entreprise)}" th:text="${e.entreprise}">Entreprise</div>
+        <th:block th:with="facts=${fmt.companyFacts(e.chiffreAffaires, e.effectif, e.secteur, #messages.msg('cv.company.revenue'), #messages.msg('cv.company.headcount'))}">
+          <div class="entry-facts" th:if="${fmt.present(facts)}" th:text="${facts}">CA 3 M€ – effectif 35 (secteur)</div>
+        </th:block>
+        <ul th:if="${!e.points.isEmpty()}">
+          <li th:each="p : ${e.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div th:fragment="tlFormations" class="section section-formations">
+  <h2 class="section-title" th:text="#{cv.section.formations}">Formation</h2>
+  <table class="tl">
+    <tr class="tl-row" th:each="f : ${cv.formations}">
+      <td class="tl-when">
+        <div class="tl-date"><th:block th:replace="~{cv/fragments :: tlPeriod(${fmt.month(f.debut)}, ${f.enCours != null and f.enCours ? #messages.msg('cv.ongoing') : fmt.month(f.fin)})}"></th:block></div>
+        <div class="tl-place" th:if="${fmt.present(f.ville)}" th:text="${f.ville}">Paris</div>
+      </td>
+      <td class="tl-rail"><div class="tl-dot"></div></td>
+      <td class="tl-body">
+        <div class="tl-title" th:text="${f.diplome}">Diplôme</div>
+        <div class="tl-org" th:if="${fmt.present(f.etablissement)}" th:text="${f.etablissement}">Établissement</div>
+        <div class="entry-facts" th:if="${fmt.present(f.mention)}" th:text="${f.mention}">Mention bien</div>
+        <ul th:if="${!f.points.isEmpty()}">
+          <li th:each="p : ${f.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- Pied « Etudiant(e) ITIC Paris — Enseignement superieur prive » avec le symbole ITIC (image decorative). -->
+<div th:fragment="iticFooter" class="itic-footer">
+  <table><tr>
+    <td><img th:src="${logoMark}" alt=""/></td>
+    <td class="text" th:text="#{cv.footer}">Étudiant(e) ITIC Paris — Enseignement supérieur privé</td>
+  </tr></table>
+</div>
+
+<!-- Puce avec mise en gras : "**+15 %**" -> <strong>. Chaque morceau passe par th:text (echappe).
+     Les morceaux normaux sont aussi dans un <span> : openhtmltopdf ecrit le texte direct d'un element AVANT ses
+     elements imbriques ; sans ce <span>, le gras sortait apres la fin de la phrase dans le flux du PDF (ATS). -->
+<th:block th:fragment="rich(text)"><th:block th:each="seg : ${fmt.rich(text)}"><strong th:if="${seg.bold}" th:text="${seg.text}">gras</strong><span th:unless="${seg.bold}" th:text="${seg.text}">texte</span></th:block></th:block>
+
+<!-- Liste « a, b, c » : les virgules sont du vrai texte, chacune dans son <span> a sa place (un ", " genere en CSS
+     sortait apres les mots dans le flux du PDF). -->
+<th:block th:fragment="inlineList(items)"><th:block th:each="item, it : ${items}"><span class="tag" th:text="${item}">Java</span><span th:unless="${it.last}" th:text="', '">, </span></th:block></th:block>
+
+<!-- Liens (LinkedIn, GitHub…) : libelle + URL lisible, cliquables dans le PDF. -->
+<th:block th:fragment="links">
+  <span class="link" th:each="l : ${cv.identite.liens}">
+    <a th:href="${l.url}"><span class="link-type" th:text="|${#messages.msg('cv.link.' + l.type)}#{cv.colon}|">LinkedIn : </span><span th:text="${fmt.displayUrl(l.url)}">linkedin.com/in/…</span></a>
+  </span>
+</th:block>
+
+</body>
+</html>

@@ -9,6 +9,7 @@ import { Role } from '../../types/models/Auth';
 import type { CVRow, CVStatut } from '../../types/models/CV';
 import UserAvatar from './UserAvatar';
 import PdfViewerModal from './PdfViewerModal';
+import CVSourceBadge from './CVSourceBadge';
 import { downloadFileSecurely } from '../../utils/fileUtils';
 import { useModalLayer } from '../../hooks/useModalLayer';
 
@@ -234,6 +235,12 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
                                 <p className="text-xs text-slate-400">{t('dashboard.cv.detail.uploaded_at', 'Déposé le')}</p>
                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{formatDateTime(cv.uploadedAt)}</p>
                             </div>
+                            {cv.source === 'BUILDER' && (
+                                <div>
+                                    <p className="text-xs text-slate-400">{t('dashboard.cv.detail.source', 'Origine')}</p>
+                                    <div className="mt-0.5"><CVSourceBadge source={cv.source} templateCode={cv.templateCode} /></div>
+                                </div>
+                            )}
                             {cv.updatedAt && (
                                 <div>
                                     <p className="text-xs text-slate-400">{t('dashboard.cv.detail.updated_at', 'Statut mis à jour')}</p>

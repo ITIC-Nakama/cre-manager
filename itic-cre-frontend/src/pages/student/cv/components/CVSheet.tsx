@@ -1,13 +1,16 @@
-import { FileText, ExternalLink, RefreshCw, Zap } from 'lucide-react';
+import { FileText, ExternalLink, RefreshCw, Zap, PenLine } from 'lucide-react';
 import type { CVResponse } from '../../../../types/models/CV';
 import { useTranslation } from 'react-i18next';
 import { openFileSecurely } from '../../../../utils/fileUtils';
+import CVSourceBadge from '../../../../components/shared/CVSourceBadge';
 
 interface Props {
   cv: CVResponse;
   onReplaceToggle: () => void;
   isReplaceOpen: boolean;
   isUploading: boolean;
+  /** Affiché seulement pour un CV généré par l'assistant. */
+  onEditInBuilder?: () => void;
 }
 
 function formatDate(iso: string) {
@@ -20,7 +23,7 @@ function formatDate(iso: string) {
   });
 }
 
-export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploading }: Props) {
+export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploading, onEditInBuilder }: Props) {
   const { t } = useTranslation();
 
   // Extraire le nom du fichier depuis l'URL s'il n'est pas fourni par le backend, en retirant les paramètres de requête S3/R2
@@ -76,6 +79,8 @@ export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploadin
           {cv.statut.nom}
         </span>
 
+        <CVSourceBadge source={cv.source} templateCode={cv.templateCode} />
+
         {/* Badge d'XP */}
         {cv.statut.gainXP > 0 && (
           <span
@@ -102,6 +107,16 @@ export default function CVSheet({ cv, onReplaceToggle, isReplaceOpen, isUploadin
           {t('studentCv.sheet.viewBtn', 'Voir mon CV')}
           <ExternalLink className="h-4 w-4" />
         </button>
+
+        {cv.source === 'BUILDER' && onEditInBuilder && (
+          <button
+            onClick={onEditInBuilder}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#3f74ff] hover:bg-[#2f63ee] text-white text-sm font-semibold transition-colors cursor-pointer"
+          >
+            <PenLine className="h-4 w-4" />
+            {t('studentCv.sheet.editInBuilderBtn', 'Modifier dans l’assistant')}
+          </button>
+        )}
 
         <button
           onClick={onReplaceToggle}
