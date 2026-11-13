@@ -23,20 +23,16 @@ type CvPageMode = 'auto' | 'builder' | 'upload';
 export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: cv, isLoading: cvLoading, isError, error, refetch } = useMyCV();
-  const { data: comments = [] } = useMyComments();
+  // cv : null = pas encore de CV (404 côté API), ce n'est ni une erreur ni un chargement.
+  // isPending : vrai seulement au tout premier chargement ; un rechargement en arrière-plan ne démonte jamais la page.
+  const { data: cvData, isPending: cvLoading, isError, refetch } = useMyCV();
+  const cv = cvData ?? null;
+  const { data: comments = [] } = useMyComments(!!cv);
   const uploadMutation = useUploadMyCV();
 
   const [isReplaceOpen, setIsReplaceOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
-
-  // Vérifier si l'erreur est une 404 (indiquant qu'aucun CV n'a encore été déposé)
-  const isNoCV =
-    isError &&
-    ((error as any).response?.status === 404 ||
-      (error as any).statusCode === 404 ||
-      (error as any).response?.data?.statusCode === 404);
 
   const handleUpload = async (file: File) => {
     try {
@@ -102,8 +98,8 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
     );
   }
 
-  // État d'erreur (hors 404)
-  if (isError && !isNoCV) {
+  // Vraie erreur (réseau, 5xx…) sans aucune donnée : l'absence de CV n'en est pas une.
+  if (isError && cvData === undefined) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center text-red-600 dark:text-red-400">

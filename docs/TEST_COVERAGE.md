@@ -49,6 +49,14 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 
 ---
 
+### Tests du front (Vitest)
+
+Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing Library, jsdom), lancés par `npm test` (pas encore dans la CI : seule la compilation du front y est vérifiée).
+
+| Page | Fichier | Tests | Ce qui est vérifié |
+|---|---|---|---|
+| **Mon CV (étudiant)** | `src/pages/student/cv/StudentCVPage.test.tsx` | 4 | Sans CV ni brouillon (`GET /cv/me` en 404) : la page s'affiche, un seul appel par endpoint, aucun appel aux commentaires, « Déposer un fichier » utilisable (régression : boucle de remontage, 55 requêtes en 6 s en prod). Avec un CV déposé, avec un CV de l'assistant sans brouillon, étudiant sous contrat (expérience proposée, CV à corriger, commentaire) : un appel par endpoint. |
+
 ## 3. Exécution Automatisée dans la CI/CD
 
 L'exécution des tests est strictement intégrée au pipeline d'intégration et de déploiement continu **GitHub Actions** ([.github/workflows/cd.yml](file:///.github/workflows/cd.yml)).
