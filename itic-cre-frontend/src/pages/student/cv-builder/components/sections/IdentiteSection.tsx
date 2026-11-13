@@ -1,8 +1,10 @@
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { ImagePlus } from 'lucide-react';
 import { CV_LIMITS, CV_LINK_TYPES, type CvBuilderFormValues } from '../../../../../types/models/CVBuilder';
 import { AddButton, EntryActions, Field, TextInput } from '../fields';
 import { compactFieldClass } from '../fieldUtils';
+import { useCvPhoto } from '../photo/cvPhotoContext';
 
 export default function IdentiteSection() {
   const { t } = useTranslation();
@@ -61,17 +63,70 @@ export default function IdentiteSection() {
         </div>
       </Field>
 
-      <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800 cursor-pointer">
-        <input type="checkbox" {...register('data.identite.afficherPhoto')} className="mt-0.5 h-4 w-4 accent-[#3f74ff]" />
-        <span className="flex flex-col">
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            {t('studentCvBuilder.identite.photo', 'Afficher ma photo de profil')}
-          </span>
-          <span className="text-xs text-slate-500">
-            {t('studentCvBuilder.identite.photoHint', 'Facultatif. La photo de ton compte est reprise telle quelle (JPEG ou PNG). Change-la depuis tes paramètres.')}
-          </span>
-        </span>
-      </label>
+      <PhotoField />
     </>
+  );
+}
+
+/**
+ * Photo du CV : par défaut la photo de profil (case cochée dès qu'il y en a une), « Changer la photo » pour une
+ * photo propre au CV (recadrée au format du modèle), « Revenir à ma photo de profil ».
+ */
+function PhotoField() {
+  const { t } = useTranslation();
+  const { register, control } = useFormContext<CvBuilderFormValues>();
+  const shown = useWatch({ control, name: 'data.identite.afficherPhoto' });
+  const photo = useCvPhoto();
+  if (!photo) return null;
+
+  const { info, thumbnailUrl, busy, choose, revertToProfile } = photo;
+  const hasPhoto = info.source !== 'NONE';
+  const actionClass = 'text-xs font-semibold text-[#3f74ff] dark:text-[#8fb0ff] hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-default';
+  const hint = info.source === 'CV'
+    ? t('studentCvBuilder.photo.hintCv', 'Photo choisie pour ton CV seulement : ta photo de profil ne change pas.')
+    : info.source === 'PROFILE'
+      ? t('studentCvBuilder.photo.hintProfile', 'C’est la photo de ton compte. « Changer la photo » en met une autre sur ton CV seulement.')
+      : t('studentCvBuilder.photo.hintNone', 'Facultatif : sans photo, l’emplacement reste vide sur ton CV. JPEG ou PNG, 5 Mo maximum.');
+
+  return (
+    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800">
+      {/* Vignette cliquable à la souris ; au clavier et pour les lecteurs d'écran, le bouton texte à côté suffit. */}
+      <button type="button" onClick={choose} disabled={busy} tabIndex={-1} aria-hidden="true"
+        className="shrink-0 w-[60px] h-[72px] rounded-md overflow-hidden cursor-pointer ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff]">
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt="" className={`w-full h-full object-cover ${shown ? '' : 'opacity-40 grayscale'}`} />
+        ) : (
+          <span className="flex items-center justify-center h-full border border-dashed border-slate-300 dark:border-slate-600 rounded-md text-slate-400">
+            <ImagePlus className="h-4 w-4" />
+          </span>
+        )}
+      </button>
+      <div className="flex flex-col gap-1.5 min-w-0">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {t('studentCvBuilder.photo.title', 'Photo')}
+        </span>
+        {hasPhoto && (
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
+            <input type="checkbox" {...register('data.identite.afficherPhoto')} className="h-4 w-4 accent-[#3f74ff]" />
+            {info.source === 'CV'
+              ? t('studentCvBuilder.photo.showCv', 'Afficher ma photo sur le CV')
+              : t('studentCvBuilder.identite.photo', 'Afficher ma photo de profil')}
+          </label>
+        )}
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <button type="button" onClick={choose} disabled={busy} className={actionClass}>
+            {hasPhoto ? t('studentCvBuilder.photo.change', 'Changer la photo') : t('studentCvBuilder.photo.add', 'Ajouter une photo')}
+          </button>
+          {info.source === 'CV' && (
+            <button type="button" onClick={revertToProfile} disabled={busy} className={actionClass}>
+              {info.profilePhotoAvailable
+                ? t('studentCvBuilder.photo.revert', 'Revenir à ma photo de profil')
+                : t('studentCvBuilder.photo.remove', 'Retirer cette photo')}
+            </button>
+          )}
+        </div>
+        <span className="text-xs text-slate-500">{hint}</span>
+      </div>
+    </div>
   );
 }

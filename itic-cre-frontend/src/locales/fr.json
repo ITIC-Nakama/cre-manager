@@ -2102,10 +2102,10 @@
       "lang_en": "CV en anglais"
     },
     "templates": {
-      "LINEAIRE": "Linéaire",
-      "CLASSIQUE": "Classique",
-      "MODERNE": "Moderne",
-      "BANDEAU": "Bandeau"
+      "LINEAIRE": "Linéaire (optimisé ATS)",
+      "CLASSIQUE": "Classique (optimisé ATS)",
+      "MODERNE": "Moderne (optimisé ATS)",
+      "BANDEAU": "Bandeau (optimisé ATS)"
     },
     "save": {
       "idle": "Prérempli avec ton compte : ton brouillon sera enregistré dès ta première modification",
@@ -2227,8 +2227,7 @@
       "liens": "Liens",
       "liensHint": "LinkedIn, GitHub, portfolio… Les adresses doivent commencer par https://",
       "addLien": "Ajouter un lien",
-      "photo": "Afficher ma photo de profil",
-      "photoHint": "Facultatif. La photo de ton compte est reprise telle quelle (JPEG ou PNG). Change-la depuis tes paramètres."
+      "photo": "Afficher ma photo de profil"
     },
     "linkTypes": {
       "LINKEDIN": "LinkedIn",
@@ -2461,6 +2460,33 @@
       "explain": "Beaucoup d’entreprises trient les CV avec un logiciel. Ton CV est écrit en vrai texte, avec des titres classiques et dans un ordre logique : le logiciel peut le lire comme un recruteur.",
       "ready": "Lisible par les recruteurs",
       "missingContact": "Ajoute ton e-mail et ton téléphone pour être bien lu"
+    },
+    "photo": {
+      "title": "Photo",
+      "add": "Ajouter une photo",
+      "change": "Changer la photo",
+      "revert": "Revenir à ma photo de profil",
+      "remove": "Retirer cette photo",
+      "showCv": "Afficher ma photo sur le CV",
+      "hintCv": "Photo choisie pour ton CV seulement : ta photo de profil ne change pas.",
+      "hintProfile": "C’est la photo de ton compte. « Changer la photo » en met une autre sur ton CV seulement.",
+      "hintNone": "Facultatif : sans photo, l’emplacement reste vide sur ton CV. JPEG ou PNG, 5 Mo maximum.",
+      "invalidType": "Seules les photos JPEG ou PNG sont acceptées.",
+      "tooLarge": "La photo dépasse 5 Mo : choisis-en une plus légère.",
+      "unreadable": "Cette photo est illisible : essaie avec une autre (JPEG ou PNG).",
+      "saved": "Photo enregistrée pour ton CV. Ta photo de profil ne change pas.",
+      "reverted": "Ton CV reprend ta photo de profil.",
+      "removed": "Photo retirée de ton CV.",
+      "saveError": "La photo n’a pas pu être enregistrée, réessaie.",
+      "cropTitle": "Recadre ta photo",
+      "cropHint": "Fais glisser la photo pour la placer et zoome si besoin. Le cadre a le format de la photo sur ton CV.",
+      "cropFrame": "Cadre de la photo : flèches pour déplacer, + et − pour zoomer",
+      "cropError": "Recadrage impossible dans ce navigateur : essaie avec un autre.",
+      "zoom": "Zoom de la photo",
+      "zoomIn": "Zoomer",
+      "zoomOut": "Dézoomer",
+      "cancel": "Annuler",
+      "save": "Enregistrer la photo"
     }
   }
 }

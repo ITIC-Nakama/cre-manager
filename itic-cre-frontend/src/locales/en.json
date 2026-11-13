@@ -2102,10 +2102,10 @@
       "lang_en": "CV in English"
     },
     "templates": {
-      "LINEAIRE": "Timeline",
-      "CLASSIQUE": "Classic",
-      "MODERNE": "Modern",
-      "BANDEAU": "Banner"
+      "LINEAIRE": "Timeline (ATS-friendly)",
+      "CLASSIQUE": "Classic (ATS-friendly)",
+      "MODERNE": "Modern (ATS-friendly)",
+      "BANDEAU": "Banner (ATS-friendly)"
     },
     "save": {
       "idle": "Prefilled from your account: your draft will be saved as soon as you change something",
@@ -2227,8 +2227,7 @@
       "liens": "Links",
       "liensHint": "LinkedIn, GitHub, portfolio… Addresses must start with https://",
       "addLien": "Add a link",
-      "photo": "Show my profile picture",
-      "photoHint": "Optional. Your account picture is used as is (JPEG or PNG). Change it in your settings."
+      "photo": "Show my profile photo"
     },
     "linkTypes": {
       "LINKEDIN": "LinkedIn",
@@ -2461,6 +2460,33 @@
       "explain": "Many companies sort CVs with software. Your CV is written as real text, with standard headings and in a logical order: the software can read it like a recruiter.",
       "ready": "Readable by recruiters",
       "missingContact": "Add your email and phone to be read correctly"
+    },
+    "photo": {
+      "title": "Photo",
+      "add": "Add a photo",
+      "change": "Change photo",
+      "revert": "Use my profile photo again",
+      "remove": "Remove this photo",
+      "showCv": "Show my photo on the CV",
+      "hintCv": "Photo chosen for your CV only: your profile photo does not change.",
+      "hintProfile": "This is your account photo. “Change photo” puts another one on your CV only.",
+      "hintNone": "Optional: without a photo, the space stays empty on your CV. JPEG or PNG, 5 MB max.",
+      "invalidType": "Only JPEG or PNG photos are accepted.",
+      "tooLarge": "The photo exceeds 5 MB: choose a lighter one.",
+      "unreadable": "This photo cannot be read: try another one (JPEG or PNG).",
+      "saved": "Photo saved for your CV. Your profile photo does not change.",
+      "reverted": "Your CV uses your profile photo again.",
+      "removed": "Photo removed from your CV.",
+      "saveError": "The photo could not be saved, please try again.",
+      "cropTitle": "Crop your photo",
+      "cropHint": "Drag the photo to position it and zoom if needed. The frame has the shape of the photo on your CV.",
+      "cropFrame": "Photo frame: arrow keys to move, + and − to zoom",
+      "cropError": "Cropping is not possible in this browser: try another one.",
+      "zoom": "Photo zoom",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "cancel": "Cancel",
+      "save": "Save photo"
     }
   }
 }
