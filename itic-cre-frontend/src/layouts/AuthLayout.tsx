@@ -21,6 +21,8 @@ export default function AuthLayout() {
         <Outlet />
       </main>
       <Footer />
+      {/* Place de la bannière « Installer l'application » : le bas de la page reste au-dessus d'elle. */}
+      <div aria-hidden="true" style={{ height: 'var(--pwa-banner-space, 0px)' }} />
     </div>
   );
 }

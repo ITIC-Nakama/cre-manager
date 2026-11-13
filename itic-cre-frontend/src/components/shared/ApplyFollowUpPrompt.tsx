@@ -18,7 +18,7 @@ export default function ApplyFollowUpPrompt({ followUp, isConfirming, onConfirm,
     if (!followUp) return null;
 
     return (
-        <div className="fixed inset-x-0 bottom-4 z-[55] flex justify-center px-4 pointer-events-none">
+        <div data-pwa-yield className="fixed inset-x-0 bottom-4 z-[55] flex justify-center px-4 pointer-events-none">
             <div
                 role="alertdialog"
                 aria-labelledby="apply-follow-up-question"

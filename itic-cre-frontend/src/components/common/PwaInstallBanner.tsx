@@ -1,7 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Download, X, Share, PlusSquare, Smartphone, MoreVertical, Monitor, DownloadCloud } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PwaBannerDismissedUntilStorageKey, PwaInstalledStorageKey } from '../../types/storage-keys';
+
+/**
+ * Ce qui passe avant la bannière : une fenêtre ouverte (dialogue, voile plein écran : menu mobile, tiroir, liste
+ * déroulante), et les bandeaux du bas marqués data-pwa-yield (cookies, suivi de candidature). Tant qu'il y en a un,
+ * la bannière ne s'affiche pas : elle ne peut cacher ni leurs boutons ni ceux de la page.
+ */
+const YIELD_SELECTOR = '[role="dialog"], [aria-modal="true"], .fixed.inset-0, [data-pwa-yield]';
+
+/** Hauteur réservée en bas des pages (variable CSS), lue par les mises en page et le bouton d'aide flottant. */
+const SPACE_VAR = '--pwa-banner-space';
+const SPACE_EVENT = 'pwa-banner-space';
+
+function somethingMustStayOnTop(): boolean {
+  return [...document.querySelectorAll<HTMLElement>(YIELD_SELECTOR)]
+    .some((el) => !el.closest('[data-pwa-banner]') && !el.closest('[hidden], .hidden'));
+}
+
+function setReservedSpace(px: number) {
+  document.documentElement.style.setProperty(SPACE_VAR, `${px}px`);
+  window.dispatchEvent(new Event(SPACE_EVENT));
+}
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -17,6 +38,41 @@ export default function PwaInstallBanner() {
   const [showDesktopModal, setShowDesktopModal] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [yieldToOthers, setYieldToOthers] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  // Fenêtres et bandeaux du bas, observés tant que la bannière est en jeu (une vérification par image).
+  useEffect(() => {
+    if (!showBanner) return;
+    let frame = requestAnimationFrame(() => setYieldToOthers(somethingMustStayOnTop()));
+    const observer = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setYieldToOthers(somethingMustStayOnTop()));
+    });
+    observer.observe(document.body, {
+      childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'role', 'aria-modal', 'hidden'],
+    });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [showBanner]);
+
+  const barShown = showBanner && !yieldToOthers;
+
+  // Place réservée en bas des pages : le bas du contenu reste visible et cliquable au-dessus de la bannière.
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!barShown || !bar) return;
+    const update = () => setReservedSpace(Math.ceil(bar.getBoundingClientRect().height) + 24);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      setReservedSpace(0);
+    };
+  }, [barShown]);
 
   useEffect(() => {
     // 1. Check if application is already running in standalone mode or installed
@@ -109,8 +165,9 @@ export default function PwaInstallBanner() {
   if (!showBanner) return null;
 
   return (
-    <>
-      <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-fade-in-up">
+    <div data-pwa-banner className="contents">
+      {barShown && (
+      <div ref={barRef} className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-fade-in-up">
         <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/40 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 text-indigo-400">
@@ -148,6 +205,7 @@ export default function PwaInstallBanner() {
           </div>
         </div>
       </div>
+      )}
 
       {/* iOS Safari Instruction Modal */}
       {showIosModal && (
@@ -304,6 +362,6 @@ export default function PwaInstallBanner() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
