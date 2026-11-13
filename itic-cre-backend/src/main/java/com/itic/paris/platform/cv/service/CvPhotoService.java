@@ -3,8 +3,10 @@ package com.itic.paris.platform.cv.service;
 import com.itic.paris.platform.auth.core.exception.AppException;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.cv.model.CvPhoto;
+import com.itic.paris.platform.cv.model.CvPhotoFormat;
 import com.itic.paris.platform.cv.model.dtos.builder.CvPhotoInfo;
 import com.itic.paris.platform.cv.repository.CvPhotoRepository;
+import com.itic.paris.platform.cv.service.CvPhotoImages.CropZone;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +24,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Photo du CV (assistant de CV). Par defaut, la photo de profil du compte ; l'etudiant peut la remplacer par une
- * photo propre au CV, qui ne touche jamais sa photo de profil, puis « revenir a sa photo de profil ».
+ * Photo du CV (assistant de CV). Par defaut, la photo de profil du compte (JPEG, PNG ou WebP, convertie) ; l'etudiant
+ * peut la remplacer par une photo propre au CV, qui ne touche jamais sa photo de profil, puis « revenir a sa photo
+ * de profil ».
+ * <p>
+ * On garde l'ORIGINAL assaini (CvPhotoImages.normalizeOriginal) et la zone choisie au recadrage ; chaque modele en
+ * derive son format au rendu (carre ou portrait, CvPhotoImages.renderFormat).
  * <p>
  * Stockage : meme service de fichiers que les avatars, mais dossier PRIVE (cv-photos/{studentId}-{horodatage}.jpg,
  * jamais sous le dossier public) : aucune URL n'est donnee, l'image passe par les points d'acces de l'assistant,
@@ -38,36 +45,48 @@ import java.util.UUID;
 @Service
 public class CvPhotoService {
 
-    /** Taille maximale du fichier envoye. */
+    /** Taille maximale d'une photo : envoyee pour le CV, ou photo de profil reprise dans le CV (meme regle). */
     public static final long MAX_BYTES = 5L * 1024 * 1024;
-    /** Photo de profil a reprendre : au-dela, elle est ignoree (le compte accepte jusqu'a 15 Mo). */
-    private static final int MAX_PROFILE_BYTES = 20 * 1024 * 1024;
     static final String FOLDER = "cv-photos/";
-    private static final int CACHE_ENTRIES = 64;
-    /** Valeur en cache pour « fichier lu mais inutilisable » (WebP, illisible) : pas de nouvel essai a chaque apercu. */
+    /** Originaux assainis en memoire (jusqu'a 2000 px : quelques centaines de Ko chacun). */
+    private static final int ORIGINAL_CACHE_ENTRIES = 16;
+    /** Images au format d'un modele (480 px : quelques dizaines de Ko). */
+    private static final int RENDER_CACHE_ENTRIES = 64;
+    /** Valeur en cache pour « fichier lu mais inutilisable » : pas de nouvel essai a chaque apercu. */
     private static final byte[] UNUSABLE = new byte[0];
 
-    /** Photo effective du CV, deja traitee (JPEG 5:6 sans metadonnees). */
-    public record Resolved(String source, String path, byte[] jpeg) {
-        static final Resolved NONE = new Resolved(CvPhotoInfo.SOURCE_NONE, null, null);
+    /** Photo du CV : d'ou elle vient, son fichier et la zone choisie. */
+    public record Origin(String source, String path, CropZone zone) {
+        static final Origin NONE = new Origin(CvPhotoInfo.SOURCE_NONE, null, null);
 
         public boolean present() {
-            return jpeg != null;
+            return path != null;
+        }
+
+        /** Cle stable (empreinte du fichier et de la zone) : empreinte d'envoi, rafraichissement de la vignette. */
+        public String key() {
+            if (!present()) {
+                return null;
+            }
+            String material = path + "|" + String.format(Locale.ROOT, "%.4f,%.4f,%.4f,%.4f",
+                    zone.x(), zone.y(), zone.width(), zone.height());
+            try {
+                byte[] digest = MessageDigest.getInstance("SHA-256").digest(material.getBytes(StandardCharsets.UTF_8));
+                return HexFormat.of().formatHex(digest, 0, 8);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-256 indisponible", e);
+            }
         }
     }
 
     private final ICloudStorage cloudStorage;
     private final CvPhotoRepository photoRepository;
     /**
-     * Images traitees par chemin de stockage (un chemin ne change jamais de contenu : nouvel envoi = nouveau chemin).
-     * L'apercu se recalcule a chaque modification : sans ce cache, chaque frappe retelechargerait la photo.
+     * Caches par chemin de stockage (un chemin ne change jamais de contenu : nouvel envoi = nouveau chemin).
+     * L'apercu se recalcule a chaque modification : sans eux, chaque frappe retelechargerait et retraiterait la photo.
      */
-    private final Map<String, byte[]> cache = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, byte[]> eldest) {
-            return size() > CACHE_ENTRIES;
-        }
-    });
+    private final Map<String, byte[]> originals = lru(ORIGINAL_CACHE_ENTRIES);
+    private final Map<String, byte[]> renders = lru(RENDER_CACHE_ENTRIES);
 
     public CvPhotoService(ICloudStorage cloudStorage, CvPhotoRepository photoRepository) {
         this.cloudStorage = cloudStorage;
@@ -75,48 +94,70 @@ public class CvPhotoService {
     }
 
     /** Photo propre au CV si elle existe, sinon photo de profil utilisable, sinon aucune. */
-    public Resolved resolve(Student student) {
+    public Origin origin(Student student) {
         CvPhoto own = photoRepository.findById(student.getId()).orElse(null);
-        if (own != null) {
-            byte[] bytes = load(own.getStoragePath());
-            if (bytes != null) {
-                return new Resolved(CvPhotoInfo.SOURCE_CV, own.getStoragePath(), bytes);
-            }
+        if (own != null && original(own.getStoragePath()) != null) {
+            return new Origin(CvPhotoInfo.SOURCE_CV, own.getStoragePath(), zoneOf(own));
         }
-        byte[] profile = profilePhoto(student);
-        return profile != null
-                ? new Resolved(CvPhotoInfo.SOURCE_PROFILE, student.getProfilePicture(), profile)
-                : Resolved.NONE;
+        return profilePhotoUsable(student)
+                ? new Origin(CvPhotoInfo.SOURCE_PROFILE, student.getProfilePicture(), CropZone.FULL)
+                : Origin.NONE;
+    }
+
+    /** Image du PDF au format demande (JPEG sans metadonnees), ou null sans photo. */
+    public byte[] render(Student student, CvPhotoFormat format) {
+        Origin origin = origin(student);
+        if (!origin.present()) {
+            return null;
+        }
+        String cacheKey = origin.key() + "|" + format.name();
+        byte[] cached = renders.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        byte[] original = original(origin.path());
+        if (original == null) {
+            return null;
+        }
+        try {
+            byte[] rendered = CvPhotoImages.renderFormat(original, origin.zone(), format);
+            renders.put(cacheKey, rendered);
+            return rendered;
+        } catch (AppException e) {
+            log.warn("Photo de CV impossible a mettre au format {} : {}", format, origin.path());
+            return null;
+        }
     }
 
     public CvPhotoInfo info(Student student) {
-        Resolved resolved = resolve(student);
-        boolean profileAvailable = CvPhotoInfo.SOURCE_PROFILE.equals(resolved.source()) || profilePhoto(student) != null;
-        return new CvPhotoInfo(resolved.source(), profileAvailable, resolved.present() ? key(resolved.path()) : null);
+        Origin origin = origin(student);
+        boolean profileAvailable = CvPhotoInfo.SOURCE_PROFILE.equals(origin.source()) || profilePhotoUsable(student);
+        return new CvPhotoInfo(origin.source(), profileAvailable, origin.key());
     }
 
     /** Une photo peut aller dans le CV (case « Afficher ma photo » cochee par defaut). */
     public boolean hasPhoto(Student student) {
-        return resolve(student).present();
+        return origin(student).present();
     }
 
     /**
-     * Enregistre une photo propre au CV : verifiee, recadree, re-encodee sans EXIF (CvPhotoImages). Remplace la
-     * precedente photo du CV ; la photo de profil n'est pas touchee.
+     * Enregistre une photo propre au CV : l'original assaini (CvPhotoImages : vrai type JPEG ou PNG, dimensions,
+     * orientation, sans EXIF) et la zone choisie au recadrage (null : toute l'image). Remplace la precedente photo du
+     * CV ; la photo de profil n'est pas touchee.
      */
     @Transactional
-    public CvPhotoInfo upload(Student student, MultipartFile file) throws IOException {
+    public CvPhotoInfo upload(Student student, MultipartFile file, CropZone zone) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_PHOTO_INVALID_TYPE);
         }
         if (file.getSize() > MAX_BYTES) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_PHOTO_TOO_LARGE);
         }
-        byte[] jpeg = CvPhotoImages.process(file.getBytes());
+        byte[] original = CvPhotoImages.normalizeOriginal(file.getBytes(), false);
 
         // Prefixe {studentId}- obligatoire : FileAccessFilter s'en sert pour reconnaitre le proprietaire (stockage local).
         String path = FOLDER + student.getId() + "-" + System.currentTimeMillis() + ".jpg";
-        if (!cloudStorage.uploadFile(new ByteArrayInputStream(jpeg), path, "image/jpeg", jpeg.length)) {
+        if (!cloudStorage.uploadFile(new ByteArrayInputStream(original), path, "image/jpeg", original.length)) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.REQUEST_PROCESSING_FAILED);
         }
 
@@ -126,9 +167,14 @@ public class CvPhotoService {
             return created;
         });
         String previous = photo.getStoragePath();
+        CropZone kept = zone == null ? CropZone.FULL : zone;
         photo.setStoragePath(path);
+        photo.setCropX(kept.x());
+        photo.setCropY(kept.y());
+        photo.setCropWidth(kept.width());
+        photo.setCropHeight(kept.height());
         photoRepository.save(photo);
-        cache.put(path, jpeg);
+        originals.put(path, original);
         if (previous != null && !previous.equals(path)) {
             deleteQuietly(previous);
         }
@@ -151,26 +197,24 @@ public class CvPhotoService {
         });
     }
 
-    /** Cle stable d'une photo (empreinte de son chemin) : sert a l'empreinte d'envoi et au rafraichissement. */
-    static String key(String path) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(path.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest, 0, 8);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 indisponible", e);
-        }
+    private boolean profilePhotoUsable(Student student) {
+        return student.getProfilePicture() != null && original(student.getProfilePicture()) != null;
     }
 
-    private byte[] profilePhoto(Student student) {
-        return student.getProfilePicture() == null ? null : load(student.getProfilePicture());
+    private static CropZone zoneOf(CvPhoto photo) {
+        if (photo.getCropX() == null || photo.getCropY() == null || photo.getCropWidth() == null || photo.getCropHeight() == null) {
+            return CropZone.FULL;
+        }
+        return new CropZone(photo.getCropX(), photo.getCropY(), photo.getCropWidth(), photo.getCropHeight());
     }
 
     /**
-     * Image traitee (CvPhotoImages) du fichier stocke, ou null s'il est absent ou inutilisable. Une erreur de
-     * stockage n'est pas mise en cache (nouvel essai au prochain apercu) ; un fichier inutilisable (WebP...) l'est.
+     * Original assaini du fichier stocke, ou null s'il est absent ou inutilisable. Memes regles qu'un envoi : vrai
+     * type (JPEG, PNG, et WebP pour une photo de profil, converti), 5 Mo au plus, dimensions, sans EXIF.
+     * Une erreur de stockage n'est pas mise en cache (nouvel essai au prochain apercu) ; un fichier inutilisable l'est.
      */
-    private byte[] load(String path) {
-        byte[] cached = cache.get(path);
+    private byte[] original(String path) {
+        byte[] cached = originals.get(path);
         if (cached != null) {
             return cached == UNUSABLE ? null : cached;
         }
@@ -179,27 +223,36 @@ public class CvPhotoService {
             if (in == null) {
                 return null;
             }
-            raw = in.readNBytes(MAX_PROFILE_BYTES + 1);
+            raw = in.readNBytes((int) MAX_BYTES + 1);
         } catch (IOException | RuntimeException e) {
             log.warn("Photo de CV illisible depuis le stockage : {}", path);
             return null;
         }
-        byte[] processed;
+        byte[] normalized;
         try {
-            processed = raw.length > MAX_PROFILE_BYTES ? null : CvPhotoImages.process(raw);
+            normalized = raw.length > MAX_BYTES ? null : CvPhotoImages.normalizeOriginal(raw, true);
         } catch (AppException e) {
-            processed = null;
+            normalized = null;
         }
-        cache.put(path, processed == null ? UNUSABLE : processed);
-        return processed;
+        originals.put(path, normalized == null ? UNUSABLE : normalized);
+        return normalized;
     }
 
     private void deleteQuietly(String path) {
-        cache.remove(path);
+        originals.remove(path);
         try {
             cloudStorage.deleteFile(path);
         } catch (RuntimeException e) {
             log.warn("Suppression impossible de l'ancienne photo de CV : {}", path, e);
         }
+    }
+
+    private static Map<String, byte[]> lru(int entries) {
+        return Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, byte[]> eldest) {
+                return size() > entries;
+            }
+        });
     }
 }

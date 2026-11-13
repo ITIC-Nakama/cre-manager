@@ -24,7 +24,7 @@ PDF produits par le vrai moteur de rendu de l'assistant (`CvRenderService`, celu
 
 - **Données entièrement fictives** (`CvSampleFixtures.fullCv()` et `longCv()`), e-mails en `example.com`.
 - La photo est une **silhouette dessinée** par le test (aucune vraie personne).
-- Depuis le 13/11/2026, l'emplacement de la photo est **toujours réservé** : sans photo, il reste vide et la mise en page est identique.
+- Depuis le 13/11/2026, l'emplacement de la photo est **toujours réservé** : sans photo, il reste vide et la mise en page est identique. Photo carrée pour le Linéaire, portrait 5:6 pour les autres ; logo ITIC toujours en haut.
 - Paramètres : langue du CV `fr`, ordre des sections par défaut de chaque modèle.
 - Chaque brouillon passe la validation de l'assistant ; le nombre de pages est vérifié à la génération.
 - Les captures sont la page 1 des PDF `-1-page`, rendue à 90 ppp avec PyMuPDF.

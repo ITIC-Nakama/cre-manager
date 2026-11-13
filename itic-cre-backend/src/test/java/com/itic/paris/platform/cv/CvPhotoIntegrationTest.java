@@ -41,6 +41,7 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -141,11 +142,29 @@ class CvPhotoIntegrationTest {
     }
 
     @Test
-    @DisplayName("Photo de profil WebP (illisible pour le PDF) : traitée comme absente")
-    void webpProfilePhotoIsNotUsable() throws Exception {
-        givenProfilePhoto("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1));
+    @DisplayName("Photo de profil WebP : convertie côté serveur (JPEG), reprise dans le CV et dans le PDF")
+    void webpProfilePhotoIsConverted() throws Exception {
+        givenProfilePhoto(CvPhotoTestImages.resource("photo-profil.webp"));
         mockMvc.perform(get("/cv/builder/me").header(HttpHeaders.AUTHORIZATION, bearer(token)))
-                .andExpect(jsonPath("$.data.data.identite.afficherPhoto").value(false))
+                .andExpect(jsonPath("$.data.data.identite.afficherPhoto").value(true))
+                .andExpect(jsonPath("$.data.photo.source").value("PROFILE"))
+                .andExpect(jsonPath("$.data.photo.profilePhotoAvailable").value(true));
+        byte[] photo = mockMvc.perform(get("/cv/builder/me/photo").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_JPEG_VALUE))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(CvPhotoTestImages.jpegSegments(photo)).doesNotContain(0xE1);
+        assertThat(imageSizes(pdf(body(null, true)))).as("photo dans le PDF").contains("300x360");
+    }
+
+    @Test
+    @DisplayName("Photo de profil de plus de 5 Mo ou abîmée : mêmes règles qu'un envoi, traitée comme absente")
+    void profilePhotoFollowsTheUploadRules() throws Exception {
+        byte[] tooBig = new byte[5 * 1024 * 1024 + 1];
+        byte[] header = CvPhotoTestImages.jpeg(10, 12, Color.RED);
+        System.arraycopy(header, 0, tooBig, 0, header.length);
+        givenProfilePhoto(tooBig);
+        mockMvc.perform(get("/cv/builder/me").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(jsonPath("$.data.photo.source").value("NONE"))
                 .andExpect(jsonPath("$.data.photo.profilePhotoAvailable").value(false));
     }
@@ -160,6 +179,7 @@ class CvPhotoIntegrationTest {
 
         mockMvc.perform(multipart("/cv/builder/me/photo")
                         .file(new MockMultipartFile("file", "IMG_0001.jpg", "image/jpeg", upload))
+                        .param("x", "0.1").param("y", "0.05").param("width", "0.6").param("height", "0.6")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.source").value("CV"))
@@ -167,12 +187,14 @@ class CvPhotoIntegrationTest {
 
         CvPhoto saved = cvPhotoRepository.findById(student.getId()).orElseThrow();
         assertThat(saved.getStoragePath()).matches("cv-photos/" + student.getId() + "-\\d+\\.jpg").doesNotStartWith("public/");
+        assertThat(List.of(saved.getCropX(), saved.getCropY(), saved.getCropWidth(), saved.getCropHeight()))
+                .containsExactly(0.1, 0.05, 0.6, 0.6);
         byte[] stored = files.get(saved.getStoragePath());
         assertThat(CvPhotoTestImages.jpegSegments(stored)).doesNotContain(0xE1);
         assertThat(CvPhotoTestImages.contains(stored, CvPhotoTestImages.GPS_MARKER)).isFalse();
         java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(stored));
-        assertThat(image.getWidth()).isEqualTo(480);
-        assertThat(image.getHeight()).isEqualTo(576);
+        assertThat(image.getWidth()).as("l'original est gardé, pas recadré").isEqualTo(1000);
+        assertThat(image.getHeight()).isEqualTo(1200);
 
         // La photo de profil du compte n'a pas bouge.
         assertThat(userRepository.findById(student.getId()).orElseThrow().getProfilePicture()).isEqualTo(profilePath);
@@ -180,7 +202,45 @@ class CvPhotoIntegrationTest {
 
         byte[] served = mockMvc.perform(get("/cv/builder/me/photo").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
-        assertThat(served).isEqualTo(stored);
+        java.awt.image.BufferedImage portrait = javax.imageio.ImageIO.read(new ByteArrayInputStream(served));
+        assertThat(portrait.getWidth() * 6).as("format portrait par défaut").isEqualTo(portrait.getHeight() * 5);
+    }
+
+    @Test
+    @DisplayName("Changer de modèle sans recadrer : carré (Linéaire) et portrait (autres) centrés sur la zone choisie")
+    void eachTemplateGetsItsFormatCentredOnTheChosenZone() throws Exception {
+        // Zone carrée choisie dans le Linéaire : le carré rouge de 400 x 400 en (500, 100).
+        mockMvc.perform(multipart("/cv/builder/me/photo")
+                        .file(new MockMultipartFile("file", "moi.jpg", "image/jpeg", CvPhotoTestImages.markedPhoto()))
+                        .param("x", "0.5").param("y", String.valueOf(100 / 1200.0))
+                        .param("width", "0.4").param("height", String.valueOf(400 / 1200.0))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk());
+
+        for (String template : new String[]{"LINEAIRE", "CLASSIQUE", "MODERNE", "BANDEAU"}) {
+            byte[] jpeg = mockMvc.perform(get("/cv/builder/me/photo").param("template", template)
+                            .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+            java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(jpeg));
+            if (template.equals("LINEAIRE")) {
+                assertThat(image.getWidth()).as(template).isEqualTo(image.getHeight());
+            } else {
+                assertThat(image.getWidth() * 6).as(template).isEqualTo(image.getHeight() * 5);
+            }
+            Color center = new Color(image.getRGB(image.getWidth() / 2, image.getHeight() / 2));
+            assertThat(center.getRed() > 200 && center.getBlue() < 60).as("%s : centré sur la zone", template).isTrue();
+        }
+    }
+
+    @Test
+    @DisplayName("Photo de téléphone tenu en portrait (EXIF Orientation 6) : stockée droite, sans EXIF")
+    void exifOrientationIsAppliedOnUpload() throws Exception {
+        uploadPhoto(CvPhotoTestImages.withOrientation(CvPhotoTestImages.jpeg(800, 600, Color.RED), 6));
+        byte[] stored = files.get(cvPhotoRepository.findById(student.getId()).orElseThrow().getStoragePath());
+        java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(stored));
+        assertThat(image.getWidth()).isEqualTo(600);
+        assertThat(image.getHeight()).isEqualTo(800);
+        assertThat(CvPhotoTestImages.jpegSegments(stored)).doesNotContain(0xE1);
     }
 
     @Test
@@ -207,6 +267,14 @@ class CvPhotoIntegrationTest {
                 "%PDF-1.7 faux".getBytes(java.nio.charset.StandardCharsets.US_ASCII)), "cv-photo-invalid-type");
         expectRejected(new MockMultipartFile("file", "photo.png", "image/png",
                 "GIF89a....".getBytes(java.nio.charset.StandardCharsets.US_ASCII)), "cv-photo-invalid-type");
+        expectRejected(new MockMultipartFile("file", "photo.webp", "image/webp", CvPhotoTestImages.resource("photo-profil.webp")),
+                "cv-photo-invalid-type");
+        mockMvc.perform(multipart("/cv/builder/me/photo")
+                        .file(new MockMultipartFile("file", "photo.jpg", "image/jpeg", CvPhotoTestImages.jpeg(100, 120, Color.RED)))
+                        .param("x", "0.9").param("y", "0").param("width", "0.5").param("height", "0.5")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messageKey").value("cv-photo-invalid-crop"));
         assertThat(cvPhotoRepository.findById(student.getId())).isEmpty();
         assertThat(files).isEmpty();
     }
@@ -231,7 +299,9 @@ class CvPhotoIntegrationTest {
     @Test
     @DisplayName("Droits : l'étudiant et les conseillers voient la photo ; un autre étudiant ou un anonyme, non")
     void photoIsVisibleOnlyToTheStudentAndAdvisors() throws Exception {
-        byte[] stored = uploadPhoto(CvPhotoTestImages.jpeg(500, 600, Color.RED));
+        uploadPhoto(CvPhotoTestImages.jpeg(500, 600, Color.RED));
+        byte[] seenByStudent = mockMvc.perform(get("/cv/builder/me/photo").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         Student other = createStudent("photo.other." + UUID.randomUUID() + "@itic.fr");
         String otherToken = tokenFor(other);
         String advisorToken = tokenFor(createAdvisor());
@@ -251,7 +321,7 @@ class CvPhotoIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
                 .andReturn().getResponse().getContentAsByteArray();
-        assertThat(seenByAdvisor).isEqualTo(stored);
+        assertThat(seenByAdvisor).isEqualTo(seenByStudent);
         // Un conseiller ne change pas la photo d'un etudiant (route etudiant).
         mockMvc.perform(multipart("/cv/builder/me/photo")
                         .file(new MockMultipartFile("file", "x.jpg", "image/jpeg", CvPhotoTestImages.jpeg(50, 60, Color.RED)))
@@ -276,13 +346,14 @@ class CvPhotoIntegrationTest {
     }
 
     @Test
-    @DisplayName("PDF téléchargé : la photo du CV y est (480 x 576) ; case décochée : aucune photo")
+    @DisplayName("PDF téléchargé : la photo du CV y est, carrée (Linéaire) ou portrait ; case décochée : aucune photo")
     void downloadedPdfContainsTheCvPhoto() throws Exception {
         uploadPhoto(CvPhotoTestImages.jpeg(1000, 1200, Color.RED));
         for (String template : new String[]{"LINEAIRE", "CLASSIQUE", "MODERNE", "BANDEAU"}) {
             for (String lang : new String[]{"fr", "en"}) {
                 ObjectNode request = body(null, true).put("templateCode", template).put("cvLang", lang);
-                assertThat(imageSizes(pdf(request))).as("%s %s", template, lang).contains("480x576");
+                assertThat(imageSizes(pdf(request))).as("%s %s", template, lang)
+                        .contains(template.equals("LINEAIRE") ? "480x480" : "480x576");
             }
         }
         assertThat(imageSizes(pdf(body(null, false)))).doesNotContain("480x576");

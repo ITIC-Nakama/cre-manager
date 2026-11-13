@@ -97,6 +97,12 @@
             <artifactId>openhtmltopdf-pdfbox</artifactId>
             <version>${openhtmltopdf.version}</version>
         </dependency>
+        <!-- Photo du CV : lecture des photos de profil en WebP (lecteur Java pur, converti ensuite en JPEG) -->
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>3.15.3</version>
+        </dependency>
         <!-- AWS SDK for S3 / Cloudflare R2 Compatibility -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

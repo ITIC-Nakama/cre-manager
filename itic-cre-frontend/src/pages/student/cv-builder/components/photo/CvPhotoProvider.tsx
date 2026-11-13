@@ -2,9 +2,12 @@ import { useCallback, useMemo, useRef, useState, type ChangeEvent, type ReactNod
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { CV_DRAFT_KEY, useMyCvPhotoUrl, useRemoveMyCvPhoto, useUploadMyCvPhoto } from '../../../../../hooks/useCVBuilder';
 import { getApiErrorMessage } from '../../../../../utils/errorHelper';
-import { CV_PHOTO, type CvDraftResponse, type CvPhotoInfo } from '../../../../../types/models/CVBuilder';
+import {
+  CV_PHOTO, CV_TEMPLATE_PHOTO_RATIO, type CvBuilderFormValues, type CvDraftResponse, type CvPhotoInfo, type CvPhotoZone,
+} from '../../../../../types/models/CVBuilder';
 import { CvPhotoContext, NO_PHOTO, type CvPhotoController } from './cvPhotoContext';
 import PhotoCropDialog from './PhotoCropDialog';
 
@@ -27,7 +30,11 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
   const inputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadMyCvPhoto();
   const remove = useRemoveMyCvPhoto();
-  const thumbnailUrl = useMyCvPhotoUrl(info.key);
+  // Format du modèle choisi : cadre de recadrage et vignette (carré pour le Linéaire, portrait sinon).
+  const { control } = useFormContext<CvBuilderFormValues>();
+  const template = useWatch({ control, name: 'templateCode' });
+  const ratio = CV_TEMPLATE_PHOTO_RATIO[template] ?? CV_TEMPLATE_PHOTO_RATIO.CLASSIQUE;
+  const thumbnailUrl = useMyCvPhotoUrl(info.key, template);
 
   const apply = useCallback((next: CvPhotoInfo, uploaded: boolean) => {
     setInfo(next);
@@ -53,9 +60,10 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
     setFile(chosen);
   };
 
-  const save = async (photo: Blob) => {
+  const save = async (zone: CvPhotoZone) => {
+    if (!file) return;
     try {
-      const next = await upload.mutateAsync(photo);
+      const next = await upload.mutateAsync({ file, zone });
       setFile(null);
       apply(next, true);
       toast.success(t('studentCvBuilder.photo.saved', 'Photo enregistrée pour ton CV. Ta photo de profil ne change pas.'));
@@ -78,8 +86,8 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
 
   const busy = upload.isPending || remove.isPending;
   const value = useMemo<CvPhotoController>(
-    () => ({ info, thumbnailUrl, busy, choose, revertToProfile: () => void revertToProfile() }),
-    [info, thumbnailUrl, busy, choose, revertToProfile],
+    () => ({ info, thumbnailUrl, ratio, busy, choose, revertToProfile: () => void revertToProfile() }),
+    [info, thumbnailUrl, ratio, busy, choose, revertToProfile],
   );
 
   return (
@@ -87,7 +95,8 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
       {children}
       <input ref={inputRef} type="file" name="cv-photo" accept="image/jpeg,image/png" className="hidden"
         tabIndex={-1} aria-hidden="true" onChange={onFile} />
-      <PhotoCropDialog file={file} saving={upload.isPending} onCancel={() => setFile(null)} onSave={(blob) => void save(blob)} />
+      <PhotoCropDialog file={file} ratio={ratio} saving={upload.isPending} onCancel={() => setFile(null)}
+        onSave={(zone) => void save(zone)} />
     </CvPhotoContext.Provider>
   );
 }

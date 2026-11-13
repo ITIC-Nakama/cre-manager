@@ -4,7 +4,7 @@ import {
     downloadMyCvPdf, fetchMyCvDraft, fetchMyCvPhoto, fetchMyCvScore, removeMyCvPhoto, resetMyCvDraft, saveMyCvDraft,
     submitMyCv, uploadMyCvPhoto,
 } from '../api-s/requests/CVBuilderRequest';
-import type { CvDraftPayload } from '../types/models/CVBuilder';
+import type { CvDraftPayload, CvPhotoZone, CvTemplateCode } from '../types/models/CVBuilder';
 
 export const CV_DRAFT_KEY = ['cv-builder', 'draft'] as const;
 export const CV_SCORE_KEY = ['cv-builder', 'score'] as const;
@@ -54,13 +54,13 @@ export function useResetMyCvDraft() {
 }
 
 /**
- * Vignette de la photo du CV (adresse locale du JPEG privé), rechargée quand la clé de la photo change.
- * null sans photo.
+ * Vignette de la photo du CV au format du modèle (adresse locale du JPEG privé), rechargée quand la photo ou le
+ * modèle change. null sans photo.
  */
-export function useMyCvPhotoUrl(key: string | null | undefined) {
+export function useMyCvPhotoUrl(key: string | null | undefined, template: CvTemplateCode) {
     const { data: blob } = useQuery({
-        queryKey: ['cv-builder', 'photo', key],
-        queryFn: fetchMyCvPhoto,
+        queryKey: ['cv-builder', 'photo', key, template],
+        queryFn: () => fetchMyCvPhoto(template),
         enabled: !!key,
         staleTime: Infinity,
         refetchOnWindowFocus: false,
@@ -73,7 +73,7 @@ export function useMyCvPhotoUrl(key: string | null | undefined) {
 }
 
 export function useUploadMyCvPhoto() {
-    return useMutation({ mutationFn: (photo: Blob) => uploadMyCvPhoto(photo) });
+    return useMutation({ mutationFn: ({ file, zone }: { file: File; zone: CvPhotoZone }) => uploadMyCvPhoto(file, zone) });
 }
 
 export function useRemoveMyCvPhoto() {

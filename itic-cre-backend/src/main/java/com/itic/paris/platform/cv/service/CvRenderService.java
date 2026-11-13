@@ -108,7 +108,8 @@ public class CvRenderService {
         context.setVariable("logoMark", logoMark);
         context.setVariable("fullName", fullName(cv));
         // L'emplacement photo est toujours reserve (la mise en page ne bouge pas) ; photo = null le laisse vide.
-        context.setVariable("photo", Boolean.TRUE.equals(cv.getIdentite().getAfficherPhoto()) ? photoDataUri(student) : null);
+        context.setVariable("photo", Boolean.TRUE.equals(cv.getIdentite().getAfficherPhoto())
+                ? photoDataUri(student, options.template()) : null);
         context.setVariable("editor", editor);
         context.setVariable("lang", locale.getLanguage());
 
@@ -204,10 +205,10 @@ public class CvRenderService {
         return (prenom + " " + nom).trim();
     }
 
-    /** Photo du CV (propre au CV, sinon de profil) deja recadree et sans metadonnees, en data: URI. */
-    private String photoDataUri(Student student) {
-        CvPhotoService.Resolved photo = photoService.resolve(student);
-        return photo.present() ? "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photo.jpeg()) : null;
+    /** Photo du CV (propre au CV, sinon de profil) au format du modele (carre ou portrait), sans metadonnees. */
+    private String photoDataUri(Student student, CvTemplate template) {
+        byte[] jpeg = photoService.render(student, template.photoFormat());
+        return jpeg == null ? null : "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(jpeg);
     }
 
     private static String pngDataUri(String path) {

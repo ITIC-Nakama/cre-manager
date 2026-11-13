@@ -8,14 +8,14 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import StudentCVPage from '../cv/StudentCVPage';
-import type { CvDraftResponse, CvPhotoInfo } from '../../../types/models/CVBuilder';
+import type { CvDraftResponse, CvPhotoInfo, CvTemplateCode } from '../../../types/models/CVBuilder';
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn(), patch: vi.fn() }));
 vi.mock('../../../api-s/AxiosApiClient', () => ({ apiClient: api, registerForceLogoutHandler: () => {}, resetSessionState: () => {} }));
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
 
-function draft(photo: CvPhotoInfo | undefined, afficherPhoto: boolean): CvDraftResponse {
+function draft(photo: CvPhotoInfo | undefined, afficherPhoto: boolean, templateCode: CvTemplateCode = 'CLASSIQUE'): CvDraftResponse {
   return {
     data: {
       identite: {
@@ -28,7 +28,7 @@ function draft(photo: CvPhotoInfo | undefined, afficherPhoto: boolean): CvDraftR
       ordreSections: ['formations', 'experiences', 'projets', 'competences', 'langues', 'certifications', 'centresInteret'],
       ordrePersonnalise: false, sectionsMasquees: [],
     },
-    templateCode: 'CLASSIQUE', accentColor: '#3B71FF', cvLang: 'fr', version: 2, saved: true,
+    templateCode, accentColor: '#3B71FF', cvLang: 'fr', version: 2, saved: true,
     updatedAt: '2026-11-13T10:00:00Z', lastSubmittedAt: null, photo,
   };
 }
@@ -41,9 +41,13 @@ function serve(response: CvDraftResponse) {
     if (url === '/cv/builder/me/photo') return Promise.resolve({ status: 200, data: new Blob(['jpeg'], { type: 'image/jpeg' }) });
     return Promise.reject({ response: { status: 500 } });
   });
-  api.post.mockImplementation((url: string) => (url === '/cv/builder/me/preview'
-    ? Promise.resolve({ data: '<html><body>Aperçu du CV</body></html>' })
-    : Promise.reject({ response: { status: 500 } })));
+  api.post.mockImplementation((url: string) => {
+    if (url === '/cv/builder/me/preview') return Promise.resolve({ data: '<html><body>Aperçu du CV</body></html>' });
+    if (url === '/cv/builder/me/photo') {
+      return Promise.resolve({ data: { data: { source: 'CV', profilePhotoAvailable: false, key: 'nouvelle' } } });
+    }
+    return Promise.reject({ response: { status: 500 } });
+  });
   api.put.mockImplementation(() => Promise.resolve({ data: { data: response } }));
 }
 
@@ -134,6 +138,47 @@ describe('Photo du CV', () => {
     expect(toast.success).toHaveBeenCalledWith('Ton CV reprend ta photo de profil.');
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
     expect(api.post.mock.calls.filter(([url]) => url === '/cv/builder/me/preview').length).toBeGreaterThan(previewsBefore);
+  });
+
+  it('Linéaire : cadre carré ; on envoie la photo d’origine et la zone choisie, pas une image recadrée', async () => {
+    serve(draft({ source: 'NONE', profilePhotoAvailable: false, key: null }, false, 'LINEAIRE'));
+    await renderBuilder();
+    const original = new File(['jpeg'], 'moi.jpg', { type: 'image/jpeg' });
+    fireEvent.change(photoInput(), { target: { files: [original] } });
+    const dialog = await screen.findByRole('dialog', { name: 'Recadre ta photo' });
+    const frame = within(dialog).getByRole('img', { name: /Cadre de la photo/ });
+    expect(frame.style.width).toBe('240px');
+    expect(frame.style.height).toBe('240px');
+
+    // Photo portrait 1000 x 1200 : centrée dans le cadre carré.
+    const image = frame.querySelector('img') as HTMLImageElement;
+    Object.defineProperty(image, 'naturalWidth', { value: 1000 });
+    Object.defineProperty(image, 'naturalHeight', { value: 1200 });
+    fireEvent.load(image);
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Enregistrer la photo' }));
+
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
+    const call = api.post.mock.calls.find(([url]) => url === '/cv/builder/me/photo');
+    expect(call).toBeTruthy();
+    const form = call![1] as FormData;
+    expect(form.get('file')).toBe(original);
+    expect(Number(form.get('x'))).toBeCloseTo(0);
+    expect(Number(form.get('y'))).toBeCloseTo(100 / 1200);
+    expect(Number(form.get('width'))).toBeCloseTo(1);
+    expect(Number(form.get('height'))).toBeCloseTo(1000 / 1200);
+    expect(toast.success).toHaveBeenCalledWith('Photo enregistrée pour ton CV. Ta photo de profil ne change pas.');
+  });
+
+  it('autres modèles : cadre portrait 5:6, vignette demandée au format du modèle', async () => {
+    serve(draft({ source: 'PROFILE', profilePhotoAvailable: true, key: 'p1' }, true, 'BANDEAU'));
+    await renderBuilder();
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
+    const photoCall = api.get.mock.calls.find(([url]) => url === '/cv/builder/me/photo');
+    expect(photoCall?.[1]).toMatchObject({ params: { template: 'BANDEAU' } });
+    fireEvent.change(photoInput(), { target: { files: [new File(['jpeg'], 'moi.jpg', { type: 'image/jpeg' })] } });
+    const frame = within(await screen.findByRole('dialog', { name: 'Recadre ta photo' })).getByRole('img', { name: /Cadre de la photo/ });
+    expect(frame.style.width).toBe('240px');
+    expect(frame.style.height).toBe('288px');
   });
 
   it('noms des modèles : « (optimisé ATS) » sur les cartes', async () => {
