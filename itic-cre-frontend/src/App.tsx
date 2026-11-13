@@ -20,7 +20,6 @@ import StudentDashboard from './pages/student/dashboard/StudentDashboard'
 import StudentCVPage from './pages/student/cv/StudentCVPage'
 // Pages chargées à la demande : leurs dépendances lourdes (éditeur Tiptap/ProseMirror, assistant de CV) restent
 // hors du bundle principal, qui doit tenir sous la limite de précache de la PWA (workbox, 2 Mo).
-const CVBuilderPage = lazy(() => import('./pages/student/cv-builder/CVBuilderPage'))
 const ContenuPage = lazy(() => import('./pages/advisor/formation/ContenuPage'))
 const SkillTreePage = lazy(() => import('./pages/student/connaissances/SkillTreePage'))
 
@@ -123,7 +122,8 @@ function App() {
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
           <Route path="/student/cv"            element={<StudentCVPage />} />
-          <Route path="/student/cv/assistant"  element={<LazyPage><CVBuilderPage /></LazyPage>} />
+          <Route path="/student/cv/assistant"  element={<StudentCVPage mode="builder" />} />
+          <Route path="/student/cv/depot"      element={<StudentCVPage mode="upload" />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>
 

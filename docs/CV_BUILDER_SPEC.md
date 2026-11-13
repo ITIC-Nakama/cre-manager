@@ -16,12 +16,12 @@ Bénéfices à montrer :
 
 ## 2. Le parcours (ce que Jules verra en démo)
 
-1. L'étudiant sans CV ouvre « Mon CV ». Deux cartes : **« Créer mon CV avec l'assistant »** (recommandé) et « Déposer un PDF ».
+1. L'étudiant ouvre « Mon CV » : frise d'étapes, puis deux onglets, **« Créer avec un modèle ITIC »** (ouvert par défaut sans CV) et « Déposer un fichier ».
 2. L'assistant s'ouvre **prérempli** : nom, prénom, e-mail, téléphone (compte), formation en cours (promotion ITIC), expériences tirées des candidatures au contrat validé (proposées, à confirmer).
 3. À gauche, le formulaire par sections. À droite, **l'aperçu exact du PDF**, mis à jour pendant la saisie.
-4. En haut : choix du modèle (Linéaire / Classique / Moderne / Bandeau), langue du CV, état d'enregistrement (« Enregistré à 14:32 »), « Télécharger le PDF », **« Envoyer à mon conseiller »**.
+4. « 1. Choisis un modèle » : quatre cartes avec vignette (Linéaire, Classique, Moderne, Bandeau). « 2. Complète ton CV » : langue du CV, état d'enregistrement (« Brouillon enregistré · 14:32 »), « Réinitialiser », « Télécharger PDF », **« Envoyer en relecture »**.
 5. Un **indicateur de complétude** (score sur 100 + conseils concrets : « Ajoute une accroche », « Précise le niveau de tes langues », « Ton CV fait 2 pages : vise 1 page ») guide l'étudiant.
-6. « Envoyer à mon conseiller » : confirmation (même message que le remplacement actuel), puis le PDF part dans le circuit : statut « En attente », le conseiller le voit dans « Validation des CV ».
+6. « Envoyer en relecture » : confirmation (même message que le remplacement actuel), puis le PDF part dans le circuit : statut « En attente », le conseiller le voit dans « Validation des CV ».
 7. Le conseiller met « À corriger » avec un commentaire. L'étudiant clique **« Modifier dans l'assistant »**, corrige une ligne, renvoie. Le conseiller valide, l'étudiant gagne ses XP.
 
 ## 3. Décisions (valeurs par défaut, modifiables)
@@ -149,12 +149,19 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 ## 7. Interface
 
 ### Étudiant
-- `StudentCVPage` :
-  - sans CV : deux cartes (« Créer mon CV avec l'assistant », « Déposer un PDF ») au lieu du seul `CVDropzone` ;
-  - avec un CV généré : bouton **« Modifier dans l'assistant »** à côté de « Voir » et « Remplacer » ;
-  - le circuit (`CycleStrip`, commentaires) reste identique.
-- Nouvelle page `/student/cv/assistant` (`F/pages/student/cv-builder/`) :
-  - barre du haut : modèle, langue du CV, état d'enregistrement, « Télécharger », « Envoyer à mon conseiller » ;
+
+> Parcours des maquettes (13/11/2026) : tout se passe dans « Mon CV », sous la frise d'étapes.
+
+- `StudentCVPage` : frise (`CycleStrip`), puis deux onglets :
+  - **« Créer avec un modèle ITIC »** (badge « Nouveau », adresse `/student/cv/assistant`) : l'assistant, chargé à la demande ;
+  - **« Déposer un fichier »** (`/student/cv/depot`) : zone de dépôt sans CV, sinon la fiche du CV actuel (« Voir », « Remplacer », commentaires) ;
+  - sur `/student/cv`, l'onglet ouvert est l'assistant s'il n'y a pas de CV ou si le CV vient de l'assistant, sinon le dépôt ;
+  - les deux cartes de choix du premier dépôt (`CVStartChoice`) sont remplacées par ces onglets.
+- Assistant (`F/pages/student/cv-builder/`) :
+  - **« 1. Choisis un modèle »** : une carte par modèle avec une vraie vignette (haut de la page 1 des exemples de `docs/cv-samples`, `F/assets/cv-templates/`) et le profil à qui il convient ;
+  - **« 2. Complète ton CV »** : barre avec « Brouillon enregistré · hh:mm », langue du CV (FR/EN), **« Réinitialiser »** (avec confirmation), « Télécharger PDF », « Envoyer en relecture » ;
+  - après l'envoi, l'étudiant reste sur « Mon CV » (la frise passe à « Relecture conseiller ») ;
+  - champs du Linéaire dans le formulaire : « L'entreprise en une ligne » (chiffre d'affaires, effectif, secteur) et points clés de formation (4 au plus) ;
   - colonne gauche : sections repliables, `react-hook-form` + `useFieldArray` (ajouter, supprimer, réordonner les entrées), compteur de caractères, aide courte par champ ;
   - colonne droite : aperçu (`iframe srcdoc`, requête anti-rebond 600 ms), zoom, badge « 1 page » / « 2 pages » ;
   - panneau de complétude : score et conseils cliquables (ouvrent la section concernée) ;

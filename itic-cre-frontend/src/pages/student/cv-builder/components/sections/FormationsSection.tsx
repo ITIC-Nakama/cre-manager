@@ -1,7 +1,7 @@
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { CV_LIMITS, type CvBuilderFormValues } from '../../../../../types/models/CVBuilder';
-import { AddButton, EntryActions, Field, MonthInput, TextInput } from '../fields';
+import { AddButton, EntryActions, Field, MonthInput, PointsEditor, TextInput } from '../fields';
 import { newEntryId } from '../fieldUtils';
 
 export default function FormationsSection() {
@@ -19,6 +19,7 @@ export default function FormationsSection() {
         disabled={formations.fields.length >= CV_LIMITS.formations}
         onClick={() => formations.append({
           id: newEntryId(), diplome: '', etablissement: '', ville: '', debut: '', fin: '', enCours: false, mention: '',
+          points: [],
         })} />
     </>
   );
@@ -64,6 +65,15 @@ function FormationEntry({ index, count, onMove, onRemove }: {
       </label>
       <Field label={t('studentCvBuilder.formations.mention', 'Mention ou spécialité (facultatif)')}>
         <TextInput {...register(`${base}.mention`)} {...short} />
+      </Field>
+      <Field group label={t('studentCvBuilder.formations.points', 'Points clés (facultatif)')}
+        hint={t('studentCvBuilder.formations.pointsHint', 'Un projet, une matière forte, un classement : 1 ou 2 lignes suffisent.')}>
+        <Controller control={control} name={`${base}.points`}
+          render={({ field }) => (
+            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.formationPoints} maxLength={CV_LIMITS.pointLength}
+              placeholder={t('studentCvBuilder.formations.pointPlaceholder', 'Ex : Projet de fin d’année : application de réservation en React')}
+              addLabel={t('studentCvBuilder.formations.addPoint', 'Ajouter un point clé')} />
+          )} />
       </Field>
     </div>
   );

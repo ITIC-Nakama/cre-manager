@@ -135,9 +135,10 @@ export function TagInput({ value, onChange, placeholder, max, maxLength }: {
   );
 }
 
-/** Points d'une expérience : une ligne par réalisation, 6 au maximum, 200 caractères chacun. */
-export function PointsEditor({ value, onChange, max, maxLength }: {
-  value: string[]; onChange: (next: string[]) => void; max: number; maxLength: number;
+/** Points d'une expérience (ou d'une formation) : une ligne par point, `max` au plus, `maxLength` caractères chacun. */
+export function PointsEditor({ value, onChange, max, maxLength, placeholder, addLabel }: {
+  value: string[] | undefined; onChange: (next: string[]) => void; max: number; maxLength: number;
+  placeholder?: string; addLabel?: string;
 }) {
   const { t } = useTranslation();
   const points = value ?? [];
@@ -156,14 +157,14 @@ export function PointsEditor({ value, onChange, max, maxLength }: {
           <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
           <div className="flex-1 flex flex-col gap-0.5">
             <input type="text" value={point} maxLength={maxLength}
-              placeholder={t('studentCvBuilder.experiences.pointPlaceholder', 'Ex : Développement d’une API REST utilisée par 3 équipes')}
+              placeholder={placeholder ?? t('studentCvBuilder.experiences.pointPlaceholder', 'Ex : Développement d’une API REST utilisée par 3 équipes')}
               onChange={(e) => update(i, e.target.value)} className={compactFieldClass()} />
             <div className="self-end"><CharCounter value={point} max={maxLength} /></div>
           </div>
           <EntryActions index={i} count={points.length} onMove={move} onRemove={() => onChange(points.filter((_, j) => j !== i))} />
         </div>
       ))}
-      <AddButton label={t('studentCvBuilder.experiences.addPoint', 'Ajouter une réalisation')}
+      <AddButton label={addLabel ?? t('studentCvBuilder.experiences.addPoint', 'Ajouter une réalisation')}
         onClick={() => onChange([...points, ''])} disabled={points.length >= max} />
     </div>
   );

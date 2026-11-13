@@ -230,6 +230,42 @@ public class CvBuilderIntegrationTest {
     }
 
     @Test
+    public void reset_ShouldRestorePrefilledContentAndKeepTemplateAndLanguage() throws Exception {
+        ObjectNode body = draftBody(null);
+        body.put("templateCode", "BANDEAU");
+        body.put("cvLang", "en");
+        ((ObjectNode) body.get("data")).put("accroche", "Texte à effacer");
+        ((ObjectNode) body.get("data")).put("ordrePersonnalise", true);
+        long version = saveDraft(body);
+
+        // Version perimee (autre onglet) : refus, rien n'est efface.
+        mockMvc.perform(post("/cv/builder/me/reset").param("version", String.valueOf(version + 5))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(post("/cv/builder/me/reset").param("version", String.valueOf(version))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.saved").value(true))
+                .andExpect(jsonPath("$.data.version").value(version + 1))
+                .andExpect(jsonPath("$.data.templateCode").value("BANDEAU"))
+                .andExpect(jsonPath("$.data.cvLang").value("en"))
+                .andExpect(jsonPath("$.data.data.accroche").value(""))
+                .andExpect(jsonPath("$.data.data.ordrePersonnalise").value(false))
+                .andExpect(jsonPath("$.data.data.identite.prenom").value("Amina"))
+                .andExpect(jsonPath("$.data.data.identite.email").value("builder.student@itic.fr"));
+    }
+
+    @Test
+    public void reset_WithoutSavedDraft_ShouldReturnPrefilledWithoutSaving() throws Exception {
+        mockMvc.perform(post("/cv/builder/me/reset").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.saved").value(false))
+                .andExpect(jsonPath("$.data.data.identite.nom").value("Diallo"));
+        assertThat(cvDraftRepository.findByStudentId(student.getId())).isEmpty();
+    }
+
+    @Test
     public void put_WithStaleVersion_ShouldReturn409() throws Exception {
         long version = saveDraft(draftBody(null));
         saveDraft(draftBody(version));

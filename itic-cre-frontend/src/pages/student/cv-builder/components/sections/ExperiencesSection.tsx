@@ -85,8 +85,31 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
         {t('studentCvBuilder.dates.enCours', 'En cours')}
       </label>
 
+      <fieldset className="flex flex-col gap-2 p-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+        <legend className="px-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          {t('studentCvBuilder.experiences.company', 'L’entreprise en une ligne (facultatif)')}
+        </legend>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Field label={t('studentCvBuilder.experiences.chiffreAffaires', 'Chiffre d’affaires')}>
+            <TextInput {...register(`${base}.chiffreAffaires`)} {...short}
+              placeholder={t('studentCvBuilder.experiences.chiffreAffairesPlaceholder', 'Ex : 3 M€')} />
+          </Field>
+          <Field label={t('studentCvBuilder.experiences.effectif', 'Effectif')}>
+            <TextInput {...register(`${base}.effectif`)} {...short}
+              placeholder={t('studentCvBuilder.experiences.effectifPlaceholder', 'Ex : 35 collaborateurs')} />
+          </Field>
+          <Field label={t('studentCvBuilder.experiences.secteur', 'Secteur')}>
+            <TextInput {...register(`${base}.secteur`)} {...short}
+              placeholder={t('studentCvBuilder.experiences.secteurPlaceholder', 'Ex : Hôtellerie')} />
+          </Field>
+        </div>
+        <span className="text-[11px] leading-snug text-slate-400 dark:text-slate-500">
+          {t('studentCvBuilder.experiences.companyHint', 'Aide le recruteur à situer l’entreprise. Sur le CV : « CA 3 M€ – effectif 35 collaborateurs (Hôtellerie) ».')}
+        </span>
+      </fieldset>
+
       <Field group label={t('studentCvBuilder.experiences.points', 'Réalisations')}
-        hint={t('studentCvBuilder.experiences.pointsHint', 'Commence par un verbe d’action et chiffre quand tu peux. 2 à 4 lignes suffisent.')}>
+        hint={t('studentCvBuilder.experiences.pointsHint', 'Commence par un verbe d’action et chiffre quand tu peux. Entoure un chiffre de ** pour le mettre en gras : **+15 %**.')}>
         <Controller control={control} name={`${base}.points`}
           render={({ field }) => (
             <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} />

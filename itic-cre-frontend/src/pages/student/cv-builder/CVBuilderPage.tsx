@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -9,16 +8,16 @@ import {
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  CV_DRAFT_KEY, useDownloadMyCvPdf, useMyCvDraft, useMyCvScore, useSaveMyCvDraft, useSubmitMyCv,
+  CV_DRAFT_KEY, useDownloadMyCvPdf, useMyCvDraft, useMyCvScore, useResetMyCvDraft, useSaveMyCvDraft, useSubmitMyCv,
 } from '../../../hooks/useCVBuilder';
 import { useMyCV, useMyComments } from '../../../hooks/useCV';
 import { previewMyCv } from '../../../api-s/requests/CVBuilderRequest';
 import { getApiErrorMessage } from '../../../utils/errorHelper';
-import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
   CV_SECTIONS, CV_TEMPLATE_SECTIONS, type CvBuilderFormValues, type CvDraftPayload, type CvDraftResponse, type CvFormSectionKey, type CvSectionKey,
 } from '../../../types/models/CVBuilder';
 import BuilderToolbar, { type SaveStatus } from './components/BuilderToolbar';
+import TemplatePicker from './components/TemplatePicker';
 import SectionCard from './components/SectionCard';
 import CVPreview from './components/CVPreview';
 import CompletenessPanel from './components/CompletenessPanel';
@@ -69,7 +68,16 @@ function toFormValues(draft: CvDraftResponse): CvBuilderFormValues {
   };
 }
 
-export default function CVBuilderPage() {
+interface BuilderProps {
+  /** Appelé après un envoi réussi au conseiller (la page « Mon CV » met à jour sa frise). */
+  onSubmitted?: () => void;
+}
+
+/**
+ * Assistant de CV, affiché dans l'onglet « Créer avec un modèle ITIC » de « Mon CV » :
+ * 1. choix du modèle, 2. formulaire à gauche et aperçu à droite.
+ */
+export default function CVBuilderPage({ onSubmitted }: BuilderProps) {
   const { t } = useTranslation();
   const { data: draft, isLoading, isError, refetch } = useMyCvDraft();
   const [editorKey, setEditorKey] = useState(0);
@@ -110,12 +118,16 @@ export default function CVBuilderPage() {
     );
   }
 
-  return <CVBuilderEditor key={editorKey} initial={draft} onReload={reload} />;
+  return (
+    <CVBuilderEditor key={editorKey} initial={draft} onReload={reload}
+      onResetDone={() => setEditorKey((k) => k + 1)} onSubmitted={onSubmitted} />
+  );
 }
 
-function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onReload: () => void }) {
+function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
+  initial: CvDraftResponse; onReload: () => void; onResetDone: () => void; onSubmitted?: () => void;
+}) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const methods = useForm<CvBuilderFormValues>({ defaultValues: toFormValues(initial) });
   const { control, getValues, setValue, subscribe } = methods;
@@ -123,6 +135,7 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
   const saveMutation = useSaveMyCvDraft();
   const downloadMutation = useDownloadMyCvPdf();
   const submitMutation = useSubmitMyCv();
+  const resetMutation = useResetMyCvDraft();
   const { data: myCv } = useMyCV();
   const { data: comments = [] } = useMyComments(!!myCv);
   const { data: completeness, isFetching: scoreLoading } = useMyCvScore(true);
@@ -285,10 +298,24 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
 
   // ─── Actions ──────────────────────────────────────────────────────────
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
 
-  const handleBack = async () => {
-    await saveNow();
-    navigate('/student/cv');
+  /** Réinitialiser : contenu prérempli, modèle et langue gardés (le CV déjà envoyé ne change pas). */
+  const handleReset = async () => {
+    setResetOpen(false);
+    window.clearTimeout(saveTimer.current);
+    await queue.current;
+    try {
+      // Les saisies non enregistrées sont abandonnées volontairement : ne pas les renvoyer au démontage.
+      dirtyRef.current = false;
+      await resetMutation.mutateAsync(versionRef.current);
+      toast.success(t('studentCvBuilder.toast.reset', 'Ton CV est revenu au prérempli de ton compte. Ton modèle est gardé.'));
+      onResetDone();
+    } catch (err) {
+      dirtyRef.current = true;
+      if ((err as { response?: { status?: number } })?.response?.status === 409) setSaveStatus('conflict');
+      toast.error(getApiErrorMessage(err, t('studentCvBuilder.toast.resetError', 'La réinitialisation a échoué, ton brouillon est intact.')));
+    }
   };
 
   const handleDownload = async () => {
@@ -319,7 +346,7 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
       setSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: CV_DRAFT_KEY });
       toast.success(t('studentCvBuilder.toast.submitted', 'CV envoyé à ton conseiller : il est maintenant « En attente » de relecture.'));
-      navigate('/student/cv');
+      onSubmitted?.();
     } catch (err) {
       if ((err as { response?: { status?: number } })?.response?.status === 409) setSaveStatus('conflict');
       toast.error(getApiErrorMessage(err, t('studentCvBuilder.toast.submitError', 'L’envoi a échoué, réessaie dans un instant.')));
@@ -357,11 +384,14 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
 
   return (
     <FormProvider {...methods}>
-      <div className="flex flex-col gap-3 animate-fadeIn">
+      <div className="flex flex-col gap-6 animate-fadeIn motion-reduce:animate-none">
+        <TemplatePicker />
+
+        <section aria-labelledby="cv-step-fill" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {renderTitleWithGradient(t('studentCvBuilder.title', 'Assistant de CV'), 'itic-gradient-blue')}
-          </h1>
+          <h2 id="cv-step-fill" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            {t('studentCvBuilder.steps.fill', '2. Complète ton CV')}
+          </h2>
           <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
             {t('studentCvBuilder.subtitle', 'Remplis les sections à gauche : l’aperçu à droite est exactement le PDF que recevra ton conseiller.')}
           </p>
@@ -371,12 +401,13 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
           saveStatus={saveStatus}
           savedAt={savedAt}
           saveError={saveError}
-          onBack={handleBack}
           onReload={onReload}
+          onReset={() => setResetOpen(true)}
           onDownload={handleDownload}
           onSubmit={() => setConfirmOpen(true)}
           downloading={downloadMutation.isPending}
           submitting={submitMutation.isPending}
+          resetting={resetMutation.isPending}
         />
 
         <div className="lg:hidden flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
@@ -402,6 +433,7 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
               pageCount={completeness?.pageCount ?? null} />
           </div>
         </div>
+        </section>
 
         <CVReplaceModal
           isOpen={confirmOpen}
@@ -413,6 +445,18 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
           body={t('studentCvBuilder.submitModal.body', 'Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.')}
           confirmLabel={t('studentCvBuilder.submitModal.confirm', 'Envoyer')}
           showWarning={!!myCv}
+        />
+
+        <CVReplaceModal
+          isOpen={resetOpen}
+          fileName=""
+          isUploading={resetMutation.isPending}
+          onConfirm={handleReset}
+          onClose={() => setResetOpen(false)}
+          title={t('studentCvBuilder.resetModal.title', 'Repartir du prérempli ?')}
+          body={t('studentCvBuilder.resetModal.body', 'Ton brouillon sera remplacé par les informations de ton compte (identité, formation ITIC, contrats validés). Tu gardes ton modèle et ta langue. Le CV déjà envoyé à ton conseiller ne change pas.')}
+          confirmLabel={t('studentCvBuilder.resetModal.confirm', 'Réinitialiser')}
+          showWarning={false}
         />
       </div>
     </FormProvider>

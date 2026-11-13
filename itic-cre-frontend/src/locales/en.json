@@ -2073,6 +2073,12 @@
       "uploadDesc": "Already have an up-to-date CV? Upload it as is (PDF, 10 MB max).",
       "uploadCta": "Choose a file",
       "back": "Back to the choice"
+    },
+    "tabs": {
+      "label": "How do you want to prepare your CV?",
+      "builder": "Create with an ITIC template",
+      "new": "New",
+      "upload": "Upload a file"
     }
   },
   "studentCvBuilder": {
@@ -2090,7 +2096,10 @@
       "template": "Template",
       "lang": "CV language",
       "download": "Download PDF",
-      "submit": "Send to my advisor"
+      "submit": "Send for review",
+      "reset": "Reset",
+      "lang_fr": "CV in French",
+      "lang_en": "CV in English"
     },
     "templates": {
       "LINEAIRE": "Timeline",
@@ -2099,11 +2108,11 @@
       "BANDEAU": "Banner"
     },
     "save": {
-      "idle": "Pre-filled draft, nothing saved yet",
-      "dirty": "Unsaved changes",
+      "idle": "Prefilled from your account: your draft will be saved as soon as you change something",
+      "dirty": "Saving your changes…",
       "saving": "Saving…",
-      "savedAt": "Saved at {{time}}",
-      "error": "Saving failed, it will retry on your next change",
+      "savedAt": "Draft saved · {{time}}",
+      "error": "Cannot save right now: nothing is lost, we will try again at your next change",
       "invalid": "One value is not accepted.",
       "conflict": "Your CV was changed in another tab.",
       "reload": "Reload"
@@ -2237,9 +2246,17 @@
       "typeContratHint": "Work-study, internship, fixed-term, student job…",
       "ville": "City",
       "points": "Achievements",
-      "pointsHint": "Start with an action verb and use figures when you can. 2 to 4 lines are enough.",
+      "pointsHint": "Start with an action verb and add figures when you can. Wrap a figure in ** to make it bold: **+15%**.",
       "pointPlaceholder": "E.g. Built a REST API used by 3 teams",
-      "addPoint": "Add an achievement"
+      "addPoint": "Add an achievement",
+      "company": "The company in one line (optional)",
+      "chiffreAffaires": "Revenue",
+      "chiffreAffairesPlaceholder": "E.g. €3M",
+      "effectif": "Headcount",
+      "effectifPlaceholder": "E.g. 35 employees",
+      "secteur": "Sector",
+      "secteurPlaceholder": "E.g. Hospitality",
+      "companyHint": "Helps the recruiter place the company. On the CV: “Revenue €3M – headcount 35 employees (Hospitality)”."
     },
     "formations": {
       "entry": "Education {{n}}",
@@ -2247,7 +2264,11 @@
       "diplome": "Degree or programme",
       "etablissement": "School",
       "ville": "City",
-      "mention": "Honours or major (optional)"
+      "mention": "Honours or major (optional)",
+      "points": "Key points (optional)",
+      "pointsHint": "A project, a strong subject, a ranking: 1 or 2 lines are enough.",
+      "pointPlaceholder": "E.g. Final-year project: booking app in React",
+      "addPoint": "Add a key point"
     },
     "projets": {
       "entry": "Project {{n}}",
@@ -2301,7 +2322,25 @@
     "toast": {
       "submitted": "CV sent to your advisor: it is now “Pending” review.",
       "submitError": "Sending failed, please try again in a moment.",
-      "downloadError": "The PDF could not be generated."
+      "downloadError": "The PDF could not be generated.",
+      "reset": "Your CV is back to the prefilled version from your account. Your template is kept.",
+      "resetError": "Reset failed, your draft is unchanged."
+    },
+    "steps": {
+      "template": "1. Choose a template",
+      "fill": "2. Fill in your CV"
+    },
+    "templatePicker": {
+      "selected": "Selected",
+      "LINEAIRE": "Timeline with dates on the left. Ideal if you already have experience to highlight.",
+      "CLASSIQUE": "Clean and versatile. Ideal for company applications.",
+      "MODERNE": "Colour rule and underlined headings. Marketing, communication.",
+      "BANDEAU": "Bold navy header. Tech profiles and BTS SIO."
+    },
+    "resetModal": {
+      "title": "Start again from the prefilled version?",
+      "body": "Your draft will be replaced by your account information (identity, ITIC programme, validated contracts). Your template and language are kept. The CV already sent to your advisor does not change.",
+      "confirm": "Reset"
     }
   }
 }

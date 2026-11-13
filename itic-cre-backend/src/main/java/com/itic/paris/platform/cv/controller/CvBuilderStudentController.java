@@ -41,6 +41,13 @@ public class CvBuilderStudentController {
         return ResponseEntity.ok(cvBuilderService.saveMyDraft(SecurityContextHelper.currentUserId(), request));
     }
 
+    @PostMapping("/reset")
+    @Operation(summary = "Réinitialiser son brouillon : contenu prérempli (compte, formation, contrats validés), "
+            + "modèle et langue gardés ; le CV déjà envoyé n'est pas touché (409 si la version est périmée)")
+    public ResponseEntity<?> resetMyDraft(@RequestParam(required = false) Long version) {
+        return ResponseEntity.ok(cvBuilderService.resetMyDraft(SecurityContextHelper.currentUserId(), version));
+    }
+
     @GetMapping("/score")
     @Operation(summary = "Score de complétude du brouillon enregistré, conseils et nombre de pages")
     public ResponseEntity<?> score() {
