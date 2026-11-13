@@ -2088,21 +2088,15 @@
     "toolbar": {
       "back": "My CV",
       "template": "Template",
-      "color": "Colour",
       "lang": "CV language",
       "download": "Download PDF",
       "submit": "Send to my advisor"
     },
     "templates": {
+      "LINEAIRE": "Timeline",
       "CLASSIQUE": "Classic",
-      "MODERNE": "Modern"
-    },
-    "colors": {
-      "3B71FF": "ITIC blue",
-      "E2782E": "Orange",
-      "2E8B57": "Green",
-      "374151": "Charcoal",
-      "8B1E3F": "Burgundy"
+      "MODERNE": "Modern",
+      "BANDEAU": "Banner"
     },
     "save": {
       "idle": "Pre-filled draft, nothing saved yet",

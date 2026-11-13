@@ -209,6 +209,27 @@ public class CvBuilderIntegrationTest {
     }
 
     @Test
+    public void put_ShouldAcceptTheFourTemplatesAndKeepTheCustomOrderFlag() throws Exception {
+        Long version = null;
+        for (String template : List.of("LINEAIRE", "CLASSIQUE", "MODERNE", "BANDEAU")) {
+            ObjectNode body = draftBody(version);
+            body.put("templateCode", template);
+            version = saveDraft(body);
+            mockMvc.perform(get("/cv/builder/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.templateCode").value(template))
+                    // Absent du brouillon envoye : l'ordre par defaut du modele s'applique.
+                    .andExpect(jsonPath("$.data.data.ordrePersonnalise").value(false));
+        }
+
+        ObjectNode body = draftBody(version);
+        ((ObjectNode) body.get("data")).put("ordrePersonnalise", true);
+        saveDraft(body);
+        mockMvc.perform(get("/cv/builder/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(jsonPath("$.data.data.ordrePersonnalise").value(true));
+    }
+
+    @Test
     public void put_WithStaleVersion_ShouldReturn409() throws Exception {
         long version = saveDraft(draftBody(null));
         saveDraft(draftBody(version));
@@ -341,7 +362,7 @@ public class CvBuilderIntegrationTest {
 
     @Test
     public void pdf_ShouldReturnRealPdfWithPageCountAndEmbeddedFonts() throws Exception {
-        for (String template : List.of("CLASSIQUE", "MODERNE")) {
+        for (String template : List.of("LINEAIRE", "CLASSIQUE", "MODERNE", "BANDEAU")) {
             ObjectNode body = objectMapper.createObjectNode();
             body.set("data", objectMapper.valueToTree(CvSampleFixtures.fullCv()));
             body.put("templateCode", template);

@@ -16,7 +16,7 @@ import { previewMyCv } from '../../../api-s/requests/CVBuilderRequest';
 import { getApiErrorMessage } from '../../../utils/errorHelper';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import {
-  CV_SECTIONS, type CvBuilderFormValues, type CvDraftPayload, type CvDraftResponse, type CvFormSectionKey, type CvSectionKey,
+  CV_SECTIONS, CV_TEMPLATE_SECTIONS, type CvBuilderFormValues, type CvDraftPayload, type CvDraftResponse, type CvFormSectionKey, type CvSectionKey,
 } from '../../../types/models/CVBuilder';
 import BuilderToolbar, { type SaveStatus } from './components/BuilderToolbar';
 import SectionCard from './components/SectionCard';
@@ -51,11 +51,18 @@ const SECTION_DEFS: Record<CvFormSectionKey, SectionDef> = {
   centresInteret: { title: 'Centres d’intérêt', help: 'Facultatif, mais utile pour engager la conversation en entretien.', icon: Heart, Component: CentresInteretSection },
 };
 
-/** Garantit des listes présentes même si un ancien brouillon n'a pas tous les champs. */
+/**
+ * Garantit des listes présentes même si un ancien brouillon n'a pas tous les champs. Tant que l'étudiant n'a pas
+ * réordonné ses sections, le formulaire suit l'ordre du modèle choisi (comme le PDF).
+ */
 function toFormValues(draft: CvDraftResponse): CvBuilderFormValues {
-  const order = draft.data.ordreSections?.length ? draft.data.ordreSections : CV_SECTIONS;
+  const custom = draft.data.ordrePersonnalise === true;
+  const templateOrder = CV_TEMPLATE_SECTIONS[draft.templateCode] ?? CV_SECTIONS;
+  const order = custom && draft.data.ordreSections?.length ? draft.data.ordreSections : templateOrder;
   return {
-    data: { ...draft.data, ordreSections: order, sectionsMasquees: draft.data.sectionsMasquees ?? [] },
+    data: {
+      ...draft.data, ordreSections: order, ordrePersonnalise: custom, sectionsMasquees: draft.data.sectionsMasquees ?? [],
+    },
     templateCode: draft.templateCode,
     accentColor: draft.accentColor,
     cvLang: draft.cvLang,
@@ -268,6 +275,7 @@ function CVBuilderEditor({ initial, onReload }: { initial: CvDraftResponse; onRe
     if (from < 0 || to < 0 || to >= next.length) return;
     [next[from], next[to]] = [next[to], next[from]];
     setValue('data.ordreSections', next, { shouldDirty: true });
+    setValue('data.ordrePersonnalise', true, { shouldDirty: true });
   };
 
   const toggleHidden = (key: CvSectionKey) => {

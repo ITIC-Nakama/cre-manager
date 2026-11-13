@@ -19,7 +19,7 @@ Bénéfices à montrer :
 1. L'étudiant sans CV ouvre « Mon CV ». Deux cartes : **« Créer mon CV avec l'assistant »** (recommandé) et « Déposer un PDF ».
 2. L'assistant s'ouvre **prérempli** : nom, prénom, e-mail, téléphone (compte), formation en cours (promotion ITIC), expériences tirées des candidatures au contrat validé (proposées, à confirmer).
 3. À gauche, le formulaire par sections. À droite, **l'aperçu exact du PDF**, mis à jour pendant la saisie.
-4. En haut : choix du modèle (Classique / Moderne), couleur d'accent, état d'enregistrement (« Enregistré à 14:32 »), « Télécharger le PDF », **« Envoyer à mon conseiller »**.
+4. En haut : choix du modèle (Linéaire / Classique / Moderne / Bandeau), langue du CV, état d'enregistrement (« Enregistré à 14:32 »), « Télécharger le PDF », **« Envoyer à mon conseiller »**.
 5. Un **indicateur de complétude** (score sur 100 + conseils concrets : « Ajoute une accroche », « Précise le niveau de tes langues », « Ton CV fait 2 pages : vise 1 page ») guide l'étudiant.
 6. « Envoyer à mon conseiller » : confirmation (même message que le remplacement actuel), puis le PDF part dans le circuit : statut « En attente », le conseiller le voit dans « Validation des CV ».
 7. Le conseiller met « À corriger » avec un commentaire. L'étudiant clique **« Modifier dans l'assistant »**, corrige une ligne, renvoie. Le conseiller valide, l'étudiant gagne ses XP.
@@ -31,10 +31,10 @@ Bénéfices à montrer :
 | Stockage du brouillon | Une table `cv_drafts`, une ligne par étudiant, sections en JSON (colonne TEXT + convertisseur Jackson) | Sections souples et ordonnables ; TEXT reste compatible H2 (tests) et PostgreSQL |
 | Moteur PDF | Thymeleaf (déjà présent) + openhtmltopdf (fork maintenu `io.github.openhtmltopdf`, vérifier la dernière version) | Même HTML pour l'aperçu et le PDF : ce que l'étudiant voit est ce qu'il obtient |
 | Aperçu | Le serveur rend le **HTML** du modèle (rapide), affiché dans un `iframe srcdoc` ; le PDF n'est produit qu'au téléchargement ou à l'envoi | Fidélité au rendu final sans générer un PDF à chaque frappe |
-| Polices | TTF embarquées dans `resources/fonts` (Roboto + une serif pour Classique) | L'image Docker `21-jre-alpine` n'a aucune police |
-| Modèles V1 | **Classique** (une colonne, lisible par les logiciels de tri des recruteurs) et **Moderne** (deux colonnes, accent couleur) | Couvre 95 % des cas ; un 3e plus tard |
+| Polices | TTF embarquées dans `resources/fonts` : Roboto, police de la plateforme (la serif de Classique a été retirée le 13/11/2026) | L'image Docker `21-jre-alpine` n'a aucune police |
+| Modèles | **Linéaire**, **Classique**, **Moderne**, **Bandeau** (maquettes de Jules, 13/11/2026), une seule colonne de lecture chacun, couleurs fixes de la plateforme (voir §6) | Choix validé le 13/11/2026 : 4 modèles, logo ITIC, plus de sélecteur de couleur |
 | Photo | Optionnelle, désactivée par défaut ; réutilise la photo de profil existante, pas de nouvel envoi | Usage français ; pas de nouveau fichier à gérer pour le RGPD |
-| Marque ITIC | Aucun logo sur le CV ; la formation en cours affiche « ITIC Paris » | Le CV part chez des employeurs : il appartient à l'étudiant |
+| Marque ITIC | Logo ITIC comme sur les maquettes (13/11/2026) : en-tête, ou pied « Étudiant(e) ITIC Paris » (Classique) | Demande de Jules ; le logo est une image décorative, sans effet sur le texte extrait |
 | Un seul CV actif | Inchangé : l'envoi passe par le même chemin de remplacement que le dépôt | Règle métier §6 |
 | Dépôt PDF manuel | Conservé | Un étudiant qui a déjà un bon CV ne doit rien perdre |
 | Brouillon vs envoi | Enregistrer ne touche **jamais** la ligne `cvs` ; seul « Envoyer » crée la nouvelle version | Ne pas remettre le statut à zéro à chaque frappe |
@@ -51,8 +51,8 @@ Bénéfices à montrer :
 | `id` | UUID | PK |
 | `student_id` | UUID, unique, FK `students` | Un brouillon par étudiant |
 | `data` | TEXT (JSON) | Voir structure ci-dessous |
-| `template_code` | VARCHAR(30) | `CLASSIQUE` ou `MODERNE` |
-| `accent_color` | VARCHAR(7) | Hex, liste fermée côté serveur |
+| `template_code` | VARCHAR(30) | `LINEAIRE`, `CLASSIQUE`, `MODERNE` ou `BANDEAU` (contrainte élargie par V48) |
+| `accent_color` | VARCHAR(7) | Hex, liste fermée côté serveur ; conservée mais ignorée au rendu depuis le 13/11/2026 (couleurs fixes) |
 | `cv_lang` | VARCHAR(2) | `fr` / `en` |
 | `last_submitted_hash` | VARCHAR(64), nullable | Empreinte du dernier envoi |
 | `last_submitted_at` | TIMESTAMP, nullable | |
@@ -125,11 +125,24 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 
 > Lisibilité ATS (12/11/2026) : aucun texte en `float`, une seule colonne, gras de puce dans des éléments frères ; vérifiée par `CvAtsExtractionTest` pour chaque modèle (voir `REGLES_METIER.md`, assistant de CV).
 
-- `src/main/resources/templates/cv/classique.html` et `moderne.html`, partageant des fragments Thymeleaf (`cv/fragments.html`).
-- A4, marges 15 mm, CSS imprimable compatible openhtmltopdf (pas de flexbox avancé : tableaux ou `float` pour Moderne).
+- `src/main/resources/templates/cv/lineaire.html`, `classique.html`, `moderne.html` et `bandeau.html`, partageant des fragments Thymeleaf (`cv/fragments.html`).
+- A4, marges 15 mm, CSS imprimable compatible openhtmltopdf (pas de flexbox : tableaux, jamais de texte en `float`).
 - Libellés de sections traduits fr/en via les messages Thymeleaf.
-- Sections vides masquées ; ordre selon `ordreSections`.
-- Couleurs d'accent : liste fermée (bleu ITIC `#3B71FF`, orange `#E2782E`, vert, gris anthracite, bordeaux).
+- Sections vides masquées ; ordre : celui du modèle tant que l'étudiant n'a pas réordonné (`ordrePersonnalise`), sinon `ordreSections`.
+- Couleurs fixes de la plateforme : marine `#11305B`, bleu `#3B71FF`, orange `#E2762F` (plus de choix de couleur).
+
+### Les quatre modèles (13/11/2026)
+
+| Modèle | Mise en page | Ordre par défaut | Logo ITIC | Photo |
+|---|---|---|---|---|
+| **Linéaire** (d'après l'exemple de Jules) | Nom en capitales marine, poste en orange ; expériences et formation en **frise** : dates et ville à gauche, point sur une ligne de temps, puis poste, entreprise en orange, ligne « CA – effectif (secteur) » en italique, puces avec chiffres en gras | Expériences, formation, certifications, compétences, langues, projets, centres d'intérêt | En haut à droite ; au-dessus du nom si la photo occupe la place | En haut à droite |
+| **Classique** | Sobre : nom marine, filet marine sous l'en-tête, titres en capitales avec filet gris | Formation, expériences, projets, compétences, langues, certifications, centres d'intérêt | En haut à droite (remplacé par la photo) + pied « Étudiant(e) ITIC Paris — Enseignement supérieur privé » | En haut à droite |
+| **Moderne** | Filet vertical à gauche (bleu clair puis marine), nom en capitales, poste dans un bandeau marine, titres soulignés bleu clair, filet discret devant les entrées | Expériences, formation, projets, compétences, langues, certifications, centres d'intérêt | Au-dessus du nom | En haut à droite |
+| **Bandeau** | En-tête marine d'un bord à l'autre de la page (logo blanc, nom, poste en bleu clair, coordonnées), filet bleu clair dessous, petit carré bleu devant les titres | Formation, expériences, projets, compétences, langues, certifications, centres d'intérêt | Dans le bandeau (blanc) | Dans le bandeau, à droite |
+
+- Les logos sont des PNG tirés des SVG de la plateforme (`templates/cv/assets/`), intégrés en `data:` URI.
+- Champs du Linéaire (chiffre d'affaires, effectif, secteur, puces de formation) : affichés aussi par les autres modèles quand ils sont remplis.
+- Exemples PDF et captures de chaque modèle, avec et sans photo : `docs/cv-samples/`.
 - Texte sélectionnable (pas d'image), métadonnées PDF : titre « CV — Prénom Nom », auteur.
 - Nom du fichier téléchargé : `CV_Nom_Prenom.pdf` (même logique que `nomFichier`).
 
@@ -141,7 +154,7 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
   - avec un CV généré : bouton **« Modifier dans l'assistant »** à côté de « Voir » et « Remplacer » ;
   - le circuit (`CycleStrip`, commentaires) reste identique.
 - Nouvelle page `/student/cv/assistant` (`F/pages/student/cv-builder/`) :
-  - barre du haut : modèle, couleur, langue du CV, état d'enregistrement, « Télécharger », « Envoyer à mon conseiller » ;
+  - barre du haut : modèle, langue du CV, état d'enregistrement, « Télécharger », « Envoyer à mon conseiller » ;
   - colonne gauche : sections repliables, `react-hook-form` + `useFieldArray` (ajouter, supprimer, réordonner les entrées), compteur de caractères, aide courte par champ ;
   - colonne droite : aperçu (`iframe srcdoc`, requête anti-rebond 600 ms), zoom, badge « 1 page » / « 2 pages » ;
   - panneau de complétude : score et conseils cliquables (ouvrent la section concernée) ;
@@ -212,7 +225,7 @@ Implémenté en 6 commits suivant le §11. Tests : `CvBuilderIntegrationTest` (2
 | Sujet | Spécification | Implémenté | Pourquoi |
 |---|---|---|---|
 | Version d'openhtmltopdf | Dernière version | `1.1.97` (9 oct. 2026) ; la dernière était `1.1.108` (1er nov.) | Le projet publie presque chaque jour : une version avec trois semaines de recul plutôt qu'une version de deux jours. Monter de version = changer `openhtmltopdf.version` dans le `pom.xml`. |
-| Police à empattements | « une serif » | **PT Serif** (OFL), Roboto (Apache 2.0) ; licences dans `resources/fonts` | Les serifs courantes de Google Fonts ne sont plus livrées qu'en police variable, mal gérée par PDFBox ; PT Serif existe en fichiers statiques. |
+| Police à empattements | « une serif » | **PT Serif** (OFL), Roboto (Apache 2.0) ; licences dans `resources/fonts`. **13/11/2026 : PT Serif retirée**, tous les modèles en Roboto (police de la plateforme) | Les serifs courantes de Google Fonts ne sont plus livrées qu'en police variable, mal gérée par PDFBox ; PT Serif existe en fichiers statiques. |
 | Signature de `replaceActiveCv` | `(Student, InputStream, long, CvSource, String)` | `(Student, CvFileWriter, CvSource, String)` : le stockage est passé en fonction | Le dépôt manuel continue d'appeler exactement `uploadFile(MultipartFile, path)` comme avant : comportement et tests existants strictement inchangés. L'assistant appelle `uploadFile(InputStream, path, "application/pdf", length)`. |
 | JSON des expériences | — | Champ `aConfirmer` (booléen) | Marque les expériences proposées depuis une candidature au contrat validé ; le bouton « Confirmer » le remet à `false`. |
 | Validation | Limites du §4 | Mêmes limites + plafonds de sécurité : 5 liens, 10 langues, 15 certifications, 30 étiquettes de 60 caractères, textes courts 150, description de projet 500, URL 300 caractères | Borner la taille du JSON stocké et du PDF. Les champs vides restent acceptés (brouillon en cours). |
@@ -221,9 +234,9 @@ Implémenté en 6 commits suivant le §11. Tests : `CvBuilderIntegrationTest` (2
 | Score | `GET /score` ou dans `GET` | `GET /cv/builder/me/score` sur le brouillon **enregistré** (ou le prérempli) ; nombre de pages issu d'un vrai rendu PDF ; conseils = codes (`SUMMARY_MISSING`…) + section à ouvrir, traduits côté front | Le badge « 1 page / 2 pages » et le conseil « vise 1 page » reposent sur le vrai PDF ; l'auto-sauvegarde rafraîchit le score toutes les 1,5 s. Barème : identité 30, accroche 10, expériences 20, formation 10, compétences 10, langues 10, projets/certifications 5, centres d'intérêt 5 ; -5 au-delà d'une page. |
 | Aperçu | HTML | HTML (`byte[]` pour échapper à l'enveloppe JSON), `Cache-Control: no-store`, sans `X-Page-Count` | Rester rapide à chaque frappe ; le nombre de pages vient du score. |
 | Libellés fr/en | Messages Thymeleaf | Moteur Thymeleaf **dédié** au CV avec ses propres messages (`templates/cv/messages*.properties`) | Ne pas ajouter de `MessageSource` global à l'application (impact possible sur les messages de validation existants). |
-| Couleurs d'accent | Bleu, orange, vert, gris anthracite, bordeaux | `#3B71FF`, `#E2782E`, `#2E8B57`, `#374151`, `#8B1E3F` | Valeurs exactes de la liste fermée (serveur et front). |
+| Couleurs d'accent | Bleu, orange, vert, gris anthracite, bordeaux | `#3B71FF`, `#E2782E`, `#2E8B57`, `#374151`, `#8B1E3F` | Valeurs exactes de la liste fermée (serveur et front). **13/11/2026 : sélecteur retiré**, couleurs fixes de la plateforme ; la valeur reste acceptée et stockée (anciens brouillons, empreinte anti-abus) mais n'a plus d'effet sur le rendu. |
 | Photo | Photo de profil existante | Reprise seulement si c'est un JPEG ou un PNG, intégrée en `data:` URI | PDFBox ne lit pas le WebP ; aucune ressource externe n'est chargée pendant le rendu (accès bloqué, protection SSRF). |
-| Modèle Moderne | Deux colonnes | Colonne latérale : contact, compétences, langues, centres d'intérêt ; le reste dans la colonne principale ; mise en page par tableau | openhtmltopdf ne gère pas flexbox ; un CV de deux pages se coupe proprement (entrées non coupées). |
+| Modèle Moderne | Deux colonnes | Une seule colonne depuis le 12/11/2026, réécrit d'après la maquette le 13/11/2026 (voir §6) | Avec deux colonnes, contact, compétences et langues sortaient avant le profil à l'extraction du texte (ATS). |
 | Lecture conseiller | `GET /cv/student/{id}/builder` | Idem, 404 (`cv-builder-draft-not-found`) sans brouillon | — |
 | Quitter la page | Avertissement | `beforeunload` (onglet fermé ou rechargé) + enregistrement immédiat lors d'une navigation interne | L'application utilise `BrowserRouter` : `useBlocker` n'y est pas disponible. |
 | En-têtes | `X-Page-Count` | Ajouté à `exposedHeaders` du CORS avec `Content-Disposition` | En local, front (:5173) et API (:8080) sont sur deux origines. |

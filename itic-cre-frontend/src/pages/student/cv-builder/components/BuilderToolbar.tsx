@@ -2,7 +2,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { AlertTriangle, ArrowLeft, Check, CloudOff, Download, Loader2, RefreshCw, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
-  CV_ACCENT_COLORS, CV_TEMPLATES, type CvBuilderFormValues, type CvLang,
+  CV_TEMPLATE_LABELS, CV_TEMPLATE_SECTIONS, CV_TEMPLATES, type CvBuilderFormValues, type CvLang, type CvTemplateCode,
 } from '../../../../types/models/CVBuilder';
 
 export type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error' | 'conflict' | 'invalid';
@@ -23,9 +23,17 @@ export default function BuilderToolbar({
   saveStatus, savedAt, saveError, onBack, onReload, onDownload, onSubmit, downloading, submitting,
 }: Props) {
   const { t, i18n } = useTranslation();
-  const { control, setValue } = useFormContext<CvBuilderFormValues>();
-  const [templateCode, accentColor, cvLang] = useWatch({ control, name: ['templateCode', 'accentColor', 'cvLang'] });
+  const { control, setValue, getValues } = useFormContext<CvBuilderFormValues>();
+  const [templateCode, cvLang] = useWatch({ control, name: ['templateCode', 'cvLang'] });
   const dirty = { shouldDirty: true } as const;
+
+  /** Changer de modèle reprend son ordre de sections, sauf si l'étudiant a déjà choisi le sien. */
+  const chooseTemplate = (code: CvTemplateCode) => {
+    setValue('templateCode', code, dirty);
+    if (!getValues('data.ordrePersonnalise')) {
+      setValue('data.ordreSections', [...CV_TEMPLATE_SECTIONS[code]], dirty);
+    }
+  };
 
   const time = savedAt?.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
   const segment = (active: boolean) =>
@@ -45,20 +53,10 @@ export default function BuilderToolbar({
         <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800" role="group"
           aria-label={t('studentCvBuilder.toolbar.template', 'Modèle')}>
           {CV_TEMPLATES.map((code) => (
-            <button key={code} type="button" className={segment(templateCode === code)} onClick={() => setValue('templateCode', code, dirty)}
+            <button key={code} type="button" className={segment(templateCode === code)} onClick={() => chooseTemplate(code)}
               aria-pressed={templateCode === code}>
-              {t(`studentCvBuilder.templates.${code}`, code === 'CLASSIQUE' ? 'Classique' : 'Moderne')}
+              {t(`studentCvBuilder.templates.${code}`, CV_TEMPLATE_LABELS[code])}
             </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-1.5" role="group" aria-label={t('studentCvBuilder.toolbar.color', 'Couleur')}>
-          {CV_ACCENT_COLORS.map((color) => (
-            <button key={color} type="button" onClick={() => setValue('accentColor', color, dirty)}
-              aria-pressed={accentColor === color} aria-label={t(`studentCvBuilder.colors.${color.slice(1)}`, color)}
-              title={t(`studentCvBuilder.colors.${color.slice(1)}`, color)}
-              className={`h-6 w-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${accentColor === color ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : ''}`}
-              style={{ backgroundColor: color }} />
           ))}
         </div>
 

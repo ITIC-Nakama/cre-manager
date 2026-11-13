@@ -146,7 +146,27 @@ class CvAtsExtractionTest {
 
         assertThat(normalize(extract(withPhoto, false))).isEqualTo(normalize(extract(withoutPhoto, false)));
         assertThat(normalize(extract(withPhoto, true))).isEqualTo(normalize(extract(withoutPhoto, true)));
-        assertThat(imageCount(withPhoto)).isEqualTo(imageCount(withoutPhoto) + 1);
+        // Certains modeles affichent le logo ITIC a la place de la photo : on cherche la photo elle-meme (120 x 140).
+        assertThat(hasPhoto(withPhoto)).as("%s : la photo est dans le PDF", template).isTrue();
+        assertThat(hasPhoto(withoutPhoto)).as("%s : pas de photo demandée, pas de photo", template).isFalse();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("templates")
+    @DisplayName("Sans réordonnancement par l'étudiant, les sections suivent l'ordre par défaut du modèle")
+    void defaultSectionOrderIsTheTemplateOne(CvTemplate template) throws Exception {
+        CvDraftData cv = sample(false);
+        cv.setOrdrePersonnalise(false);
+        cv.setOrdreSections(new ArrayList<>(List.of("centresInteret", "certifications", "langues", "competences",
+                "projets", "formations", "experiences")));
+        for (boolean byPosition : new boolean[]{false, true}) {
+            String text = extract(render(template, cv, false), byPosition);
+            String mode = template + (byPosition ? ", ordre de position" : ", ordre du flux");
+            int cursor = indexOf(text, "Je cherche une alternance de 24 mois", mode);
+            for (String section : template.defaultSections()) {
+                cursor = assertSection(text, section, cursor, mode);
+            }
+        }
     }
 
     @Test
@@ -297,8 +317,10 @@ class CvAtsExtractionTest {
         cv.getCertifications().add(toeic);
 
         cv.getCentresInteret().add("Mission humanitaire au Bénin");
+        // Ordre choisi par l'etudiant (sinon chaque modele applique son ordre par defaut).
         cv.setOrdreSections(new ArrayList<>(List.of("experiences", "formations", "projets", "competences",
                 "langues", "certifications", "centresInteret")));
+        cv.setOrdrePersonnalise(true);
         return cv;
     }
 
@@ -334,19 +356,20 @@ class CvAtsExtractionTest {
         }
     }
 
-    private static int imageCount(byte[] pdf) throws IOException {
-        int count = 0;
+    /** Vrai si le PDF contient l'image de la photo d'exemple (120 x 140 px). */
+    private static boolean hasPhoto(byte[] pdf) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdf)) {
             for (PDPage page : document.getPages()) {
                 PDResources resources = page.getResources();
                 for (COSName name : resources.getXObjectNames()) {
-                    if (resources.getXObject(name) instanceof PDImageXObject) {
-                        count++;
+                    if (resources.getXObject(name) instanceof PDImageXObject image
+                            && image.getWidth() == 120 && image.getHeight() == 140) {
+                        return true;
                     }
                 }
             }
         }
-        return count;
+        return false;
     }
 
     /** Insensible a la casse (titres en capitales) et aux retours a la ligne. */

@@ -184,6 +184,7 @@ public class CvDraftValidator {
         if (data.getCentresInteret() == null) data.setCentresInteret(new ArrayList<>());
         if (data.getOrdreSections() == null) data.setOrdreSections(new ArrayList<>());
         if (data.getSectionsMasquees() == null) data.setSectionsMasquees(new ArrayList<>());
+        if (data.getOrdrePersonnalise() == null) data.setOrdrePersonnalise(false);
 
         for (CvDraftData.Experience exp : data.getExperiences()) {
             if (exp.getId() == null || exp.getId().isBlank()) exp.setId(UUID.randomUUID().toString());

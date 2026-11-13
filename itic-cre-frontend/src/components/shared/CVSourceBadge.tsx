@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CVSource } from '../../types/models/CV';
+import { CV_TEMPLATE_LABELS, type CvTemplateCode } from '../../types/models/CVBuilder';
 
 interface Props {
   source?: CVSource | null;
@@ -15,7 +16,7 @@ export default function CVSourceBadge({ source, templateCode, compact = false }:
   if (source !== 'BUILDER') return null;
 
   const template = templateCode
-    ? t(`studentCvBuilder.templates.${templateCode}`, templateCode === 'MODERNE' ? 'Moderne' : 'Classique')
+    ? t(`studentCvBuilder.templates.${templateCode}`, CV_TEMPLATE_LABELS[templateCode as CvTemplateCode] ?? templateCode)
     : null;
   const label = t('dashboard.cv.source.builder', 'Assistant');
   const title = template

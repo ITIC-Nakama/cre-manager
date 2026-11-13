@@ -2088,21 +2088,15 @@
     "toolbar": {
       "back": "Mon CV",
       "template": "Modèle",
-      "color": "Couleur",
       "lang": "Langue du CV",
       "download": "Télécharger le PDF",
       "submit": "Envoyer à mon conseiller"
     },
     "templates": {
+      "LINEAIRE": "Linéaire",
       "CLASSIQUE": "Classique",
-      "MODERNE": "Moderne"
-    },
-    "colors": {
-      "3B71FF": "Bleu ITIC",
-      "E2782E": "Orange",
-      "2E8B57": "Vert",
-      "374151": "Gris anthracite",
-      "8B1E3F": "Bordeaux"
+      "MODERNE": "Moderne",
+      "BANDEAU": "Bandeau"
     },
     "save": {
       "idle": "Brouillon prérempli, rien n’est encore enregistré",

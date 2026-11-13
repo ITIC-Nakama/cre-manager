@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
-  Modele "Classique" : une colonne, titres simples, aucun tableau ni image de texte —
-  lisible par les logiciels de tri des recruteurs. Police a empattements (PT Serif).
+  Modele "Classique" (maquette Jules) : une colonne, sobre. En-tete : nom en marine, poste vise, coordonnees,
+  logo ITIC en haut a droite (remplace par la photo si l'etudiant l'affiche : le logo reste alors dans le pied).
+  Titres en capitales espacees, filet gris. Ordre par defaut : formation d'abord (CvTemplate.CLASSIQUE).
 -->
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${lang}">
 <head>
@@ -11,42 +12,46 @@
   <meta name="subject" th:content="${cv.identite.titre}"/>
   <style th:replace="~{cv/fragments :: pageCss}"></style>
   <style th:inline="css">
-    body { font-family: 'PT Serif', 'Roboto', serif; }
-    .header { text-align: center; padding-bottom: 3mm; margin-bottom: 1mm; border-bottom: 0.6mm solid [(${accent})]; }
-    .header.with-photo { text-align: left; min-height: 30mm; }
-    .photo { float: right; width: 26mm; height: 30mm; margin-left: 5mm; border: 0.3mm solid #d1d5db; }
-    .name { font-size: 22pt; font-weight: 700; letter-spacing: 0.3pt; color: #111827; line-height: 1.1; }
-    .title { font-size: 11.5pt; color: [(${accent})]; margin-top: 1.2mm; }
-    .contact { margin-top: 2mm; color: #374151; font-size: 9pt; }
+    .header { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .header td { padding: 0; vertical-align: top; }
+    .header td.aside { width: 40mm; text-align: right; }
+    .header-rule { height: 0; border-top: 0.5mm solid [(${navy})]; margin: 3mm 0 0 0; }
+    .logo { width: 38mm; height: auto; margin-top: 1mm; }
+    .photo { width: 23mm; height: 27.5mm; border: 0.3mm solid #d5dbe5; }
+    .name { font-size: 21pt; font-weight: 700; color: [(${navy})]; line-height: 1.12; letter-spacing: 0.2pt; }
+    .title { font-size: 10.6pt; font-weight: 500; color: #4b6a9b; margin-top: 1.4mm; }
+    .contact { margin-top: 2mm; color: #4b5563; font-size: 8.6pt; }
     .contact .sep { color: #9ca3af; }
-    .link { margin: 0 2mm; white-space: nowrap; }
+    .link { margin-right: 3mm; white-space: nowrap; }
     .link-type { color: #6b7280; }
-    .summary { margin: 0; text-align: justify; }
-    .section-title { font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1pt;
-                     color: [(${accent})]; margin: 0 0 2mm 0; padding-bottom: 0.8mm; border-bottom: 0.25mm solid #d1d5db; }
-    .skill-group { margin-bottom: 1.2mm; }
-    .skill-label { font-weight: 700; display: inline; }
-    .skill-items { display: inline; }
-    .tag + .tag:before { content: ", "; }
-    .lang-row { margin-bottom: 0.8mm; }
+    .summary { margin: 0; color: #374151; }
+    .section-title { font-size: 9.8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6pt;
+                     color: [(${navy})]; margin: 0 0 1.8mm 0; padding-bottom: 0.9mm; border-bottom: 0.25mm solid #d5dbe5; }
+    .entry-title { color: #111827; }
+    .entry-sub { font-style: italic; }
   </style>
 </head>
 <body>
-  <div class="header" th:classappend="${photo != null} ? 'with-photo'">
-    <img class="photo" th:if="${photo != null}" th:src="${photo}" alt=""/>
-    <div class="name" th:text="${fullName}">Prénom Nom</div>
-    <div class="title" th:if="${fmt.present(cv.identite.titre)}" th:text="${cv.identite.titre}">Titre</div>
-    <div class="contact">
-      <span th:text="${fmt.join('  ·  ', cv.identite.email, cv.identite.telephone, cv.identite.ville)}">email · téléphone · ville</span>
-      <th:block th:if="${fmt.present(cv.identite.mobilite)}">
-        <span class="sep">  ·  </span><span th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">Mobilité</span>
-      </th:block>
-    </div>
-    <div class="contact" th:if="${!cv.identite.liens.isEmpty()}">
-      <th:block th:replace="~{cv/fragments :: links}"></th:block>
-    </div>
-    <div class="clear"></div>
-  </div>
+  <table class="header"><tr>
+    <td>
+      <div class="name" th:text="${fullName}">Prénom Nom</div>
+      <div class="title" th:if="${fmt.present(cv.identite.titre)}" th:text="${cv.identite.titre}">Poste visé</div>
+      <div class="contact">
+        <span th:text="${fmt.join('  ·  ', cv.identite.telephone, cv.identite.email, cv.identite.ville)}">téléphone · email · ville</span>
+        <th:block th:if="${fmt.present(cv.identite.mobilite)}">
+          <span class="sep">  ·  </span><span th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">Mobilité</span>
+        </th:block>
+      </div>
+      <div class="contact" th:if="${!cv.identite.liens.isEmpty()}">
+        <th:block th:replace="~{cv/fragments :: links}"></th:block>
+      </div>
+    </td>
+    <td class="aside">
+      <img class="photo" th:if="${photo != null}" th:src="${photo}" alt=""/>
+      <img class="logo" th:if="${photo == null}" th:src="${logoNavy}" alt=""/>
+    </td>
+  </tr></table>
+  <div class="header-rule"></div>
 
   <div class="section" th:if="${fmt.present(cv.accroche)}">
     <h2 class="section-title" th:text="#{cv.summary}">Profil</h2>
@@ -56,5 +61,7 @@
   <th:block th:each="s : ${sections}">
     <th:block th:replace="~{cv/fragments :: section(${s})}"></th:block>
   </th:block>
+
+  <div th:replace="~{cv/fragments :: iticFooter}"></div>
 </body>
 </html>
