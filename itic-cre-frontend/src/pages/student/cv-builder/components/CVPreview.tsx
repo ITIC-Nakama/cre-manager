@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Loader2, Minus, Plus } from 'lucide-react';
+import { AlertTriangle, Loader2, Minus, Plus, ZoomIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { RecruiterReadability } from './GuidanceCards';
 
@@ -74,14 +74,18 @@ export default function CVPreview({ html, loading, error, pageCount, recruiterRe
           <RecruiterReadability ready={recruiterReady} />
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-slate-400" />}
         </div>
-        <div className="flex items-center gap-1 text-xs text-slate-500">
+        {/* Zoom de l'affichage seulement (taille de la feuille à l'écran) : ce n'est pas un score. */}
+        <div className="flex items-center gap-1 text-xs text-slate-500 shrink-0" role="group"
+          aria-label={t('studentCvBuilder.preview.zoomGroup', 'Zoom de l’aperçu (taille à l’écran, ne change pas ton CV)')}>
           <button type="button" onClick={() => stepZoom(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             aria-label={t('studentCvBuilder.preview.zoomOut', 'Dézoomer')}>
             <Minus className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={() => setZoom(null)} className="w-12 text-center tabular-nums font-semibold cursor-pointer"
-            title={t('studentCvBuilder.preview.fit', 'Ajuster à la largeur')}>
-            {Math.round(scale * 100)} %
+          <button type="button" onClick={() => setZoom(null)}
+            className="inline-flex items-center gap-1 px-1.5 py-1 rounded-lg text-center tabular-nums font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+            title={t('studentCvBuilder.preview.fit', 'Zoom de l’aperçu, sans effet sur ton CV. Clique pour ajuster à la largeur.')}>
+            <ZoomIn className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('studentCvBuilder.preview.zoomValue', 'Zoom {{value}} %', { value: Math.round(scale * 100) })}
           </button>
           <button type="button" onClick={() => stepZoom(1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             aria-label={t('studentCvBuilder.preview.zoomIn', 'Zoomer')}>

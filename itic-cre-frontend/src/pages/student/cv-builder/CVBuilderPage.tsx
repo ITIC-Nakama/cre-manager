@@ -286,6 +286,33 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
     }, 50);
   };
 
+  /**
+   * « Corriger » (vérification avant envoi) : ouvre la section, puis place le curseur dans le champ concerné.
+   * Un passage [entre crochets] d'un exemple est sélectionné : il suffit de taper pour le remplacer.
+   * Délai : la fenêtre se ferme en 180 ms et bloque le défilement de la page jusque-là.
+   */
+  const focusField = (section: CvFormSectionKey, field: string | null) => {
+    setOpenSections((prev) => new Set(prev).add(section));
+    setMobileTab('form');
+    window.setTimeout(() => {
+      const el = field ? document.querySelector<HTMLElement>(`[name="${CSS.escape(field)}"]`) : null;
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      (el ?? document.getElementById(`cv-section-${section}`))
+        ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: el ? 'center' : 'start' });
+      if (!el) return;
+      el.focus({ preventScroll: true });
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+        const placeholder = /\[[^\]]+\]/.exec(el.value);
+        try {
+          if (placeholder) el.setSelectionRange(placeholder.index, placeholder.index + placeholder[0].length);
+          else el.setSelectionRange(el.value.length, el.value.length);
+        } catch {
+          // Champs e-mail ou mois : pas de sélection possible, le focus suffit.
+        }
+      }
+    }, 260);
+  };
+
   const moveSection = (key: CvSectionKey, direction: -1 | 1) => {
     const next = [...order];
     const from = next.indexOf(key);
@@ -318,7 +345,11 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
       onResetDone();
     } catch (err) {
       dirtyRef.current = true;
-      if ((err as { response?: { status?: number } })?.response?.status === 409) setSaveStatus('conflict');
+      if ((err as { response?: { status?: number } })?.response?.status === 409) {
+        setSaveStatus('conflict');
+        toast.error(t('studentCvBuilder.toast.conflict', 'Ton CV a été modifié dans un autre onglet : recharge-le avant de continuer.'));
+        return;
+      }
       toast.error(getApiErrorMessage(err, t('studentCvBuilder.toast.resetError', 'La réinitialisation a échoué, ton brouillon est intact.')));
     }
   };
@@ -354,7 +385,11 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
       setJustSubmitted(true);
       onSubmitted?.();
     } catch (err) {
-      if ((err as { response?: { status?: number } })?.response?.status === 409) setSaveStatus('conflict');
+      if ((err as { response?: { status?: number } })?.response?.status === 409) {
+        setSaveStatus('conflict');
+        toast.error(t('studentCvBuilder.toast.conflict', 'Ton CV a été modifié dans un autre onglet : recharge-le avant de continuer.'));
+        return;
+      }
       toast.error(getApiErrorMessage(err, t('studentCvBuilder.toast.submitError', 'L’envoi a échoué, réessaie dans un instant.')));
     }
   };
@@ -466,12 +501,13 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
               {t('studentCvBuilder.submitModal.body', 'Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.')}
               {confirmOpen && (
                 <PreSendChecklist checks={preSendChecks(getValues(), completeness?.pageCount ?? null)}
-                  onFix={(section) => { setConfirmOpen(false); openSection(section); }} />
+                  onFix={(section, field) => { setConfirmOpen(false); focusField(section, field); }} />
               )}
             </>
           )}
           confirmLabel={t('studentCvBuilder.submitModal.confirm', 'Envoyer')}
           showWarning={!!myCv}
+          warningText={t('studentCvBuilder.submitModal.warning', 'Ton CV actuel sera remplacé : son statut de validation repart de zéro et les XP éligibles sont de nouveau en jeu pour ce cycle. Les commentaires de ton conseiller restent visibles.')}
         />
 
         <CVReplaceModal

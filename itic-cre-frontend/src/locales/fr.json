@@ -2123,8 +2123,10 @@
       "pages_other": "{{count}} pages",
       "zoomIn": "Zoomer",
       "zoomOut": "Dézoomer",
-      "fit": "Ajuster à la largeur",
-      "error": "Aperçu indisponible pour le moment."
+      "fit": "Zoom de l’aperçu, sans effet sur ton CV. Clique pour ajuster à la largeur.",
+      "error": "Aperçu indisponible pour le moment.",
+      "zoomGroup": "Zoom de l’aperçu (taille à l’écran, ne change pas ton CV)",
+      "zoomValue": "Zoom {{value}} %"
     },
     "completeness": {
       "title": "Complétude",
@@ -2321,14 +2323,16 @@
     "submitModal": {
       "title": "Envoyer ton CV à ton conseiller ?",
       "body": "Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.",
-      "confirm": "Envoyer"
+      "confirm": "Envoyer",
+      "warning": "Ton CV actuel sera remplacé : son statut de validation repart de zéro et les XP éligibles sont de nouveau en jeu pour ce cycle. Les commentaires de ton conseiller restent visibles."
     },
     "toast": {
       "submitted": "CV envoyé à ton conseiller : il est maintenant « En attente » de relecture.",
       "submitError": "L’envoi a échoué, réessaie dans un instant.",
       "downloadError": "Le PDF n’a pas pu être généré.",
       "reset": "Ton CV est revenu au prérempli de ton compte. Ton modèle est gardé.",
-      "resetError": "La réinitialisation a échoué, ton brouillon est intact."
+      "resetError": "La réinitialisation a échoué, ton brouillon est intact.",
+      "conflict": "Ton CV a été modifié dans un autre onglet : recharge-le avant de continuer."
     },
     "steps": {
       "template": "1. Choisis un modèle",

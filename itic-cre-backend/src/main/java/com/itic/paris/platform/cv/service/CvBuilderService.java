@@ -303,7 +303,9 @@ public class CvBuilderService {
         exp.setId(UUID.randomUUID().toString());
         exp.setPoste(truncate(application.getPoste()));
         exp.setEntreprise(truncate(application.getEntreprise()));
-        exp.setTypeContrat(application.getTypeContrat() != null ? truncate(application.getTypeContrat().getLabel()) : "");
+        // « Inconnu » (offres externes sans type) n'a pas sa place sur un CV : champ laisse vide.
+        String type = application.getTypeContrat() != null ? application.getTypeContrat().getLabel() : null;
+        exp.setTypeContrat(type == null || "inconnu".equalsIgnoreCase(type.trim()) ? "" : truncate(type));
         if (application.getStartDate() != null) {
             exp.setDebut(application.getStartDate().format(YEAR_MONTH));
         }

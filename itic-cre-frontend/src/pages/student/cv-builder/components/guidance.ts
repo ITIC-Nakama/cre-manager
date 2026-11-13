@@ -92,38 +92,78 @@ export function nextBestTip(completeness: CvCompleteness | undefined) {
 }
 
 export type CheckStatus = 'ok' | 'warn';
-export interface PreSendCheck { key: string; status: CheckStatus; label: string; section: CvFormSectionKey | null }
+/**
+ * Champ à corriger : nom de l'élément de formulaire (attribut `name`, chemin react-hook-form comme
+ * `data.accroche` ou `data.experiences.0.points.1`). « Corriger » y place le curseur.
+ */
+export interface PreSendCheck {
+  key: string; status: CheckStatus; label: string; section: CvFormSectionKey | null; field: string | null;
+}
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLACEHOLDER = /\[[^\]]{2,}\]/;
 
+type Target = { section: CvFormSectionKey; field: string | null };
+
+/** Premier passage entre crochets oublié (accroche, puis réalisations, puis points de formation). */
+function placeholderTarget(values: CvBuilderFormValues): Target | null {
+  const { experiences, formations, accroche } = values.data;
+  if (PLACEHOLDER.test(accroche ?? '')) return { section: 'accroche', field: 'data.accroche' };
+  for (const [i, e] of experiences.entries()) {
+    const j = e.points.findIndex((p) => PLACEHOLDER.test(p ?? ''));
+    if (j >= 0) return { section: 'experiences', field: `data.experiences.${i}.points.${j}` };
+  }
+  for (const [i, f] of formations.entries()) {
+    const j = (f.points ?? []).findIndex((p) => PLACEHOLDER.test(p ?? ''));
+    if (j >= 0) return { section: 'formations', field: `data.formations.${i}.points.${j}` };
+  }
+  return null;
+}
+
+/** Première erreur de format : e-mail, téléphone, dates inversées, puis passage entre crochets. */
+function formatTarget(values: CvBuilderFormValues): Target | null {
+  const { identite, experiences, formations } = values.data;
+  if (identite.email.trim() && !EMAIL.test(identite.email.trim())) return { section: 'identite', field: 'data.identite.email' };
+  if (identite.telephone.trim() && identite.telephone.replace(/\D/g, '').length < 10) {
+    return { section: 'identite', field: 'data.identite.telephone' };
+  }
+  const reversed = (e: { enCours: boolean; debut: string; fin: string | null }) => !e.enCours && !!e.debut && !!e.fin && e.fin < e.debut;
+  const exp = experiences.findIndex(reversed);
+  if (exp >= 0) return { section: 'experiences', field: `data.experiences.${exp}.fin` };
+  const form = formations.findIndex(reversed);
+  if (form >= 0) return { section: 'formations', field: `data.formations.${form}.fin` };
+  return placeholderTarget(values);
+}
+
 /**
  * Vérification avant l'envoi (jamais bloquante) : coordonnées, une expérience, une réalisation chiffrée,
- * une page, et les erreurs de format faciles à corriger. Libellés par défaut en français (clés guide.check.*).
+ * une page, et les erreurs de format faciles à corriger. Libellés par défaut en français (clés check.*).
+ * Chaque point à revoir indique la section et, quand il existe, le champ précis où placer le curseur.
  */
 export function preSendChecks(values: CvBuilderFormValues, pageCount: number | null): PreSendCheck[] {
-  const { identite, experiences, formations, accroche } = values.data;
+  const { identite, experiences } = values.data;
   const checks: PreSendCheck[] = [];
-  const add = (key: string, ok: boolean, label: string, section: CvFormSectionKey | null) =>
-    checks.push({ key, status: ok ? 'ok' : 'warn', label, section });
+  const add = (key: string, ok: boolean, label: string, target: Target | null) =>
+    checks.push({ key, status: ok ? 'ok' : 'warn', label, section: target?.section ?? null, field: target?.field ?? null });
 
-  const contactOk = !!(identite.prenom.trim() && identite.nom.trim() && identite.email.trim() && identite.telephone.trim());
-  add('contact', contactOk, 'Coordonnées complètes (prénom, nom, e-mail, téléphone)', 'identite');
-  add('experience', experiences.length > 0, 'Au moins une expérience (alternance, stage, job, bénévolat)', 'experiences');
+  const missingContact = (['prenom', 'nom', 'email', 'telephone'] as const).find((k) => !identite[k].trim());
+  add('contact', !missingContact, 'Coordonnées complètes (prénom, nom, e-mail, téléphone)',
+    { section: 'identite', field: `data.identite.${missingContact ?? 'prenom'}` });
+  // Pas encore d'expérience : le curseur va sur « Ajouter une expérience ».
+  add('experience', experiences.length > 0, 'Au moins une expérience (alternance, stage, job, bénévolat)',
+    { section: 'experiences', field: 'data.experiences.add' });
   const figure = experiences.some((e) => e.points.some((p) => /\d/.test(p)));
-  add('figure', figure, 'Au moins une réalisation avec un chiffre (+15 %, 30 clients…)', 'experiences');
-  add('onePage', pageCount === null || pageCount <= 1, 'Une page maximum', 'experiences');
+  // Sans chiffre : première réalisation de la première expérience (ou son bouton d'ajout s'il n'y en a pas).
+  const firstPoint = experiences.length === 0 ? 'data.experiences.add'
+    : experiences[0].points.length > 0 ? 'data.experiences.0.points.0' : 'data.experiences.0.points.add';
+  add('figure', figure, 'Au moins une réalisation avec un chiffre (+15 %, 30 clients…)', { section: 'experiences', field: firstPoint });
+  add('onePage', pageCount === null || pageCount <= 1, 'Une page maximum', { section: 'experiences', field: firstPoint });
 
-  const formatProblems: string[] = [];
-  if (identite.email.trim() && !EMAIL.test(identite.email.trim())) formatProblems.push('email');
-  if (identite.telephone.trim() && identite.telephone.replace(/\D/g, '').length < 10) formatProblems.push('phone');
-  const datesReversed = [...experiences, ...formations].some((e) => !e.enCours && e.debut && e.fin && e.fin < e.debut);
-  if (datesReversed) formatProblems.push('dates');
-  const texts = [accroche, ...experiences.flatMap((e) => e.points), ...formations.flatMap((f) => f.points ?? [])];
-  if (texts.some((text) => PLACEHOLDER.test(text ?? ''))) formatProblems.push('placeholder');
-  add('format', formatProblems.length === 0, 'Pas d’erreur de format (e-mail, téléphone, dates) ni de [passage entre crochets] d’un exemple',
-    formatProblems.includes('email') || formatProblems.includes('phone') ? 'identite'
-      : formatProblems.includes('placeholder') && PLACEHOLDER.test(accroche ?? '') ? 'accroche' : 'experiences');
-  add('toConfirm', !experiences.some((e) => e.aConfirmer), 'Expériences proposées automatiquement : vérifiées et confirmées', 'experiences');
+  const format = formatTarget(values);
+  add('format', format === null, 'Pas d’erreur de format (e-mail, téléphone, dates) ni de [passage entre crochets] d’un exemple',
+    format ?? { section: 'experiences', field: null });
+  const toConfirm = experiences.findIndex((e) => e.aConfirmer);
+  add('toConfirm', toConfirm < 0, 'Expériences proposées automatiquement : vérifiées et confirmées',
+    { section: 'experiences', field: `data.experiences.${Math.max(toConfirm, 0)}.aConfirmer` });
   return checks;
 }

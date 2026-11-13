@@ -69,9 +69,13 @@ export function EntryActions({ index, count, onMove, onRemove }: {
   );
 }
 
-export function AddButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
+export function AddButton({ label, onClick, disabled, name }: {
+  label: string; onClick: () => void; disabled?: boolean;
+  /** Nom de l'élément : « Corriger » (vérification avant envoi) peut y placer le focus. */
+  name?: string;
+}) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled}
+    <button type="button" name={name} onClick={onClick} disabled={disabled}
       className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-[#3f74ff] hover:text-[#3f74ff] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default">
       <Plus className="h-3.5 w-3.5" />
       {label}
@@ -138,9 +142,11 @@ export function TagInput({ value, onChange, placeholder, max, maxLength }: {
 }
 
 /** Points d'une expérience (ou d'une formation) : une ligne par point, `max` au plus, `maxLength` caractères chacun. */
-export function PointsEditor({ value, onChange, max, maxLength, placeholder, addLabel, suggestVerbs = false }: {
+export function PointsEditor({ value, onChange, max, maxLength, placeholder, addLabel, suggestVerbs = false, name }: {
   value: string[] | undefined; onChange: (next: string[]) => void; max: number; maxLength: number;
   placeholder?: string; addLabel?: string;
+  /** Chemin du champ (ex. data.experiences.0.points) : chaque ligne s'appelle `${name}.${i}`, le bouton `${name}.add`. */
+  name?: string;
   /** Propose des verbes d'action sur une ligne vide, et un verbe plus fort après « j'ai aidé »… */
   suggestVerbs?: boolean;
 }) {
@@ -163,7 +169,7 @@ export function PointsEditor({ value, onChange, max, maxLength, placeholder, add
         <div key={i} className="flex items-start gap-2">
           <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
           <div className="flex-1 flex flex-col gap-0.5">
-            <input type="text" value={point} maxLength={maxLength}
+            <input type="text" value={point} maxLength={maxLength} name={name ? `${name}.${i}` : undefined}
               placeholder={placeholder ?? t('studentCvBuilder.experiences.pointPlaceholder', 'Ex : Développement d’une API REST utilisée par 3 équipes')}
               onFocus={() => setFocused(i)}
               onChange={(e) => update(i, e.target.value)} className={compactFieldClass()} />
@@ -181,6 +187,7 @@ export function PointsEditor({ value, onChange, max, maxLength, placeholder, add
         </div>
       ))}
       <AddButton label={addLabel ?? t('studentCvBuilder.experiences.addPoint', 'Ajouter une réalisation')}
+        name={name ? `${name}.add` : undefined}
         onClick={() => onChange([...points, ''])} disabled={points.length >= max} />
     </div>
   );

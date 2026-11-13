@@ -183,6 +183,40 @@ class CvAtsExtractionTest {
         }
     }
 
+    /**
+     * Libelles fixes francais (titres, dates, niveaux, types de contrat, ligne entreprise, pied ITIC) qui ne doivent
+     * jamais sortir d'un CV en anglais. Le contenu saisi de l'exemple anglais n'en contient aucun.
+     */
+    private static final List<String> FRENCH_FIXED_LABELS = List.of(
+            "alternance", "stage", "job étudiant", "cdd", "cdi", "inconnu", "aujourd’hui", "aujourd'hui",
+            "expériences professionnelles", "formation", "projets", "compétences", "langues", "centres d’intérêt",
+            "profil", "mobilité", "savoir-être", "outils", "techniques", "langue maternelle", "débutant",
+            "élémentaire", "intermédiaire", "indépendant", "avancé", "maîtrise", "ca", "effectif",
+            "étudiant(e)", "enseignement supérieur privé", "janv.", "févr.", "avr.", "juil.", "sept.", "oct.",
+            "nov.", "déc.", "site");
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("templates")
+    @DisplayName("CV en anglais : types de contrat et libellés fixes traduits, aucun libellé français")
+    void englishCvHasNoFrenchFixedLabel(CvTemplate template) throws Exception {
+        byte[] pdf = render(template, englishSample(), true, "en");
+        for (boolean byPosition : new boolean[]{false, true}) {
+            String text = normalize(extract(pdf, byPosition));
+            String mode = template + (byPosition ? ", ordre de position" : ", ordre du flux");
+            for (String expected : List.of("apprenticeship", "internship", "student job", "present", "work experience",
+                    "education", "skills", "languages", "interests", "profile", "native", "mobility",
+                    "revenue €3m – headcount 35 employees (higher education)")) {
+                assertThat(text).as("%s : « %s » attendu", mode, expected).contains(expected);
+            }
+            for (String french : FRENCH_FIXED_LABELS) {
+                assertThat(java.util.regex.Pattern.compile("(?<![\\p{L}])" + java.util.regex.Pattern.quote(french) + "(?![\\p{L}])")
+                        .matcher(text).find())
+                        .as("%s : libellé français « %s » trouvé dans le CV anglais :%n%s", mode, french, text)
+                        .isFalse();
+            }
+        }
+    }
+
     static Stream<CvTemplate> templates() {
         return Stream.of(CvTemplate.values());
     }
@@ -324,9 +358,92 @@ class CvAtsExtractionTest {
         return cv;
     }
 
+    /** CV saisi en anglais, mais avec les types de contrat repris tels quels des candidatures (en français). */
+    private static CvDraftData englishSample() {
+        CvDraftData cv = new CvDraftData();
+        CvDraftData.Identite id = cv.getIdentite();
+        id.setPrenom("Lucas");
+        id.setNom("Martin");
+        id.setTitre("Business developer apprentice");
+        id.setEmail("lucas.martin@example.com");
+        id.setTelephone("06 11 22 33 44");
+        id.setVille("Paris");
+        id.setMobilite("Greater Paris area");
+        id.setAfficherPhoto(true);
+        CvDraftData.Lien link = new CvDraftData.Lien();
+        link.setType("AUTRE");
+        link.setUrl("https://lucas-martin.example.com");
+        id.getLiens().add(link);
+        cv.setAccroche("Business student looking for a two-year apprenticeship in sales from September.");
+
+        CvDraftData.Experience e1 = new CvDraftData.Experience();
+        e1.setPoste("Business developer");
+        e1.setTypeContrat("Alternance");
+        e1.setEntreprise("Northwind");
+        e1.setDebut("2024-09");
+        e1.setEnCours(true);
+        e1.setChiffreAffaires("€3M");
+        e1.setEffectif("35 employees");
+        e1.setSecteur("Higher education");
+        e1.getPoints().add("Grew qualified B2B leads by **15%** in one year");
+        CvDraftData.Experience e2 = new CvDraftData.Experience();
+        e2.setPoste("Sales assistant");
+        e2.setTypeContrat("Stage");
+        e2.setEntreprise("Contoso");
+        e2.setDebut("2023-01");
+        e2.setFin("2023-06");
+        e2.getPoints().add("Answered **40** customer calls a day");
+        CvDraftData.Experience e3 = new CvDraftData.Experience();
+        e3.setPoste("Shop assistant");
+        e3.setTypeContrat("Job étudiant");
+        e3.setEntreprise("Fabrikam");
+        e3.setDebut("2022-07");
+        e3.setFin("2022-08");
+        CvDraftData.Experience e4 = new CvDraftData.Experience();
+        e4.setPoste("Event volunteer");
+        e4.setTypeContrat("Inconnu");
+        e4.setEntreprise("City marathon");
+        e4.setDebut("2021-04");
+        e4.setFin("2021-04");
+        cv.getExperiences().addAll(List.of(e1, e2, e3, e4));
+
+        CvDraftData.Formation f = new CvDraftData.Formation();
+        f.setDiplome("Bachelor in Business Development");
+        f.setEtablissement("ITIC Paris");
+        f.setDebut("2024-09");
+        f.setEnCours(true);
+        cv.getFormations().add(f);
+
+        CvDraftData.Projet project = new CvDraftData.Projet();
+        project.setNom("Careers fair");
+        project.setDescription("Organised a fair with 40 exhibitors");
+        cv.getProjets().add(project);
+        cv.getCompetences().getTechniques().add("B2B prospecting");
+        cv.getCompetences().getOutils().add("HubSpot");
+        cv.getCompetences().getSavoirEtre().add("Active listening");
+        CvDraftData.Langue english = new CvDraftData.Langue();
+        english.setLangue("English");
+        english.setNiveau("NATIF");
+        CvDraftData.Langue spanish = new CvDraftData.Langue();
+        spanish.setLangue("Spanish");
+        spanish.setNiveau("B1");
+        cv.getLangues().addAll(List.of(english, spanish));
+        CvDraftData.Certification toeic = new CvDraftData.Certification();
+        toeic.setNom("TOEIC 950");
+        toeic.setOrganisme("ETS Global");
+        toeic.setDate("2024-12");
+        cv.getCertifications().add(toeic);
+        cv.getCentresInteret().add("Basketball");
+        return cv;
+    }
+
     // ─── Outils ───────────────────────────────────────────────────────────────
 
     private byte[] render(CvTemplate template, CvDraftData cv, boolean photo) throws IOException {
+        return render(template, cv, photo, "fr");
+    }
+
+    private byte[] render(CvTemplate template, CvDraftData cv, boolean photo, String lang) throws IOException {
         Student student = new Student();
         student.setId(UUID.randomUUID());
         if (photo) {
@@ -334,7 +451,7 @@ class CvAtsExtractionTest {
             byte[] png = samplePhoto();
             when(storage.downloadFile(anyString())).thenAnswer(inv -> new ByteArrayInputStream(png));
         }
-        return renderService.renderPdf(student, cv, new CvRenderOptions(template, "#3B71FF", "fr")).bytes();
+        return renderService.renderPdf(student, cv, new CvRenderOptions(template, "#3B71FF", lang)).bytes();
     }
 
     private static byte[] samplePhoto() throws IOException {

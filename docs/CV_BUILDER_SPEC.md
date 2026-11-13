@@ -142,6 +142,7 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
 
 - Les logos sont des PNG tirés des SVG de la plateforme (`templates/cv/assets/`), intégrés en `data:` URI.
 - Champs du Linéaire (chiffre d'affaires, effectif, secteur, puces de formation) : affichés aussi par les autres modèles quand ils sont remplis.
+- **CV en anglais** : tous les libellés fixes viennent de `messages_en.properties` ; le **type de contrat** (texte libre, souvent repris d'une candidature en français) est traduit au rendu quand c'est un type courant (`CvTemplateHelper.contractType` : Alternance → Apprenticeship, Stage → Internship, CDD → Fixed-term contract, CDI → Permanent contract, Job étudiant → Student job…), sinon gardé tel quel. « Inconnu » (offres externes sans type) n'est jamais affiché, ni repris au préremplissage.
 - Exemples PDF et captures de chaque modèle, avec et sans photo : `docs/cv-samples/`.
 - Texte sélectionnable (pas d'image), métadonnées PDF : titre « CV — Prénom Nom », auteur.
 - Nom du fichier téléchargé : `CV_Nom_Prenom.pdf` (même logique que `nomFichier`).
@@ -178,6 +179,10 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
   - badge **« Lisible par les recruteurs »** dans l'aperçu (explication sans jargon ; orange s'il manque nom, e-mail ou téléphone) ;
   - après l'envoi, **« C'est envoyé ! Et maintenant ? »** : relecture, e-mail à chaque avis du conseiller (statut ou commentaire), retour dans l'assistant pour corriger ;
   - confort : focus visible au clavier, espaces insécables avant la ponctuation, **« réduire les animations »** respecté dans toute l'application (`index.css`).
+- **Finitions après recette** :
+  - tout l'onglet et ses fenêtres tutoient : la fenêtre d'envoi a son propre avertissement (`studentCvBuilder.submitModal.warning`), celui du dépôt d'un fichier ne change pas ;
+  - le pourcentage à côté du badge est le **zoom de l'aperçu**, libellé « Zoom 68 % » avec une infobulle (sans effet sur le CV) : le seul score reste « Complétude NN/100 » ;
+  - « Corriger » place le curseur dans le champ concerné (accroche, e-mail manquant, réalisation, date…) ; un passage `[entre crochets]` d'un exemple est sélectionné, il suffit de taper.
 - `F/api-s/requests/CVBuilderRequest.ts`, `F/hooks/useCVBuilder.ts` (TanStack Query), types `F/types/models/CVBuilder.ts`, i18n `studentCvBuilder` dans `fr.json` et `en.json`.
 - PWA : exclure `/api/v1/cv/builder/` du cache NetworkFirst (`vite.config.ts`).
 
