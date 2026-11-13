@@ -26,7 +26,7 @@
              font-size: 9.4pt; font-weight: 500; }
     .contact { margin-top: 2.2mm; color: #4b5563; font-size: 8.6pt; }
     .contact .sep { color: #9ca3af; }
-    .link { margin-right: 3mm; white-space: nowrap; }
+    .link { display: inline-block; margin-right: 3mm; white-space: nowrap; }
     .link-type { color: #6b7280; }
     .summary { margin: 0; color: #374151; }
     .section { margin-top: 3.4mm; }
@@ -48,7 +48,7 @@
         <div class="contact">
           <span th:text="${fmt.join('  ·  ', cv.identite.telephone, cv.identite.email, cv.identite.ville)}">téléphone · email · ville</span>
           <th:block th:if="${fmt.present(cv.identite.mobilite)}">
-            <span class="sep">  ·  </span><span th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">Mobilité</span>
+            <span class="sep">  ·  </span><span class="keep" th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">Mobilité</span>
           </th:block>
         </div>
         <div class="contact" th:if="${!cv.identite.liens.isEmpty()}">

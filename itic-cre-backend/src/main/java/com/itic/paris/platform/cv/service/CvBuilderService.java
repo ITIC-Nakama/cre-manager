@@ -8,6 +8,7 @@ import com.itic.paris.platform.crm.model.Application;
 import com.itic.paris.platform.crm.repository.ApplicationRepository;
 import com.itic.paris.platform.cv.model.CvBuilderOptions;
 import com.itic.paris.platform.cv.model.CvDraft;
+import com.itic.paris.platform.cv.model.CvPhotoFormat;
 import com.itic.paris.platform.cv.model.CvTemplate;
 import com.itic.paris.platform.cv.model.dtos.builder.CvCompletenessDto;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
@@ -195,8 +196,8 @@ public class CvBuilderService {
         if (data == null || !Boolean.TRUE.equals(data.getIdentite().getAfficherPhoto())) {
             return "";
         }
-        CvPhotoService.Resolved photo = photoService.resolve(student);
-        return photo.present() ? CvPhotoService.key(photo.path()) : "";
+        CvPhotoService.Origin photo = photoService.origin(student);
+        return photo.present() ? photo.key() : "";
     }
 
     private static boolean startsWithPdfSignature(byte[] bytes) {
@@ -261,10 +262,13 @@ public class CvBuilderService {
 
     // ─── Photo du CV ────────────────────────────────────────────────────────
 
-    /** Photo propre au CV : remplace la precedente, ne touche pas la photo de profil. */
+    /**
+     * Photo propre au CV : l'original (assaini) et la zone choisie au recadrage ; remplace la precedente, ne touche
+     * pas la photo de profil.
+     */
     @Transactional
-    public CvPhotoInfo uploadPhoto(UUID studentId, MultipartFile file) throws IOException {
-        return photoService.upload(findStudent(studentId), file);
+    public CvPhotoInfo uploadPhoto(UUID studentId, MultipartFile file, CvPhotoImages.CropZone zone) throws IOException {
+        return photoService.upload(findStudent(studentId), file, zone);
     }
 
     /** « Revenir a ma photo de profil ». */
@@ -273,11 +277,14 @@ public class CvBuilderService {
         return photoService.removeCvPhoto(findStudent(studentId));
     }
 
-    /** Image de la photo du CV (JPEG deja traite), ou null s'il n'y en a pas. Etudiant lui-meme ou conseiller. */
+    /**
+     * Image de la photo du CV au format du modele demande (sinon portrait), ou null s'il n'y en a pas.
+     * Etudiant lui-meme ou conseiller.
+     */
     @Transactional(readOnly = true)
-    public byte[] photo(UUID studentId) {
-        CvPhotoService.Resolved photo = photoService.resolve(findStudent(studentId));
-        return photo.present() ? photo.jpeg() : null;
+    public byte[] photo(UUID studentId, String templateCode) {
+        CvPhotoFormat format = CvTemplate.fromCode(templateCode).map(CvTemplate::photoFormat).orElse(CvPhotoFormat.PORTRAIT);
+        return photoService.render(findStudent(studentId), format);
     }
 
     /** Conseiller / admin : brouillon enregistre d'un etudiant (lecture seule, 404 s'il n'existe pas). */

@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -29,8 +30,8 @@ public class CvBuilderAdvisorController {
     }
 
     @GetMapping("/photo")
-    @Operation(summary = "Image de la photo du CV d'un étudiant ; 204 s'il n'y en a pas")
-    public ResponseEntity<?> photoOfStudent(@PathVariable UUID studentId) {
-        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(studentId));
+    @Operation(summary = "Image de la photo du CV d'un étudiant au format du modèle `template` ; 204 s'il n'y en a pas")
+    public ResponseEntity<?> photoOfStudent(@PathVariable UUID studentId, @RequestParam(required = false) String template) {
+        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(studentId, template));
     }
 }

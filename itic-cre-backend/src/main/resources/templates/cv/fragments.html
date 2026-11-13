@@ -51,6 +51,9 @@
   .itic-footer .text { font-size: 7.6pt; color: #6b7280; }
   /* Emplacement photo (fragment photoSlot), toujours reserve : sans photo, une boite de la meme taille et de la meme
      bordure, mais transparente. Rien de visible dans le PDF, et la mise en page ne bouge pas. */
+  /* Morceau de coordonnees insecable (« Mobilite : Ile-de-France ») : passe a la ligne en entier. Sinon la coupure
+     au trait d'union donnait « Ile-de- France » a l'extraction du texte (ATS). Les liens font de meme (.link). */
+  .keep { display: inline-block; white-space: nowrap; }
   .photo { vertical-align: top; }
   .photo-empty { display: inline-block; }
   .photo.photo-empty { border-color: transparent; }

@@ -72,6 +72,57 @@ public final class CvPhotoTestImages {
         return out.toByteArray();
     }
 
+    /**
+     * JPEG avec un bloc EXIF ne contenant que l'etiquette Orientation (1 a 8), comme une photo de telephone tenu
+     * en portrait (6 = a tourner de 90 degres vers la droite pour l'afficher).
+     */
+    public static byte[] withOrientation(byte[] jpeg, int orientation) {
+        ByteBuffer tiff = ByteBuffer.allocate(26);
+        tiff.put(new byte[]{'M', 'M', 0, 0x2A, 0, 0, 0, 8});
+        tiff.putShort((short) 1);
+        tiff.putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) orientation).putShort((short) 0);
+        tiff.putInt(0);
+        byte[] exifHeader = {'E', 'x', 'i', 'f', 0, 0};
+        int segmentLength = 2 + exifHeader.length + tiff.capacity();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(jpeg, 0, 2);
+        out.write(0xFF);
+        out.write(0xE1);
+        out.write(segmentLength >> 8);
+        out.write(segmentLength & 0xFF);
+        out.writeBytes(exifHeader);
+        out.writeBytes(tiff.array());
+        out.write(jpeg, 2, jpeg.length - 2);
+        return out.toByteArray();
+    }
+
+    /**
+     * Photo 1000 x 1200 : fond bleu, carre ROUGE de 400 x 400 en (500, 100) et bande verte en haut a gauche. Sert a
+     * verifier qu'une image derivee est centree sur la zone choisie (le centre de l'image derivee est rouge).
+     */
+    public static byte[] markedPhoto() throws IOException {
+        BufferedImage image = new BufferedImage(1000, 1200, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        g.setColor(Color.BLUE);
+        g.fillRect(0, 0, 1000, 1200);
+        g.setColor(Color.RED);
+        g.fillRect(500, 100, 400, 400);
+        g.setColor(Color.GREEN);
+        g.fillRect(0, 0, 100, 100);
+        g.dispose();
+        return encode(image, "jpg");
+    }
+
+    /** Fichier de src/test/resources/cv/ (images WebP de test, dessinees). */
+    public static byte[] resource(String name) throws IOException {
+        try (var in = CvPhotoTestImages.class.getResourceAsStream("/cv/" + name)) {
+            if (in == null) {
+                throw new IOException("ressource introuvable : " + name);
+            }
+            return in.readAllBytes();
+        }
+    }
+
     /** PNG valide dont l'en-tete annonce une image geante (width x height) : sans donnees d'image. */
     public static byte[] pngHeaderOnly(int width, int height) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();

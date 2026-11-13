@@ -10,19 +10,30 @@ import java.util.Optional;
  * n'a pas reordonne ses sections lui-meme (CvDraftData.ordrePersonnalise).
  */
 public enum CvTemplate {
-    /** Frise chronologique : dates et ville a gauche, ligne de temps a points (exemple « CV lineaire »). */
-    LINEAIRE(List.of("experiences", "formations", "certifications", "competences", "langues", "projets", "centresInteret")),
+    /** Frise chronologique : dates et ville a gauche, ligne de temps a points ; photo carree (exemple « CV lineaire »). */
+    LINEAIRE(List.of("experiences", "formations", "certifications", "competences", "langues", "projets", "centresInteret"),
+            CvPhotoFormat.SQUARE),
     /** Sobre et polyvalent ; formation d'abord, comme la maquette. */
-    CLASSIQUE(List.of("formations", "experiences", "projets", "competences", "langues", "certifications", "centresInteret")),
+    CLASSIQUE(List.of("formations", "experiences", "projets", "competences", "langues", "certifications", "centresInteret"),
+            CvPhotoFormat.PORTRAIT),
     /** Filet de couleur et titres soulignes ; experiences d'abord. */
-    MODERNE(List.of("experiences", "formations", "projets", "competences", "langues", "certifications", "centresInteret")),
+    MODERNE(List.of("experiences", "formations", "projets", "competences", "langues", "certifications", "centresInteret"),
+            CvPhotoFormat.PORTRAIT),
     /** En-tete marine ; formation d'abord, comme la maquette. */
-    BANDEAU(List.of("formations", "experiences", "projets", "competences", "langues", "certifications", "centresInteret"));
+    BANDEAU(List.of("formations", "experiences", "projets", "competences", "langues", "certifications", "centresInteret"),
+            CvPhotoFormat.PORTRAIT);
 
     private final List<String> defaultSections;
+    private final CvPhotoFormat photoFormat;
 
-    CvTemplate(List<String> defaultSections) {
+    CvTemplate(List<String> defaultSections, CvPhotoFormat photoFormat) {
         this.defaultSections = defaultSections;
+        this.photoFormat = photoFormat;
+    }
+
+    /** Format de l'emplacement photo du modele (carre ou portrait 5:6). */
+    public CvPhotoFormat photoFormat() {
+        return photoFormat;
     }
 
     public List<String> defaultSections() {

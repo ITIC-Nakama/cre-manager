@@ -13,7 +13,9 @@ import java.util.UUID;
 
 /**
  * Photo propre au CV d'un etudiant (assistant de CV), distincte de sa photo de profil.
- * Sans ligne, le CV reprend la photo de profil. Le fichier stocke est deja traite (CvPhotoImages).
+ * Sans ligne, le CV reprend la photo de profil. Le fichier stocke est l'ORIGINAL assaini (CvPhotoImages :
+ * oriente, sans EXIF, 2000 px au plus) ; la zone choisie au recadrage est gardee a cote, en fractions de l'image.
+ * Chaque modele en derive son format au rendu. Zone vide : toute l'image (photos envoyees avant V50).
  */
 @Data
 @Entity
@@ -26,6 +28,18 @@ public class CvPhoto {
 
     @Column(name = "storage_path", nullable = false)
     private String storagePath;
+
+    @Column(name = "crop_x")
+    private Double cropX;
+
+    @Column(name = "crop_y")
+    private Double cropY;
+
+    @Column(name = "crop_width")
+    private Double cropWidth;
+
+    @Column(name = "crop_height")
+    private Double cropHeight;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

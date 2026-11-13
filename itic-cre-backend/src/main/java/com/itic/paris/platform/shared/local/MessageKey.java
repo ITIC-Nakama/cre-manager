@@ -169,6 +169,7 @@ public enum MessageKey {
     CV_BUILDER_PDF_FAILED("cv-builder-pdf-failed", "La génération du PDF a échoué, réessaie dans un instant", "PDF generation failed, please try again in a moment"),
     CV_PHOTO_INVALID_TYPE("cv-photo-invalid-type", "Seules les photos JPEG ou PNG sont acceptées", "Only JPEG or PNG photos are accepted"),
     CV_PHOTO_TOO_LARGE("cv-photo-too-large", "La photo dépasse 5 Mo", "The photo exceeds 5 MB"),
+    CV_PHOTO_INVALID_CROP("cv-photo-invalid-crop", "Le recadrage de la photo n'est pas valide, recommence", "The photo crop is not valid, please try again"),
     CV_PHOTO_UNREADABLE("cv-photo-unreadable", "Cette photo est illisible ou trop grande : essaie avec une autre", "This photo cannot be read or is too large: try another one"),
     CATEGORY_HAS_ARTICLES("category-has-articles", "Impossible de supprimer la catégorie car elle contient des articles.", "Cannot delete category because it contains articles."),
     ARTICLE_HAS_QUIZ("article-has-quiz", "Impossible de supprimer l'article car il contient un quiz. Supprimez d'abord le quiz.", "Cannot delete article because it contains a quiz. Delete the quiz first."),

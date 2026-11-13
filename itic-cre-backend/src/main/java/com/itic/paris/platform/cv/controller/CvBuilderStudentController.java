@@ -3,6 +3,7 @@ package com.itic.paris.platform.cv.controller;
 import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.service.CvBuilderService;
+import com.itic.paris.platform.cv.service.CvPhotoImages;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,10 +44,16 @@ public class CvBuilderStudentController {
     }
 
     @PostMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Changer la photo du CV (JPEG ou PNG, 5 Mo max) : vérifiée, recadrée, ré-encodée sans EXIF ; "
-            + "la photo de profil n'est pas modifiée")
-    public ResponseEntity<?> uploadPhoto(@RequestParam("file") MultipartFile file) throws IOException {
-        return ResponseEntity.ok(cvBuilderService.uploadPhoto(SecurityContextHelper.currentUserId(), file));
+    @Operation(summary = "Changer la photo du CV (JPEG ou PNG, 5 Mo max) : l'original est vérifié, orienté, ré-encodé "
+            + "sans EXIF ; x, y, width, height = zone choisie au recadrage (fractions de 0 à 1, facultative). "
+            + "La photo de profil n'est pas modifiée")
+    public ResponseEntity<?> uploadPhoto(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(required = false) Double x,
+                                         @RequestParam(required = false) Double y,
+                                         @RequestParam(required = false) Double width,
+                                         @RequestParam(required = false) Double height) throws IOException {
+        return ResponseEntity.ok(cvBuilderService.uploadPhoto(SecurityContextHelper.currentUserId(), file,
+                CvPhotoImages.CropZone.of(x, y, width, height)));
     }
 
     @DeleteMapping("/photo")
@@ -56,9 +63,10 @@ public class CvBuilderStudentController {
     }
 
     @GetMapping("/photo")
-    @Operation(summary = "Image de la photo du CV (photo du CV, sinon de profil) ; 204 s'il n'y en a pas")
-    public ResponseEntity<?> photo() {
-        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(SecurityContextHelper.currentUserId()));
+    @Operation(summary = "Image de la photo du CV (photo du CV, sinon de profil) au format du modèle `template` "
+            + "(carré pour LINEAIRE, portrait sinon) ; 204 s'il n'y en a pas")
+    public ResponseEntity<?> photo(@RequestParam(required = false) String template) {
+        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(SecurityContextHelper.currentUserId(), template));
     }
 
     /**

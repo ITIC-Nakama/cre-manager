@@ -468,6 +468,24 @@ class CvAtsExtractionTest {
         assertThat(hasPhoto(render(template, sample(true), true, lang))).as("%s %s", template, lang).isTrue();
     }
 
+    @ParameterizedTest(name = "{0}, photo = {1}")
+    @MethodSource("templatesWithAndWithoutPhoto")
+    @DisplayName("Logo ITIC toujours en haut de la page, avec ou sans photo (jamais dans le pied ni plus bas) ; photo en haut")
+    void logoStaysAtTheTopNextToThePhoto(CvTemplate template, boolean photo) throws Exception {
+        List<float[]> images = imagePlacements(render(template, sample(photo), photo));
+        // Logo : seule image large (plus de 3 fois plus large que haute) ; le symbole du pied du Classique est etroit.
+        List<float[]> logos = images.stream().filter(i -> i[2] > 3 * i[3]).toList();
+        assertThat(logos).as("%s : un seul logo", template).hasSize(1);
+        assertThat(logos.get(0)[1]).as("%s : logo dans les 30 premiers mm", template).isLessThan(30 * MM);
+        if (photo) {
+            float[] picture = images.stream().filter(i -> i[2] <= 3 * i[3] && i[3] > 15 * MM).findFirst().orElseThrow();
+            assertThat(picture[1]).as("%s : photo en haut", template).isLessThan(30 * MM);
+            float ratio = picture[2] / picture[3];
+            assertThat(ratio).as("%s : format de la photo", template)
+                    .isCloseTo(template == CvTemplate.LINEAIRE ? 1f : 5f / 6f, org.assertj.core.data.Offset.offset(0.03f));
+        }
+    }
+
     static Stream<Arguments> templatesAndLanguages() {
         return Stream.of(CvTemplate.values()).flatMap(t -> Stream.of(Arguments.of(t, "fr"), Arguments.of(t, "en")));
     }
@@ -538,8 +556,9 @@ class CvAtsExtractionTest {
             for (PDPage page : document.getPages()) {
                 PDResources resources = page.getResources();
                 for (COSName name : resources.getXObjectNames()) {
+                    // Portrait 150 x 180, ou carre 150 x 150 pour le Lineaire (format de chaque modele).
                     if (resources.getXObject(name) instanceof PDImageXObject image
-                            && image.getWidth() == 150 && image.getHeight() == 180) {
+                            && image.getWidth() == 150 && (image.getHeight() == 180 || image.getHeight() == 150)) {
                         return true;
                     }
                 }
@@ -564,6 +583,44 @@ class CvAtsExtractionTest {
             stripper.getText(document);
         }
         return lines;
+    }
+
+    private static final float MM = 72f / 25.4f;
+
+    /**
+     * Images dessinees sur la page 1 : {gauche, haut (depuis le haut de la page), largeur, hauteur}, en points.
+     * Positions lues dans le flux de dessin du PDF (matrice courante au moment de l'operateur Do).
+     */
+    private static List<float[]> imagePlacements(byte[] pdf) throws IOException {
+        List<float[]> placements = new ArrayList<>();
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            PDPage page = document.getPage(0);
+            float pageHeight = page.getMediaBox().getHeight();
+            org.apache.pdfbox.contentstream.PDFStreamEngine engine = new org.apache.pdfbox.contentstream.PDFStreamEngine() {
+                {
+                    addOperator(new org.apache.pdfbox.contentstream.operator.state.Concatenate(this));
+                    addOperator(new org.apache.pdfbox.contentstream.operator.state.Save(this));
+                    addOperator(new org.apache.pdfbox.contentstream.operator.state.Restore(this));
+                    addOperator(new org.apache.pdfbox.contentstream.operator.state.SetMatrix(this));
+                    addOperator(new org.apache.pdfbox.contentstream.operator.state.SetGraphicsStateParameters(this));
+                }
+
+                @Override
+                protected void processOperator(org.apache.pdfbox.contentstream.operator.Operator operator,
+                                               List<org.apache.pdfbox.cos.COSBase> operands) throws IOException {
+                    if ("Do".equals(operator.getName()) && !operands.isEmpty() && operands.get(0) instanceof COSName name
+                            && getResources().getXObject(name) instanceof PDImageXObject) {
+                        org.apache.pdfbox.util.Matrix m = getGraphicsState().getCurrentTransformationMatrix();
+                        placements.add(new float[]{m.getTranslateX(), pageHeight - (m.getTranslateY() + m.getScalingFactorY()),
+                                m.getScalingFactorX(), m.getScalingFactorY()});
+                        return;
+                    }
+                    super.processOperator(operator, operands);
+                }
+            };
+            engine.processPage(page);
+        }
+        return placements;
     }
 
     /** Insensible a la casse (titres en capitales) et aux retours a la ligne. */
