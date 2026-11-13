@@ -56,10 +56,10 @@ export default function TemplatePicker() {
                   className="w-full h-24 sm:h-auto object-cover object-top rounded-t-md shadow-sm ring-1 ring-black/5" />
               </span>
               <span className="flex flex-col gap-1 p-3">
-                <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white">
+                <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-bold leading-snug text-slate-900 dark:text-white [overflow-wrap:anywhere]">
                   {name}
                   {active && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#3f74ff] text-white text-[10px] font-bold">
+                    <span className="inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#3f74ff] text-white text-[10px] font-bold">
                       <Check className="h-3 w-3" />{t('studentCvBuilder.templatePicker.selected', 'Choisi')}
                     </span>
                   )}

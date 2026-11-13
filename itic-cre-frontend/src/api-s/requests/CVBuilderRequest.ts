@@ -1,7 +1,7 @@
 import { apiClient } from '../AxiosApiClient';
 import { unwrap } from '../unwrap';
 import type {
-    CvCompleteness, CvDraftPayload, CvDraftResponse, CvGeneratedPdf, CvSubmitResponse,
+    CvCompleteness, CvDraftPayload, CvDraftResponse, CvGeneratedPdf, CvPhotoInfo, CvSubmitResponse,
 } from '../../types/models/CVBuilder';
 
 /** GET /cv/builder/me — brouillon (prérempli et non enregistré au premier accès) */
@@ -68,6 +68,27 @@ export async function parseNonJsonError(err: unknown): Promise<never> {
 /** POST /cv/builder/me/submit — envoyer au conseiller (remplace le CV actif, statut « En attente ») */
 export function submitMyCv(payload: CvDraftPayload): Promise<CvSubmitResponse> {
     return apiClient.post('/cv/builder/me/submit', payload).then((r) => unwrap<CvSubmitResponse>(r));
+}
+
+/**
+ * POST /cv/builder/me/photo — photo propre au CV (déjà recadrée ici) ; le serveur la vérifie, la recadre si besoin et
+ * la ré-encode sans EXIF. La photo de profil du compte n'est pas modifiée.
+ */
+export function uploadMyCvPhoto(photo: Blob): Promise<CvPhotoInfo> {
+    const formData = new FormData();
+    formData.append('file', photo, 'photo-cv.jpg');
+    return apiClient.post('/cv/builder/me/photo', formData).then((r) => unwrap<CvPhotoInfo>(r));
+}
+
+/** DELETE /cv/builder/me/photo — « Revenir à ma photo de profil » */
+export function removeMyCvPhoto(): Promise<CvPhotoInfo> {
+    return apiClient.delete('/cv/builder/me/photo').then((r) => unwrap<CvPhotoInfo>(r));
+}
+
+/** GET /cv/builder/me/photo — image de la photo du CV (JPEG privé), null s'il n'y en a pas (204) */
+export function fetchMyCvPhoto(): Promise<Blob | null> {
+    return apiClient.get('/cv/builder/me/photo', { responseType: 'blob' })
+        .then((r) => (r.status === 204 || !(r.data instanceof Blob) || r.data.size === 0 ? null : r.data as Blob));
 }
 
 /** GET /cv/builder/me/score — complétude du brouillon enregistré */

@@ -16,6 +16,7 @@ import com.itic.paris.platform.cv.model.CVCommentaire;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
 import com.itic.paris.platform.cv.repository.CVRepository;
 import com.itic.paris.platform.cv.repository.CvDraftRepository;
+import com.itic.paris.platform.cv.service.CvPhotoService;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
@@ -45,6 +46,7 @@ public class GdprService {
     private final CVRepository cvRepository;
     private final CVCommentaireRepository cvCommentaireRepository;
     private final CvDraftRepository cvDraftRepository;
+    private final CvPhotoService cvPhotoService;
     private final ReclamationRepository reclamationRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -258,6 +260,8 @@ public class GdprService {
             }
             // Le brouillon de l'assistant contient tout le CV en clair : supprime, pas anonymise.
             cvDraftRepository.deleteByStudentId(student.getId());
+            // Photo propre au CV : ligne et fichier.
+            cvPhotoService.deleteAllFor(student.getId());
 
             List<Application> apps = applicationRepository.findByStudentIdOrderByDateCreationDesc(student.getId());
             for (Application app : apps) {

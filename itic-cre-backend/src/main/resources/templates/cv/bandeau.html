@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   Modele "Bandeau" (maquette Jules) : en-tete marine sur toute la largeur en haut de la premiere page (logo ITIC
-  blanc, nom, poste vise en bleu clair, coordonnees), filet bleu clair dessous ; titres de section precedes d'un
+  blanc, nom, poste vise en bleu clair, coordonnees ; emplacement photo a droite toujours reserve, vide sans photo),
+  filet bleu clair dessous ; titres de section precedes d'un
   petit carre bleu (dessine en CSS : aucun caractere dans le texte). Ordre par defaut : formation d'abord.
   Pas de marge laterale de page (le bandeau va d'un bord a l'autre) : le corps du CV porte lui-meme ses 15 mm.
   Le texte du bandeau reste a plus de 15 mm du haut de la page (CvAtsExtractionTest).
@@ -13,6 +14,7 @@
   <meta name="author" th:content="${fullName}"/>
   <meta name="subject" th:content="${cv.identite.titre}"/>
   <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <th:block th:if="${editor}"><style th:replace="~{cv/fragments :: editorCss}"></style></th:block>
   <style th:inline="css">
     @page { margin: 15mm 0; }
     @page :first { margin-top: 0; }
@@ -23,7 +25,7 @@
     .band-table td { padding: 0; vertical-align: top; }
     .band-table td.aside { width: 30mm; text-align: right; }
     .logo { width: 31mm; height: auto; margin-bottom: 4mm; }
-    .photo { width: 26mm; height: 31mm; border: 0.6mm solid #ffffff; }
+    .photo { width: 26mm; height: 31.2mm; border: 0.6mm solid #ffffff; }
     .name { font-size: 22pt; font-weight: 700; line-height: 1.1; letter-spacing: 0.2pt; }
     .title { font-size: 10.6pt; font-weight: 500; color: #a9c4ff; margin-top: 1.2mm; }
     .contact { margin-top: 2mm; color: #e3ebff; font-size: 8.6pt; }
@@ -59,7 +61,7 @@
           <th:block th:replace="~{cv/fragments :: links}"></th:block>
         </div>
       </td>
-      <td class="aside" th:if="${photo != null}"><img class="photo" th:src="${photo}" alt=""/></td>
+      <td class="aside"><th:block th:replace="~{cv/fragments :: photoSlot}"></th:block></td>
     </tr></table>
   </div>
 

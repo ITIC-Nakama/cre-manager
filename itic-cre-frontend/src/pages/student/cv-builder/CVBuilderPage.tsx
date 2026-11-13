@@ -14,7 +14,8 @@ import { useMyCV, useMyComments } from '../../../hooks/useCV';
 import { previewMyCv } from '../../../api-s/requests/CVBuilderRequest';
 import { getApiErrorMessage } from '../../../utils/errorHelper';
 import {
-  CV_SECTIONS, CV_TEMPLATE_SECTIONS, type CvBuilderFormValues, type CvDraftPayload, type CvDraftResponse, type CvFormSectionKey, type CvSectionKey,
+  CV_SECTIONS, CV_TEMPLATE_SECTIONS, type CvBuilderFormValues, type CvDraftPayload, type CvDraftResponse, type CvFormSectionKey,
+  type CvPhotoInfo, type CvSectionKey,
 } from '../../../types/models/CVBuilder';
 import BuilderToolbar, { type SaveStatus } from './components/BuilderToolbar';
 import TemplatePicker from './components/TemplatePicker';
@@ -35,6 +36,7 @@ import CompetencesSection from './components/sections/CompetencesSection';
 import LanguesSection from './components/sections/LanguesSection';
 import CertificationsSection from './components/sections/CertificationsSection';
 import CentresInteretSection from './components/sections/CentresInteretSection';
+import CvPhotoProvider from './components/photo/CvPhotoProvider';
 
 const AUTOSAVE_DELAY_MS = 1500;
 const PREVIEW_DELAY_MS = 600;
@@ -425,6 +427,16 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
     );
   };
 
+  /**
+   * Photo changée : une nouvelle photo du CV s'affiche (case cochée) ; sans aucune photo, la case se décoche.
+   * L'aperçu est recalculé même si le formulaire n'a pas bougé (la photo est rangée hors du brouillon).
+   */
+  const onPhotoChanged = useCallback((info: CvPhotoInfo, uploaded: boolean) => {
+    if (uploaded) setValue('data.identite.afficherPhoto', true, { shouldDirty: true });
+    else if (info.source === 'NONE') setValue('data.identite.afficherPhoto', false, { shouldDirty: true });
+    void refreshPreview();
+  }, [setValue, refreshPreview]);
+
   // Les logiciels des recruteurs cherchent le nom et les coordonnées en haut du CV.
   const [prenom, nom, email, telephone] = useWatch({
     control, name: ['data.identite.prenom', 'data.identite.nom', 'data.identite.email', 'data.identite.telephone'],
@@ -436,6 +448,7 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
 
   return (
     <FormProvider {...methods}>
+      <CvPhotoProvider initial={initial.photo} onChanged={onPhotoChanged}>
       <div className="flex flex-col gap-6 animate-fadeIn motion-reduce:animate-none">
         {justSubmitted && <SubmittedCard onClose={() => setJustSubmitted(false)} />}
         {!justSubmitted && <WelcomeCard storageKey={`itic.cvBuilder.welcomeSeen.${userId ?? 'anonyme'}`} />}
@@ -522,6 +535,7 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
           showWarning={false}
         />
       </div>
+      </CvPhotoProvider>
     </FormProvider>
   );
 }

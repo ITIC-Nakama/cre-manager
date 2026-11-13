@@ -49,12 +49,32 @@
   .itic-footer td { padding: 0; vertical-align: middle; }
   .itic-footer img { height: 4.2mm; width: auto; margin-right: 2mm; }
   .itic-footer .text { font-size: 7.6pt; color: #6b7280; }
+  /* Emplacement photo (fragment photoSlot), toujours reserve : sans photo, une boite de la meme taille et de la meme
+     bordure, mais transparente. Rien de visible dans le PDF, et la mise en page ne bouge pas. */
+  .photo { vertical-align: top; }
+  .photo-empty { display: inline-block; }
+  .photo.photo-empty { border-color: transparent; }
   @media screen {
     html { background: #e5e7eb; }
     body { width: 180mm; min-height: 267mm; margin: 16px auto; padding: 15mm; background: #ffffff;
            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18); }
   }
 </style>
+
+<!-- Apercu de l'editeur seulement (jamais dans le PDF) : l'emplacement photo vide devient « Ajouter une photo ».
+     Rendu par le navigateur, pas par openhtmltopdf : flexbox permis ici. -->
+<style th:fragment="editorCss">
+  .photo.photo-empty { border-style: dashed; border-color: #9aa8bf; background: #f3f5f9; }
+  .photo-add { display: flex; height: 100%; align-items: center; justify-content: center; padding: 0 2mm;
+               text-align: center; font-size: 8pt; font-weight: 500; line-height: 1.25; color: #4b5563; }
+  .band .photo.photo-empty { border-color: #a9c4ff; background: #1b3d6e; }
+  .band .photo-add { color: #e3ebff; }
+</style>
+
+<!-- Emplacement de la photo, TOUJOURS reserve : meme mise en page avec ou sans photo. La photo (propre au CV ou de
+     profil) est deja recadree au format 5:6 de tous les modeles. data-cv-photo : reperee par la page de l'editeur,
+     qui pose un bouton par-dessus (ajouter ou changer la photo). Aucun texte dans le PDF. -->
+<th:block th:fragment="photoSlot"><img th:if="${photo != null}" class="photo" th:src="${photo}" alt="" data-cv-photo="photo"/><span th:if="${photo == null}" class="photo photo-empty" data-cv-photo="empty"><span th:if="${editor}" class="photo-add" th:text="#{cv.photo.add}">Ajouter une photo</span></span></th:block>
 
 <!-- Aiguillage : rend la section demandee (nom issu de CvBuilderOptions.SECTIONS). -->
 <th:block th:fragment="section(name)">

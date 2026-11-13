@@ -11,9 +11,10 @@ export type CvFormSectionKey = 'identite' | 'accroche' | CvSectionKey;
 
 /** Listes fermees, identiques a CvBuilderOptions cote serveur. */
 export const CV_TEMPLATES: CvTemplateCode[] = ['LINEAIRE', 'CLASSIQUE', 'MODERNE', 'BANDEAU'];
-/** Nom affiche par defaut (avant traduction). */
+/** Nom affiche par defaut (avant traduction) : les 4 modeles sont lisibles par les logiciels des recruteurs. */
 export const CV_TEMPLATE_LABELS: Record<CvTemplateCode, string> = {
-    LINEAIRE: 'Linéaire', CLASSIQUE: 'Classique', MODERNE: 'Moderne', BANDEAU: 'Bandeau',
+    LINEAIRE: 'Linéaire (optimisé ATS)', CLASSIQUE: 'Classique (optimisé ATS)',
+    MODERNE: 'Moderne (optimisé ATS)', BANDEAU: 'Bandeau (optimisé ATS)',
 };
 /**
  * Ordre des sections propre a chaque modele (CvTemplate.defaultSections cote serveur) : applique tant que
@@ -123,6 +124,26 @@ export interface CvDraftData {
     sectionsMasquees: CvSectionKey[];
 }
 
+/**
+ * Photo du CV (CvPhotoInfo cote serveur) : CV = photo propre au CV, PROFILE = photo de profil du compte reprise
+ * telle quelle, NONE = aucune. key change a chaque nouvelle photo (rafraichir la vignette).
+ */
+export type CvPhotoSource = 'CV' | 'PROFILE' | 'NONE';
+export interface CvPhotoInfo {
+    source: CvPhotoSource;
+    profilePhotoAvailable: boolean;
+    key: string | null;
+}
+/** Emplacement photo des 4 modeles : portrait 5:6 ; fichier envoye 5 Mo au plus (JPEG ou PNG). */
+export const CV_PHOTO = {
+    ratioWidth: 5,
+    ratioHeight: 6,
+    outputWidth: 480,
+    outputHeight: 576,
+    maxBytes: 5 * 1024 * 1024,
+    types: ['image/jpeg', 'image/png'],
+} as const;
+
 /** Reponse de GET / PUT /cv/builder/me. */
 export interface CvDraftResponse {
     data: CvDraftData;
@@ -134,6 +155,8 @@ export interface CvDraftResponse {
     saved: boolean;
     updatedAt: string | null;
     lastSubmittedAt: string | null;
+    /** Absente des tres anciennes reponses : traiter comme NONE. */
+    photo?: CvPhotoInfo;
 }
 
 /** Corps de PUT, preview, pdf et submit : le brouillon courant. */

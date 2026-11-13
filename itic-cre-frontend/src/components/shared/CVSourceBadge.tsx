@@ -25,9 +25,9 @@ export default function CVSourceBadge({ source, templateCode, compact = false }:
 
   return (
     <span title={title}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-[#3f74ff]/10 text-[#3f74ff] dark:text-[#8fb0ff] whitespace-nowrap">
-      <Sparkles className="h-3 w-3" />
-      {compact || !template ? label : `${label} · ${template}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-[#3f74ff]/10 text-[#3f74ff] dark:text-[#8fb0ff] max-w-full ${compact ? 'whitespace-nowrap' : ''}`}>
+      <Sparkles className="h-3 w-3 shrink-0" />
+      <span>{compact || !template ? label : `${label} · ${template}`}</span>
     </span>
   );
 }

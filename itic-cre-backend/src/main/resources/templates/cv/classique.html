@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Modele "Classique" (maquette Jules) : une colonne, sobre. En-tete : nom en marine, poste vise, coordonnees,
-  logo ITIC en haut a droite (remplace par la photo si l'etudiant l'affiche : le logo reste alors dans le pied).
+  emplacement photo en haut a droite, toujours reserve (vide sans photo) ; logo ITIC dans le pied.
   Titres en capitales espacees, filet gris. Ordre par defaut : formation d'abord (CvTemplate.CLASSIQUE).
 -->
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${lang}">
@@ -11,13 +11,13 @@
   <meta name="author" th:content="${fullName}"/>
   <meta name="subject" th:content="${cv.identite.titre}"/>
   <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <th:block th:if="${editor}"><style th:replace="~{cv/fragments :: editorCss}"></style></th:block>
   <style th:inline="css">
     .header { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .header td { padding: 0; vertical-align: top; }
-    .header td.aside { width: 40mm; text-align: right; }
+    .header td.aside { width: 28mm; text-align: right; }
     .header-rule { height: 0; border-top: 0.5mm solid [(${navy})]; margin: 3mm 0 0 0; }
-    .logo { width: 38mm; height: auto; margin-top: 1mm; }
-    .photo { width: 23mm; height: 27.5mm; border: 0.3mm solid #d5dbe5; }
+    .photo { width: 23mm; height: 27.6mm; border: 0.3mm solid #d5dbe5; }
     .name { font-size: 21pt; font-weight: 700; color: [(${navy})]; line-height: 1.12; letter-spacing: 0.2pt; }
     .title { font-size: 10.6pt; font-weight: 500; color: #4b6a9b; margin-top: 1.4mm; }
     .contact { margin-top: 2mm; color: #4b5563; font-size: 8.6pt; }
@@ -46,10 +46,7 @@
         <th:block th:replace="~{cv/fragments :: links}"></th:block>
       </div>
     </td>
-    <td class="aside">
-      <img class="photo" th:if="${photo != null}" th:src="${photo}" alt=""/>
-      <img class="logo" th:if="${photo == null}" th:src="${logoNavy}" alt=""/>
-    </td>
+    <td class="aside"><th:block th:replace="~{cv/fragments :: photoSlot}"></th:block></td>
   </tr></table>
   <div class="header-rule"></div>
 

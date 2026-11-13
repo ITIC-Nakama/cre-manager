@@ -13,6 +13,7 @@ import com.itic.paris.platform.cv.model.dtos.builder.CvCompletenessDto;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftResponse;
+import com.itic.paris.platform.cv.model.dtos.builder.CvPhotoInfo;
 import com.itic.paris.platform.cv.repository.CvDraftRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.cv.model.CvSource;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -64,6 +66,7 @@ public class CvBuilderService {
     private final CVService cvService;
     private final CVRepository cvRepository;
     private final ICloudStorage cloudStorage;
+    private final CvPhotoService photoService;
 
     @Value("${app.upload.max-cv-size-mb:10}")
     private long maxCvSizeMb;
@@ -106,7 +109,8 @@ public class CvBuilderService {
      * « Reinitialiser » : remplace le contenu du brouillon par le prerempli (compte, formation ITIC, experiences
      * des contrats valides), en gardant le modele et la langue choisis. Meme controle de version que PUT (409 si
      * la version est perimee). Le CV deja envoye au conseiller n'est pas touche. Sans brouillon enregistre, renvoie
-     * simplement le prerempli (rien n'est cree).
+     * simplement le prerempli (rien n'est cree). La photo choisie pour le CV est rangee hors du brouillon (cv_photos) :
+     * elle reste, et la case « Afficher ma photo » reprend son defaut (cochee des qu'une photo existe).
      */
     @Transactional
     public CvDraftResponse resetMyDraft(UUID studentId, Long version) {
@@ -134,7 +138,7 @@ public class CvBuilderService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CV_NOT_FOUND));
         Student student = draft.getStudent();
 
-        String fingerprint = fingerprint(draft);
+        String fingerprint = fingerprint(draft, photoKey(student, draft.getData()));
         boolean activeCvIsFromBuilder = cvRepository.findByStudentId(studentId)
                 .map(cv -> cv.getSource() == CvSource.BUILDER)
                 .orElse(false);
@@ -168,18 +172,31 @@ public class CvBuilderService {
         return result;
     }
 
-    /** SHA-256 du contenu (JSON canonique) et des options de rendu : deux envois identiques ont la meme empreinte. */
-    static String fingerprint(CvDraft draft) {
+    /**
+     * SHA-256 du contenu (JSON canonique), des options de rendu et de la photo affichee : deux envois identiques ont
+     * la meme empreinte ; changer seulement de photo compte comme un changement.
+     */
+    static String fingerprint(CvDraft draft, String photoKey) {
         String material = CvDraftDataConverter.toJson(draft.getData())
                 + "|" + draft.getTemplateCode().name()
                 + "|" + draft.getAccentColor()
-                + "|" + draft.getCvLang();
+                + "|" + draft.getCvLang()
+                + "|" + (photoKey == null ? "" : photoKey);
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(material.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 indisponible", e);
         }
+    }
+
+    /** Photo reellement imprimee sur le CV (vide si la case est decochee ou s'il n'y a pas de photo). */
+    private String photoKey(Student student, CvDraftData data) {
+        if (data == null || !Boolean.TRUE.equals(data.getIdentite().getAfficherPhoto())) {
+            return "";
+        }
+        CvPhotoService.Resolved photo = photoService.resolve(student);
+        return photo.present() ? CvPhotoService.key(photo.path()) : "";
     }
 
     private static boolean startsWithPdfSignature(byte[] bytes) {
@@ -210,7 +227,7 @@ public class CvBuilderService {
     public String preview(UUID studentId, CvDraftRequest request) {
         validator.validate(request);
         Student student = findStudent(studentId);
-        return renderService.renderHtml(student, request.getData(), resolveOptions(studentId, request));
+        return renderService.renderPreviewHtml(student, request.getData(), resolveOptions(studentId, request));
     }
 
     @Transactional(readOnly = true)
@@ -240,6 +257,27 @@ public class CvBuilderService {
     static String fileName(CvDraftData data) {
         CvDraftData.Identite identite = data.getIdentite();
         return CvFileNames.friendlyPdfName(identite.getNom(), identite.getPrenom());
+    }
+
+    // ─── Photo du CV ────────────────────────────────────────────────────────
+
+    /** Photo propre au CV : remplace la precedente, ne touche pas la photo de profil. */
+    @Transactional
+    public CvPhotoInfo uploadPhoto(UUID studentId, MultipartFile file) throws IOException {
+        return photoService.upload(findStudent(studentId), file);
+    }
+
+    /** « Revenir a ma photo de profil ». */
+    @Transactional
+    public CvPhotoInfo removePhoto(UUID studentId) {
+        return photoService.removeCvPhoto(findStudent(studentId));
+    }
+
+    /** Image de la photo du CV (JPEG deja traite), ou null s'il n'y en a pas. Etudiant lui-meme ou conseiller. */
+    @Transactional(readOnly = true)
+    public byte[] photo(UUID studentId) {
+        CvPhotoService.Resolved photo = photoService.resolve(findStudent(studentId));
+        return photo.present() ? photo.jpeg() : null;
     }
 
     /** Conseiller / admin : brouillon enregistre d'un etudiant (lecture seule, 404 s'il n'existe pas). */
@@ -275,6 +313,8 @@ public class CvBuilderService {
         identite.setNom(nullToEmpty(student.getLastName()));
         identite.setEmail(nullToEmpty(student.getEmail()));
         identite.setTelephone(nullToEmpty(student.getPhoneNumber()));
+        // Photo : cochee par defaut des qu'il y en a une (photo du CV, sinon photo de profil) ; l'etudiant peut decocher.
+        identite.setAfficherPhoto(photoService.hasPhoto(student));
 
         Promotion promotion = student.getPromotion();
         if (promotion != null) {
@@ -338,6 +378,7 @@ public class CvBuilderService {
                 .saved(true)
                 .updatedAt(draft.getUpdatedAt())
                 .lastSubmittedAt(draft.getLastSubmittedAt())
+                .photo(photoService.info(draft.getStudent()))
                 .build();
     }
 
@@ -349,6 +390,7 @@ public class CvBuilderService {
                 .cvLang("en".equals(student.getLang()) ? "en" : "fr")
                 .version(null)
                 .saved(false)
+                .photo(photoService.info(student))
                 .build();
     }
 

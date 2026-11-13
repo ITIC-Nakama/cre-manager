@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import {
-    downloadMyCvPdf, fetchMyCvDraft, fetchMyCvScore, resetMyCvDraft, saveMyCvDraft, submitMyCv,
+    downloadMyCvPdf, fetchMyCvDraft, fetchMyCvPhoto, fetchMyCvScore, removeMyCvPhoto, resetMyCvDraft, saveMyCvDraft,
+    submitMyCv, uploadMyCvPhoto,
 } from '../api-s/requests/CVBuilderRequest';
 import type { CvDraftPayload } from '../types/models/CVBuilder';
 
@@ -49,6 +51,33 @@ export function useResetMyCvDraft() {
             queryClient.invalidateQueries({ queryKey: CV_SCORE_KEY });
         },
     });
+}
+
+/**
+ * Vignette de la photo du CV (adresse locale du JPEG privé), rechargée quand la clé de la photo change.
+ * null sans photo.
+ */
+export function useMyCvPhotoUrl(key: string | null | undefined) {
+    const { data: blob } = useQuery({
+        queryKey: ['cv-builder', 'photo', key],
+        queryFn: fetchMyCvPhoto,
+        enabled: !!key,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+    });
+    const url = useMemo(() => (key && blob ? URL.createObjectURL(blob) : null), [key, blob]);
+    useEffect(() => () => {
+        if (url) URL.revokeObjectURL(url);
+    }, [url]);
+    return url;
+}
+
+export function useUploadMyCvPhoto() {
+    return useMutation({ mutationFn: (photo: Blob) => uploadMyCvPhoto(photo) });
+}
+
+export function useRemoveMyCvPhoto() {
+    return useMutation({ mutationFn: () => removeMyCvPhoto() });
 }
 
 export function useDownloadMyCvPdf() {

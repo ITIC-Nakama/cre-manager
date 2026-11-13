@@ -27,4 +27,10 @@ public class CvBuilderAdvisorController {
     public ResponseEntity<?> getDraftOfStudent(@PathVariable UUID studentId) {
         return ResponseEntity.ok(cvBuilderService.getDraftOfStudent(studentId));
     }
+
+    @GetMapping("/photo")
+    @Operation(summary = "Image de la photo du CV d'un étudiant ; 204 s'il n'y en a pas")
+    public ResponseEntity<?> photoOfStudent(@PathVariable UUID studentId) {
+        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(studentId));
+    }
 }

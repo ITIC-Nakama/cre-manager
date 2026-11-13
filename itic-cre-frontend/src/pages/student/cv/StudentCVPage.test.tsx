@@ -163,14 +163,33 @@ describe('Mon CV', () => {
     Object.entries(counts).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
   });
 
-  it('avec un CV déposé (PDF) : la fiche du CV s’affiche, un appel par endpoint', async () => {
+  it('a déjà déposé un fichier : « Mon CV » ouvre quand même l’onglet modèle, le dépôt est à un clic', async () => {
+    serve({
+      'GET /cv/me': cv('UPLOAD'),
+      'GET /cv/me/comments': [],
+      'GET /cv/builder/me': draft(false),
+      'GET /cv/builder/me/score': score,
+    });
+    renderAt('/student/cv');
+
+    expect(await screen.findByRole('heading', { name: '1. Choisis un modèle' }, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Créer avec un modèle ITIC/ }).getAttribute('aria-current')).toBe('page');
+    await settle(500);
+    Object.entries(getCounts()).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Déposer un fichier' }));
+    expect(await screen.findByText('Remplacer mon CV', {}, { timeout: 5000 })).toBeTruthy();
+  });
+
+  it('lien direct /student/cv/depot : l’onglet dépôt et la fiche du CV déposé, un appel par endpoint', async () => {
     serve({
       'GET /cv/me': cv('UPLOAD'),
       'GET /cv/me/comments': [],
     });
-    renderAt('/student/cv');
+    renderAt('/student/cv/depot');
 
     expect(await screen.findByText('Remplacer mon CV', {}, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Déposer un fichier' }).getAttribute('aria-current')).toBe('page');
     await settle();
     const counts = getCounts();
     expect(counts['/cv/me']).toBe(1);

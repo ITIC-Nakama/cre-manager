@@ -17,7 +17,10 @@ const CVBuilderPage = lazy(() => import('../cv-builder/CVBuilderPage'));
 const CV_BUILDER_PATH = '/student/cv/assistant';
 const CV_UPLOAD_PATH = '/student/cv/depot';
 
-/** Onglet affiché : imposé par l'adresse, sinon l'assistant (pas de CV ou CV de l'assistant) ou le dépôt. */
+/**
+ * Onglet affiché : « Créer avec un modèle ITIC » par défaut, même si l'étudiant a déjà déposé un fichier (demande
+ * ITIC du 13/11/2026) ; « Déposer un fichier » est à un clic, et /student/cv/depot l'ouvre directement.
+ */
 type CvPageMode = 'auto' | 'builder' | 'upload';
 
 export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) {
@@ -124,7 +127,7 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
     );
   }
 
-  const activeTab: 'builder' | 'upload' = mode !== 'auto' ? mode : !cv || cv.source === 'BUILDER' ? 'builder' : 'upload';
+  const activeTab: 'builder' | 'upload' = mode === 'upload' ? 'upload' : 'builder';
   const tabClass = (active: boolean) =>
     `inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors motion-reduce:transition-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff] ${active
       ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-slate-700'

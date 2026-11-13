@@ -19,4 +19,6 @@ public class CvDraftResponse {
     private boolean saved;
     private Instant updatedAt;
     private Instant lastSubmittedAt;
+    /** Photo que le CV utilise (propre au CV, de profil ou aucune). */
+    private CvPhotoInfo photo;
 }

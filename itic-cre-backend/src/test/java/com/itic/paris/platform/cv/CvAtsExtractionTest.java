@@ -3,6 +3,8 @@ package com.itic.paris.platform.cv;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.cv.model.CvTemplate;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
+import com.itic.paris.platform.cv.repository.CvPhotoRepository;
+import com.itic.paris.platform.cv.service.CvPhotoService;
 import com.itic.paris.platform.cv.service.CvRenderService;
 import com.itic.paris.platform.cv.service.CvRenderService.CvRenderOptions;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -60,7 +62,7 @@ class CvAtsExtractionTest {
     private static final float A4_HEIGHT_PT = 842f;
 
     private final ICloudStorage storage = mock(ICloudStorage.class);
-    private final CvRenderService renderService = new CvRenderService(storage);
+    private final CvRenderService renderService = new CvRenderService(new CvPhotoService(storage, mock(CvPhotoRepository.class)));
 
     static Stream<Arguments> templatesWithAndWithoutPhoto() {
         return Stream.of(CvTemplate.values()).flatMap(t -> Stream.of(Arguments.of(t, false), Arguments.of(t, true)));
@@ -146,7 +148,7 @@ class CvAtsExtractionTest {
 
         assertThat(normalize(extract(withPhoto, false))).isEqualTo(normalize(extract(withoutPhoto, false)));
         assertThat(normalize(extract(withPhoto, true))).isEqualTo(normalize(extract(withoutPhoto, true)));
-        // Certains modeles affichent le logo ITIC a la place de la photo : on cherche la photo elle-meme (120 x 140).
+        // On cherche la photo elle-meme (150 x 180, format 5:6 des emplacements), pas le logo ITIC.
         assertThat(hasPhoto(withPhoto)).as("%s : la photo est dans le PDF", template).isTrue();
         assertThat(hasPhoto(withoutPhoto)).as("%s : pas de photo demandée, pas de photo", template).isFalse();
     }
@@ -437,12 +439,69 @@ class CvAtsExtractionTest {
         return cv;
     }
 
+    // ─── Emplacement photo (13/11/2026) ─────────────────────────────────────────
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("templates")
+    @DisplayName("Sans photo, l'emplacement reste réservé : chaque ligne de texte est exactement au même endroit")
+    void photoSlotIsReservedWithoutPhoto(CvTemplate template) throws Exception {
+        byte[] withPhoto = render(template, sample(true), true);
+        byte[] withoutPhoto = render(template, sample(false), false);
+
+        assertThat(linePositions(withoutPhoto)).as("%s : mise en page identique sans photo", template)
+                .isEqualTo(linePositions(withPhoto));
+        assertThat(normalize(extract(withoutPhoto, false))).as("%s : aucun texte dans l'emplacement vide", template)
+                .doesNotContain("ajouter une photo").doesNotContain("add a photo");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("templates")
+    @DisplayName("Case décochée : pas de photo dans le PDF même si l'étudiant en a une")
+    void uncheckedPhotoIsNotPrinted(CvTemplate template) throws Exception {
+        assertThat(hasPhoto(render(template, sample(false), true))).as("%s : case décochée", template).isFalse();
+    }
+
+    @ParameterizedTest(name = "{0}, {1}")
+    @MethodSource("templatesAndLanguages")
+    @DisplayName("La photo est dans le PDF des 4 modèles, en français comme en anglais")
+    void photoIsPrintedInEveryTemplateAndLanguage(CvTemplate template, String lang) throws Exception {
+        assertThat(hasPhoto(render(template, sample(true), true, lang))).as("%s %s", template, lang).isTrue();
+    }
+
+    static Stream<Arguments> templatesAndLanguages() {
+        return Stream.of(CvTemplate.values()).flatMap(t -> Stream.of(Arguments.of(t, "fr"), Arguments.of(t, "en")));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("templates")
+    @DisplayName("Aperçu de l'éditeur : « Ajouter une photo » dans l'emplacement vide, jamais dans le HTML du PDF")
+    void editorPreviewShowsAddPhotoOnlyInPreview(CvTemplate template) throws Exception {
+        Student student = new Student();
+        student.setId(UUID.randomUUID());
+        CvRenderOptions fr = new CvRenderOptions(template, "#3B71FF", "fr");
+        CvRenderOptions en = new CvRenderOptions(template, "#3B71FF", "en");
+
+        String preview = renderService.renderPreviewHtml(student, sample(false), fr);
+        assertThat(preview).contains("data-cv-photo=\"empty\"").contains("Ajouter une photo");
+        assertThat(renderService.renderPreviewHtml(student, sample(false), en)).contains("Add a photo");
+
+        String pdfHtml = renderService.renderHtml(student, sample(false), fr);
+        assertThat(pdfHtml).contains("data-cv-photo=\"empty\"").doesNotContain("Ajouter une photo");
+
+        student.setProfilePicture("profiles/photo.png");
+        byte[] png = samplePhoto();
+        when(storage.downloadFile(anyString())).thenAnswer(inv -> new ByteArrayInputStream(png));
+        String withPhoto = renderService.renderPreviewHtml(student, sample(true), fr);
+        assertThat(withPhoto).contains("data-cv-photo=\"photo\"").doesNotContain("Ajouter une photo");
+    }
+
     // ─── Outils ───────────────────────────────────────────────────────────────
 
     private byte[] render(CvTemplate template, CvDraftData cv, boolean photo) throws IOException {
         return render(template, cv, photo, "fr");
     }
 
+    /** photo : l'etudiant a une photo de profil (la case du CV, elle, est dans cv). */
     private byte[] render(CvTemplate template, CvDraftData cv, boolean photo, String lang) throws IOException {
         Student student = new Student();
         student.setId(UUID.randomUUID());
@@ -455,10 +514,10 @@ class CvAtsExtractionTest {
     }
 
     private static byte[] samplePhoto() throws IOException {
-        BufferedImage image = new BufferedImage(120, 140, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(150, 180, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setColor(new Color(0x3B71FF));
-        g.fillRect(0, 0, 120, 140);
+        g.fillRect(0, 0, 150, 180);
         g.dispose();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(image, "png", out);
@@ -473,20 +532,38 @@ class CvAtsExtractionTest {
         }
     }
 
-    /** Vrai si le PDF contient l'image de la photo d'exemple (120 x 140 px). */
+    /** Vrai si le PDF contient l'image de la photo d'exemple (150 x 180 px, format 5:6 des emplacements). */
     private static boolean hasPhoto(byte[] pdf) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdf)) {
             for (PDPage page : document.getPages()) {
                 PDResources resources = page.getResources();
                 for (COSName name : resources.getXObjectNames()) {
                     if (resources.getXObject(name) instanceof PDImageXObject image
-                            && image.getWidth() == 120 && image.getHeight() == 140) {
+                            && image.getWidth() == 150 && image.getHeight() == 180) {
                         return true;
                     }
                 }
             }
         }
         return false;
+    }
+
+    /** Chaque ligne de texte et sa position (au dixieme de point) : deux mises en page identiques donnent la meme liste. */
+    private static List<String> linePositions(byte[] pdf) throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            PDFTextStripper stripper = new PDFTextStripper() {
+                @Override
+                protected void writeString(String text, List<TextPosition> positions) {
+                    TextPosition first = positions.get(0);
+                    lines.add(String.format(Locale.ROOT, "%d|%.1f|%.1f|%s", getCurrentPageNo(), first.getXDirAdj(),
+                            first.getYDirAdj(), text));
+                }
+            };
+            stripper.setSortByPosition(true);
+            stripper.getText(document);
+        }
+        return lines;
     }
 
     /** Insensible a la casse (titres en capitales) et aux retours a la ligne. */
