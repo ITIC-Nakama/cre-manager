@@ -32,7 +32,7 @@ public class TestStudentSeeder implements ApplicationRunner {
     @Value("${app.test.student.email:test.student@itic.fr}")
     private String email;
 
-    @Value("${app.test.student.password:Test123!}")
+    @Value("${app.test.student.password:}")
     private String password;
 
     @Value("${app.test.student.first-name:Etudiant}")
@@ -45,6 +45,11 @@ public class TestStudentSeeder implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         if (!enabled) return;
+        // Aucun mot de passe par defaut (depot public) : sans TEST_STUDENT_PASSWORD, on ne cree rien.
+        if (password == null || password.isBlank()) {
+            log.warn("Compte de test non cree : app.test.student.password est vide");
+            return;
+        }
         if (userRepository.existsByEmailIgnoreCase(email)) return;
 
         Role role = roleRepository.findByName(RoleEnum.STUDENT);
