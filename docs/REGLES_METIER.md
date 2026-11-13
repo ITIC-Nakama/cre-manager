@@ -181,6 +181,11 @@ l'interface ITIC), soit d'une des 3 sources externes agrégées automatiquement 
 table et sont traitées de façon identique pour la recherche, le filtrage et la candidature ; seule
 la synchronisation et l'expiration diffèrent par source (voir plus bas).
 
+**Libellé affiché** (13/11/2026, demande de Jules) : les offres `MANUAL` s'appellent **« Exclusivité ITIC PARIS »**
+(anglais : « ITIC PARIS Exclusive ») dans l'interface : onglet de l'étudiant, compteur (« 121 offres en exclusivité
+ITIC Paris »), filtre « Source » et fenêtre « Tout supprimer » côté staff. Seuls les libellés changent : la valeur
+`MANUAL` en base et dans l'API, les clés de traduction et les routes restent les mêmes.
+
 ### Tri par défaut
 Les listes d'offres (`/jobboard/offers`, `/jobboard/offers/all` et les endpoints de recherche) sont
 triées par défaut sur `JobOffer.priorityContract` puis `JobOffer.effectiveDate`, tous deux

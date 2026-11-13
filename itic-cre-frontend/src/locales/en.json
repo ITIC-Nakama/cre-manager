@@ -701,11 +701,11 @@
       "filters_button": "Filters",
       "filters_reset": "Reset filters",
       "tabs": {
-        "itic": "ITIC offers",
+        "itic": "ITIC PARIS Exclusive",
         "external": "External market"
       },
-      "itic_subtitle_one": "{{count}} ITIC offer available",
-      "itic_subtitle_other": "{{count}} ITIC offers available",
+      "itic_subtitle_one": "{{count}} ITIC Paris exclusive offer",
+      "itic_subtitle_other": "{{count}} ITIC Paris exclusive offers",
       "external": {
         "subtitle_one": "{{count}} external offer available",
         "subtitle_other": "{{count}} external offers available",
@@ -721,8 +721,8 @@
       "filter_all_sectors": "All sectors",
       "filter_all_statuses": "All offers",
       "source_options": {
-        "all": "All offers (internal + external)",
-        "manual": "Internal offers (manual)",
+        "all": "All offers (ITIC PARIS Exclusive + external)",
+        "manual": "ITIC PARIS Exclusive",
         "external": "External offers (all)",
         "france_travail": "France Travail",
         "bonne_alternance": "La Bonne Alternance",
@@ -743,7 +743,7 @@
       "wipe_dialog": {
         "title": "Bulk-delete job offers",
         "message": "This action is irreversible. Choose what to delete:",
-        "manual_label": "Internal offers (manual)",
+        "manual_label": "ITIC PARIS Exclusive",
         "manual_description": "Deletes only offers manually created by advisors.",
         "external_label": "External offers",
         "external_description": "Deletes all synced offers (France Travail, Adzuna, La Bonne Alternance).",
@@ -1590,7 +1590,7 @@
           "JOBBOARD_SYNC_MAX_PER_PROVIDER": "Maximum number of offers fetched per selected ROME code (France Travail, La Bonne Alternance) or per selected category (Adzuna) on each sync — the real total grows with the number of ROME codes/categories configured",
           "JOBBOARD_OFFER_EXPIRATION_DAYS": "Days after the last known update of an external offer (France Travail, Adzuna) before considering it expired",
           "JOBBOARD_OFFER_DELETE_AFTER_DAYS": "Days after expiration before an external offer is permanently deleted from the database",
-          "APPLICATION_XP_WEEKLY_LIMIT": "Maximum number of \"applied\" actions (ITIC or external) credited with XP per student over a rolling 7-day window",
+          "APPLICATION_XP_WEEKLY_LIMIT": "Maximum number of \"applied\" actions (ITIC PARIS Exclusive or external) credited with XP per student over a rolling 7-day window",
           "GDPR_ALUMNI_RETENTION_DAYS": "Retention period of alumni records before automatic deletion (days)"
         }
       },
