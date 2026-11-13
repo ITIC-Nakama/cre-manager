@@ -168,6 +168,16 @@ Gérer `ObjectOptimisticLockingFailureException` (déjà mappée par `GlobalExce
   - mobile : onglets Formulaire / Aperçu ;
   - auto-sauvegarde anti-rebond 1,5 s + au changement de section ; avertissement si l'on quitte avec des changements non enregistrés ;
   - commentaires du conseiller visibles dans l'assistant (panneau latéral) pour corriger sans changer de page.
+- **Accompagnement** (13/11/2026, front uniquement ; textes dans `components/guidance.ts`, traduits sous `studentCvBuilder.guide|welcome|submitted|check|ats`) :
+  - **accueil** à la première visite : encouragement et 3 repères ; refermé, il ne revient plus (navigateur, par compte : `localStorage`) ;
+  - **conseil + exemple** en tête de chaque section, adaptés à l'alternance ;
+  - **exemples prêts à adapter** : 3 accroches (passages `[entre crochets]` à personnaliser, confirmation avant de remplacer un texte déjà écrit) et 5 réalisations chiffrées (« Ajouter » remplit une ligne vide ou en crée une, ne remplace jamais) ;
+  - **verbes d'action** proposés sous une réalisation vide, et une astuce après « j'ai aidé », « participer »… ;
+  - **score** : « Prochaine étape la plus utile » avec le gain (« tu passes à 67 % ») et un bouton qui ouvre la section ; plus de rouge ;
+  - **vérification avant envoi** dans la confirmation (jamais bloquante) : coordonnées, une expérience, une réalisation chiffrée, une page, format (e-mail, téléphone, dates, passages entre crochets restés), expériences proposées confirmées ; « Corriger » ferme la fenêtre et ouvre la section ;
+  - badge **« Lisible par les recruteurs »** dans l'aperçu (explication sans jargon ; orange s'il manque nom, e-mail ou téléphone) ;
+  - après l'envoi, **« C'est envoyé ! Et maintenant ? »** : relecture, e-mail à chaque avis du conseiller (statut ou commentaire), retour dans l'assistant pour corriger ;
+  - confort : focus visible au clavier, espaces insécables avant la ponctuation, **« réduire les animations »** respecté dans toute l'application (`index.css`).
 - `F/api-s/requests/CVBuilderRequest.ts`, `F/hooks/useCVBuilder.ts` (TanStack Query), types `F/types/models/CVBuilder.ts`, i18n `studentCvBuilder` dans `fr.json` et `en.json`.
 - PWA : exclure `/api/v1/cv/builder/` du cache NetworkFirst (`vite.config.ts`).
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { CV_LIMITS, type CvBuilderFormValues } from '../../../../../types/models/CVBuilder';
 import { AddButton, EntryActions, Field, MonthInput, PointsEditor, TextInput } from '../fields';
+import { BulletExamples } from '../Examples';
 import { newEntryId } from '../fieldUtils';
 
 export default function ExperiencesSection() {
@@ -31,10 +32,11 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
   index: number; count: number; onMove: (from: number, to: number) => void; onRemove: () => void;
 }) {
   const { t } = useTranslation();
-  const { register, control, setValue } = useFormContext<CvBuilderFormValues>();
+  const { register, control, setValue, getValues } = useFormContext<CvBuilderFormValues>();
   const base = `data.experiences.${index}` as const;
   const enCours = useWatch({ control, name: `${base}.enCours` });
   const aConfirmer = useWatch({ control, name: `${base}.aConfirmer` });
+  const points = useWatch({ control, name: `${base}.points` });
   const short = { maxLength: CV_LIMITS.shortText };
 
   return (
@@ -112,9 +114,17 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
         hint={t('studentCvBuilder.experiences.pointsHint', 'Commence par un verbe d’action et chiffre quand tu peux. Entoure un chiffre de ** pour le mettre en gras : **+15 %**.')}>
         <Controller control={control} name={`${base}.points`}
           render={({ field }) => (
-            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} />
+            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} suggestVerbs />
           )} />
       </Field>
+      <BulletExamples disabled={(points ?? []).filter((p) => p.trim()).length >= CV_LIMITS.points}
+        onAdd={(text) => {
+          // Remplit d'abord une ligne vide, sinon en ajoute une : rien n'est remplacé.
+          const current = getValues(`${base}.points`) ?? [];
+          const empty = current.findIndex((p) => !p.trim());
+          const next = empty >= 0 ? current.map((p, j) => (j === empty ? text : p)) : [...current, text];
+          setValue(`${base}.points`, next.slice(0, CV_LIMITS.points), { shouldDirty: true });
+        }} />
     </div>
   );
 }

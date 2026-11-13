@@ -18,6 +18,9 @@ import {
 } from '../../../types/models/CVBuilder';
 import BuilderToolbar, { type SaveStatus } from './components/BuilderToolbar';
 import TemplatePicker from './components/TemplatePicker';
+import { PreSendChecklist, SubmittedCard, WelcomeCard } from './components/GuidanceCards';
+import { preSendChecks, SECTION_TIPS } from './components/guidance';
+import { useUserStore } from '../../../store/UserStore';
 import SectionCard from './components/SectionCard';
 import CVPreview from './components/CVPreview';
 import CompletenessPanel from './components/CompletenessPanel';
@@ -136,6 +139,8 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
   const downloadMutation = useDownloadMyCvPdf();
   const submitMutation = useSubmitMyCv();
   const resetMutation = useResetMyCvDraft();
+  const userId = useUserStore((state) => state.user?.id);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const { data: myCv } = useMyCV();
   const { data: comments = [] } = useMyComments(!!myCv);
   const { data: completeness, isFetching: scoreLoading } = useMyCvScore(true);
@@ -346,6 +351,7 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
       setSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: CV_DRAFT_KEY });
       toast.success(t('studentCvBuilder.toast.submitted', 'CV envoyé à ton conseiller : il est maintenant « En attente » de relecture.'));
+      setJustSubmitted(true);
       onSubmitted?.();
     } catch (err) {
       if ((err as { response?: { status?: number } })?.response?.status === 409) setSaveStatus('conflict');
@@ -355,12 +361,17 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
 
   const renderSection = (key: CvFormSectionKey) => {
     const def = SECTION_DEFS[key];
+    const tip = SECTION_TIPS[key];
     const orderable = key !== 'identite' && key !== 'accroche';
     const index = orderable ? order.indexOf(key as CvSectionKey) : -1;
     return (
       <SectionCard key={key} sectionKey={key}
         title={t(`studentCvBuilder.sections.${key}.title`, def.title)}
         help={t(`studentCvBuilder.sections.${key}.help`, def.help)}
+        tip={tip && {
+          tip: t(`studentCvBuilder.guide.sections.${key}.tip`, tip.tip),
+          example: t(`studentCvBuilder.guide.sections.${key}.example`, tip.example),
+        }}
         icon={def.icon}
         open={openSections.has(key)}
         onToggle={() => toggleSection(key)}
@@ -379,12 +390,20 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
     );
   };
 
+  // Les logiciels des recruteurs cherchent le nom et les coordonnées en haut du CV.
+  const [prenom, nom, email, telephone] = useWatch({
+    control, name: ['data.identite.prenom', 'data.identite.nom', 'data.identite.email', 'data.identite.telephone'],
+  });
+  const recruiterReady = [prenom, nom, email, telephone].every((v) => !!v?.trim());
+
   const tab = (active: boolean) =>
     `flex-1 py-2 text-sm font-semibold rounded-lg cursor-pointer ${active ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`;
 
   return (
     <FormProvider {...methods}>
       <div className="flex flex-col gap-6 animate-fadeIn motion-reduce:animate-none">
+        {justSubmitted && <SubmittedCard onClose={() => setJustSubmitted(false)} />}
+        {!justSubmitted && <WelcomeCard storageKey={`itic.cvBuilder.welcomeSeen.${userId ?? 'anonyme'}`} />}
         <TemplatePicker />
 
         <section aria-labelledby="cv-step-fill" className="flex flex-col gap-3">
@@ -430,7 +449,7 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
 
           <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-col min-w-0 h-[75vh] lg:h-[calc(100vh-9.5rem)] lg:sticky lg:top-24`}>
             <CVPreview html={previewHtml} loading={previewLoading} error={previewError}
-              pageCount={completeness?.pageCount ?? null} />
+              pageCount={completeness?.pageCount ?? null} recruiterReady={recruiterReady} />
           </div>
         </div>
         </section>
@@ -442,7 +461,15 @@ function CVBuilderEditor({ initial, onReload, onResetDone, onSubmitted }: {
           onConfirm={handleSubmit}
           onClose={() => setConfirmOpen(false)}
           title={t('studentCvBuilder.submitModal.title', 'Envoyer ton CV à ton conseiller ?')}
-          body={t('studentCvBuilder.submitModal.body', 'Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.')}
+          body={(
+            <>
+              {t('studentCvBuilder.submitModal.body', 'Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.')}
+              {confirmOpen && (
+                <PreSendChecklist checks={preSendChecks(getValues(), completeness?.pageCount ?? null)}
+                  onFix={(section) => { setConfirmOpen(false); openSection(section); }} />
+              )}
+            </>
+          )}
           confirmLabel={t('studentCvBuilder.submitModal.confirm', 'Envoyer')}
           showWarning={!!myCv}
         />

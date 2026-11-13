@@ -174,7 +174,7 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
             <Loader2 className="h-6 w-6 animate-spin motion-reduce:animate-none" />
           </div>
         }>
-          <CVBuilderPage onSubmitted={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+          <CVBuilderPage />
         </Suspense>
       ) : !cv ? (
         /* Aucun CV encore déposé : la zone de dépôt habituelle. */

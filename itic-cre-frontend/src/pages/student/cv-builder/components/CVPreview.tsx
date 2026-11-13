@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Loader2, Minus, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { RecruiterReadability } from './GuidanceCards';
 
 /** Largeur de la feuille rendue par le modèle (210 mm à 96 dpi). */
 const SHEET_WIDTH_PX = 794;
@@ -12,13 +13,15 @@ interface Props {
   error: string | null;
   /** Nombre de pages du dernier PDF calculé par le serveur (score / téléchargement). */
   pageCount: number | null;
+  /** Coordonnées présentes : le CV est bien lu par les logiciels des recruteurs. */
+  recruiterReady: boolean;
 }
 
 /**
  * Aperçu exact du PDF : le HTML du modèle rendu par le serveur, affiché dans une iframe sans scripts.
  * allow-same-origin (sans allow-scripts) sert uniquement à mesurer la hauteur du document.
  */
-export default function CVPreview({ html, loading, error, pageCount }: Props) {
+export default function CVPreview({ html, loading, error, pageCount, recruiterReady }: Props) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -57,7 +60,7 @@ export default function CVPreview({ html, loading, error, pageCount }: Props) {
   return (
     <div className="flex flex-col gap-3 h-full">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           <span className="text-sm font-bold text-slate-900 dark:text-white">
             {t('studentCvBuilder.preview.title', 'Aperçu')}
           </span>
@@ -68,7 +71,8 @@ export default function CVPreview({ html, loading, error, pageCount }: Props) {
               {t('studentCvBuilder.preview.pages', '{{count}} page', { count: pageCount })}
             </span>
           )}
-          {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+          <RecruiterReadability ready={recruiterReady} />
+          {loading && <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-slate-400" />}
         </div>
         <div className="flex items-center gap-1 text-xs text-slate-500">
           <button type="button" onClick={() => stepZoom(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"

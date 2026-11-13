@@ -2,6 +2,8 @@ import { useState, type ComponentProps, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Plus, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { compactFieldClass } from './fieldUtils';
+import { ActionVerbs } from './Examples';
+import { isWeakStart } from './guidance';
 
 /**
  * Libellé + champ + aide courte. `group` : le contenu contient plusieurs contrôles (étiquettes, points),
@@ -136,12 +138,17 @@ export function TagInput({ value, onChange, placeholder, max, maxLength }: {
 }
 
 /** Points d'une expérience (ou d'une formation) : une ligne par point, `max` au plus, `maxLength` caractères chacun. */
-export function PointsEditor({ value, onChange, max, maxLength, placeholder, addLabel }: {
+export function PointsEditor({ value, onChange, max, maxLength, placeholder, addLabel, suggestVerbs = false }: {
   value: string[] | undefined; onChange: (next: string[]) => void; max: number; maxLength: number;
   placeholder?: string; addLabel?: string;
+  /** Propose des verbes d'action sur une ligne vide, et un verbe plus fort après « j'ai aidé »… */
+  suggestVerbs?: boolean;
 }) {
   const { t } = useTranslation();
   const points = value ?? [];
+  // Dernière ligne utilisée (et non « ligne qui a le focus ») : les verbes restent affichés quand on quitte la ligne,
+  // sinon leur disparition décalait l'écran au moment du clic suivant, qui tombait à côté.
+  const [focused, setFocused] = useState<number | null>(null);
   const update = (i: number, text: string) => onChange(points.map((p, j) => (j === i ? text : p)));
   const move = (from: number, to: number) => {
     const next = [...points];
@@ -158,7 +165,16 @@ export function PointsEditor({ value, onChange, max, maxLength, placeholder, add
           <div className="flex-1 flex flex-col gap-0.5">
             <input type="text" value={point} maxLength={maxLength}
               placeholder={placeholder ?? t('studentCvBuilder.experiences.pointPlaceholder', 'Ex : Développement d’une API REST utilisée par 3 équipes')}
+              onFocus={() => setFocused(i)}
               onChange={(e) => update(i, e.target.value)} className={compactFieldClass()} />
+            {suggestVerbs && focused === i && !point.trim() && (
+              <ActionVerbs onPick={(verb) => update(i, `${verb} `)} />
+            )}
+            {suggestVerbs && isWeakStart(point) && (
+              <span className="text-[11px] text-amber-700 dark:text-amber-400">
+                {t('studentCvBuilder.guide.weakVerb', 'Astuce : un verbe d’action est plus fort. Par exemple « Organiser… », « Gérer… », « Accompagner… ».')}
+              </span>
+            )}
             <div className="self-end"><CharCounter value={point} max={maxLength} /></div>
           </div>
           <EntryActions index={i} count={points.length} onMove={move} onRemove={() => onChange(points.filter((_, j) => j !== i))} />
