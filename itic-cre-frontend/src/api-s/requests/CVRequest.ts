@@ -71,14 +71,30 @@ export function uploadMyCV(file: File): Promise<CVResponse> {
     return apiClient.post('/cv/me/upload', formData).then((r) => unwrap<CVResponse>(r));
 }
 
-/** GET /cv/me — récupérer le CV de l'étudiant connecté */
-export function fetchMyCV(): Promise<CVResponse> {
-    return apiClient.get('/cv/me').then((r) => unwrap<CVResponse>(r));
+/** Réponse 404 de l'API (quelle que soit la forme de l'erreur remontée par axios). */
+export function isNotFound(error: unknown): boolean {
+    const e = error as { response?: { status?: number; data?: { statusCode?: number } }; statusCode?: number };
+    return e?.response?.status === 404 || e?.statusCode === 404 || e?.response?.data?.statusCode === 404;
 }
 
-/** GET /cv/me/comments — récupérer les commentaires sur le CV de l'étudiant connecté */
+/**
+ * GET /cv/me — CV de l'étudiant connecté, ou null s'il n'en a pas encore déposé.
+ * Le 404 « pas encore de CV » est un état normal, pas une erreur : le traiter en erreur faisait repasser la requête
+ * en chargement à chaque nouvel abonné, et « Mon CV » se démontait et se remontait en boucle.
+ */
+export function fetchMyCV(): Promise<CVResponse | null> {
+    return apiClient.get('/cv/me').then((r) => unwrap<CVResponse>(r)).catch((error) => {
+        if (isNotFound(error)) return null;
+        throw error;
+    });
+}
+
+/** GET /cv/me/comments — commentaires sur le CV de l'étudiant connecté ; liste vide s'il n'a pas de CV (404). */
 export function fetchMyComments(): Promise<CVComment[]> {
-    return apiClient.get('/cv/me/comments').then((r) => unwrap<CVComment[]>(r));
+    return apiClient.get('/cv/me/comments').then((r) => unwrap<CVComment[]>(r)).catch((error) => {
+        if (isNotFound(error)) return [];
+        throw error;
+    });
 }
 
 /** GET /cv/student/{studentId} — récupérer le CV d'un étudiant par son ID (conseiller) */
