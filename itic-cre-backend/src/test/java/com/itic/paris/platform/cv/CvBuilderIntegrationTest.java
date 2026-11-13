@@ -132,6 +132,41 @@ public class CvBuilderIntegrationTest {
         token = tokenFor(student);
     }
 
+    // ─── 0. « Mon CV » sans CV : ni 404 ni erreur ───────────────────────────
+    // Le 404 de GET /cv/me faisait boucler les anciennes versions du front encore en cache (service worker).
+
+    @Test
+    public void getMyCv_WithoutCv_ShouldReturn204WithEmptyBody() throws Exception {
+        MvcResult result = mockMvc.perform(get("/cv/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isNoContent())
+                .andReturn();
+        assertThat(result.getResponse().getContentAsString()).isEmpty();
+    }
+
+    @Test
+    public void getMyComments_WithoutCv_ShouldReturnEmptyList() throws Exception {
+        mockMvc.perform(get("/cv/me/comments").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    public void getMyCv_WithCv_ShouldReturnItAndItsComments() throws Exception {
+        CV existing = new CV();
+        existing.setStudent(student);
+        existing.setFilePath("cvs/" + student.getId() + "-1700000000000.pdf");
+        existing.setStatut(cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().get(0));
+        existing = cvRepository.save(existing);
+
+        mockMvc.perform(get("/cv/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(existing.getId().toString()));
+        mockMvc.perform(get("/cv/me/comments").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
     // ─── 1. Premier acces : prerempli, rien d'enregistre ────────────────────
 
     @Test

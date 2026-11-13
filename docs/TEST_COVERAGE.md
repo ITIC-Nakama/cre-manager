@@ -45,7 +45,7 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Stockage Fichiers** | `FileAccessIntegrationTest.java` | 7 | Accès et upload de fichiers vers le stockage Cloud/Local (`ICloudStorage`), contrôle des permissions d'accès aux fichiers privés. |
 | **Jobboard — bouton « Postuler »** | `JobOfferApplyChannelIntegrationTest.java` (+ 17 offres de `JobOfferIntegrationTest.java` dotées d'un lien) | 8 | Extraction de l'adresse e-mail de candidature (première adresse, minuscules, ponctuation exclue), à la création, à la modification et à l'import externe ; lien seul accepté ; offre staff sans lien ni adresse refusée (400 `job-offer-no-apply-channel`) ; adresse exposée côté étudiant ; filtre staff « Sans moyen de postuler » (`noApplyChannel=true`, lien vide compris). |
 
-**Total : 434 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+**Total : 437 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -55,7 +55,7 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 
 | Page | Fichier | Tests | Ce qui est vérifié |
 |---|---|---|---|
-| **Mon CV (étudiant)** | `src/pages/student/cv/StudentCVPage.test.tsx` | 4 | Sans CV ni brouillon (`GET /cv/me` en 404) : la page s'affiche, un seul appel par endpoint, aucun appel aux commentaires, « Déposer un fichier » utilisable (régression : boucle de remontage, 55 requêtes en 6 s en prod). Avec un CV déposé, avec un CV de l'assistant sans brouillon, étudiant sous contrat (expérience proposée, CV à corriger, commentaire) : un appel par endpoint. |
+| **Mon CV (étudiant)** | `src/pages/student/cv/StudentCVPage.test.tsx` | 5 | API à jour (`GET /cv/me` en 204, corps vide) avec une expérience proposée depuis une candidature : la page s'affiche, un appel par endpoint. Sans CV ni brouillon (`GET /cv/me` en 404) : la page s'affiche, un seul appel par endpoint, aucun appel aux commentaires, « Déposer un fichier » utilisable (régression : boucle de remontage, 55 requêtes en 6 s en prod). Avec un CV déposé, avec un CV de l'assistant sans brouillon, étudiant sous contrat (expérience proposée, CV à corriger, commentaire) : un appel par endpoint. |
 
 ## 3. Exécution Automatisée dans la CI/CD
 

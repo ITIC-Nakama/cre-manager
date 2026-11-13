@@ -83,7 +83,8 @@ export function isNotFound(error: unknown): boolean {
  * en chargement à chaque nouvel abonné, et « Mon CV » se démontait et se remontait en boucle.
  */
 export function fetchMyCV(): Promise<CVResponse | null> {
-    return apiClient.get('/cv/me').then((r) => unwrap<CVResponse>(r)).catch((error) => {
+    // 204 (corps vide) depuis le 13/11/2026 ; 404 sur les anciennes versions de l'API : dans les deux cas, pas de CV.
+    return apiClient.get('/cv/me').then((r) => unwrap<CVResponse | ''>(r) || null).catch((error) => {
         if (isNotFound(error)) return null;
         throw error;
     });

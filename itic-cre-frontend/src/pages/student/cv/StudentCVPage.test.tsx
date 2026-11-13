@@ -139,6 +139,30 @@ describe('Mon CV', () => {
     expect(getCounts()['/cv/me']).toBe(1);
   });
 
+  it('API à jour : sans CV, GET /cv/me répond 204 (corps vide) et les commentaires [] — même résultat', async () => {
+    serve({
+      'GET /cv/builder/me': draft(false, draftData({
+        experiences: [{
+          id: 'e1', poste: 'Assistant RH en alternance', entreprise: 'Entreprise Recette', ville: '', typeContrat: 'Alternance',
+          debut: '2026-09', fin: null, enCours: true, points: [], aConfirmer: true,
+        }],
+      })),
+      'GET /cv/builder/me/score': score,
+      'GET /cv/me/comments': [],
+    });
+    const base = api.get.getMockImplementation()!;
+    api.get.mockImplementation((url: string) => (url === '/cv/me' ? Promise.resolve({ data: '' }) : base(url)));
+    renderAt('/student/cv');
+
+    expect(await screen.findByRole('heading', { name: '1. Choisis un modèle' }, { timeout: 5000 })).toBeTruthy();
+    await settle();
+    expect(screen.getByRole('button', { name: /Créer avec un modèle ITIC/ }).getAttribute('aria-current')).toBe('page');
+    const counts = getCounts();
+    expect(counts['/cv/me']).toBe(1);
+    expect(counts['/cv/me/comments'] ?? 0).toBe(0);
+    Object.entries(counts).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
+  });
+
   it('avec un CV déposé (PDF) : la fiche du CV s’affiche, un appel par endpoint', async () => {
     serve({
       'GET /cv/me': cv('UPLOAD'),

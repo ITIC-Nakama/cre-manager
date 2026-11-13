@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -145,6 +146,12 @@ public class CVService {
         }
 
         return buildCVResponse(saved);
+    }
+
+    /** CV de l'etudiant, vide s'il n'en a pas encore (« pas encore de CV » n'est pas une erreur). */
+    @Transactional(readOnly = true)
+    public Optional<Map<String, Object>> findMyCv(UUID studentId) {
+        return cvRepository.findByStudentId(studentId).map(this::buildCVResponse);
     }
 
     @Transactional(readOnly = true)
