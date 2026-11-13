@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +40,39 @@ public class CvBuilderStudentController {
     @Operation(summary = "Enregistrer son brouillon de CV (409 si la version est périmée)")
     public ResponseEntity<?> saveMyDraft(@RequestBody @Valid CvDraftRequest request) {
         return ResponseEntity.ok(cvBuilderService.saveMyDraft(SecurityContextHelper.currentUserId(), request));
+    }
+
+    @PostMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Changer la photo du CV (JPEG ou PNG, 5 Mo max) : vérifiée, recadrée, ré-encodée sans EXIF ; "
+            + "la photo de profil n'est pas modifiée")
+    public ResponseEntity<?> uploadPhoto(@RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(cvBuilderService.uploadPhoto(SecurityContextHelper.currentUserId(), file));
+    }
+
+    @DeleteMapping("/photo")
+    @Operation(summary = "Revenir à sa photo de profil (supprime la photo propre au CV)")
+    public ResponseEntity<?> removePhoto() {
+        return ResponseEntity.ok(cvBuilderService.removePhoto(SecurityContextHelper.currentUserId()));
+    }
+
+    @GetMapping("/photo")
+    @Operation(summary = "Image de la photo du CV (photo du CV, sinon de profil) ; 204 s'il n'y en a pas")
+    public ResponseEntity<?> photo() {
+        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(SecurityContextHelper.currentUserId()));
+    }
+
+    /**
+     * JPEG prive : jamais en cache (photo d'une personne). Type de retour ResponseEntity<?> : sans photo, le 204 part
+     * sans corps (avec ResponseEntity<byte[]>, l'enveloppe JSON ne pouvait pas s'ecrire en octets : erreur 500).
+     */
+    static ResponseEntity<?> photoResponse(byte[] jpeg) {
+        if (jpeg == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .cacheControl(CacheControl.noStore())
+                .body(jpeg);
     }
 
     @PostMapping("/reset")

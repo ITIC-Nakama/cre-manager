@@ -6,7 +6,6 @@ import com.itic.paris.platform.cv.model.CvTemplate;
 import com.itic.paris.platform.cv.model.converter.CvDraftDataConverter;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.shared.storage.ICloudStorage;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -62,15 +61,15 @@ public class CvRenderService {
 
     public record RenderedPdf(byte[] bytes, int pageCount) {}
 
-    private final ICloudStorage cloudStorage;
+    private final CvPhotoService photoService;
     private final SpringTemplateEngine templateEngine;
     private final List<byte[]> fontBytes;
     private final String logoNavy;
     private final String logoWhite;
     private final String logoMark;
 
-    public CvRenderService(ICloudStorage cloudStorage) {
-        this.cloudStorage = cloudStorage;
+    public CvRenderService(CvPhotoService photoService) {
+        this.photoService = photoService;
         this.templateEngine = buildTemplateEngine();
         this.fontBytes = FONT_FILES.stream().map(f -> readClasspath("fonts/" + f.file())).toList();
         this.logoNavy = pngDataUri(LOGO_NAVY);
@@ -78,7 +77,20 @@ public class CvRenderService {
         this.logoMark = pngDataUri(LOGO_MARK);
     }
 
+    /** HTML du PDF (telechargement, envoi) : emplacement photo vide et muet sans photo. */
     public String renderHtml(Student student, CvDraftData data, CvRenderOptions options) {
+        return render(student, data, options, false);
+    }
+
+    /**
+     * HTML de l'apercu de l'editeur : identique au PDF, sauf l'emplacement photo vide qui affiche « Ajouter une
+     * photo » (data-cv-photo : la page de l'editeur place un bouton par-dessus). Jamais utilise pour le PDF.
+     */
+    public String renderPreviewHtml(Student student, CvDraftData data, CvRenderOptions options) {
+        return render(student, data, options, true);
+    }
+
+    private String render(Student student, CvDraftData data, CvRenderOptions options, boolean editor) {
         CvDraftData cv = clean(data);
         Locale locale = "en".equals(options.lang()) ? Locale.ENGLISH : Locale.FRENCH;
 
@@ -95,7 +107,9 @@ public class CvRenderService {
         context.setVariable("logoWhite", logoWhite);
         context.setVariable("logoMark", logoMark);
         context.setVariable("fullName", fullName(cv));
+        // L'emplacement photo est toujours reserve (la mise en page ne bouge pas) ; photo = null le laisse vide.
         context.setVariable("photo", Boolean.TRUE.equals(cv.getIdentite().getAfficherPhoto()) ? photoDataUri(student) : null);
+        context.setVariable("editor", editor);
         context.setVariable("lang", locale.getLanguage());
 
         return templateEngine.process(options.template().templateName(), context);
@@ -190,32 +204,10 @@ public class CvRenderService {
         return (prenom + " " + nom).trim();
     }
 
-    /** Photo de profil existante en data: URI (JPEG/PNG uniquement : PDFBox ne lit pas le WebP). */
+    /** Photo du CV (propre au CV, sinon de profil) deja recadree et sans metadonnees, en data: URI. */
     private String photoDataUri(Student student) {
-        if (student.getProfilePicture() == null) {
-            return null;
-        }
-        try (InputStream in = cloudStorage.downloadFile(student.getProfilePicture())) {
-            if (in == null) {
-                return null;
-            }
-            byte[] bytes = in.readAllBytes();
-            String mime = imageMime(bytes);
-            return mime == null ? null : "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
-        } catch (IOException | RuntimeException e) {
-            log.warn("Photo de profil illisible pour le CV de l'etudiant {}", student.getId());
-            return null;
-        }
-    }
-
-    private static String imageMime(byte[] bytes) {
-        if (bytes.length > 3 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8) {
-            return "image/jpeg";
-        }
-        if (bytes.length > 8 && (bytes[0] & 0xFF) == 0x89 && bytes[1] == 'P' && bytes[2] == 'N' && bytes[3] == 'G') {
-            return "image/png";
-        }
-        return null;
+        CvPhotoService.Resolved photo = photoService.resolve(student);
+        return photo.present() ? "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photo.jpeg()) : null;
     }
 
     private static String pngDataUri(String path) {

@@ -6,6 +6,8 @@ import com.itic.paris.platform.cv.model.CvTemplate;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
 import com.itic.paris.platform.cv.service.CvDraftValidator;
+import com.itic.paris.platform.cv.repository.CvPhotoRepository;
+import com.itic.paris.platform.cv.service.CvPhotoService;
 import com.itic.paris.platform.cv.service.CvRenderService;
 import com.itic.paris.platform.cv.service.CvRenderService.CvRenderOptions;
 import com.itic.paris.platform.cv.service.CvRenderService.RenderedPdf;
@@ -42,7 +44,7 @@ import static org.mockito.Mockito.when;
 class CvSamplesExportTest {
 
     private final ICloudStorage storage = mock(ICloudStorage.class);
-    private final CvRenderService renderService = new CvRenderService(storage);
+    private final CvRenderService renderService = new CvRenderService(new CvPhotoService(storage, mock(CvPhotoRepository.class)));
     private final CvDraftValidator validator = new CvDraftValidator();
     /** Exemples dont le nombre de pages n'est pas celui attendu (verifie a la fin, apres avoir tout genere). */
     private final List<String> wrongPageCounts = new ArrayList<>();

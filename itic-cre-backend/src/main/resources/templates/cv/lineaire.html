@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   Modele "Lineaire" (d'apres l'exemple de Jules) : nom en capitales marine, poste vise en orange, coordonnees en
-  texte (aucune icone), photo en haut a droite. Logo ITIC en haut a droite sans photo, au-dessus du nom avec photo
-  (moins haut qu'un pied de page : le CV tient plus souvent sur une page). Experiences et formation
+  texte (aucune icone), emplacement photo en haut a droite, toujours reserve (vide sans photo). Logo ITIC au-dessus
+  du nom (moins haut qu'un pied de page : le CV tient plus souvent sur une page). Experiences et formation
   en frise : dates et ville a gauche, point sur une ligne de temps, puis poste, entreprise (orange, capitales),
   ligne « CA – effectif (secteur) » en italique et puces avec les chiffres en gras.
   Ordre par defaut : experiences d'abord (CvTemplate.LINEAIRE).
@@ -14,11 +14,11 @@
   <meta name="author" th:content="${fullName}"/>
   <meta name="subject" th:content="${cv.identite.titre}"/>
   <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <th:block th:if="${editor}"><style th:replace="~{cv/fragments :: editorCss}"></style></th:block>
   <style th:inline="css">
     .header { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .header td { padding: 0; vertical-align: top; }
-    .header td.aside { width: 36mm; text-align: right; }
-    .logo { width: 34mm; height: auto; margin-top: 1.5mm; }
+    .header td.aside { width: 29mm; text-align: right; }
     .logo-top { width: 27mm; height: auto; margin-bottom: 2.6mm; }
     .photo { width: 25mm; height: 30mm; border: 0.3mm solid #d5dbe5; }
     .name { font-size: 23pt; font-weight: 700; text-transform: uppercase; color: [(${navy})]; line-height: 1.08;
@@ -54,7 +54,7 @@
 <body>
   <table class="header"><tr>
     <td>
-      <img class="logo-top" th:if="${photo != null}" th:src="${logoNavy}" alt=""/>
+      <img class="logo-top" th:src="${logoNavy}" alt=""/>
       <div class="name" th:text="${fullName}">Prénom Nom</div>
       <div class="title" th:if="${fmt.present(cv.identite.titre)}" th:text="${cv.identite.titre}">Poste visé</div>
       <div class="contact">
@@ -67,10 +67,7 @@
         <th:block th:replace="~{cv/fragments :: links}"></th:block>
       </div>
     </td>
-    <td class="aside">
-      <img class="photo" th:if="${photo != null}" th:src="${photo}" alt=""/>
-      <img class="logo" th:if="${photo == null}" th:src="${logoNavy}" alt=""/>
-    </td>
+    <td class="aside"><th:block th:replace="~{cv/fragments :: photoSlot}"></th:block></td>
   </tr></table>
 
   <div class="section" th:if="${fmt.present(cv.accroche)}">

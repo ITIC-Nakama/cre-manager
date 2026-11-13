@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   Modele "Moderne" (maquette Jules) : une seule colonne, filet vertical a gauche (bleu clair puis marine),
-  logo ITIC au-dessus du nom en capitales, poste vise dans un bandeau marine, titres soulignes, filet discret a
+  logo ITIC au-dessus du nom en capitales, emplacement photo a droite toujours reserve (vide sans photo),
+  poste vise dans un bandeau marine, titres soulignes, filet discret a
   gauche des entrees. Une seule colonne pour les ATS. Ordre par defaut : experiences d'abord (CvTemplate.MODERNE).
 -->
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${lang}">
@@ -11,6 +12,7 @@
   <meta name="author" th:content="${fullName}"/>
   <meta name="subject" th:content="${cv.identite.titre}"/>
   <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <th:block th:if="${editor}"><style th:replace="~{cv/fragments :: editorCss}"></style></th:block>
   <style th:inline="css">
     .sheet { position: relative; border-left: 1.8mm solid [(${navy})]; padding-left: 7mm; }
     .filet-top { position: absolute; left: -1.8mm; top: 0; width: 1.8mm; height: 34mm; background: [(${blueLight})]; }
@@ -18,7 +20,7 @@
     .header td { padding: 0; vertical-align: top; }
     .header td.aside { width: 30mm; text-align: right; }
     .logo { width: 33mm; height: auto; margin-bottom: 4mm; }
-    .photo { width: 26mm; height: 31mm; border: 0.3mm solid #d5dbe5; }
+    .photo { width: 26mm; height: 31.2mm; border: 0.3mm solid #d5dbe5; }
     .name { font-size: 23pt; font-weight: 700; letter-spacing: 0.6pt; text-transform: uppercase; color: [(${navy})]; line-height: 1.08; }
     .title { display: inline-block; margin-top: 2mm; padding: 0.9mm 2.4mm; background: [(${navy})]; color: #ffffff;
              font-size: 9.4pt; font-weight: 500; }
@@ -53,7 +55,7 @@
           <th:block th:replace="~{cv/fragments :: links}"></th:block>
         </div>
       </td>
-      <td class="aside" th:if="${photo != null}"><img class="photo" th:src="${photo}" alt=""/></td>
+      <td class="aside"><th:block th:replace="~{cv/fragments :: photoSlot}"></th:block></td>
     </tr></table>
 
     <div class="section" th:if="${fmt.present(cv.accroche)}">
