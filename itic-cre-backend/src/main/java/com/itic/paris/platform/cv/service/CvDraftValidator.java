@@ -29,6 +29,7 @@ public class CvDraftValidator {
     static final int MAX_PROJECTS = 10;
     static final int MAX_POINTS = 6;
     static final int MAX_POINT_LENGTH = 200;
+    static final int MAX_FORMATION_POINTS = 4;
     static final int MAX_SUMMARY_LENGTH = 400;
     static final int MAX_SHORT_TEXT = 150;
     static final int MAX_DESCRIPTION = 500;
@@ -79,7 +80,8 @@ public class CvDraftValidator {
             throw bad(MessageKey.CV_BUILDER_TOO_MANY_EXPERIENCES);
         }
         for (CvDraftData.Experience exp : data.getExperiences()) {
-            shortTexts(exp.getPoste(), exp.getEntreprise(), exp.getVille(), exp.getTypeContrat());
+            shortTexts(exp.getPoste(), exp.getEntreprise(), exp.getVille(), exp.getTypeContrat(),
+                    exp.getChiffreAffaires(), exp.getEffectif(), exp.getSecteur());
             yearMonth(exp.getDebut());
             yearMonth(exp.getFin());
             if (exp.getPoints().size() > MAX_POINTS) {
@@ -99,6 +101,14 @@ public class CvDraftValidator {
             shortTexts(f.getDiplome(), f.getEtablissement(), f.getVille(), f.getMention());
             yearMonth(f.getDebut());
             yearMonth(f.getFin());
+            if (f.getPoints().size() > MAX_FORMATION_POINTS) {
+                throw bad(MessageKey.CV_BUILDER_TOO_MANY_POINTS);
+            }
+            for (String point : f.getPoints()) {
+                if (length(point) > MAX_POINT_LENGTH) {
+                    throw bad(MessageKey.CV_BUILDER_POINT_TOO_LONG);
+                }
+            }
         }
 
         if (data.getProjets().size() > MAX_PROJECTS) {
@@ -174,6 +184,7 @@ public class CvDraftValidator {
         if (data.getCentresInteret() == null) data.setCentresInteret(new ArrayList<>());
         if (data.getOrdreSections() == null) data.setOrdreSections(new ArrayList<>());
         if (data.getSectionsMasquees() == null) data.setSectionsMasquees(new ArrayList<>());
+        if (data.getOrdrePersonnalise() == null) data.setOrdrePersonnalise(false);
 
         for (CvDraftData.Experience exp : data.getExperiences()) {
             if (exp.getId() == null || exp.getId().isBlank()) exp.setId(UUID.randomUUID().toString());
@@ -184,6 +195,7 @@ public class CvDraftValidator {
         for (CvDraftData.Formation f : data.getFormations()) {
             if (f.getId() == null || f.getId().isBlank()) f.setId(UUID.randomUUID().toString());
             if (f.getEnCours() == null) f.setEnCours(false);
+            if (f.getPoints() == null) f.setPoints(new ArrayList<>());
         }
         for (CvDraftData.Projet p : data.getProjets()) {
             if (p.getId() == null || p.getId().isBlank()) p.setId(UUID.randomUUID().toString());

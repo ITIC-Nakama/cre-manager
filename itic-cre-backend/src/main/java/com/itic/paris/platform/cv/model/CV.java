@@ -41,7 +41,7 @@ public class CV {
     @Column(name = "source", nullable = false, length = 10)
     private CvSource source = CvSource.UPLOAD;
 
-    /** Modele de l'assistant (CLASSIQUE, MODERNE) ; null pour un depot manuel. */
+    /** Modele de l'assistant (LINEAIRE, CLASSIQUE, MODERNE, BANDEAU) ; null pour un depot manuel. */
     @Column(name = "template_code", length = 30)
     private String templateCode;
 

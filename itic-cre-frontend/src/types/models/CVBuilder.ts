@@ -1,6 +1,6 @@
 /** Assistant de creation de CV — miroir des DTO backend (cv/model/dtos/builder). */
 
-export type CvTemplateCode = 'CLASSIQUE' | 'MODERNE';
+export type CvTemplateCode = 'LINEAIRE' | 'CLASSIQUE' | 'MODERNE' | 'BANDEAU';
 export type CvLang = 'fr' | 'en';
 export type CvLinkType = 'LINKEDIN' | 'GITHUB' | 'PORTFOLIO' | 'AUTRE';
 export type CvLanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'NATIF';
@@ -10,8 +10,21 @@ export type CvSectionKey =
 export type CvFormSectionKey = 'identite' | 'accroche' | CvSectionKey;
 
 /** Listes fermees, identiques a CvBuilderOptions cote serveur. */
-export const CV_TEMPLATES: CvTemplateCode[] = ['CLASSIQUE', 'MODERNE'];
-export const CV_ACCENT_COLORS = ['#3B71FF', '#E2782E', '#2E8B57', '#374151', '#8B1E3F'] as const;
+export const CV_TEMPLATES: CvTemplateCode[] = ['LINEAIRE', 'CLASSIQUE', 'MODERNE', 'BANDEAU'];
+/** Nom affiche par defaut (avant traduction). */
+export const CV_TEMPLATE_LABELS: Record<CvTemplateCode, string> = {
+    LINEAIRE: 'Linéaire', CLASSIQUE: 'Classique', MODERNE: 'Moderne', BANDEAU: 'Bandeau',
+};
+/**
+ * Ordre des sections propre a chaque modele (CvTemplate.defaultSections cote serveur) : applique tant que
+ * l'etudiant n'a pas reordonne lui-meme ses sections (ordrePersonnalise).
+ */
+export const CV_TEMPLATE_SECTIONS: Record<CvTemplateCode, CvSectionKey[]> = {
+    LINEAIRE: ['experiences', 'formations', 'certifications', 'competences', 'langues', 'projets', 'centresInteret'],
+    CLASSIQUE: ['formations', 'experiences', 'projets', 'competences', 'langues', 'certifications', 'centresInteret'],
+    MODERNE: ['experiences', 'formations', 'projets', 'competences', 'langues', 'certifications', 'centresInteret'],
+    BANDEAU: ['formations', 'experiences', 'projets', 'competences', 'langues', 'certifications', 'centresInteret'],
+};
 export const CV_LINK_TYPES: CvLinkType[] = ['LINKEDIN', 'GITHUB', 'PORTFOLIO', 'AUTRE'];
 export const CV_LANGUAGE_LEVELS: CvLanguageLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIF'];
 export const CV_SECTIONS: CvSectionKey[] = [
@@ -24,6 +37,7 @@ export const CV_LIMITS = {
     formations: 10,
     projets: 10,
     points: 6,
+    formationPoints: 4,
     pointLength: 200,
     summaryLength: 400,
     shortText: 150,
@@ -58,6 +72,11 @@ export interface CvExperience {
     debut: string;
     fin: string | null;
     enCours: boolean;
+    /** Presentation facultative de l'entreprise : « CA 3 M€ – effectif 35 collaborateurs (secteur) ». */
+    chiffreAffaires?: string;
+    effectif?: string;
+    secteur?: string;
+    /** Puces de realisations ; « **texte** » met en gras. */
     points: string[];
     /** Proposee depuis une candidature au contrat valide : a confirmer par l'etudiant. */
     aConfirmer: boolean;
@@ -72,6 +91,8 @@ export interface CvFormation {
     fin: string;
     enCours: boolean;
     mention: string;
+    /** Puces facultatives (4 au plus) ; « **texte** » met en gras. */
+    points?: string[];
 }
 
 export interface CvProjet {
@@ -97,6 +118,8 @@ export interface CvDraftData {
     certifications: CvCertification[];
     centresInteret: string[];
     ordreSections: CvSectionKey[];
+    /** false : l'ordre par defaut du modele s'applique ; passe a true des que l'etudiant reordonne. */
+    ordrePersonnalise?: boolean;
     sectionsMasquees: CvSectionKey[];
 }
 

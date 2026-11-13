@@ -14,6 +14,15 @@ export function saveMyCvDraft(payload: CvDraftPayload): Promise<CvDraftResponse>
     return apiClient.put('/cv/builder/me', payload).then((r) => unwrap<CvDraftResponse>(r));
 }
 
+/**
+ * POST /cv/builder/me/reset — contenu prérempli (compte, formation, contrats validés), modèle et langue gardés.
+ * Le CV déjà envoyé au conseiller n'est pas touché (409 si la version est périmée).
+ */
+export function resetMyCvDraft(version: number | null): Promise<CvDraftResponse> {
+    return apiClient.post('/cv/builder/me/reset', null, { params: version == null ? {} : { version } })
+        .then((r) => unwrap<CvDraftResponse>(r));
+}
+
 /** POST /cv/builder/me/preview — HTML exact du modèle (pas d'enveloppe JSON) */
 export function previewMyCv(payload: CvDraftPayload, signal?: AbortSignal): Promise<string> {
     return apiClient

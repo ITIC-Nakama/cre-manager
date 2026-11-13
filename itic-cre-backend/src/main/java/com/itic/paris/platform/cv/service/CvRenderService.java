@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Rendu des modeles de CV (templates/cv/*.html) : HTML pour l'apercu, PDF pour le telechargement et l'envoi.
@@ -40,9 +39,6 @@ import java.util.Set;
 @Service
 public class CvRenderService {
 
-    /** Colonne laterale du modele Moderne ; le reste va dans la colonne principale. */
-    private static final Set<String> SIDEBAR_SECTIONS = Set.of("competences", "langues", "centresInteret");
-
     /** Polices embarquees (l'image Docker alpine n'en a aucune) : famille CSS, fichier, graisse, style. */
     private record FontFile(String family, String file, int weight, BaseRendererBuilder.FontStyle style) {}
 
@@ -50,10 +46,17 @@ public class CvRenderService {
             new FontFile("Roboto", "Roboto-Regular.ttf", 400, BaseRendererBuilder.FontStyle.NORMAL),
             new FontFile("Roboto", "Roboto-Medium.ttf", 500, BaseRendererBuilder.FontStyle.NORMAL),
             new FontFile("Roboto", "Roboto-Bold.ttf", 700, BaseRendererBuilder.FontStyle.NORMAL),
-            new FontFile("Roboto", "Roboto-Italic.ttf", 400, BaseRendererBuilder.FontStyle.ITALIC),
-            new FontFile("PT Serif", "PTSerif-Regular.ttf", 400, BaseRendererBuilder.FontStyle.NORMAL),
-            new FontFile("PT Serif", "PTSerif-Bold.ttf", 700, BaseRendererBuilder.FontStyle.NORMAL),
-            new FontFile("PT Serif", "PTSerif-Italic.ttf", 400, BaseRendererBuilder.FontStyle.ITALIC));
+            new FontFile("Roboto", "Roboto-Italic.ttf", 400, BaseRendererBuilder.FontStyle.ITALIC));
+
+    /** Couleurs fixes de la plateforme CRE (plus de choix de couleur par l'etudiant). */
+    static final String NAVY = "#11305B";
+    static final String BLUE = "#3B71FF";
+    static final String ORANGE = "#E2762F";
+
+    /** Logos ITIC (PNG transparents tires des SVG de la plateforme), integres en data: URI. */
+    private static final String LOGO_NAVY = "templates/cv/assets/itic-logo-marine.png";
+    private static final String LOGO_WHITE = "templates/cv/assets/itic-logo-blanc.png";
+    private static final String LOGO_MARK = "templates/cv/assets/itic-symbole.png";
 
     public record CvRenderOptions(CvTemplate template, String accentColor, String lang) {}
 
@@ -62,11 +65,17 @@ public class CvRenderService {
     private final ICloudStorage cloudStorage;
     private final SpringTemplateEngine templateEngine;
     private final List<byte[]> fontBytes;
+    private final String logoNavy;
+    private final String logoWhite;
+    private final String logoMark;
 
     public CvRenderService(ICloudStorage cloudStorage) {
         this.cloudStorage = cloudStorage;
         this.templateEngine = buildTemplateEngine();
         this.fontBytes = FONT_FILES.stream().map(f -> readClasspath("fonts/" + f.file())).toList();
+        this.logoNavy = pngDataUri(LOGO_NAVY);
+        this.logoWhite = pngDataUri(LOGO_WHITE);
+        this.logoMark = pngDataUri(LOGO_MARK);
     }
 
     public String renderHtml(Student student, CvDraftData data, CvRenderOptions options) {
@@ -76,12 +85,15 @@ public class CvRenderService {
         Context context = new Context(locale);
         context.setVariable("cv", cv);
         context.setVariable("fmt", new CvTemplateHelper(locale));
-        List<String> sections = visibleSections(cv);
-        context.setVariable("sections", sections);
-        context.setVariable("mainSections", sections.stream().filter(s -> !SIDEBAR_SECTIONS.contains(s)).toList());
-        context.setVariable("sideSections", sections.stream().filter(SIDEBAR_SECTIONS::contains).toList());
-        context.setVariable("accent", options.accentColor());
-        context.setVariable("accentLight", tint(options.accentColor(), 0.90));
+        context.setVariable("sections", visibleSections(cv, options.template()));
+        context.setVariable("navy", NAVY);
+        context.setVariable("blue", BLUE);
+        context.setVariable("orange", ORANGE);
+        context.setVariable("blueLight", tint(BLUE, 0.78));
+        context.setVariable("navyLight", tint(NAVY, 0.88));
+        context.setVariable("logoNavy", logoNavy);
+        context.setVariable("logoWhite", logoWhite);
+        context.setVariable("logoMark", logoMark);
         context.setVariable("fullName", fullName(cv));
         context.setVariable("photo", Boolean.TRUE.equals(cv.getIdentite().getAfficherPhoto()) ? photoDataUri(student) : null);
         context.setVariable("lang", locale.getLanguage());
@@ -124,6 +136,7 @@ public class CvRenderService {
         cv.getExperiences().removeIf(e -> isBlank(e.getPoste()) && isBlank(e.getEntreprise()));
         cv.getExperiences().forEach(e -> e.getPoints().removeIf(CvRenderService::isBlank));
         cv.getFormations().removeIf(f -> isBlank(f.getDiplome()) && isBlank(f.getEtablissement()));
+        cv.getFormations().forEach(f -> f.getPoints().removeIf(CvRenderService::isBlank));
         cv.getProjets().removeIf(p -> isBlank(p.getNom()) && isBlank(p.getDescription()));
         cv.getProjets().forEach(p -> p.getTechnos().removeIf(CvRenderService::isBlank));
         cv.getCompetences().getTechniques().removeIf(CvRenderService::isBlank);
@@ -137,8 +150,18 @@ public class CvRenderService {
 
     /** Sections dans l'ordre choisi, sans les sections masquees ni vides. */
     List<String> visibleSections(CvDraftData cv) {
+        return visibleSections(cv, null);
+    }
+
+    /**
+     * Sections a afficher, dans l'ordre : celui de l'etudiant s'il a reordonne (ordrePersonnalise), sinon celui
+     * du modele (CvTemplate.defaultSections). Sections masquees ou vides retirees.
+     */
+    List<String> visibleSections(CvDraftData cv, CvTemplate template) {
+        List<String> order = template == null || Boolean.TRUE.equals(cv.getOrdrePersonnalise())
+                ? cv.getOrdreSections() : template.defaultSections();
         List<String> visible = new ArrayList<>();
-        for (String section : cv.getOrdreSections()) {
+        for (String section : order) {
             if (!cv.getSectionsMasquees().contains(section) && hasContent(cv, section)) {
                 visible.add(section);
             }
@@ -193,6 +216,10 @@ public class CvRenderService {
             return "image/png";
         }
         return null;
+    }
+
+    private static String pngDataUri(String path) {
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(readClasspath(path));
     }
 
     /** Melange la couleur d'accent avec du blanc (ratio = part de blanc) pour les fonds clairs. */

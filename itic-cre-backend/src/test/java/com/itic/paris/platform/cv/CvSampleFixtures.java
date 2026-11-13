@@ -36,17 +36,20 @@ final class CvSampleFixtures {
         e1.setEnCours(true);
         e1.setPoints(new ArrayList<>(List.of(
                 "Développement d'API REST Spring Boot pour une application de gestion RH",
-                "Écriture de tests d'intégration (JUnit, MockMvc) : couverture portée de 45 % à 72 %",
+                "Écriture de tests d'intégration (JUnit, MockMvc) : couverture portée de **45 % à 72 %**",
                 "Participation aux rituels agiles (Scrum) avec une équipe de 8 personnes")));
         CvDraftData.Experience e2 = new CvDraftData.Experience();
         e2.setPoste("Stagiaire développeuse web");
         e2.setEntreprise("Agence Pixel & Co");
+        e2.setChiffreAffaires("1,2 M€");
+        e2.setEffectif("14 collaborateurs");
+        e2.setSecteur("Agence web");
         e2.setVille("Paris");
         e2.setTypeContrat("Stage");
         e2.setDebut("2025-04");
         e2.setFin("2025-07");
         e2.setPoints(new ArrayList<>(List.of(
-                "Intégration de maquettes Figma en React + Tailwind",
+                "Intégration de **12 maquettes Figma** en React + Tailwind",
                 "Mise en place d'un formulaire de contact accessible (RGAA)")));
         data.setExperiences(new ArrayList<>(List.of(e1, e2)));
 
