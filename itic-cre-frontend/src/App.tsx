@@ -122,7 +122,8 @@ function App() {
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId/quiz" element={<QuizPage />} />
           <Route path="/student/cv"            element={<StudentCVPage />} />
-          <Route path="/student/cv/assistant"  element={<StudentCVPage mode="builder" />} />
+          {/* Assistant de CV désactivé (voir CV_BUILDER_ENABLED) : l'ancienne adresse mène au dépôt. */}
+          <Route path="/student/cv/assistant"  element={<Navigate to="/student/cv" replace />} />
           <Route path="/student/cv/depot"      element={<StudentCVPage mode="upload" />} />
           <Route path="/student/parametres"    element={<ParametresPage />} />
         </Route>

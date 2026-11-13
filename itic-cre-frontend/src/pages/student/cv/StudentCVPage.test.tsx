@@ -6,7 +6,7 @@
  * l'assistant, qui se remontait et relançait GET /cv/me… (55 requêtes en 6 s en prod, 217 en local).
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import StudentCVPage from './StudentCVPage';
@@ -121,22 +121,16 @@ describe('Mon CV', () => {
     });
     renderAt('/student/cv');
 
-    expect(await screen.findByRole('heading', { name: '1. Choisis un modèle' }, { timeout: 5000 })).toBeTruthy();
+    // Assistant désactivé : la zone de dépôt seule, sans onglets ni appel à l'assistant.
+    await waitFor(() => expect(document.querySelector('input[type=file]')).not.toBeNull(), { timeout: 5000 });
     await settle();
-
-    expect(screen.getByRole('button', { name: /Créer avec un modèle ITIC/ }).getAttribute('aria-current')).toBe('page');
+    expect(screen.queryByRole('button', { name: /Créer avec un modèle ITIC/ })).toBeNull();
     expect(screen.queryByText(/Impossible de charger/)).toBeNull();
     const counts = getCounts();
     expect(counts['/cv/me']).toBe(1);
-    expect(counts['/cv/builder/me']).toBe(1);
+    expect(counts['/cv/builder/me'] ?? 0).toBe(0);
     expect(counts['/cv/me/comments'] ?? 0).toBe(0); // pas de CV : pas de commentaires à demander
     Object.entries(counts).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
-
-    // « Déposer un fichier » reste utilisable, sans nouvel appel à /cv/me.
-    fireEvent.click(screen.getByRole('button', { name: 'Déposer un fichier' }));
-    await settle(500);
-    expect(document.querySelector('input[type=file]')).not.toBeNull();
-    expect(getCounts()['/cv/me']).toBe(1);
   });
 
   it('avec un CV déposé (PDF) : la fiche du CV s’affiche, un appel par endpoint', async () => {
@@ -163,8 +157,11 @@ describe('Mon CV', () => {
     });
     renderAt('/student/cv');
 
-    expect(await screen.findByRole('heading', { name: '2. Complète ton CV' }, { timeout: 5000 })).toBeTruthy();
+    // Assistant désactivé : la fiche du CV, sans bouton « Modifier dans l'assistant ».
+    expect(await screen.findByText('Remplacer mon CV', {}, { timeout: 5000 })).toBeTruthy();
     await settle();
+    expect(screen.queryByText('Modifier dans l’assistant')).toBeNull();
+    expect(getCounts()['/cv/builder/me'] ?? 0).toBe(0);
     Object.entries(getCounts()).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
   });
 
@@ -184,7 +181,6 @@ describe('Mon CV', () => {
 
     expect(await screen.findByText('Ajoute tes réalisations en alternance.', {}, { timeout: 5000 })).toBeTruthy();
     await settle();
-    expect(screen.getByRole('heading', { name: '1. Choisis un modèle' })).toBeTruthy();
     Object.entries(getCounts()).forEach(([url, n]) => expect(n, url).toBeLessThanOrEqual(1));
   });
 });

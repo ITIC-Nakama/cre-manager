@@ -15,6 +15,12 @@ import { renderTitleWithGradient } from '../../../utils/titleUtils';
 const CVBuilderPage = lazy(() => import('../cv-builder/CVBuilderPage'));
 
 const CV_BUILDER_PATH = '/student/cv/assistant';
+/**
+ * Assistant de CV temporairement désactivé (13/11/2026) : boucle de chargement en prod pour des étudiants sans CV,
+ * cause en cours d'analyse. « Mon CV » revient au seul dépôt d'un fichier, comme avant #69. Repasser à true pour
+ * le réactiver : rien d'autre n'a été retiré.
+ */
+const CV_BUILDER_ENABLED = false;
 const CV_UPLOAD_PATH = '/student/cv/depot';
 
 /** Onglet affiché : imposé par l'adresse, sinon l'assistant (pas de CV ou CV de l'assistant) ou le dépôt. */
@@ -124,7 +130,8 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
     );
   }
 
-  const activeTab: 'builder' | 'upload' = mode !== 'auto' ? mode : !cv || cv.source === 'BUILDER' ? 'builder' : 'upload';
+  const activeTab: 'builder' | 'upload' = !CV_BUILDER_ENABLED ? 'upload'
+    : mode !== 'auto' ? mode : !cv || cv.source === 'BUILDER' ? 'builder' : 'upload';
   const tabClass = (active: boolean) =>
     `inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors motion-reduce:transition-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff] ${active
       ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-slate-700'
@@ -147,6 +154,7 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
       <CycleStrip currentStep={currentStep} />
 
       {/* Deux façons d'avoir un CV : le créer avec un modèle ITIC, ou déposer un fichier. */}
+      {CV_BUILDER_ENABLED && (
       <nav className="self-start flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
         aria-label={t('studentCv.tabs.label', 'Comment veux-tu préparer ton CV ?')}>
         <button type="button" className={tabClass(activeTab === 'builder')} aria-current={activeTab === 'builder' ? 'page' : undefined}
@@ -163,6 +171,7 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
           {t('studentCv.tabs.upload', 'Déposer un fichier')}
         </button>
       </nav>
+      )}
 
       {activeTab === 'builder' ? (
         <Suspense fallback={
@@ -187,7 +196,7 @@ export default function StudentCVPage({ mode = 'auto' }: { mode?: CvPageMode }) 
               onReplaceToggle={() => setIsReplaceOpen(!isReplaceOpen)}
               isReplaceOpen={isReplaceOpen}
               isUploading={uploadMutation.isPending}
-              onEditInBuilder={() => navigate(CV_BUILDER_PATH)}
+              onEditInBuilder={CV_BUILDER_ENABLED ? () => navigate(CV_BUILDER_PATH) : undefined}
             />
 
             {isReplaceOpen && (
