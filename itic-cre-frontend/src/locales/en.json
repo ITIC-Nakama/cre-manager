@@ -2123,8 +2123,10 @@
       "pages_other": "{{count}} pages",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
-      "fit": "Fit to width",
-      "error": "Preview unavailable for now."
+      "fit": "Preview zoom, it does not change your CV. Click to fit the width.",
+      "error": "Preview unavailable for now.",
+      "zoomGroup": "Preview zoom (on-screen size, does not change your CV)",
+      "zoomValue": "Zoom {{value}}%"
     },
     "completeness": {
       "title": "Completeness",
@@ -2321,14 +2323,16 @@
     "submitModal": {
       "title": "Send your CV to your advisor?",
       "body": "The PDF generated with the chosen template goes to review: it will be “Pending” until your advisor decides.",
-      "confirm": "Send"
+      "confirm": "Send",
+      "warning": "Your current CV will be replaced: its review status starts over and eligible XP is back in play for this cycle. Your advisor’s comments stay visible."
     },
     "toast": {
       "submitted": "CV sent to your advisor: it is now “Pending” review.",
       "submitError": "Sending failed, please try again in a moment.",
       "downloadError": "The PDF could not be generated.",
       "reset": "Your CV is back to the prefilled version from your account. Your template is kept.",
-      "resetError": "Reset failed, your draft is unchanged."
+      "resetError": "Reset failed, your draft is unchanged.",
+      "conflict": "Your CV was changed in another tab: reload it before continuing."
     },
     "steps": {
       "template": "1. Choose a template",

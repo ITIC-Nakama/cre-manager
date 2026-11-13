@@ -71,6 +71,7 @@ function FormationEntry({ index, count, onMove, onRemove }: {
         <Controller control={control} name={`${base}.points`}
           render={({ field }) => (
             <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.formationPoints} maxLength={CV_LIMITS.pointLength}
+              name={field.name}
               placeholder={t('studentCvBuilder.formations.pointPlaceholder', 'Ex : Projet de fin d’année : application de réservation en React')}
               addLabel={t('studentCvBuilder.formations.addPoint', 'Ajouter un point clé')} />
           )} />

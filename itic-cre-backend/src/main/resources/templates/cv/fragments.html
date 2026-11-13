@@ -73,7 +73,7 @@
   <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
   <div class="entry" th:each="e : ${cv.experiences}">
     <table class="entry-head"><tr>
-      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</td>
+      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</td>
       <td class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</td>
     </tr></table>
     <div class="entry-sub" th:text="${fmt.join(' · ', e.entreprise, e.ville)}">Entreprise</div>
@@ -176,7 +176,7 @@
       </td>
       <td class="tl-rail"><div class="tl-dot"></div></td>
       <td class="tl-body">
-        <div class="tl-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</div>
+        <div class="tl-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</div>
         <div class="tl-org" th:if="${fmt.present(e.entreprise)}" th:text="${e.entreprise}">Entreprise</div>
         <th:block th:with="facts=${fmt.companyFacts(e.chiffreAffaires, e.effectif, e.secteur, #messages.msg('cv.company.revenue'), #messages.msg('cv.company.headcount'))}">
           <div class="entry-facts" th:if="${fmt.present(facts)}" th:text="${facts}">CA 3 M€ – effectif 35 (secteur)</div>

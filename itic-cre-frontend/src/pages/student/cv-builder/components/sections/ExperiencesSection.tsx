@@ -18,7 +18,7 @@ export default function ExperiencesSection() {
         <ExperienceEntry key={field._key} index={index} count={experiences.fields.length}
           onMove={experiences.move} onRemove={() => experiences.remove(index)} />
       ))}
-      <AddButton label={t('studentCvBuilder.experiences.add', 'Ajouter une expérience')}
+      <AddButton name="data.experiences.add" label={t('studentCvBuilder.experiences.add', 'Ajouter une expérience')}
         disabled={experiences.fields.length >= CV_LIMITS.experiences}
         onClick={() => experiences.append({
           id: newEntryId(), poste: '', entreprise: '', ville: '', typeContrat: '',
@@ -54,7 +54,7 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
           <span className="flex-1">
             {t('studentCvBuilder.experiences.toConfirm', 'Proposée depuis ta candidature au contrat validé. Vérifie les dates et ajoute tes réalisations.')}
           </span>
-          <button type="button" onClick={() => setValue(`${base}.aConfirmer`, false, { shouldDirty: true })}
+          <button type="button" name={`${base}.aConfirmer`} onClick={() => setValue(`${base}.aConfirmer`, false, { shouldDirty: true })}
             className="self-start sm:self-auto px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold cursor-pointer">
             {t('studentCvBuilder.experiences.confirm', 'Confirmer')}
           </button>
@@ -114,7 +114,8 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
         hint={t('studentCvBuilder.experiences.pointsHint', 'Commence par un verbe d’action et chiffre quand tu peux. Entoure un chiffre de ** pour le mettre en gras : **+15 %**.')}>
         <Controller control={control} name={`${base}.points`}
           render={({ field }) => (
-            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} suggestVerbs />
+            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} suggestVerbs
+              name={field.name} />
           )} />
       </Field>
       <BulletExamples disabled={(points ?? []).filter((p) => p.trim()).length >= CV_LIMITS.points}

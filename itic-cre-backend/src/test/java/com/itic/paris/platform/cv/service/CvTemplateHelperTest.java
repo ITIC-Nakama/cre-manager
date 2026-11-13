@@ -78,4 +78,27 @@ class CvTemplateHelperTest {
         validator.validateData(ok);
         assertThat(ok.getFormations().get(0).getPoints()).hasSize(2);
     }
+
+    @Test
+    @DisplayName("CV en anglais : les types de contrat courants sont traduits, « Inconnu » n'est jamais affiché")
+    void contractTypesAreTranslatedForEnglishCvs() {
+        CvTemplateHelper en = new CvTemplateHelper(Locale.ENGLISH);
+        assertThat(en.contractType("Alternance")).isEqualTo("Apprenticeship");
+        assertThat(en.contractType("  stage ")).isEqualTo("Internship");
+        assertThat(en.contractType("Contrat d’apprentissage")).isEqualTo("Apprenticeship");
+        assertThat(en.contractType("Contrat de professionnalisation")).isEqualTo("Professional training contract");
+        assertThat(en.contractType("CDD")).isEqualTo("Fixed-term contract");
+        assertThat(en.contractType("CDI")).isEqualTo("Permanent contract");
+        assertThat(en.contractType("Job étudiant")).isEqualTo("Student job");
+        assertThat(en.contractType("Bénévolat")).isEqualTo("Volunteering");
+        assertThat(en.contractType("Intérim")).isEqualTo("Temporary work");
+        // Saisi directement en anglais, ou inconnu de la table : garde tel quel.
+        assertThat(en.contractType("Graduate programme")).isEqualTo("Graduate programme");
+        assertThat(en.contractType("Inconnu")).isEmpty();
+        assertThat(en.contractType(null)).isEmpty();
+
+        // CV en français : rien n'est traduit, seul « Inconnu » disparaît.
+        assertThat(fmt.contractType("Alternance")).isEqualTo("Alternance");
+        assertThat(fmt.contractType("inconnu")).isEmpty();
+    }
 }

@@ -95,7 +95,9 @@ export function SubmittedCard({ onClose }: { onClose: () => void }) {
 }
 
 /** Liste « avant d'envoyer » dans la confirmation : conseils non bloquants, avec un lien vers le champ. */
-export function PreSendChecklist({ checks, onFix }: { checks: PreSendCheck[]; onFix: (section: CvFormSectionKey) => void }) {
+export function PreSendChecklist({ checks, onFix }: {
+  checks: PreSendCheck[]; onFix: (section: CvFormSectionKey, field: string | null) => void;
+}) {
   const { t } = useTranslation();
   const warnings = checks.filter((c) => c.status === 'warn').length;
   return (
@@ -113,7 +115,7 @@ export function PreSendChecklist({ checks, onFix }: { checks: PreSendCheck[]; on
               : <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-label={t('studentCvBuilder.check.warn', 'À vérifier')} />}
             <span className="flex-1 text-slate-700 dark:text-slate-200">{t(`studentCvBuilder.check.${check.key}`, check.label)}</span>
             {check.status === 'warn' && check.section && (
-              <button type="button" onClick={() => check.section && onFix(check.section)}
+              <button type="button" onClick={() => check.section && onFix(check.section, check.field)}
                 className="shrink-0 font-semibold text-[#3f74ff] dark:text-[#8fb0ff] underline underline-offset-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff] rounded">
                 {t('studentCvBuilder.check.fix', 'Corriger')}
               </button>
