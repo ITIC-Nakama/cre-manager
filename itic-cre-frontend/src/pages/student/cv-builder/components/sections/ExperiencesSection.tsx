@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { CV_LIMITS, type CvBuilderFormValues } from '../../../../../types/models/CVBuilder';
 import { AddButton, EntryActions, Field, MonthInput, PointsEditor, TextInput } from '../fields';
+import { BulletExamples } from '../Examples';
 import { newEntryId } from '../fieldUtils';
 
 export default function ExperiencesSection() {
@@ -17,7 +18,7 @@ export default function ExperiencesSection() {
         <ExperienceEntry key={field._key} index={index} count={experiences.fields.length}
           onMove={experiences.move} onRemove={() => experiences.remove(index)} />
       ))}
-      <AddButton label={t('studentCvBuilder.experiences.add', 'Ajouter une expérience')}
+      <AddButton name="data.experiences.add" label={t('studentCvBuilder.experiences.add', 'Ajouter une expérience')}
         disabled={experiences.fields.length >= CV_LIMITS.experiences}
         onClick={() => experiences.append({
           id: newEntryId(), poste: '', entreprise: '', ville: '', typeContrat: '',
@@ -31,10 +32,11 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
   index: number; count: number; onMove: (from: number, to: number) => void; onRemove: () => void;
 }) {
   const { t } = useTranslation();
-  const { register, control, setValue } = useFormContext<CvBuilderFormValues>();
+  const { register, control, setValue, getValues } = useFormContext<CvBuilderFormValues>();
   const base = `data.experiences.${index}` as const;
   const enCours = useWatch({ control, name: `${base}.enCours` });
   const aConfirmer = useWatch({ control, name: `${base}.aConfirmer` });
+  const points = useWatch({ control, name: `${base}.points` });
   const short = { maxLength: CV_LIMITS.shortText };
 
   return (
@@ -52,7 +54,7 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
           <span className="flex-1">
             {t('studentCvBuilder.experiences.toConfirm', 'Proposée depuis ta candidature au contrat validé. Vérifie les dates et ajoute tes réalisations.')}
           </span>
-          <button type="button" onClick={() => setValue(`${base}.aConfirmer`, false, { shouldDirty: true })}
+          <button type="button" name={`${base}.aConfirmer`} onClick={() => setValue(`${base}.aConfirmer`, false, { shouldDirty: true })}
             className="self-start sm:self-auto px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold cursor-pointer">
             {t('studentCvBuilder.experiences.confirm', 'Confirmer')}
           </button>
@@ -112,9 +114,18 @@ function ExperienceEntry({ index, count, onMove, onRemove }: {
         hint={t('studentCvBuilder.experiences.pointsHint', 'Commence par un verbe d’action et chiffre quand tu peux. Entoure un chiffre de ** pour le mettre en gras : **+15 %**.')}>
         <Controller control={control} name={`${base}.points`}
           render={({ field }) => (
-            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} />
+            <PointsEditor value={field.value} onChange={field.onChange} max={CV_LIMITS.points} maxLength={CV_LIMITS.pointLength} suggestVerbs
+              name={field.name} />
           )} />
       </Field>
+      <BulletExamples disabled={(points ?? []).filter((p) => p.trim()).length >= CV_LIMITS.points}
+        onAdd={(text) => {
+          // Remplit d'abord une ligne vide, sinon en ajoute une : rien n'est remplacé.
+          const current = getValues(`${base}.points`) ?? [];
+          const empty = current.findIndex((p) => !p.trim());
+          const next = empty >= 0 ? current.map((p, j) => (j === empty ? text : p)) : [...current, text];
+          setValue(`${base}.points`, next.slice(0, CV_LIMITS.points), { shouldDirty: true });
+        }} />
     </div>
   );
 }

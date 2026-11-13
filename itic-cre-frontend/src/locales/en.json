@@ -2123,12 +2123,18 @@
       "pages_other": "{{count}} pages",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
-      "fit": "Fit to width",
-      "error": "Preview unavailable for now."
+      "fit": "Preview zoom, it does not change your CV. Click to fit the width.",
+      "error": "Preview unavailable for now.",
+      "zoomGroup": "Preview zoom (on-screen size, does not change your CV)",
+      "zoomValue": "Zoom {{value}}%"
     },
     "completeness": {
       "title": "Completeness",
-      "perfect": "Your CV is complete. Send it to your advisor!"
+      "perfect": "Your CV is complete. Send it to your advisor!",
+      "almost": "Your CV is already very good. To go further:",
+      "next": "Most useful next step:",
+      "gain": "(you reach {{score}}%)",
+      "go": "Go"
     },
     "tips": {
       "NAME_MISSING": "Enter your first and last name",
@@ -2317,14 +2323,16 @@
     "submitModal": {
       "title": "Send your CV to your advisor?",
       "body": "The PDF generated with the chosen template goes to review: it will be “Pending” until your advisor decides.",
-      "confirm": "Send"
+      "confirm": "Send",
+      "warning": "Your current CV will be replaced: its review status starts over and eligible XP is back in play for this cycle. Your advisor’s comments stay visible."
     },
     "toast": {
       "submitted": "CV sent to your advisor: it is now “Pending” review.",
       "submitError": "Sending failed, please try again in a moment.",
       "downloadError": "The PDF could not be generated.",
       "reset": "Your CV is back to the prefilled version from your account. Your template is kept.",
-      "resetError": "Reset failed, your draft is unchanged."
+      "resetError": "Reset failed, your draft is unchanged.",
+      "conflict": "Your CV was changed in another tab: reload it before continuing."
     },
     "steps": {
       "template": "1. Choose a template",
@@ -2341,6 +2349,118 @@
       "title": "Start again from the prefilled version?",
       "body": "Your draft will be replaced by your account information (identity, ITIC programme, validated contracts). Your template and language are kept. The CV already sent to your advisor does not change.",
       "confirm": "Reset"
+    },
+    "guide": {
+      "tipLabel": "Tip",
+      "exampleLabel": "Example",
+      "summaryInspiration": "Need inspiration? 3 summaries to adapt",
+      "placeholderHint": "Then replace the parts in brackets with your own words.",
+      "replaceConfirm": "Replace your current summary?",
+      "replaceYes": "Replace",
+      "replaceNo": "Keep mine",
+      "useExample": "Use this example",
+      "bulletInspiration": "Examples of achievements with figures to adapt",
+      "addExampleAria": "Add this achievement: {{text}}",
+      "add": "Add",
+      "verbsLabel": "Action verbs",
+      "verbsIntro": "Start with an action verb:",
+      "weakVerb": "Tip: an action verb is stronger. For example “Organise…”, “Manage…”, “Support…”.",
+      "sections": {
+        "identite": {
+          "tip": "Your title is the job you are aiming for: it is the first thing the recruiter reads.",
+          "example": "“Customer advisor work-study student — 3 weeks / 1 week”"
+        },
+        "accroche": {
+          "tip": "In 2 or 3 sentences: what you are studying, what you are looking for (contract, length, schedule, start date) and what you bring.",
+          "example": "“HR Bachelor student at ITIC Paris, looking for a 12-month work-study contract from September.”"
+        },
+        "experiences": {
+          "tip": "One line = one achievement. Start with an action verb and add a figure when you can.",
+          "example": "Replace “I helped at the front desk” with “Welcome and advise 30 customers a day”."
+        },
+        "formations": {
+          "tip": "Your ITIC programme first, then your previous diploma. One key point is enough to stand out.",
+          "example": "“Final-year project: booking app, graded 17/20”"
+        },
+        "projets": {
+          "tip": "A project shows what you can do, even without experience: say what you did and with which tools.",
+          "example": "“Website for a charity: 5 pages, WordPress, online in 3 weeks”"
+        },
+        "competences": {
+          "tip": "Reuse the words of the job ads you like: recruiters’ software searches for them.",
+          "example": "Technical: prospecting, HubSpot CRM · Tools: Excel, Canva · Soft skills: organisation"
+        },
+        "langues": {
+          "tip": "Always give a level: “English” alone tells the recruiter nothing.",
+          "example": "English — B2 (TOEIC 785) · Spanish — A2"
+        },
+        "certifications": {
+          "tip": "TOEIC, Voltaire, PIX, Google certificate…: one line with the name, the organisation and the date.",
+          "example": "“Projet Voltaire — Business level, 2025”"
+        },
+        "centresInteret": {
+          "tip": "Two or three specific interests: they often start the conversation in interviews.",
+          "example": "“Club basketball (captain)” rather than “Sport”"
+        }
+      },
+      "summaryExamples": {
+        "0": "[Programme] student at ITIC Paris, I am looking for a [length] work-study contract as a [target job] from [month], schedule [schedule]. [Quality] and [quality], I want to bring my [field] skills to your team.",
+        "1": "After [previous experience or diploma], I am preparing a [diploma] at ITIC Paris. I am looking for a work-study contract as a [target job] to [concrete goal], from [month], schedule [schedule].",
+        "2": "Comfortable with [tool or skill] and [tool or skill], I am looking for a [length] work-study contract as a [target job]. My strengths: [quality], [quality] and a drive to learn fast."
+      },
+      "bulletExamples": {
+        "0": "Welcome and advise **30 customers** a day in store",
+        "1": "Follow up prospects by phone: **+15%** meetings in 3 months",
+        "2": "Run the company LinkedIn page: **+300 followers** in 6 months",
+        "3": "Prepare the files of **20 new employees** (contracts, insurance, onboarding)",
+        "4": "Build **6 accessible web pages** with React"
+      },
+      "verbs": {
+        "Accompagner": "Support",
+        "Animer": "Run",
+        "Analyser": "Analyse",
+        "Concevoir": "Design",
+        "Développer": "Develop",
+        "Gérer": "Manage",
+        "Négocier": "Negotiate",
+        "Organiser": "Organise",
+        "Piloter": "Lead",
+        "Prospecter": "Prospect"
+      }
+    },
+    "welcome": {
+      "step1": "Choose a template: you can change it at any time.",
+      "step2": "Fill in your CV: it is already prefilled from your account and saves itself.",
+      "step3": "Send it to your advisor: they review it and get back to you.",
+      "close": "Close the welcome message",
+      "title": "Your CV, step by step",
+      "body": "No need to know everything before you start: we help you in every section, with examples. Allow about fifteen minutes.",
+      "start": "Let’s go"
+    },
+    "submitted": {
+      "step1": "Your advisor reviews your CV. Follow the progress in the steps at the top of the page.",
+      "step2": "You get an email as soon as they give their opinion (status or comment).",
+      "step3": "If they ask for changes, come back here: your draft is kept, correct it and send it again.",
+      "close": "Close",
+      "title": "Sent! What happens now?"
+    },
+    "check": {
+      "allGood": "All set, your CV can go:",
+      "someTips": "Before sending, a quick look (these are tips, you can send anyway):",
+      "ok": "OK",
+      "warn": "To check",
+      "fix": "Fix",
+      "contact": "Full contact details (first name, last name, email, phone)",
+      "experience": "At least one experience (work-study, internship, job, volunteering)",
+      "figure": "At least one achievement with a figure (+15%, 30 customers…)",
+      "onePage": "One page maximum",
+      "format": "No format error (email, phone, dates) and no [part in brackets] left from an example",
+      "toConfirm": "Automatically suggested experiences: checked and confirmed"
+    },
+    "ats": {
+      "explain": "Many companies sort CVs with software. Your CV is written as real text, with standard headings and in a logical order: the software can read it like a recruiter.",
+      "ready": "Readable by recruiters",
+      "missingContact": "Add your email and phone to be read correctly"
     }
   }
 }

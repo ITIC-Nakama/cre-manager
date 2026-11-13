@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowDown, ArrowUp, ChevronDown, Eye, EyeOff, type LucideIcon } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Eye, EyeOff, Lightbulb, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CvFormSectionKey } from '../../../../types/models/CVBuilder';
 
@@ -9,6 +9,8 @@ interface Props {
   icon: LucideIcon;
   /** Aide courte affichée sous le titre une fois la section ouverte. */
   help?: string;
+  /** Conseil concret et exemple adapté à l'alternance, affichés en tête de la section ouverte. */
+  tip?: { tip: string; example: string };
   summary?: string;
   open: boolean;
   onToggle: () => void;
@@ -20,7 +22,7 @@ interface Props {
 }
 
 export default function SectionCard({
-  sectionKey, title, icon: Icon, help, summary, open, onToggle, ordering, hidden, badge, children,
+  sectionKey, title, icon: Icon, help, tip, summary, open, onToggle, ordering, hidden, badge, children,
 }: Props) {
   const { t } = useTranslation();
   const iconBtn = 'p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-default';
@@ -75,8 +77,19 @@ export default function SectionCard({
       </div>
 
       {open && (
-        <div className="px-4 pb-4 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800 pt-4 animate-fadeIn">
+        <div className="px-4 pb-4 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800 pt-4 animate-fadeIn motion-reduce:animate-none">
           {help && <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">{help}</p>}
+          {tip && (
+            <div className="flex gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 text-xs leading-relaxed">
+              <Lightbulb className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" aria-hidden="true" />
+              <p className="text-slate-700 dark:text-slate-200">
+                <span className="font-semibold">{t('studentCvBuilder.guide.tipLabel', 'Conseil')}{'\u00a0: '}</span>{tip.tip}
+                <span className="block mt-1 text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{t('studentCvBuilder.guide.exampleLabel', 'Exemple')}{'\u00a0: '}</span>{tip.example}
+                </span>
+              </p>
+            </div>
+          )}
           {children}
         </div>
       )}
