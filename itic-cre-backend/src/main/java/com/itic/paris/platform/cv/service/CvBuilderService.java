@@ -103,6 +103,26 @@ public class CvBuilderService {
     }
 
     /**
+     * « Reinitialiser » : remplace le contenu du brouillon par le prerempli (compte, formation ITIC, experiences
+     * des contrats valides), en gardant le modele et la langue choisis. Meme controle de version que PUT (409 si
+     * la version est perimee). Le CV deja envoye au conseiller n'est pas touche. Sans brouillon enregistre, renvoie
+     * simplement le prerempli (rien n'est cree).
+     */
+    @Transactional
+    public CvDraftResponse resetMyDraft(UUID studentId, Long version) {
+        Student student = findStudent(studentId);
+        CvDraft draft = draftRepository.findByStudentId(studentId).orElse(null);
+        if (draft == null) {
+            return toUnsavedResponse(student);
+        }
+        if (!Objects.equals(draft.getVersion(), version)) {
+            throw new AppException(HttpStatus.CONFLICT, MessageKey.CONCURRENT_UPDATE_CONFLICT);
+        }
+        draft.setData(prefill(student));
+        return toResponse(draftRepository.saveAndFlush(draft));
+    }
+
+    /**
      * Envoi au conseiller : enregistre le brouillon (meme controle de version que PUT), genere le PDF
      * puis le fait entrer dans le circuit existant via CVService.replaceActiveCv (statut initial, XP re-gagnable).
      * Refuse un envoi identique au precedent tant que le CV actif est celui de l'assistant (anti-farm d'XP).
@@ -283,7 +303,9 @@ public class CvBuilderService {
         exp.setId(UUID.randomUUID().toString());
         exp.setPoste(truncate(application.getPoste()));
         exp.setEntreprise(truncate(application.getEntreprise()));
-        exp.setTypeContrat(application.getTypeContrat() != null ? truncate(application.getTypeContrat().getLabel()) : "");
+        // « Inconnu » (offres externes sans type) n'a pas sa place sur un CV : champ laisse vide.
+        String type = application.getTypeContrat() != null ? application.getTypeContrat().getLabel() : null;
+        exp.setTypeContrat(type == null || "inconnu".equalsIgnoreCase(type.trim()) ? "" : truncate(type));
         if (application.getStartDate() != null) {
             exp.setDebut(application.getStartDate().format(YEAR_MONTH));
         }

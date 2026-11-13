@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown, Lightbulb, Loader2, Target } from 'lucide-react';
+import { ArrowRight, ChevronDown, Lightbulb, Loader2, Target } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CvCompleteness, CvFormSectionKey } from '../../../../types/models/CVBuilder';
+import { nextBestTip } from './guidance';
 
 /** Textes par défaut des conseils (codes renvoyés par CvCompletenessService), traduits via studentCvBuilder.tips. */
 const TIP_DEFAULTS: Record<string, string> = {
@@ -35,7 +36,10 @@ export default function CompletenessPanel({ completeness, loading, onOpenSection
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(true);
   const score = completeness?.score ?? 0;
-  const tone = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+  // Couleurs encourageantes : jamais de rouge, le score est un repère et non une note.
+  const tone = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-[#3f74ff]' : 'bg-amber-400';
+  const next = nextBestTip(completeness);
+  const label = (code: string, params?: Record<string, unknown>) => t(`studentCvBuilder.tips.${code}`, TIP_DEFAULTS[code] ?? code, params);
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
@@ -46,13 +50,37 @@ export default function CompletenessPanel({ completeness, loading, onOpenSection
           {t('studentCvBuilder.completeness.title', 'Complétude')}
         </span>
         <span className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-          <span className={`block h-full ${tone} transition-all duration-500`} style={{ width: `${score}%` }} />
+          <span className={`block h-full ${tone} transition-all duration-500 motion-reduce:transition-none`} style={{ width: `${score}%` }} />
         </span>
         <span className="text-sm font-bold tabular-nums text-slate-900 dark:text-white w-14 text-right">
           {loading && !completeness ? <Loader2 className="h-4 w-4 animate-spin inline" /> : `${score}/100`}
         </span>
-        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`} />
       </button>
+
+      {next && (
+        <div className="mx-4 mb-3 flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl bg-[#3f74ff]/5 dark:bg-[#3f74ff]/10 border border-[#3f74ff]/20">
+          <p className="flex-1 text-xs text-slate-700 dark:text-slate-200">
+            <span className="font-semibold">
+              {score >= 80
+                ? t('studentCvBuilder.completeness.almost', 'Ton CV est déjà très bien. Pour aller plus loin :')
+                : t('studentCvBuilder.completeness.next', 'Prochaine étape la plus utile :')}
+            </span>{' '}
+            {label(next.tip.code, next.tip.params)}
+            {next.gain > 0 && (
+              <span className="text-slate-500 dark:text-slate-400">
+                {' '}{t('studentCvBuilder.completeness.gain', '(tu passes à {{score}} %)', { score: Math.min(100, score + next.gain) })}
+              </span>
+            )}
+          </p>
+          {next.tip.section && (
+            <button type="button" onClick={() => next.tip.section && onOpenSection(next.tip.section)}
+              className="self-start sm:self-auto inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#3f74ff] hover:bg-[#2f63ee] text-white text-xs font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+              {t('studentCvBuilder.completeness.go', 'J’y vais')}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
 
       {expanded && completeness && (
         <div className="px-4 pb-4">
@@ -62,14 +90,13 @@ export default function CompletenessPanel({ completeness, loading, onOpenSection
             </p>
           ) : (
             <ul className="flex flex-col gap-1">
-              {completeness.tips.map((tip) => {
-                const label = t(`studentCvBuilder.tips.${tip.code}`, TIP_DEFAULTS[tip.code] ?? tip.code, tip.params);
+              {completeness.tips.filter((tip) => tip.code !== next?.tip.code).map((tip) => {
                 return (
                   <li key={tip.code}>
                     <button type="button" disabled={!tip.section} onClick={() => tip.section && onOpenSection(tip.section)}
                       className="w-full flex items-start gap-2 px-2 py-1.5 rounded-lg text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer disabled:cursor-default">
                       <Lightbulb className="h-3.5 w-3.5 mt-0.5 text-amber-500 shrink-0" />
-                      {label}
+                      {label(tip.code, tip.params)}
                     </button>
                   </li>
                 );

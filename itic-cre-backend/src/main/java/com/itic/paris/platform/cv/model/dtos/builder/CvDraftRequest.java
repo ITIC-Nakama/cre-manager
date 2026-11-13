@@ -12,7 +12,7 @@ public class CvDraftRequest {
     @Valid
     private CvDraftData data;
 
-    /** CLASSIQUE | MODERNE */
+    /** LINEAIRE | CLASSIQUE | MODERNE | BANDEAU */
     private String templateCode;
 
     private String accentColor;

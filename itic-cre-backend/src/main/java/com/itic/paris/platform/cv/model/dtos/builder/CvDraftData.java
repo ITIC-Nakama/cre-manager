@@ -25,6 +25,8 @@ public class CvDraftData {
     private List<Certification> certifications = new ArrayList<>();
     private List<String> centresInteret = new ArrayList<>();
     private List<String> ordreSections = new ArrayList<>(CvBuilderOptions.SECTIONS);
+    /** false : l'ordre par defaut du modele s'applique (CvTemplate.defaultSections) ; true des que l'etudiant a reordonne. */
+    private Boolean ordrePersonnalise = false;
     private List<String> sectionsMasquees = new ArrayList<>();
 
     @Data

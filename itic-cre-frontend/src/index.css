@@ -503,6 +503,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .animate-scale-down {
   animation: scaleDown 0.18s cubic-bezier(0.4, 0, 1, 1) both;
 }
+
+/* « Réduire les animations » (réglage du système) : pas d'apparition animée. Ces classes sont hors des couches
+   Tailwind, la variante motion-reduce:animate-none ne pouvait donc pas les annuler. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up, .animate-fadeIn, .animate-fadeOut, .animate-scale-up, .animate-scale-down {
+    animation: none;
+  }
+}
 .animate-slide-in-left {
   animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

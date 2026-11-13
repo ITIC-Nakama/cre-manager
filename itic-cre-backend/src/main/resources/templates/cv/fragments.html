@@ -6,6 +6,8 @@
   Lisibilite par les logiciels de tri (ATS) : AUCUN texte en float — openhtmltopdf ecrit les floats avant le
   reste du flux, ce qui faisait sortir les dates avant le nom. Titre et date d'une entree partagent une ligne de
   tableau : le texte extrait suit l'ordre visuel (verifie par CvAtsExtractionTest).
+  Espacement des lettres : 0.6pt au plus. Au-dela (1.2pt), les extracteurs inserent des espaces entre les lettres
+  (« C E R T I F I C A T I O N S ») et le titre de section n'est plus reconnu.
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -14,14 +16,16 @@
 <style th:fragment="pageCss">
   @page { size: A4; margin: 15mm; }
   html, body { margin: 0; padding: 0; }
-  body { color: #1f2937; font-size: 9.6pt; line-height: 1.38; }
+  body { color: #1f2937; font-family: 'Roboto', sans-serif; font-size: 9.4pt; line-height: 1.34; }
+  /* Pas de ligne isolee en bas ou en haut de page. */
+  p, li, .entry-sub, .entry-facts { orphans: 2; widows: 2; }
   a { color: inherit; text-decoration: none; }
   ul { margin: 1mm 0 0 0; padding: 0 0 0 4.5mm; }
-  li { margin: 0 0 0.6mm 0; }
+  li { margin: 0.4mm 0 0 0; }
   .clear { clear: both; }
   /* Espacements AU-DESSUS des blocs (jamais en dessous) : une marge basse en fin de document pouvait creer une
      page blanche quand le contenu remplissait juste la page. */
-  .entry { margin: 2.6mm 0 0 0; page-break-inside: avoid; }
+  .entry { margin: 2.2mm 0 0 0; page-break-inside: avoid; }
   .section-title + .entry { margin-top: 0; }
   .entry-head { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .entry-head td { padding: 0; vertical-align: top; }
@@ -31,8 +35,20 @@
   .entry-facts { color: #4b5563; font-style: italic; font-size: 8.9pt; }
   .entry-text { margin-top: 0.8mm; }
   .muted { color: #6b7280; }
-  .section { margin: 3.4mm 0 0 0; }
+  .section { margin: 3mm 0 0 0; }
   .section-title { page-break-after: avoid; }
+  /* Competences, langues, centres d'interet : listes simples separees par des virgules (lisibles par les ATS). */
+  .skill-group + .skill-group { margin-top: 0.8mm; }
+  .skill-label { display: inline; font-weight: 500; }
+  .skill-items { display: inline; }
+  .lang-row + .lang-row { margin-top: 0.5mm; }
+  .lang-row .muted { color: #6b7280; }
+  /* Pied « Etudiant(e) ITIC Paris » : dans le corps du document (pas un pied de page), apres la derniere section. */
+  .itic-footer { margin-top: 4.5mm; padding-top: 1.6mm; border-top: 0.25mm solid #d5dbe5; page-break-inside: avoid; }
+  .itic-footer table { border-collapse: collapse; }
+  .itic-footer td { padding: 0; vertical-align: middle; }
+  .itic-footer img { height: 4.2mm; width: auto; margin-right: 2mm; }
+  .itic-footer .text { font-size: 7.6pt; color: #6b7280; }
   @media screen {
     html { background: #e5e7eb; }
     body { width: 180mm; min-height: 267mm; margin: 16px auto; padding: 15mm; background: #ffffff;
@@ -57,7 +73,7 @@
   <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
   <div class="entry" th:each="e : ${cv.experiences}">
     <table class="entry-head"><tr>
-      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, e.typeContrat)}">Poste</td>
+      <td class="entry-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</td>
       <td class="entry-date" th:text="${fmt.period(e.debut, e.fin, e.enCours, #messages.msg('cv.ongoing'))}">2025</td>
     </tr></table>
     <div class="entry-sub" th:text="${fmt.join(' · ', e.entreprise, e.ville)}">Entreprise</div>
@@ -100,15 +116,15 @@
   <h2 class="section-title" th:text="#{cv.section.competences}">Compétences</h2>
   <div class="skill-group" th:if="${!cv.competences.techniques.isEmpty()}">
     <div class="skill-label"><span th:text="#{cv.skills.techniques}">Techniques</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
-    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.techniques}" th:text="${t}">Java</span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.techniques})}"></th:block></div>
   </div>
   <div class="skill-group" th:if="${!cv.competences.outils.isEmpty()}">
     <div class="skill-label"><span th:text="#{cv.skills.outils}">Outils</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
-    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.outils}" th:text="${t}">Git</span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.outils})}"></th:block></div>
   </div>
   <div class="skill-group" th:if="${!cv.competences.savoirEtre.isEmpty()}">
     <div class="skill-label"><span th:text="#{cv.skills.savoirEtre}">Savoir-être</span><span class="skill-colon" th:text="#{cv.colon}"> : </span></div>
-    <div class="skill-items"><span class="tag" th:each="t : ${cv.competences.savoirEtre}" th:text="${t}">Rigueur</span></div>
+    <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.competences.savoirEtre})}"></th:block></div>
   </div>
 </div>
 
@@ -133,13 +149,83 @@
 
 <div th:fragment="centresInteret" class="section section-centresInteret">
   <h2 class="section-title" th:text="#{cv.section.centresInteret}">Centres d'intérêt</h2>
-  <div class="skill-items"><span class="tag" th:each="i : ${cv.centresInteret}" th:text="${i}">Basket</span></div>
+  <div class="skill-items"><th:block th:replace="~{cv/fragments :: inlineList(${cv.centresInteret})}"></th:block></div>
+</div>
+
+<!-- ─── Modele Lineaire : frise (dates et ville a gauche, point sur la ligne de temps, contenu a droite) ───
+     Une ligne de tableau par entree : le texte extrait reste groupe par entree (dates, ville, poste, entreprise,
+     puces). Experiences et formation passent par la frise ; les autres sections gardent les fragments communs. -->
+<th:block th:fragment="timelineSection(name)">
+  <th:block th:switch="${name}">
+    <th:block th:case="'experiences'"><th:block th:replace="~{cv/fragments :: tlExperiences}"></th:block></th:block>
+    <th:block th:case="'formations'"><th:block th:replace="~{cv/fragments :: tlFormations}"></th:block></th:block>
+    <th:block th:case="*"><th:block th:replace="~{cv/fragments :: section(${name})}"></th:block></th:block>
+  </th:block>
+</th:block>
+
+<!-- Periode sur une ou deux lignes, sans couper une date en deux (« sept. 2024 – » / « aujourd'hui »). -->
+<th:block th:fragment="tlPeriod(start, end)"><span class="nw" th:if="${fmt.present(start)}" th:text="${start}">sept. 2024</span><span th:if="${fmt.present(start) and fmt.present(end)}" th:text="' – '"> – </span><span class="nw" th:if="${fmt.present(end)}" th:text="${end}">aujourd’hui</span></th:block>
+
+<div th:fragment="tlExperiences" class="section section-experiences">
+  <h2 class="section-title" th:text="#{cv.section.experiences}">Expériences</h2>
+  <table class="tl">
+    <tr class="tl-row" th:each="e : ${cv.experiences}">
+      <td class="tl-when">
+        <div class="tl-date"><th:block th:replace="~{cv/fragments :: tlPeriod(${fmt.month(e.debut)}, ${e.enCours != null and e.enCours ? #messages.msg('cv.ongoing') : fmt.month(e.fin)})}"></th:block></div>
+        <div class="tl-place" th:if="${fmt.present(e.ville)}" th:text="${e.ville}">Paris</div>
+      </td>
+      <td class="tl-rail"><div class="tl-dot"></div></td>
+      <td class="tl-body">
+        <div class="tl-title" th:text="${fmt.join(' · ', e.poste, fmt.contractType(e.typeContrat))}">Poste</div>
+        <div class="tl-org" th:if="${fmt.present(e.entreprise)}" th:text="${e.entreprise}">Entreprise</div>
+        <th:block th:with="facts=${fmt.companyFacts(e.chiffreAffaires, e.effectif, e.secteur, #messages.msg('cv.company.revenue'), #messages.msg('cv.company.headcount'))}">
+          <div class="entry-facts" th:if="${fmt.present(facts)}" th:text="${facts}">CA 3 M€ – effectif 35 (secteur)</div>
+        </th:block>
+        <ul th:if="${!e.points.isEmpty()}">
+          <li th:each="p : ${e.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div th:fragment="tlFormations" class="section section-formations">
+  <h2 class="section-title" th:text="#{cv.section.formations}">Formation</h2>
+  <table class="tl">
+    <tr class="tl-row" th:each="f : ${cv.formations}">
+      <td class="tl-when">
+        <div class="tl-date"><th:block th:replace="~{cv/fragments :: tlPeriod(${fmt.month(f.debut)}, ${f.enCours != null and f.enCours ? #messages.msg('cv.ongoing') : fmt.month(f.fin)})}"></th:block></div>
+        <div class="tl-place" th:if="${fmt.present(f.ville)}" th:text="${f.ville}">Paris</div>
+      </td>
+      <td class="tl-rail"><div class="tl-dot"></div></td>
+      <td class="tl-body">
+        <div class="tl-title" th:text="${f.diplome}">Diplôme</div>
+        <div class="tl-org" th:if="${fmt.present(f.etablissement)}" th:text="${f.etablissement}">Établissement</div>
+        <div class="entry-facts" th:if="${fmt.present(f.mention)}" th:text="${f.mention}">Mention bien</div>
+        <ul th:if="${!f.points.isEmpty()}">
+          <li th:each="p : ${f.points}"><th:block th:replace="~{cv/fragments :: rich(${p})}"></th:block></li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- Pied « Etudiant(e) ITIC Paris — Enseignement superieur prive » avec le symbole ITIC (image decorative). -->
+<div th:fragment="iticFooter" class="itic-footer">
+  <table><tr>
+    <td><img th:src="${logoMark}" alt=""/></td>
+    <td class="text" th:text="#{cv.footer}">Étudiant(e) ITIC Paris — Enseignement supérieur privé</td>
+  </tr></table>
 </div>
 
 <!-- Puce avec mise en gras : "**+15 %**" -> <strong>. Chaque morceau passe par th:text (echappe).
      Les morceaux normaux sont aussi dans un <span> : openhtmltopdf ecrit le texte direct d'un element AVANT ses
      elements imbriques ; sans ce <span>, le gras sortait apres la fin de la phrase dans le flux du PDF (ATS). -->
 <th:block th:fragment="rich(text)"><th:block th:each="seg : ${fmt.rich(text)}"><strong th:if="${seg.bold}" th:text="${seg.text}">gras</strong><span th:unless="${seg.bold}" th:text="${seg.text}">texte</span></th:block></th:block>
+
+<!-- Liste « a, b, c » : les virgules sont du vrai texte, chacune dans son <span> a sa place (un ", " genere en CSS
+     sortait apres les mots dans le flux du PDF). -->
+<th:block th:fragment="inlineList(items)"><th:block th:each="item, it : ${items}"><span class="tag" th:text="${item}">Java</span><span th:unless="${it.last}" th:text="', '">, </span></th:block></th:block>
 
 <!-- Liens (LinkedIn, GitHub…) : libelle + URL lisible, cliquables dans le PDF. -->
 <th:block th:fragment="links">

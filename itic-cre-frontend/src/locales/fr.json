@@ -2073,6 +2073,12 @@
       "uploadDesc": "Tu as déjà un CV à jour ? Dépose-le tel quel (PDF, 10 Mo maximum).",
       "uploadCta": "Choisir un fichier",
       "back": "Revenir au choix"
+    },
+    "tabs": {
+      "label": "Comment veux-tu préparer ton CV ?",
+      "builder": "Créer avec un modèle ITIC",
+      "new": "Nouveau",
+      "upload": "Déposer un fichier"
     }
   },
   "studentCvBuilder": {
@@ -2088,28 +2094,25 @@
     "toolbar": {
       "back": "Mon CV",
       "template": "Modèle",
-      "color": "Couleur",
       "lang": "Langue du CV",
-      "download": "Télécharger le PDF",
-      "submit": "Envoyer à mon conseiller"
+      "download": "Télécharger PDF",
+      "submit": "Envoyer en relecture",
+      "reset": "Réinitialiser",
+      "lang_fr": "CV en français",
+      "lang_en": "CV en anglais"
     },
     "templates": {
+      "LINEAIRE": "Linéaire",
       "CLASSIQUE": "Classique",
-      "MODERNE": "Moderne"
-    },
-    "colors": {
-      "3B71FF": "Bleu ITIC",
-      "E2782E": "Orange",
-      "2E8B57": "Vert",
-      "374151": "Gris anthracite",
-      "8B1E3F": "Bordeaux"
+      "MODERNE": "Moderne",
+      "BANDEAU": "Bandeau"
     },
     "save": {
-      "idle": "Brouillon prérempli, rien n’est encore enregistré",
-      "dirty": "Modifications non enregistrées",
+      "idle": "Prérempli avec ton compte : ton brouillon sera enregistré dès ta première modification",
+      "dirty": "Modifications en cours d’enregistrement…",
       "saving": "Enregistrement…",
-      "savedAt": "Enregistré à {{time}}",
-      "error": "Échec de l’enregistrement, nouvel essai à la prochaine modification",
+      "savedAt": "Brouillon enregistré · {{time}}",
+      "error": "Enregistrement impossible pour le moment : rien n’est perdu, nouvel essai à ta prochaine modification",
       "invalid": "Une valeur n’est pas acceptée.",
       "conflict": "Ton CV a été modifié dans un autre onglet.",
       "reload": "Recharger"
@@ -2120,12 +2123,18 @@
       "pages_other": "{{count}} pages",
       "zoomIn": "Zoomer",
       "zoomOut": "Dézoomer",
-      "fit": "Ajuster à la largeur",
-      "error": "Aperçu indisponible pour le moment."
+      "fit": "Zoom de l’aperçu, sans effet sur ton CV. Clique pour ajuster à la largeur.",
+      "error": "Aperçu indisponible pour le moment.",
+      "zoomGroup": "Zoom de l’aperçu (taille à l’écran, ne change pas ton CV)",
+      "zoomValue": "Zoom {{value}} %"
     },
     "completeness": {
       "title": "Complétude",
-      "perfect": "Ton CV est complet. Envoie-le à ton conseiller !"
+      "perfect": "Ton CV est complet. Envoie-le à ton conseiller !",
+      "almost": "Ton CV est déjà très bien. Pour aller plus loin :",
+      "next": "Prochaine étape la plus utile :",
+      "gain": "(tu passes à {{score}} %)",
+      "go": "J’y vais"
     },
     "tips": {
       "NAME_MISSING": "Indique ton prénom et ton nom",
@@ -2243,9 +2252,17 @@
       "typeContratHint": "Alternance, stage, CDD, job étudiant…",
       "ville": "Ville",
       "points": "Réalisations",
-      "pointsHint": "Commence par un verbe d’action et chiffre quand tu peux. 2 à 4 lignes suffisent.",
+      "pointsHint": "Commence par un verbe d’action et chiffre quand tu peux. Entoure un chiffre de ** pour le mettre en gras : **+15 %**.",
       "pointPlaceholder": "Ex : Développement d’une API REST utilisée par 3 équipes",
-      "addPoint": "Ajouter une réalisation"
+      "addPoint": "Ajouter une réalisation",
+      "company": "L’entreprise en une ligne (facultatif)",
+      "chiffreAffaires": "Chiffre d’affaires",
+      "chiffreAffairesPlaceholder": "Ex : 3 M€",
+      "effectif": "Effectif",
+      "effectifPlaceholder": "Ex : 35 collaborateurs",
+      "secteur": "Secteur",
+      "secteurPlaceholder": "Ex : Hôtellerie",
+      "companyHint": "Aide le recruteur à situer l’entreprise. Sur le CV : « CA 3 M€ – effectif 35 collaborateurs (Hôtellerie) »."
     },
     "formations": {
       "entry": "Formation {{n}}",
@@ -2253,7 +2270,11 @@
       "diplome": "Diplôme ou formation",
       "etablissement": "Établissement",
       "ville": "Ville",
-      "mention": "Mention ou spécialité (facultatif)"
+      "mention": "Mention ou spécialité (facultatif)",
+      "points": "Points clés (facultatif)",
+      "pointsHint": "Un projet, une matière forte, un classement : 1 ou 2 lignes suffisent.",
+      "pointPlaceholder": "Ex : Projet de fin d’année : application de réservation en React",
+      "addPoint": "Ajouter un point clé"
     },
     "projets": {
       "entry": "Projet {{n}}",
@@ -2302,12 +2323,144 @@
     "submitModal": {
       "title": "Envoyer ton CV à ton conseiller ?",
       "body": "Le PDF généré avec le modèle choisi part en relecture : il sera « En attente » jusqu’à la décision de ton conseiller.",
-      "confirm": "Envoyer"
+      "confirm": "Envoyer",
+      "warning": "Ton CV actuel sera remplacé : son statut de validation repart de zéro et les XP éligibles sont de nouveau en jeu pour ce cycle. Les commentaires de ton conseiller restent visibles."
     },
     "toast": {
       "submitted": "CV envoyé à ton conseiller : il est maintenant « En attente » de relecture.",
       "submitError": "L’envoi a échoué, réessaie dans un instant.",
-      "downloadError": "Le PDF n’a pas pu être généré."
+      "downloadError": "Le PDF n’a pas pu être généré.",
+      "reset": "Ton CV est revenu au prérempli de ton compte. Ton modèle est gardé.",
+      "resetError": "La réinitialisation a échoué, ton brouillon est intact.",
+      "conflict": "Ton CV a été modifié dans un autre onglet : recharge-le avant de continuer."
+    },
+    "steps": {
+      "template": "1. Choisis un modèle",
+      "fill": "2. Complète ton CV"
+    },
+    "templatePicker": {
+      "selected": "Choisi",
+      "LINEAIRE": "Parcours en frise, dates à gauche. Idéal si tu as déjà de l’expérience à mettre en avant.",
+      "CLASSIQUE": "Sobre et polyvalent. Idéal pour les candidatures en entreprise.",
+      "MODERNE": "Filet de couleur et titres soulignés. Marketing, communication.",
+      "BANDEAU": "En-tête marine marqué. Profils tech et BTS SIO."
+    },
+    "resetModal": {
+      "title": "Repartir du prérempli ?",
+      "body": "Ton brouillon sera remplacé par les informations de ton compte (identité, formation ITIC, contrats validés). Tu gardes ton modèle et ta langue. Le CV déjà envoyé à ton conseiller ne change pas.",
+      "confirm": "Réinitialiser"
+    },
+    "guide": {
+      "summaryInspiration": "Besoin d’inspiration ? 3 accroches à adapter",
+      "placeholderHint": "Remplace ensuite les passages entre crochets par tes propres mots.",
+      "replaceConfirm": "Remplacer ton accroche actuelle ?",
+      "replaceYes": "Remplacer",
+      "replaceNo": "Garder la mienne",
+      "useExample": "Utiliser cet exemple",
+      "bulletInspiration": "Exemples de réalisations chiffrées à adapter",
+      "addExampleAria": "Ajouter cette réalisation : {{text}}",
+      "add": "Ajouter",
+      "verbsLabel": "Verbes d’action",
+      "verbsIntro": "Commence par un verbe d’action :",
+      "tipLabel": "Conseil",
+      "exampleLabel": "Exemple",
+      "weakVerb": "Astuce : un verbe d’action est plus fort. Par exemple « Organiser… », « Gérer… », « Accompagner… ».",
+      "sections": {
+        "identite": {
+          "tip": "Le titre, c’est le poste que tu vises : c’est la première chose que lit le recruteur.",
+          "example": "« Chargé(e) de clientèle en alternance — rythme 3 semaines / 1 semaine »"
+        },
+        "accroche": {
+          "tip": "Dis en 2 ou 3 phrases ce que tu prépares, ce que tu cherches (contrat, durée, rythme, date) et ce que tu apportes.",
+          "example": "« En Bachelor RH à ITIC Paris, je cherche une alternance de 12 mois dès septembre. »"
+        },
+        "experiences": {
+          "tip": "Une ligne = une réalisation. Commence par un verbe d’action et ajoute un chiffre quand tu peux.",
+          "example": "Remplace « j’ai aidé à l’accueil » par « Accueillir et conseiller 30 clients par jour »."
+        },
+        "formations": {
+          "tip": "Ta formation ITIC en premier, puis le diplôme précédent. Un point clé suffit pour te démarquer.",
+          "example": "« Projet de fin d’année : application de réservation, note de 17/20 »"
+        },
+        "projets": {
+          "tip": "Un projet montre ce que tu sais faire, même sans expérience : dis ce que tu as fait et avec quels outils.",
+          "example": "« Site vitrine pour une association : 5 pages, WordPress, mis en ligne en 3 semaines »"
+        },
+        "competences": {
+          "tip": "Reprends les mots des offres qui t’intéressent : ce sont eux que les logiciels des recruteurs recherchent.",
+          "example": "Techniques : prospection, CRM HubSpot · Outils : Excel, Canva · Savoir-être : organisation"
+        },
+        "langues": {
+          "tip": "Indique toujours un niveau : « Anglais » seul ne dit rien au recruteur.",
+          "example": "Anglais — B2 (TOEIC 785) · Espagnol — A2"
+        },
+        "certifications": {
+          "tip": "TOEIC, Voltaire, PIX, certification Google… : une ligne avec le nom, l’organisme et la date.",
+          "example": "« Projet Voltaire — niveau Affaires, 2025 »"
+        },
+        "centresInteret": {
+          "tip": "Deux ou trois centres d’intérêt précis : ils lancent souvent la conversation en entretien.",
+          "example": "« Basket en club (capitaine) », plutôt que « Sport »"
+        }
+      },
+      "summaryExamples": {
+        "0": "Étudiant(e) en [formation] à ITIC Paris, je recherche une alternance de [durée] en [métier visé] à partir de [mois], rythme [rythme]. [Qualité] et [qualité], je souhaite mettre mes compétences en [domaine] au service de votre équipe.",
+        "1": "Après [expérience ou diplôme précédent], je prépare un [diplôme] à ITIC Paris. Je cherche une alternance en [métier visé] pour [objectif concret], dès [mois], au rythme [rythme].",
+        "2": "À l’aise avec [outil ou compétence] et [outil ou compétence], je cherche une alternance de [durée] en [métier visé]. Mes atouts : [qualité], [qualité] et l’envie d’apprendre vite."
+      },
+      "bulletExamples": {
+        "0": "Accueillir et conseiller **30 clients** par jour en boutique",
+        "1": "Relancer les prospects par téléphone : **+15 %** de rendez-vous en 3 mois",
+        "2": "Animer la page LinkedIn de l’entreprise : **+300 abonnés** en 6 mois",
+        "3": "Préparer les dossiers de **20 nouveaux salariés** (contrats, mutuelle, accueil)",
+        "4": "Développer **6 pages** web accessibles avec React"
+      },
+      "verbs": {
+        "Accompagner": "Accompagner",
+        "Animer": "Animer",
+        "Analyser": "Analyser",
+        "Concevoir": "Concevoir",
+        "Développer": "Développer",
+        "Gérer": "Gérer",
+        "Négocier": "Négocier",
+        "Organiser": "Organiser",
+        "Piloter": "Piloter",
+        "Prospecter": "Prospecter"
+      }
+    },
+    "welcome": {
+      "step1": "Choisis un modèle : tu pourras en changer à tout moment.",
+      "step2": "Complète ton CV : il est déjà prérempli avec ton compte et s’enregistre tout seul.",
+      "step3": "Envoie-le à ton conseiller : il le relit et te répond.",
+      "close": "Fermer le message d’accueil",
+      "title": "Ton CV, pas à pas",
+      "body": "Pas besoin de tout savoir avant de commencer : on t’aide à chaque section, avec des exemples. Compte une quinzaine de minutes.",
+      "start": "C’est parti"
+    },
+    "submitted": {
+      "step1": "Ton conseiller relit ton CV. Tu suis l’avancement dans la frise en haut de la page.",
+      "step2": "Tu reçois un e-mail dès qu’il donne son avis (statut ou commentaire).",
+      "step3": "S’il te demande des corrections, reviens ici : ton brouillon est gardé, corrige et renvoie.",
+      "close": "Fermer",
+      "title": "C’est envoyé ! Et maintenant ?"
+    },
+    "check": {
+      "allGood": "Tout est prêt, ton CV peut partir :",
+      "someTips": "Avant d’envoyer, un coup d’œil (ce sont des conseils, tu peux envoyer quand même) :",
+      "ok": "OK",
+      "warn": "À vérifier",
+      "fix": "Corriger",
+      "contact": "Coordonnées complètes (prénom, nom, e-mail, téléphone)",
+      "experience": "Au moins une expérience (alternance, stage, job, bénévolat)",
+      "figure": "Au moins une réalisation avec un chiffre (+15 %, 30 clients…)",
+      "onePage": "Une page maximum",
+      "format": "Pas d’erreur de format (e-mail, téléphone, dates) ni de [passage entre crochets] d’un exemple",
+      "toConfirm": "Expériences proposées automatiquement : vérifiées et confirmées"
+    },
+    "ats": {
+      "explain": "Beaucoup d’entreprises trient les CV avec un logiciel. Ton CV est écrit en vrai texte, avec des titres classiques et dans un ordre logique : le logiciel peut le lire comme un recruteur.",
+      "ready": "Lisible par les recruteurs",
+      "missingContact": "Ajoute ton e-mail et ton téléphone pour être bien lu"
     }
   }
 }

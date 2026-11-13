@@ -1,11 +1,13 @@
 package com.itic.paris.platform.cv.service;
 
+import java.text.Normalizer;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Mise en forme appelee depuis les modeles Thymeleaf du CV (variable "fmt") : dates, periodes, liens.
@@ -44,6 +46,64 @@ public class CvTemplateHelper {
             return start;
         }
         return start + " – " + end;
+    }
+
+    /**
+     * Types de contrat saisis (ou repris des candidatures) en francais, traduits pour un CV en anglais.
+     * Cles normalisees : minuscules, sans accents, apostrophes et tirets remplaces par des espaces.
+     */
+    private static final Map<String, String> CONTRACT_TYPES_EN = Map.ofEntries(
+            Map.entry("alternance", "Apprenticeship"),
+            Map.entry("en alternance", "Apprenticeship"),
+            Map.entry("apprentissage", "Apprenticeship"),
+            Map.entry("contrat d apprentissage", "Apprenticeship"),
+            Map.entry("contrat de professionnalisation", "Professional training contract"),
+            Map.entry("contrat pro", "Professional training contract"),
+            Map.entry("professionnalisation", "Professional training contract"),
+            Map.entry("stage", "Internship"),
+            Map.entry("stage de fin d etudes", "Final-year internship"),
+            Map.entry("cdd", "Fixed-term contract"),
+            Map.entry("cdi", "Permanent contract"),
+            Map.entry("job etudiant", "Student job"),
+            Map.entry("emploi etudiant", "Student job"),
+            Map.entry("job d ete", "Summer job"),
+            Map.entry("saisonnier", "Seasonal job"),
+            Map.entry("emploi saisonnier", "Seasonal job"),
+            Map.entry("interim", "Temporary work"),
+            Map.entry("benevolat", "Volunteering"),
+            Map.entry("benevole", "Volunteering"),
+            Map.entry("service civique", "Civic service"),
+            Map.entry("independant", "Freelance"),
+            Map.entry("freelance", "Freelance"),
+            Map.entry("auto entrepreneur", "Freelance"),
+            Map.entry("temps partiel", "Part-time"),
+            Map.entry("vie", "International volunteer programme (VIE)"));
+
+    /** Valeur technique des offres externes sans type connu : jamais affichee sur un CV. */
+    private static final String UNKNOWN_CONTRACT = "inconnu";
+
+    /**
+     * Type de contrat tel qu'il doit apparaitre sur le CV : traduit en anglais quand il s'agit d'un type courant
+     * (sinon garde tel quel, l'etudiant a pu l'ecrire directement en anglais), vide pour « Inconnu ».
+     */
+    public String contractType(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String key = normalizeLabel(value);
+        if (UNKNOWN_CONTRACT.equals(key)) {
+            return "";
+        }
+        if (Locale.ENGLISH.getLanguage().equals(locale.getLanguage())) {
+            return CONTRACT_TYPES_EN.getOrDefault(key, value.trim());
+        }
+        return value.trim();
+    }
+
+    /** "Contrat d'apprentissage " -> "contrat d apprentissage" ; "Bénévolat" -> "benevolat". */
+    static String normalizeLabel(String value) {
+        String noAccents = Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return noAccents.toLowerCase(Locale.ROOT).replaceAll("[’'.-]", " ").replaceAll("\\s+", " ").trim();
     }
 
     /** URL affichee sans protocole ni "www." ni barre finale : "linkedin.com/in/amina-diallo". */
