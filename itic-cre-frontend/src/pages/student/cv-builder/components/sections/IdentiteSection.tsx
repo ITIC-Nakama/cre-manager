@@ -79,7 +79,7 @@ function PhotoField() {
   const photo = useCvPhoto();
   if (!photo) return null;
 
-  const { info, thumbnailUrl, busy, choose, revertToProfile } = photo;
+  const { info, thumbnailUrl, ratio, busy, choose, revertToProfile } = photo;
   const hasPhoto = info.source !== 'NONE';
   const actionClass = 'text-xs font-semibold text-[#3f74ff] dark:text-[#8fb0ff] hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-default';
   const hint = info.source === 'CV'
@@ -92,7 +92,8 @@ function PhotoField() {
     <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800">
       {/* Vignette cliquable à la souris ; au clavier et pour les lecteurs d'écran, le bouton texte à côté suffit. */}
       <button type="button" onClick={choose} disabled={busy} tabIndex={-1} aria-hidden="true"
-        className="shrink-0 w-[60px] h-[72px] rounded-md overflow-hidden cursor-pointer ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff]">
+        style={{ width: 60, height: Math.round((60 * ratio.height) / ratio.width) }}
+        className="shrink-0 rounded-md overflow-hidden cursor-pointer ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff]">
         {thumbnailUrl ? (
           <img src={thumbnailUrl} alt="" className={`w-full h-full object-cover ${shown ? '' : 'opacity-40 grayscale'}`} />
         ) : (

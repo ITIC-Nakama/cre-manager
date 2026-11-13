@@ -4,8 +4,10 @@ import type { CvPhotoInfo } from '../../../../../types/models/CVBuilder';
 /** Photo du CV, partagée par la section Identité et l'aperçu (zone photo cliquable). */
 export interface CvPhotoController {
   info: CvPhotoInfo;
-  /** Adresse locale de la vignette (JPEG privé), null sans photo. */
+  /** Adresse locale de la vignette (JPEG privé, au format du modèle choisi), null sans photo. */
   thumbnailUrl: string | null;
+  /** Format de la photo du modèle choisi. */
+  ratio: { width: number; height: number };
   busy: boolean;
   /** Ouvre le choix d'un fichier, puis le recadrage. */
   choose: () => void;

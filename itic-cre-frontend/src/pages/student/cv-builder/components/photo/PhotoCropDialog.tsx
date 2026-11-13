@@ -2,30 +2,34 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerE
 import { createPortal } from 'react-dom';
 import { Crop, Loader2, Minus, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { CV_PHOTO } from '../../../../../types/models/CVBuilder';
+import type { CvPhotoZone } from '../../../../../types/models/CVBuilder';
 import { useLockBodyScroll } from '../../../../../hooks/useLockBodyScroll';
 import {
   clampCrop, initialCrop, MAX_ZOOM, MIN_ZOOM, sourceRect, zoomAroundCenter, type CropGeometry, type CropState,
 } from './cropMath';
 
-/** Cadre à l'écran : même format que l'emplacement photo des modèles (5:6). */
+/** Largeur du cadre à l'écran ; sa hauteur suit le format de la photo du modèle choisi. */
 const FRAME_WIDTH = 240;
-const FRAME_HEIGHT = (FRAME_WIDTH * CV_PHOTO.ratioHeight) / CV_PHOTO.ratioWidth;
 const KEY_STEP = 8;
 
 interface Props {
   /** Fichier choisi par l'étudiant ; null = fenêtre fermée. */
   file: File | null;
+  /** Format de l'emplacement photo du modèle choisi (1:1 pour le Linéaire, 5:6 sinon). */
+  ratio: { width: number; height: number };
   saving: boolean;
   onCancel: () => void;
-  onSave: (photo: Blob) => void;
+  /** Zone choisie, en fractions de la photo d'origine (orientée comme le navigateur l'affiche). */
+  onSave: (zone: CvPhotoZone) => void;
 }
 
 /**
- * Recadrage de la photo du CV avant l'envoi : la photo couvre un cadre au format de l'emplacement des modèles ;
- * l'étudiant la déplace (souris, doigt ou flèches du clavier) et zoome. L'image envoyée fait 480 x 576 px (JPEG).
+ * Recadrage de la photo du CV : la photo couvre un cadre au format de l'emplacement du modèle choisi ; l'étudiant la
+ * déplace (souris, doigt ou flèches du clavier) et zoome. On envoie l'ORIGINAL et la zone choisie : le serveur en
+ * dérive le format de chaque modèle, centré sur cette zone (changer de modèle ne demande pas de recadrer).
  */
-export default function PhotoCropDialog({ file, saving, onCancel, onSave }: Props) {
+export default function PhotoCropDialog({ file, ratio, saving, onCancel, onSave }: Props) {
+  const FRAME_HEIGHT = Math.round((FRAME_WIDTH * ratio.height) / ratio.width);
   const { t } = useTranslation();
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => {
@@ -106,25 +110,15 @@ export default function PhotoCropDialog({ file, saving, onCancel, onSave }: Prop
   };
 
   const save = () => {
-    const image = imageRef.current;
-    if (!geometry || !image) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = CV_PHOTO.outputWidth;
-    canvas.height = CV_PHOTO.outputHeight;
-    const context = canvas.getContext('2d');
-    if (!context) {
-      setError(t('studentCvBuilder.photo.cropError', 'Recadrage impossible dans ce navigateur : essaie avec un autre.'));
-      return;
-    }
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.imageSmoothingQuality = 'high';
+    if (!geometry) return;
     const { sx, sy, sw, sh } = sourceRect(geometry, crop);
-    context.drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-      if (blob) onSave(blob);
-      else setError(t('studentCvBuilder.photo.cropError', 'Recadrage impossible dans ce navigateur : essaie avec un autre.'));
-    }, 'image/jpeg', 0.92);
+    const clamp = (value: number) => Math.min(1, Math.max(0, value));
+    onSave({
+      x: clamp(sx / geometry.imageWidth),
+      y: clamp(sy / geometry.imageHeight),
+      width: clamp(sw / geometry.imageWidth),
+      height: clamp(sh / geometry.imageHeight),
+    });
   };
 
   const scale = geometry ? Math.max(FRAME_WIDTH / geometry.imageWidth, FRAME_HEIGHT / geometry.imageHeight) * crop.zoom : 1;
@@ -153,7 +147,7 @@ export default function PhotoCropDialog({ file, saving, onCancel, onSave }: Prop
 
         <div className="flex flex-col items-center gap-4 p-5">
           <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-            {t('studentCvBuilder.photo.cropHint', 'Fais glisser la photo pour la placer et zoome si besoin. Le cadre a le format de la photo sur ton CV.')}
+            {t('studentCvBuilder.photo.cropHint', 'Fais glisser la photo pour la placer et zoome si besoin. Le cadre a le format de la photo de ton modèle ; si tu changes de modèle, elle s’adapte toute seule.')}
           </p>
           <div ref={frameRef} tabIndex={0} role="img"
             aria-label={t('studentCvBuilder.photo.cropFrame', 'Cadre de la photo : flèches pour déplacer, + et − pour zoomer')}

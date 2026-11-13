@@ -134,15 +134,23 @@ export interface CvPhotoInfo {
     profilePhotoAvailable: boolean;
     key: string | null;
 }
-/** Emplacement photo des 4 modeles : portrait 5:6 ; fichier envoye 5 Mo au plus (JPEG ou PNG). */
+/** Photo envoyee : 5 Mo au plus, JPEG ou PNG (l'original ; le serveur le verifie et supprime les EXIF). */
 export const CV_PHOTO = {
-    ratioWidth: 5,
-    ratioHeight: 6,
-    outputWidth: 480,
-    outputHeight: 576,
     maxBytes: 5 * 1024 * 1024,
     types: ['image/jpeg', 'image/png'],
 } as const;
+/**
+ * Format de l'emplacement photo de chaque modele (CvTemplate.photoFormat cote serveur) : carre pour le Lineaire,
+ * portrait 5:6 pour les autres. Le recadrage se fait au format du modele choisi ; les autres en sont derives.
+ */
+export const CV_TEMPLATE_PHOTO_RATIO: Record<CvTemplateCode, { width: number; height: number }> = {
+    LINEAIRE: { width: 1, height: 1 },
+    CLASSIQUE: { width: 5, height: 6 },
+    MODERNE: { width: 5, height: 6 },
+    BANDEAU: { width: 5, height: 6 },
+};
+/** Zone choisie au recadrage, en fractions (0 a 1) de la photo d'origine. */
+export interface CvPhotoZone { x: number; y: number; width: number; height: number }
 
 /** Reponse de GET / PUT /cv/builder/me. */
 export interface CvDraftResponse {
