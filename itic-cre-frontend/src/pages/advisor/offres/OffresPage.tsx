@@ -177,8 +177,8 @@ export default function OffresPage() {
     ], [t]);
 
     const sourceOptions = useMemo(() => [
-        { value: 'ALL', label: t('dashboard.offres.source_options.all', 'Toutes les offres (internes + externes)') },
-        { value: 'MANUAL', label: t('dashboard.offres.source_options.manual', 'Offres internes (manuelles)') },
+        { value: 'ALL', label: t('dashboard.offres.source_options.all', 'Toutes les offres (exclusivité ITIC PARIS + externes)') },
+        { value: 'MANUAL', label: t('dashboard.offres.source_options.manual', 'Exclusivité ITIC PARIS') },
         { value: 'EXTERNAL', label: t('dashboard.offres.source_options.external', 'Offres externes (toutes)') },
         { value: 'FRANCE_TRAVAIL', label: t('dashboard.offres.source_options.france_travail', 'France Travail') },
         { value: 'BONNE_ALTERNANCE', label: t('dashboard.offres.source_options.bonne_alternance', 'La Bonne Alternance') },

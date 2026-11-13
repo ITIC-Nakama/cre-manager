@@ -701,11 +701,11 @@
       "filters_button": "Filtres",
       "filters_reset": "Réinitialiser les filtres",
       "tabs": {
-        "itic": "Offres ITIC",
+        "itic": "Exclusivité ITIC PARIS",
         "external": "Marché externe"
       },
-      "itic_subtitle_one": "{{count}} offre ITIC disponible",
-      "itic_subtitle_other": "{{count}} offres ITIC disponibles",
+      "itic_subtitle_one": "{{count}} offre en exclusivité ITIC Paris",
+      "itic_subtitle_other": "{{count}} offres en exclusivité ITIC Paris",
       "external": {
         "subtitle_one": "{{count}} offre externe disponible",
         "subtitle_other": "{{count}} offres externes disponibles",
@@ -721,8 +721,8 @@
       "filter_all_sectors": "Tous les secteurs",
       "filter_all_statuses": "Toutes les offres",
       "source_options": {
-        "all": "Toutes les offres (internes + externes)",
-        "manual": "Offres internes (manuelles)",
+        "all": "Toutes les offres (exclusivité ITIC PARIS + externes)",
+        "manual": "Exclusivité ITIC PARIS",
         "external": "Offres externes (toutes)",
         "france_travail": "France Travail",
         "bonne_alternance": "La Bonne Alternance",
@@ -743,7 +743,7 @@
       "wipe_dialog": {
         "title": "Supprimer des offres en masse",
         "message": "Action irréversible. Choisissez ce qui doit être supprimé :",
-        "manual_label": "Offres internes (manuelles)",
+        "manual_label": "Exclusivité ITIC PARIS",
         "manual_description": "Supprime uniquement les offres créées manuellement par les conseillers.",
         "external_label": "Offres externes",
         "external_description": "Supprime toutes les offres synchronisées (France Travail, Adzuna, La Bonne Alternance).",
@@ -1590,7 +1590,7 @@
           "JOBBOARD_SYNC_MAX_PER_PROVIDER": "Nombre maximum d'offres récupérées par code ROME sélectionné (France Travail, La Bonne Alternance) ou par catégorie sélectionnée (Adzuna) à chaque synchronisation — le total réel augmente avec le nombre de codes ROME/catégories configurés",
           "JOBBOARD_OFFER_EXPIRATION_DAYS": "Nombre de jours après la dernière mise à jour connue d'une offre externe (France Travail, Adzuna) avant de la considérer expirée",
           "JOBBOARD_OFFER_DELETE_AFTER_DAYS": "Nombre de jours après expiration avant suppression définitive d'une offre externe en base",
-          "APPLICATION_XP_WEEKLY_LIMIT": "Nombre maximum de candidatures \"postuler\" (ITIC ou externe) créditées en XP par étudiant sur 7 jours glissants",
+          "APPLICATION_XP_WEEKLY_LIMIT": "Nombre maximum de candidatures \"postuler\" (exclusivité ITIC PARIS ou externe) créditées en XP par étudiant sur 7 jours glissants",
           "GDPR_ALUMNI_RETENTION_DAYS": "Durée de conservation des fiches alumni avant suppression automatique (jours)"
         }
       },
