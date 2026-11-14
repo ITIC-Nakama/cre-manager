@@ -24,6 +24,8 @@ public class GdprDataExportDto {
     private List<ArticleReadData> articlesRead;
     private List<XpHistoryData> xpHistory;
     private List<ReclamationData> reclamations;
+    /** Messagerie : le fil de l'etudiant avec l'equipe CRE, dans l'ordre. */
+    private List<ConversationMessageData> conversation;
 
     @Data
     @Builder
@@ -141,5 +143,18 @@ public class GdprDataExportDto {
         private String message;
         private String status;
         private Instant dateCreation;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConversationMessageData {
+        private Instant date;
+        /** Ecrit par l'etudiant (sinon par l'equipe CRE). */
+        private boolean fromStudent;
+        /** Prenom et nom de l'auteur ; « Ancien conseiller » si son compte a ete supprime. */
+        private String author;
+        private String message;
     }
 }
