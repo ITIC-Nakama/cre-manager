@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Traitement des photos de CV : original assaini (vrai type, orientation, EXIF supprime, 2000 px au plus, WebP
- * converti pour la photo de profil) et image de chaque modele derivee de la zone choisie (carre ou portrait 5:6).
+ * converti en JPEG, pour un envoi comme pour la photo de profil) et image de chaque modele derivee de la zone
+ * choisie (carre ou portrait 5:6).
  */
 class CvPhotoImagesTest {
 
@@ -33,7 +34,7 @@ class CvPhotoImagesTest {
         assertThat(CvPhotoTestImages.jpegSegments(input)).as("le fichier de test a bien un EXIF").contains(0xE1);
         assertThat(CvPhotoTestImages.contains(input, CvPhotoTestImages.GPS_MARKER)).isTrue();
 
-        byte[] output = CvPhotoImages.normalizeOriginal(input, false);
+        byte[] output = CvPhotoImages.normalizeOriginal(input);
 
         assertThat(CvPhotoTestImages.jpegSegments(output)).as("aucun APP1 (EXIF) ni autre APP que JFIF")
                 .doesNotContain(0xE1).allMatch(m -> m < 0xE1 || m > 0xEF);
@@ -58,7 +59,7 @@ class CvPhotoImagesTest {
         var bytes = new java.io.ByteArrayOutputStream();
         ImageIO.write(stored, "jpg", bytes);
 
-        BufferedImage upright = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.withOrientation(bytes.toByteArray(), 6), false));
+        BufferedImage upright = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.withOrientation(bytes.toByteArray(), 6)));
 
         assertThat(upright.getWidth()).isEqualTo(200);
         assertThat(upright.getHeight()).isEqualTo(400);
@@ -69,10 +70,10 @@ class CvPhotoImagesTest {
     @Test
     @DisplayName("Grande photo : l'original gardé fait 2000 px de côté au plus ; une petite n'est jamais agrandie")
     void originalIsBoundedButNeverUpscaled() throws IOException {
-        BufferedImage big = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.jpeg(4000, 3000, Color.GREEN), false));
+        BufferedImage big = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.jpeg(4000, 3000, Color.GREEN)));
         assertThat(Math.max(big.getWidth(), big.getHeight())).isEqualTo(CvPhotoImages.MAX_ORIGINAL_SIDE);
         assertThat(big.getWidth() * 3).isEqualTo(big.getHeight() * 4);
-        BufferedImage small = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.png(100, 120, Color.ORANGE), false));
+        BufferedImage small = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.png(100, 120, Color.ORANGE)));
         assertThat(small.getWidth()).isEqualTo(100);
         assertThat(small.getHeight()).isEqualTo(120);
     }
@@ -80,7 +81,7 @@ class CvPhotoImagesTest {
     @Test
     @DisplayName("PNG transparent : fond blanc dans le JPEG")
     void transparencyBecomesWhite() throws IOException {
-        BufferedImage out = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.transparentPng(250, 300), false));
+        BufferedImage out = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.transparentPng(250, 300)));
         Color corner = new Color(out.getRGB(2, 2));
         assertThat(corner.getRed()).isGreaterThan(240);
         assertThat(corner.getGreen()).isGreaterThan(240);
@@ -88,20 +89,44 @@ class CvPhotoImagesTest {
     }
 
     @Test
-    @DisplayName("Photo de profil WebP (avec perte, ou sans perte et transparente) : convertie en JPEG ; refusée pour un envoi")
-    void webpIsConvertedForProfilePhotosOnly() throws IOException {
+    @DisplayName("WebP (avec perte, ou sans perte et transparent) : converti en JPEG, couleurs et transparence gérées")
+    void webpIsConvertedToJpeg() throws IOException {
         byte[] lossy = CvPhotoTestImages.resource("photo-profil.webp");
-        BufferedImage converted = read(CvPhotoImages.normalizeOriginal(lossy, true));
+        BufferedImage converted = read(CvPhotoImages.normalizeOriginal(lossy));
         assertThat(converted.getWidth()).isEqualTo(300);
         assertThat(converted.getHeight()).isEqualTo(360);
         Color mark = new Color(converted.getRGB(10, 10));
         assertThat(mark.getRed()).as("couleurs conservées").isGreaterThan(180);
 
-        BufferedImage transparent = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.resource("photo-profil-transparente.webp"), true));
+        BufferedImage transparent = read(CvPhotoImages.normalizeOriginal(CvPhotoTestImages.resource("photo-profil-transparente.webp")));
         assertThat(new Color(transparent.getRGB(2, 2)).getRed()).as("transparence sur fond blanc").isGreaterThan(240);
+    }
 
-        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(lossy, false))
-                .isInstanceOf(AppException.class).hasMessage("cv-photo-invalid-type");
+    @Test
+    @DisplayName("WebP de téléphone (EXIF : Orientation 6, appareil, GPS) : remis droit, ré-encodé en JPEG sans EXIF ni GPS")
+    void phoneWebpIsOrientedAndStripped() throws IOException {
+        // Deux façons d'écrire le bloc EXIF d'un WebP : TIFF brut (libwebp, Pillow) ou précédé de « Exif » (d'autres outils).
+        for (String name : new String[]{"photo-telephone.webp", "photo-telephone-exif-prefixe.webp"}) {
+            byte[] input = CvPhotoTestImages.resource(name);
+            assertThat(CvPhotoImages.sniff(input)).as(name).contains(CvPhotoImages.Kind.WEBP);
+            assertThat(CvPhotoImages.exifOrientation(input)).as(name).isEqualTo(6);
+            assertThat(CvPhotoTestImages.contains(input, CvPhotoTestImages.GPS_MARKER)).as("%s a bien un EXIF avec GPS", name).isTrue();
+
+            byte[] output = CvPhotoImages.normalizeOriginal(input);
+
+            // Stockée couchée 400 x 200, coin haut gauche vert ; orientation 6 = tourner de 90° vers la droite.
+            BufferedImage upright = read(output);
+            assertThat(upright.getWidth()).as(name).isEqualTo(200);
+            assertThat(upright.getHeight()).as(name).isEqualTo(400);
+            assertThat(isGreen(upright.getRGB(upright.getWidth() - 10, 10))).as("%s : coin vert en haut à droite", name).isTrue();
+            assertThat(CvPhotoImages.sniff(output)).contains(CvPhotoImages.Kind.JPEG);
+            assertThat(CvPhotoTestImages.jpegSegments(output)).as(name).doesNotContain(0xE1);
+            for (String trace : new String[]{"Exif", "GPS", "samsung", "Galaxy"}) {
+                assertThat(CvPhotoTestImages.contains(output, trace)).as("%s : « %s » supprimé", name, trace).isFalse();
+            }
+        }
+        assertThat(CvPhotoImages.exifOrientation(CvPhotoTestImages.resource("photo-profil.webp")))
+                .as("WebP sans EXIF").isEqualTo(1);
     }
 
     @Test
@@ -110,11 +135,11 @@ class CvPhotoImagesTest {
         byte[] pdf = "%PDF-1.7\n1 0 obj\n<<>>\nendobj\n".getBytes(StandardCharsets.US_ASCII);
         byte[] gif = "GIF89a\u0001\u0000\u0001\u0000".getBytes(StandardCharsets.ISO_8859_1);
         for (byte[] input : new byte[][]{pdf, gif, new byte[0]}) {
-            assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(input, true))
+            assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(input))
                     .isInstanceOf(AppException.class).hasMessage("cv-photo-invalid-type");
         }
         byte[] brokenWebp = "RIFF\u0000\u0000\u0000\u0000WEBPVP8 abimee".getBytes(StandardCharsets.ISO_8859_1);
-        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(brokenWebp, true))
+        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(brokenWebp))
                 .isInstanceOf(AppException.class).hasMessage("cv-photo-unreadable");
     }
 
@@ -122,9 +147,9 @@ class CvPhotoImagesTest {
     @DisplayName("Signature JPEG mais contenu corrompu, ou image « bombe » (20 000 x 20 000 annoncés) : refusés")
     void corruptedOrHugeImagesAreRejected() {
         byte[] fake = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 4, 'x', 'x', 'x', 'x'};
-        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(fake, false))
+        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(fake))
                 .isInstanceOf(AppException.class).hasMessage("cv-photo-unreadable");
-        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(CvPhotoTestImages.pngHeaderOnly(20_000, 20_000), false))
+        assertThatThrownBy(() -> CvPhotoImages.normalizeOriginal(CvPhotoTestImages.pngHeaderOnly(20_000, 20_000)))
                 .isInstanceOf(AppException.class).hasMessage("cv-photo-unreadable");
     }
 
@@ -159,7 +184,7 @@ class CvPhotoImagesTest {
     @Test
     @DisplayName("Image du PDF : 480 x 480 (carré) ou 480 x 576 (portrait), centrée sur la zone choisie")
     void renderedFormatsAreCentredOnTheChosenZone() throws IOException {
-        byte[] original = CvPhotoImages.normalizeOriginal(CvPhotoTestImages.markedPhoto(), false);
+        byte[] original = CvPhotoImages.normalizeOriginal(CvPhotoTestImages.markedPhoto());
         CropZone redSquare = new CropZone(0.5, 100 / 1200.0, 0.4, 400 / 1200.0);
 
         BufferedImage square = read(CvPhotoImages.renderFormat(original, redSquare, CvPhotoFormat.SQUARE));

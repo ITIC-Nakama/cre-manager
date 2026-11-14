@@ -44,7 +44,7 @@ public class CvBuilderStudentController {
     }
 
     @PostMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Changer la photo du CV (JPEG ou PNG, 5 Mo max) : l'original est vérifié, orienté, ré-encodé "
+    @Operation(summary = "Changer la photo du CV (JPEG, PNG ou WebP, 5 Mo max) : l'original est vérifié, orienté, ré-encodé en JPEG "
             + "sans EXIF ; x, y, width, height = zone choisie au recadrage (fractions de 0 à 1, facultative). "
             + "La photo de profil n'est pas modifiée")
     public ResponseEntity<?> uploadPhoto(@RequestParam("file") MultipartFile file,

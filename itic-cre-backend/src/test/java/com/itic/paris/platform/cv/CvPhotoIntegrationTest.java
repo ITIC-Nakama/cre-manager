@@ -13,6 +13,7 @@ import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.cv.model.CvPhoto;
 import com.itic.paris.platform.cv.model.dtos.builder.CvDraftData;
+import com.itic.paris.platform.cv.service.CvPhotoImages;
 import com.itic.paris.platform.cv.repository.CvPhotoRepository;
 import com.itic.paris.platform.gdpr.service.GdprService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -244,6 +245,54 @@ class CvPhotoIntegrationTest {
     }
 
     @Test
+    @DisplayName("Envoi d'une photo WebP de téléphone (EXIF Orientation 6, GPS) : acceptée, stockée en JPEG droite, sans EXIF ni GPS")
+    void phoneWebpUploadIsConvertedOrientedAndStripped() throws Exception {
+        byte[] upload = CvPhotoTestImages.resource("photo-telephone.webp");
+
+        mockMvc.perform(multipart("/cv/builder/me/photo")
+                        .file(new MockMultipartFile("file", "IMG_20261114_101500.webp", "image/webp", upload))
+                        .param("x", "0").param("y", "0.25").param("width", "1").param("height", "0.5")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.source").value("CV"));
+
+        CvPhoto saved = cvPhotoRepository.findById(student.getId()).orElseThrow();
+        assertThat(saved.getStoragePath()).matches("cv-photos/" + student.getId() + "-\\d+\\.jpg");
+        byte[] stored = files.get(saved.getStoragePath());
+        assertThat(CvPhotoImages.sniff(stored)).as("ré-encodée en JPEG").contains(CvPhotoImages.Kind.JPEG);
+        assertThat(CvPhotoTestImages.jpegSegments(stored)).doesNotContain(0xE1);
+        for (String trace : new String[]{"Exif", CvPhotoTestImages.GPS_MARKER, "samsung", "Galaxy"}) {
+            assertThat(CvPhotoTestImages.contains(stored, trace)).as("« %s » supprimé", trace).isFalse();
+        }
+        java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(stored));
+        assertThat(image.getWidth()).as("remise droite").isEqualTo(200);
+        assertThat(image.getHeight()).isEqualTo(400);
+
+        // Rendu au format du modele (Lineaire, carre) a partir de l'original et de la zone choisie.
+        byte[] served = mockMvc.perform(get("/cv/builder/me/photo").param("template", "LINEAIRE")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        java.awt.image.BufferedImage square = javax.imageio.ImageIO.read(new ByteArrayInputStream(served));
+        assertThat(square.getWidth()).isEqualTo(square.getHeight());
+    }
+
+    @Test
+    @DisplayName("WebP refusé : faux WebP (PDF renommé), WebP abîmé, WebP de plus de 5 Mo ; rien n'est stocké")
+    void invalidWebpFilesAreRejected() throws Exception {
+        expectRejected(new MockMultipartFile("file", "photo.webp", "image/webp",
+                "%PDF-1.7 faux".getBytes(java.nio.charset.StandardCharsets.US_ASCII)), "cv-photo-invalid-type");
+        expectRejected(new MockMultipartFile("file", "photo.webp", "image/webp",
+                "RIFF\u0000\u0000\u0000\u0000WEBPVP8 abimee".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)),
+                "cv-photo-unreadable");
+        byte[] webp = CvPhotoTestImages.resource("photo-telephone.webp");
+        byte[] tooBig = new byte[5 * 1024 * 1024 + 1];
+        System.arraycopy(webp, 0, tooBig, 0, webp.length);
+        expectRejected(new MockMultipartFile("file", "grosse.webp", "image/webp", tooBig), "cv-photo-too-large");
+        assertThat(cvPhotoRepository.findById(student.getId())).isEmpty();
+        assertThat(files).isEmpty();
+    }
+
+    @Test
     @DisplayName("Changer de photo une deuxième fois : l'ancienne photo du CV est supprimée du stockage")
     void secondUploadReplacesAndDeletesThePreviousFile() throws Exception {
         uploadPhoto(CvPhotoTestImages.jpeg(500, 600, Color.RED));
@@ -267,8 +316,6 @@ class CvPhotoIntegrationTest {
                 "%PDF-1.7 faux".getBytes(java.nio.charset.StandardCharsets.US_ASCII)), "cv-photo-invalid-type");
         expectRejected(new MockMultipartFile("file", "photo.png", "image/png",
                 "GIF89a....".getBytes(java.nio.charset.StandardCharsets.US_ASCII)), "cv-photo-invalid-type");
-        expectRejected(new MockMultipartFile("file", "photo.webp", "image/webp", CvPhotoTestImages.resource("photo-profil.webp")),
-                "cv-photo-invalid-type");
         mockMvc.perform(multipart("/cv/builder/me/photo")
                         .file(new MockMultipartFile("file", "photo.jpg", "image/jpeg", CvPhotoTestImages.jpeg(100, 120, Color.RED)))
                         .param("x", "0.9").param("y", "0").param("width", "0.5").param("height", "0.5")

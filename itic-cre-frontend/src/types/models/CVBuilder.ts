@@ -134,10 +134,10 @@ export interface CvPhotoInfo {
     profilePhotoAvailable: boolean;
     key: string | null;
 }
-/** Photo envoyee : 5 Mo au plus, JPEG ou PNG (l'original ; le serveur le verifie et supprime les EXIF). */
+/** Photo envoyee : 5 Mo au plus, JPEG, PNG ou WebP (l'original ; le serveur le verifie, le remet droit, le convertit en JPEG et supprime les EXIF). */
 export const CV_PHOTO = {
     maxBytes: 5 * 1024 * 1024,
-    types: ['image/jpeg', 'image/png'],
+    types: ['image/jpeg', 'image/png', 'image/webp'],
 } as const;
 /**
  * Format de l'emplacement photo de chaque modele (CvTemplate.photoFormat cote serveur) : carre pour le Lineaire,

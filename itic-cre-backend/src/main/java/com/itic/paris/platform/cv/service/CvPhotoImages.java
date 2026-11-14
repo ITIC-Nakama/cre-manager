@@ -30,10 +30,11 @@ import java.util.Optional;
  * <p>
  * 1. {@link #normalizeOriginal} : la photo d'ORIGINE, gardee telle quelle (pas recadree) mais assainie :
  * <ul>
- *   <li>vrai type du fichier : signature JPEG, PNG (ou WebP pour une photo de profil) ; ni l'extension ni le
- *       Content-Type annonce ne comptent ;</li>
+ *   <li>vrai type du fichier : signature JPEG, PNG ou WebP (lu par TwelveMonkeys, Java pur) ; ni l'extension ni
+ *       le Content-Type annonce ne comptent ;</li>
  *   <li>dimensions lues AVANT le decodage et bornees (pas d'image « bombe ») ;</li>
- *   <li>orientation EXIF appliquee aux pixels (photo de telephone), puis reduction a 2000 px de cote au plus ;</li>
+ *   <li>orientation EXIF (JPEG, ou bloc EXIF d'un WebP) appliquee aux pixels (photo de telephone), puis reduction a
+ *       2000 px de cote au plus ;</li>
  *   <li>re-encodage JPEG sur fond blanc, SANS aucune metadonnee : EXIF (position GPS, appareil, date) supprime.</li>
  * </ul>
  * 2. {@link #renderFormat} : l'image du PDF, derivee a chaque modele depuis l'original et la zone choisie par
@@ -99,21 +100,21 @@ public final class CvPhotoImages {
     }
 
     /**
-     * Original assaini : JPEG (ou PNG, ou WebP si allowWebp) verifie, oriente, 2000 px au plus, sans metadonnees.
+     * Original assaini : JPEG, PNG ou WebP verifie, oriente, 2000 px au plus, re-encode en JPEG sans metadonnees.
+     * Memes regles pour une photo envoyee pour le CV et pour la photo de profil reprise dans le CV.
      * @throws AppException 400 CV_PHOTO_INVALID_TYPE (mauvais type) ou CV_PHOTO_UNREADABLE (illisible, trop grande)
      */
-    public static byte[] normalizeOriginal(byte[] input, boolean allowWebp) {
+    public static byte[] normalizeOriginal(byte[] input) {
         Kind kind = sniff(input)
-                .filter(k -> k != Kind.WEBP || allowWebp)
                 .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_PHOTO_INVALID_TYPE));
         BufferedImage decoded = decode(input, kind, MAX_ORIGINAL_SIDE);
-        if (kind == Kind.JPEG) {
-            decoded = orient(decoded, exifOrientation(input));
-        }
+        int orientation = kind == Kind.PNG ? 1 : exifOrientation(input);
         double scale = Math.min(1, (double) MAX_ORIGINAL_SIDE / Math.max(decoded.getWidth(), decoded.getHeight()));
         int width = Math.max(1, (int) Math.round(decoded.getWidth() * scale));
         int height = Math.max(1, (int) Math.round(decoded.getHeight() * scale));
-        return encodeJpeg(resize(decoded, width, height));
+        // Reduire AVANT de tourner : la rotation, pixel par pixel, porte sur 2000 px de cote au plus, pas sur les
+        // 12 Mpx d'une photo de telephone (le resultat est le meme, la rotation et la reduction commutent).
+        return encodeJpeg(orient(resize(decoded, width, height), orientation));
     }
 
     /** Image du PDF au format du modele, centree sur la zone choisie (original deja assaini). */
@@ -169,9 +170,12 @@ public final class CvPhotoImages {
             if (width <= 0 || height <= 0 || width > MAX_SIDE || height > MAX_SIDE || (long) width * height > MAX_PIXELS) {
                 throw unreadable();
             }
-            // Grande photo d'appareil : on ne decode qu'un pixel sur n (memoire bornee), la reduction suit.
+            // Grande photo d'appareil : on ne decode qu'un pixel sur n (memoire bornee), la reduction suit. JPEG et PNG
+            // gardent au moins 2 fois la taille visee (reduction plus nette) ; le WebP, lu par un decodeur Java pur
+            // (lent : 2 s pour 12 Mpx), est decode directement pres de la taille gardee.
             ImageReadParam param = reader.getDefaultReadParam();
-            int step = Math.max(1, Math.max(width, height) / (2 * targetSide));
+            long divisor = kind == Kind.WEBP ? (long) targetSide : 2L * targetSide;
+            int step = (int) Math.max(1, Math.max(width, height) / divisor);
             if (step > 1) {
                 param.setSourceSubsampling(step, step, 0, 0);
             }
@@ -206,27 +210,67 @@ public final class CvPhotoImages {
     // ─── Orientation EXIF ────────────────────────────────────────────────────
 
     /**
-     * Valeur EXIF « Orientation » (1 a 8) d'un JPEG, 1 si absente ou illisible. Les telephones enregistrent souvent
-     * l'image couchee avec cette etiquette : comme les EXIF sont supprimes, l'orientation est appliquee aux pixels.
+     * Valeur EXIF « Orientation » (1 a 8) d'un JPEG ou d'un WebP, 1 si absente ou illisible. Les telephones
+     * enregistrent souvent l'image couchee avec cette etiquette : comme les EXIF sont supprimes, l'orientation est
+     * appliquee aux pixels.
      */
-    static int exifOrientation(byte[] jpeg) {
+    static int exifOrientation(byte[] image) {
+        Kind kind = sniff(image).orElse(null);
         try {
-            int i = 2;
-            while (i + 4 <= jpeg.length && (jpeg[i] & 0xFF) == 0xFF) {
-                int marker = jpeg[i + 1] & 0xFF;
-                int length = ((jpeg[i + 2] & 0xFF) << 8) | (jpeg[i + 3] & 0xFF);
-                if (marker == 0xDA || length < 2) {
-                    return 1;
-                }
-                int payload = i + 4;
-                if (marker == 0xE1 && length >= 16 && payload + 6 <= jpeg.length
-                        && jpeg[payload] == 'E' && jpeg[payload + 1] == 'x' && jpeg[payload + 2] == 'i' && jpeg[payload + 3] == 'f') {
-                    return orientationFromTiff(jpeg, payload + 6, Math.min(jpeg.length, i + 2 + length));
-                }
-                i += 2 + length;
+            if (kind == Kind.JPEG) {
+                return jpegOrientation(image);
+            }
+            if (kind == Kind.WEBP) {
+                return webpOrientation(image);
             }
         } catch (RuntimeException e) {
             return 1;
+        }
+        return 1;
+    }
+
+    /** JPEG : segment APP1 « Exif » (et deux octets nuls), puis un en-tete TIFF. */
+    private static int jpegOrientation(byte[] jpeg) {
+        int i = 2;
+        while (i + 4 <= jpeg.length && (jpeg[i] & 0xFF) == 0xFF) {
+            int marker = jpeg[i + 1] & 0xFF;
+            int length = ((jpeg[i + 2] & 0xFF) << 8) | (jpeg[i + 3] & 0xFF);
+            if (marker == 0xDA || length < 2) {
+                return 1;
+            }
+            int payload = i + 4;
+            if (marker == 0xE1 && length >= 16 && payload + 6 <= jpeg.length
+                    && jpeg[payload] == 'E' && jpeg[payload + 1] == 'x' && jpeg[payload + 2] == 'i' && jpeg[payload + 3] == 'f') {
+                return orientationFromTiff(jpeg, payload + 6, Math.min(jpeg.length, i + 2 + length));
+            }
+            i += 2 + length;
+        }
+        return 1;
+    }
+
+    /**
+     * WebP : conteneur RIFF fait de blocs (code de 4 lettres, taille sur 4 octets, contenu aligne sur 2 octets).
+     * Le bloc « EXIF » contient un en-tete TIFF, parfois precede de « Exif » et de deux octets nuls selon l'outil
+     * qui l'a ecrit.
+     */
+    private static int webpOrientation(byte[] webp) {
+        int i = 12;
+        while (i + 8 <= webp.length) {
+            long size = readInt(webp, i + 4, true);
+            int payload = i + 8;
+            if (size > webp.length - payload) {
+                return 1;
+            }
+            int end = payload + (int) size;
+            if (webp[i] == 'E' && webp[i + 1] == 'X' && webp[i + 2] == 'I' && webp[i + 3] == 'F') {
+                int tiff = payload;
+                if (size >= 6 && webp[tiff] == 'E' && webp[tiff + 1] == 'x' && webp[tiff + 2] == 'i' && webp[tiff + 3] == 'f'
+                        && webp[tiff + 4] == 0 && webp[tiff + 5] == 0) {
+                    tiff += 6;
+                }
+                return orientationFromTiff(webp, tiff, end);
+            }
+            i = end + (int) (size & 1);
         }
         return 1;
     }
@@ -295,7 +339,9 @@ public final class CvPhotoImages {
                 out[dy * dw + dx] = in[y * w + x];
             }
         }
-        BufferedImage target = new BufferedImage(dw, dh, BufferedImage.TYPE_INT_ARGB);
+        // Meme type que la source quand elle est opaque (le JPEG ne sait pas ecrire de transparence).
+        int type = source.getType() == BufferedImage.TYPE_INT_RGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        BufferedImage target = new BufferedImage(dw, dh, type);
         target.setRGB(0, 0, dw, dh, out, 0, dw);
         return target;
     }
@@ -318,9 +364,12 @@ public final class CvPhotoImages {
         try {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, width, height);
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (source.getWidth() != width || source.getHeight() != height) {
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            }
+            // Meme taille : simple copie sur fond blanc (pas d'interpolation, beaucoup plus rapide).
             g.drawImage(source, 0, 0, width, height, null);
         } finally {
             g.dispose();

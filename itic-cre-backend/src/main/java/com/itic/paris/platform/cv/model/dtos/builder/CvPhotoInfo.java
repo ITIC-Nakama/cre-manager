@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record CvPhotoInfo(
         @Schema(description = "CV (photo propre au CV), PROFILE (photo de profil) ou NONE")
         String source,
-        @Schema(description = "Vrai si la photo de profil existe et peut aller dans le CV (JPEG ou PNG lisible)")
+        @Schema(description = "Vrai si la photo de profil existe et peut aller dans le CV (JPEG, PNG ou WebP lisible)")
         boolean profilePhotoAvailable,
         @Schema(description = "Change quand la photo change (rafraîchir la vignette) ; null sans photo")
         String key) {
