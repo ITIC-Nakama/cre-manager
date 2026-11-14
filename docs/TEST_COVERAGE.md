@@ -45,9 +45,10 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Templates d'Emails** | `EmailTemplateServiceTest.java` | 9 | Rendu des modèles HTML d'emails (OTP de vérification, identifiants de compte staff, notification CV par statut/commentaire, rappel étudiant, refus de déclaration "sous contrat", compte réactivé en français et en anglais). |
 | **Configuration Applicative** | `AppConfigurationIntegrationTest.java` | 4 | Seuils RGPD/métier configurables en BDD (`app_configuration`), lecture/écriture réservée `ADMIN`, prise en compte sans redémarrage. |
 | **Stockage Fichiers** | `FileAccessIntegrationTest.java` | 7 | Accès et upload de fichiers vers le stockage Cloud/Local (`ICloudStorage`), contrôle des permissions d'accès aux fichiers privés. |
+| **Messagerie conseiller ↔ étudiant** | `ConversationIntegrationTest.java` | 13 | Étudiant sans message : fil vide, 0 non lu, référent indiqué, rien de créé à la lecture (aucune écriture sur un GET). L'étudiant écrit le premier : fil créé, visible de toute l'équipe, non lu pour le référent (badge) et dans « Tous » pour les autres. Réponse signée (prénom, nom, rôle), non lue pour l'étudiant, « lu » jamais en arrière ni au-delà du dernier message, visible de l'équipe. Fil partagé : un collègue lit et répond, sa lecture ne vaut que pour lui. Étudiant sans référent : dans le badge de toute l'équipe. Liste : ordre, filtre « Non lus », « Mes étudiants », recherche sans accents ni majuscules (prénom, nom, e-mail, plusieurs mots, `%` littéral). Message vide ou de plus de 4000 caractères refusé, 4000 acceptés, fins de ligne unifiées. Droits (étudiant, conseiller, anonyme 401, étudiant inconnu 404). Compte désactivé : historique lisible, écriture refusée (409). `limit` et `hasMore`. RGPD : export du fil, anonymisation (fil, messages, lectures supprimés), conseiller supprimé signé « Ancien conseiller ». API notify : 4000 caractères acceptés, 4001 refusés. |
 | **Jobboard — bouton « Postuler »** | `JobOfferApplyChannelIntegrationTest.java` (+ 17 offres de `JobOfferIntegrationTest.java` dotées d'un lien) | 8 | Extraction de l'adresse e-mail de candidature (première adresse, minuscules, ponctuation exclue), à la création, à la modification et à l'import externe ; lien seul accepté ; offre staff sans lien ni adresse refusée (400 `job-offer-no-apply-channel`) ; adresse exposée côté étudiant ; filtre staff « Sans moyen de postuler » (`noApplyChannel=true`, lien vide compris). |
 
-**Total : 500 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+**Total : 513 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -71,7 +72,7 @@ L'exécution des tests est strictement intégrée au pipeline d'intégration et 
 
 ### Fonctionnement de la Pipeline :
 1. **Étape Build Backend** : Commande `mvn -B package` (sans l'option `-DskipTests`).
-2. **Exécution des 500 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
+2. **Exécution des 513 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
 3. **Protection contre le Déploiement Cassé** : Si une assertion échoue ou qu'un bug est introduit, le job `build-and-compile` échoue immédiatement.
 4. **Annulation Automatique** : Le job de déploiement `deploy` (qui dépend de la réussite du build) est automatiquement **annulé**, et une alerte explicite contenant le commit et l'erreur est envoyée sur Discord.
 
