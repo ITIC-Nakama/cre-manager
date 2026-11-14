@@ -56,8 +56,10 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     @Query("SELECT COUNT(DISTINCT c.student.id) FROM CV c")
     long countStudentsWithCv();
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE " + IN_VALIDATION + " AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
-    long countNotInFinalStatut();
+    /** Badge et tuile « CVs a examiner » : CV au statut « En attente » (statut d'arrivee d'un CV depose ou envoye),
+      * parmi les CV a relire de la liste par defaut (IN_VALIDATION : compte actif, etudiant pas sous contrat). */
+    @Query("SELECT COUNT(c) FROM CV c WHERE " + IN_VALIDATION + " AND c.statut.id = :statutId")
+    long countInValidationByStatut(@Param("statutId") UUID statutId);
 
     /** Fetch all CVs with their student + promotion in a single JOIN so no lazy-load issues. */
     @Query("SELECT c FROM CV c JOIN FETCH c.student s LEFT JOIN FETCH s.promotion")
@@ -77,6 +79,6 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     List<Object[]> countGroupedByStatutForStudents(@Param("studentIds") List<UUID> studentIds);
 
 
-    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND " + IN_VALIDATION + " AND c.statut.ordre < (SELECT MAX(s.ordre) FROM CVStatut s WHERE s.actif = true)")
-    long countNotInFinalStatutForStudents(@Param("studentIds") List<UUID> studentIds);
+    @Query("SELECT COUNT(c) FROM CV c WHERE c.student.id IN :studentIds AND " + IN_VALIDATION + " AND c.statut.id = :statutId")
+    long countInValidationByStatutForStudents(@Param("statutId") UUID statutId, @Param("studentIds") List<UUID> studentIds);
 }

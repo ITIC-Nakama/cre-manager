@@ -1,0 +1,128 @@
+package com.itic.paris.platform.cv.controller;
+
+import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
+import com.itic.paris.platform.cv.model.dtos.builder.CvDraftRequest;
+import com.itic.paris.platform.cv.service.CvBuilderService;
+import com.itic.paris.platform.cv.service.CvPhotoImages;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+@RestController
+@RequestMapping("/cv/builder/me")
+@PreAuthorize("hasRole('STUDENT')")
+@RequiredArgsConstructor
+@Tag(name = "Assistant de CV", description = "Construire son CV dans la plateforme (brouillon, aperçu, PDF, envoi)")
+public class CvBuilderStudentController {
+
+    static final String PAGE_COUNT_HEADER = "X-Page-Count";
+
+    private final CvBuilderService cvBuilderService;
+
+    @GetMapping
+    @Operation(summary = "Obtenir son brouillon de CV (prérempli et non enregistré au premier accès)")
+    public ResponseEntity<?> getMyDraft() {
+        return ResponseEntity.ok(cvBuilderService.getMyDraft(SecurityContextHelper.currentUserId()));
+    }
+
+    @PutMapping
+    @Operation(summary = "Enregistrer son brouillon de CV (409 si la version est périmée)")
+    public ResponseEntity<?> saveMyDraft(@RequestBody @Valid CvDraftRequest request) {
+        return ResponseEntity.ok(cvBuilderService.saveMyDraft(SecurityContextHelper.currentUserId(), request));
+    }
+
+    @PostMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Changer la photo du CV (JPEG ou PNG, 5 Mo max) : l'original est vérifié, orienté, ré-encodé "
+            + "sans EXIF ; x, y, width, height = zone choisie au recadrage (fractions de 0 à 1, facultative). "
+            + "La photo de profil n'est pas modifiée")
+    public ResponseEntity<?> uploadPhoto(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(required = false) Double x,
+                                         @RequestParam(required = false) Double y,
+                                         @RequestParam(required = false) Double width,
+                                         @RequestParam(required = false) Double height) throws IOException {
+        return ResponseEntity.ok(cvBuilderService.uploadPhoto(SecurityContextHelper.currentUserId(), file,
+                CvPhotoImages.CropZone.of(x, y, width, height)));
+    }
+
+    @DeleteMapping("/photo")
+    @Operation(summary = "Revenir à sa photo de profil (supprime la photo propre au CV)")
+    public ResponseEntity<?> removePhoto() {
+        return ResponseEntity.ok(cvBuilderService.removePhoto(SecurityContextHelper.currentUserId()));
+    }
+
+    @GetMapping("/photo")
+    @Operation(summary = "Image de la photo du CV (photo du CV, sinon de profil) au format du modèle `template` "
+            + "(carré pour LINEAIRE, portrait sinon) ; 204 s'il n'y en a pas")
+    public ResponseEntity<?> photo(@RequestParam(required = false) String template) {
+        return CvBuilderStudentController.photoResponse(cvBuilderService.photo(SecurityContextHelper.currentUserId(), template));
+    }
+
+    /**
+     * JPEG prive : jamais en cache (photo d'une personne). Type de retour ResponseEntity<?> : sans photo, le 204 part
+     * sans corps (avec ResponseEntity<byte[]>, l'enveloppe JSON ne pouvait pas s'ecrire en octets : erreur 500).
+     */
+    static ResponseEntity<?> photoResponse(byte[] jpeg) {
+        if (jpeg == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .cacheControl(CacheControl.noStore())
+                .body(jpeg);
+    }
+
+    @PostMapping("/reset")
+    @Operation(summary = "Réinitialiser son brouillon : contenu prérempli (compte, formation, contrats validés), "
+            + "modèle et langue gardés ; le CV déjà envoyé n'est pas touché (409 si la version est périmée)")
+    public ResponseEntity<?> resetMyDraft(@RequestParam(required = false) Long version) {
+        return ResponseEntity.ok(cvBuilderService.resetMyDraft(SecurityContextHelper.currentUserId(), version));
+    }
+
+    @GetMapping("/score")
+    @Operation(summary = "Score de complétude du brouillon enregistré, conseils et nombre de pages")
+    public ResponseEntity<?> score() {
+        return ResponseEntity.ok(cvBuilderService.score(SecurityContextHelper.currentUserId()));
+    }
+
+    @PostMapping("/submit")
+    @Operation(summary = "Envoyer son CV à son conseiller : génère le PDF et remplace le CV actif (statut « En attente »)")
+    public ResponseEntity<?> submit(@RequestBody @Valid CvDraftRequest request) throws IOException {
+        return ResponseEntity.ok(cvBuilderService.submit(SecurityContextHelper.currentUserId(), request));
+    }
+
+    /** byte[] et non String : le ResponseWrapperAdvice laisse passer les octets sans enveloppe JSON. */
+    @PostMapping("/preview")
+    @Operation(summary = "Aperçu HTML du brouillon courant (même non enregistré)")
+    public ResponseEntity<byte[]> preview(@RequestBody @Valid CvDraftRequest request) {
+        String html = cvBuilderService.preview(SecurityContextHelper.currentUserId(), request);
+        return ResponseEntity.ok()
+                .contentType(new MediaType(MediaType.TEXT_HTML, StandardCharsets.UTF_8))
+                .cacheControl(CacheControl.noStore())
+                .body(html.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @PostMapping("/pdf")
+    @Operation(summary = "Télécharger le PDF du brouillon courant (ne soumet rien) — en-tête X-Page-Count")
+    public ResponseEntity<byte[]> pdf(@RequestBody @Valid CvDraftRequest request) {
+        CvBuilderService.GeneratedPdf pdf = cvBuilderService.pdf(SecurityContextHelper.currentUserId(), request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(pdf.fileName()).build().toString())
+                .header(PAGE_COUNT_HEADER, String.valueOf(pdf.pageCount()))
+                .body(pdf.bytes());
+    }
+}

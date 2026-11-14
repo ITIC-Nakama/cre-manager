@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, MessageCircleWarning } from 'lucide-react';
 import ReclamationModal from './ReclamationModal';
@@ -8,17 +8,33 @@ type Side = 'left' | 'right';
 const MOVE_THRESHOLD_PX = 6;
 const BUTTON_SIZE = 56;
 
+/** Hauteur réservée en bas par la bannière « Installer l'application » (0 sans bannière). */
+function bannerSpace(): number {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pwa-banner-space')) || 0;
+}
+
 function clampY(y: number): number {
-    return Math.min(Math.max(y, 12), window.innerHeight - BUTTON_SIZE - 12);
+    return Math.min(Math.max(y, 12), window.innerHeight - BUTTON_SIZE - 12 - bannerSpace());
 }
 
 export default function HelpFloatingButton() {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [side, setSide] = useState<Side>('right');
-    const [y, setY] = useState(() => window.innerHeight - 140);
+    const [y, setY] = useState(() => clampY(window.innerHeight - 140));
     const [reduced, setReduced] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
+
+    // Bannière « Installer l'application » affichée ou masquée, fenêtre redimensionnée : le bouton reste visible.
+    useEffect(() => {
+        const reclamp = () => setY((current) => clampY(current));
+        window.addEventListener('pwa-banner-space', reclamp);
+        window.addEventListener('resize', reclamp);
+        return () => {
+            window.removeEventListener('pwa-banner-space', reclamp);
+            window.removeEventListener('resize', reclamp);
+        };
+    }, []);
 
     const dragStartRef = useRef<{ startX: number; startY: number; startTop: number } | null>(null);
     const didDragRef = useRef(false);

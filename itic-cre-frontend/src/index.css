@@ -457,7 +457,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-/* Opacity-only (pas de transform) : un ancestor avec un transform actif devient le
+/* Animations d'entree : remplissage « backwards » (jamais « both ») : une animation finie mais encore « en
+   vigueur » laisse a l'element un contexte d'empilement ; les fenetres qu'il contient passaient alors sous la
+   banniere « Installer l'application » (z-40), quel que soit leur z-index. Les animations de sortie (fadeOut,
+   scaleDown) gardent « both » : l'etat final doit tenir jusqu'au demontage.
+   Opacity-only (pas de transform) : un ancestor avec un transform actif devient le
    containing block des descendants position:fixed, ce qui casse leur centrage plein
    ecran (confirme : un modal fixed sous un ancestor .animate-fadeIn suivait la hauteur
    du contenu au lieu du viewport). */
@@ -489,25 +493,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-fadeIn {
-  animation: fadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-fadeOut {
   animation: fadeOut 0.18s ease-out both;
 }
 .animate-scale-up {
-  animation: scaleUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: scaleUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-scale-down {
   animation: scaleDown 0.18s cubic-bezier(0.4, 0, 1, 1) both;
 }
+
+/* « Réduire les animations » (réglage du système) : pas d'apparition animée. Ces classes sont hors des couches
+   Tailwind, la variante motion-reduce:animate-none ne pouvait donc pas les annuler. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up, .animate-fadeIn, .animate-fadeOut, .animate-scale-up, .animate-scale-down {
+    animation: none;
+  }
+}
 .animate-slide-in-left {
-  animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-slide-in-right {
-  animation: slideInRight 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: slideInRight 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .anim-delay-100 { animation-delay: 100ms; }
 .anim-delay-200 { animation-delay: 200ms; }
@@ -535,16 +547,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .animate-question-forward {
-  animation: questionSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: questionSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-question-back {
-  animation: questionSlideBack 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: questionSlideBack 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-pop-in {
-  animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-check-pop {
-  animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 /* ─── Level-up celebration ──────────────────────────────────────────── */

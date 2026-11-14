@@ -14,6 +14,13 @@ import {
     uploadMyCV,
     fetchCVByStudent, type CVStatsFilters
 } from '../api-s/requests/CVRequest';
+
+/** Pas de nouvel essai sur une erreur 4xx (404, 403…) : elle ne changera pas ; au plus 2 essais sinon (réseau, 5xx). */
+export function retryUnlessClientError(failureCount: number, error: unknown): boolean {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status !== undefined && status >= 400 && status < 500) return false;
+    return failureCount < 2;
+}
 import type { CVListParams } from '../types/models/CV';
 import type { CVStatut } from '../types/models/CV';
 
@@ -45,6 +52,8 @@ export function useUpdateCVStatus() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cvs'] });
             queryClient.invalidateQueries({ queryKey: ['cv-stats'] });
+            // Badge « Validation CV » de la sidebar et tuile « CVs à examiner » : le CV quitte peut-être « En attente »
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 }
@@ -88,18 +97,22 @@ export function useCVStats(advisorId?: string, accountActive?: boolean, underCon
     });
 }
 
+/** CV de l'étudiant connecté : null tant qu'il n'en a pas (404 traité comme « pas de CV », jamais comme une erreur). */
 export function useMyCV() {
     return useQuery({
         queryKey: ['my-cv'],
         queryFn: fetchMyCV,
-        retry: false, // évite de réessayer sur une 404 (comportement normal si aucun CV n'est déposé)
+        retry: retryUnlessClientError,
     });
 }
 
-export function useMyComments() {
+/** Commentaires du conseiller ; à n'activer que si l'étudiant a un CV (sinon la route répond 404, lue comme []). */
+export function useMyComments(enabled = true) {
     return useQuery({
         queryKey: ['my-cv-comments'],
         queryFn: fetchMyComments,
+        enabled,
+        retry: retryUnlessClientError,
     });
 }
 

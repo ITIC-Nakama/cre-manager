@@ -36,6 +36,15 @@ public class CV {
     @Column(name = "xp_awarded", nullable = false)
     private Boolean xpAwarded = false;
 
+    /** Depot manuel d'un PDF ou generation par l'assistant de CV. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", nullable = false, length = 10)
+    private CvSource source = CvSource.UPLOAD;
+
+    /** Modele de l'assistant (LINEAIRE, CLASSIQUE, MODERNE, BANDEAU) ; null pour un depot manuel. */
+    @Column(name = "template_code", length = 30)
+    private String templateCode;
+
     /**
      * Verrou optimiste — empêche que deux changements de statut concurrents sur le même
      * CV ne créditent l'XP deux fois (voir CVService.awardStatusXPIfNeeded).

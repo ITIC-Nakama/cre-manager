@@ -31,6 +31,12 @@ npm run dev
 
 Application accessible sur : `http://localhost:5173`
 
+4. **Lancer les tests** (Vitest, Node 22.12 ou plus, Node 24 conseillé) :
+```bash
+npm test
+```
+Ils tournent aussi dans la CI (`.github/workflows/cd.yml`) : un échec bloque le déploiement.
+
 ## Fonctionnalités Principales
 
 - **Espace Relations Entreprises (Gestion du Personnel & Admin)** :
@@ -41,8 +47,8 @@ Application accessible sur : `http://localhost:5173`
   - Admin-en-tant-que-conseiller : un administrateur peut s'auto-assigner des étudiants (et être assigné par un autre admin) au même titre qu'un conseiller — toggle "Vue globale / Mon portefeuille" sur le dashboard, checkbox "Mes étudiants uniquement" sur Étudiants/Candidatures/CV Validation.
 - **Espace CRM Étudiant** : Suivi des candidatures en liste + détail (création, changement de statut, gain XP) — pas de Kanban.
 - **Suivi "sous contrat"** : déclaration purement étudiante ("Offre reçue", dates de début/fin éditables), badge "À vérifier" côté étudiant en attendant confirmation. Côté conseiller (ouvert à tout conseiller/admin, pas seulement l'affecté) : badge visible directement sur la carte candidature/étudiant sans ouvrir le détail, boutons "Marquer comme vérifié"/"Refuser l'offre", édition des dates, et carte d'alerte dédiée sur le dashboard ("Contrats à vérifier", empilée avec l'alerte de relance dans la même carte). Filtre 3 états (Tous / Sous contrat / Pas sous contrat) sur Étudiants et Candidatures, exclusion par défaut limitée aux déclarations déjà vérifiées.
-- **Jobboard** : Offres ITIC et agrégation multi-source (France Travail, Adzuna, La Bonne Alternance) dans une même liste filtrable par mot-clé, type de contrat, secteur, localisation et source — postulation directe auto-linkée au CRM (candidature avec instantané complet de l'offre), disponible pour toutes les sources. Panneau admin dédié (Offres → Offres externes) : activer/désactiver chaque source, éditer ses critères de recherche (codes ROME, départements, mots-clés, catégorie, employeurs exclus) sans redéploiement, déclencher une synchronisation manuelle, suivre le dernier résultat de synchro par source.
-- **Gestion des CV** : Upload de CV PDF, examen conseiller, statuts et commentaires.
+- **Jobboard** : offres « Exclusivité ITIC PARIS » (déposées par les conseillers) et agrégation multi-source (France Travail, Adzuna, La Bonne Alternance) dans une même liste filtrable par mot-clé, type de contrat, secteur, localisation et source — postulation directe auto-linkée au CRM (candidature avec instantané complet de l'offre), disponible pour toutes les sources. Panneau admin dédié (Offres → Offres externes) : activer/désactiver chaque source, éditer ses critères de recherche (codes ROME, départements, mots-clés, catégorie, employeurs exclus) sans redéploiement, déclencher une synchronisation manuelle, suivre le dernier résultat de synchro par source.
+- **Gestion des CV** : Upload de CV PDF, examen conseiller, statuts et commentaires. Assistant de CV (« Créer avec un modèle ITIC », onglet ouvert par défaut) : 4 modèles optimisés ATS, photo de profil reprise par défaut (WebP converti) ou photo propre au CV : l'original et la zone choisie sont gardés, chaque modèle en dérive son format (carré pour le Linéaire, portrait sinon).
 - **Gamification & Skill Tree** : Progression XP, badges, grades dynamiques et validation de quiz.
 - **Journal d'Audit & RGPD** : Historique complet des actions administratives.
 

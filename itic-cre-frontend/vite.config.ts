@@ -85,9 +85,11 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] }
             }
           },
-          // 2. Requêtes API ITIC-CRE (NetworkFirst avec fallback cache si réseau indisponible)
+          // 2. Requêtes API ITIC-CRE (NetworkFirst avec fallback cache si réseau indisponible).
+          //    Sauf l'assistant de CV : un brouillon servi depuis le cache porterait une version
+          //    périmée (409 au prochain enregistrement) et l'aperçu doit refléter la saisie en cours.
           {
-            urlPattern: /\/api\/v1\/.*/i,
+            urlPattern: /\/api\/v1\/(?!cv\/builder\/).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

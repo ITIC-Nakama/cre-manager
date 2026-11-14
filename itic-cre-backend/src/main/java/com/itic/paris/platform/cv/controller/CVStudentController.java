@@ -28,17 +28,24 @@ public class CVStudentController {
         return ResponseEntity.ok(cvService.uploadCV(SecurityContextHelper.currentUserId(), file));
     }
 
+    /**
+     * Sans CV : 204 sans corps, et non plus 404. « Pas encore de CV » est un etat normal ; le 404 etait lu comme une
+     * erreur par les anciennes versions du front encore en cache (service worker), qui rechargeaient « Mon CV » en
+     * boucle. Un corps vide est lu comme « pas de CV » par toutes les versions du front.
+     */
     @GetMapping
-    @Operation(summary = "Obtenir son CV avec statut et URL de téléchargement")
+    @Operation(summary = "Obtenir son CV avec statut et URL de téléchargement (204 s'il n'y en a pas encore)")
     public ResponseEntity<?> getMyCv() {
-        return ResponseEntity.ok(cvService.getMyCv(SecurityContextHelper.currentUserId()));
+        return cvService.findMyCv(SecurityContextHelper.currentUserId())
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("/comments")
-    @Operation(summary = "Voir les commentaires du conseiller sur son CV")
+    @Operation(summary = "Voir les commentaires du conseiller sur son CV (liste vide sans CV)")
     public ResponseEntity<?> getMyComments() {
-        var cv = cvService.getMyCv(SecurityContextHelper.currentUserId());
-        var cvId = (java.util.UUID) cv.get("id");
-        return ResponseEntity.ok(cvService.getComments(cvId));
+        return cvService.findMyCv(SecurityContextHelper.currentUserId())
+                .<ResponseEntity<?>>map(cv -> ResponseEntity.ok(cvService.getComments((java.util.UUID) cv.get("id"))))
+                .orElseGet(() -> ResponseEntity.ok(java.util.List.of()));
     }
 }

@@ -16,6 +16,8 @@ public class GdprDataExportDto {
 
     private UserProfileData userProfile;
     private CvData cv;
+    /** Brouillon de l'assistant de CV (contenu structure), null s'il n'existe pas. */
+    private CvDraftData cvDraft;
     private List<ApplicationData> crmApplications;
     private List<JobApplicationData> jobboardApplications;
     private List<QuizValidationData> quizValidations;
@@ -54,6 +56,21 @@ public class GdprDataExportDto {
         private Instant uploadedAt;
         private Instant updatedAt;
         private List<String> commentes;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CvDraftData {
+        private String templateCode;
+        private String accentColor;
+        private String cvLang;
+        private Instant createdAt;
+        private Instant updatedAt;
+        private Instant lastSubmittedAt;
+        /** Sections du CV telles que saisies (identite, experiences, formations...). */
+        private Object content;
     }
 
     @Data

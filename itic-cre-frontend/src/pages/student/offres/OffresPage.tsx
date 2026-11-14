@@ -36,7 +36,7 @@ export default function OffresPage() {
                         }`}
                     >
                         <Building2 className={`h-4 w-4 transition-transform duration-300 ${activeTab === 'itic' ? 'scale-110' : ''}`} />
-                        {t('dashboard.offres.tabs.itic')}
+                        {t('dashboard.offres.tabs.itic', 'Exclusivité ITIC PARIS')}
                     </button>
                     <button
                         onClick={() => setActiveTab('external')}

@@ -20,6 +20,7 @@ import { useAllAdvisors } from '../../../hooks/useAdvisors';
 import { useReactivateStudent } from '../../../hooks/useDashboard';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CVDetailModal from '../../../components/shared/CVDetailModal';
+import CVSourceBadge from '../../../components/shared/CVSourceBadge';
 import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import StudentActivityBadge from '../../../components/shared/StudentActivityBadge';
 import CustomSelect from '../../../components/basics/CustomSelect';
@@ -303,12 +304,17 @@ export default function CVValidationPage() {
         }),
         col.accessor('statut', {
             header: t('dashboard.cv.table.status', 'Statut'),
-            cell: ({ getValue }) => {
+            cell: ({ getValue, row }) => {
                 const s = getValue();
                 // Vue « Sous contrat » : la relecture est en pause, le statut s'affiche grisé pour ne pas inviter à agir.
-                return underContractOnly
-                    ? <StatutBadge nom={`${s.nom} · ${t('dashboard.cv.status_paused', 'en pause')}`} couleur={PAUSED_STATUT_COLOR} />
-                    : <StatutBadge nom={s.nom} couleur={s.couleur} />;
+                return (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {underContractOnly
+                            ? <StatutBadge nom={`${s.nom} · ${t('dashboard.cv.status_paused', 'en pause')}`} couleur={PAUSED_STATUT_COLOR} />
+                            : <StatutBadge nom={s.nom} couleur={s.couleur} />}
+                        <CVSourceBadge source={row.original.source} templateCode={row.original.templateCode} compact />
+                    </div>
+                );
             },
         }),
         col.accessor('uploadedAt', {

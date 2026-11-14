@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+  Modele "Lineaire" (d'apres l'exemple de Jules) : nom en capitales marine, poste vise en orange, coordonnees en
+  texte (aucune icone). En haut a droite : le logo ITIC, puis la photo CARREE dans le coin comme l'exemple de Jules
+  (emplacement toujours reserve, vide sans photo). Experiences et formation
+  en frise : dates et ville a gauche, point sur une ligne de temps, puis poste, entreprise (orange, capitales),
+  ligne « CA – effectif (secteur) » en italique et puces avec les chiffres en gras.
+  Ordre par defaut : experiences d'abord (CvTemplate.LINEAIRE).
+-->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="|CV — ${fullName}|">CV</title>
+  <meta name="author" th:content="${fullName}"/>
+  <meta name="subject" th:content="${cv.identite.titre}"/>
+  <style th:replace="~{cv/fragments :: pageCss}"></style>
+  <th:block th:if="${editor}"><style th:replace="~{cv/fragments :: editorCss}"></style></th:block>
+  <style th:inline="css">
+    .header { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .header td { padding: 0; vertical-align: top; }
+    .header td.aside { width: 29.6mm; padding-left: 3mm; text-align: right; }
+    .header td.brand { width: 30mm; text-align: right; }
+    .logo { width: 30mm; height: auto; margin-top: 1.5mm; }
+    .photo { width: 26mm; height: 26mm; border: 0.3mm solid #d5dbe5; }
+    .name { font-size: 23pt; font-weight: 700; text-transform: uppercase; color: [(${navy})]; line-height: 1.08;
+            letter-spacing: 0.3pt; }
+    .title { font-size: 11.6pt; font-weight: 700; color: [(${orange})]; margin-top: 1.4mm; }
+    .contact { margin-top: 1.8mm; color: #1f2937; font-size: 8.8pt; font-weight: 500; }
+    .contact .sep { color: #9ca3af; }
+    .link { display: inline-block; margin-right: 3mm; white-space: nowrap; }
+    .link-type { color: #6b7280; font-weight: 400; }
+    .summary { margin: 0; color: #374151; }
+    .section { margin-top: 3.6mm; }
+    .section-title { font-size: 11.2pt; font-weight: 700; text-transform: uppercase; color: [(${navy})];
+                     letter-spacing: 0.3pt; margin: 0 0 1.6mm 0; }
+    /* Frise */
+    .tl { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    .tl td { padding: 0; vertical-align: top; }
+    .tl-row { page-break-inside: avoid; }
+    .tl-row td { padding-top: 2.4mm; }
+    .tl-row:first-child td { padding-top: 0; }
+    .tl td.tl-when { width: 31mm; padding-right: 2mm; }
+    .tl-date { font-weight: 700; color: [(${navy})]; font-size: 8.8pt; line-height: 1.35; }
+    .nw { white-space: nowrap; }
+    .tl-place { margin-top: 0.8mm; font-size: 8pt; color: #4b5563; text-transform: uppercase; letter-spacing: 0.2pt; }
+    .tl-rail { width: 3mm; border-right: 0.3mm solid #c9d1de; }
+    .tl-dot { position: relative; width: 2.2mm; height: 2.2mm; margin: 1.3mm 0 0 1.95mm; border-radius: 1.1mm;
+              background: [(${navy})]; }
+    .tl td.tl-body { padding-left: 5mm; }
+    .tl-title { font-size: 10pt; font-weight: 500; color: #111827; line-height: 1.28; }
+    .tl-org { margin-top: 0.3mm; font-weight: 700; color: [(${orange})]; text-transform: uppercase; letter-spacing: 0.2pt; }
+    .tl .entry-facts { margin-top: 0.4mm; }
+  </style>
+</head>
+<body>
+  <table class="header"><tr>
+    <td>
+      <div class="name" th:text="${fullName}">Prénom Nom</div>
+      <div class="title" th:if="${fmt.present(cv.identite.titre)}" th:text="${cv.identite.titre}">Poste visé</div>
+      <div class="contact">
+        <span th:text="${fmt.join('  ·  ', cv.identite.telephone, cv.identite.email, cv.identite.ville)}">téléphone · email · ville</span>
+        <th:block th:if="${fmt.present(cv.identite.mobilite)}">
+          <span class="sep">  ·  </span><span class="keep" th:text="|#{cv.mobility}#{cv.colon}${cv.identite.mobilite}|">Mobilité</span>
+        </th:block>
+      </div>
+      <div class="contact" th:if="${!cv.identite.liens.isEmpty()}">
+        <th:block th:replace="~{cv/fragments :: links}"></th:block>
+      </div>
+    </td>
+    <td class="aside"><th:block th:replace="~{cv/fragments :: photoSlot}"></th:block></td>
+    <td class="brand"><img class="logo" th:src="${logoNavy}" alt=""/></td>
+  </tr></table>
+
+  <div class="section" th:if="${fmt.present(cv.accroche)}">
+    <h2 class="section-title" th:text="#{cv.summary}">Profil</h2>
+    <p class="summary" th:text="${cv.accroche}">Accroche</p>
+  </div>
+
+  <th:block th:each="s : ${sections}">
+    <th:block th:replace="~{cv/fragments :: timelineSection(${s})}"></th:block>
+  </th:block>
+</body>
+</html>

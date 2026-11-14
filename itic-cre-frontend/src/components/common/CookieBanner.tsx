@@ -23,7 +23,7 @@ export default function CookieBanner() {
     if (accepted) return null;
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in-up">
+        <div data-pwa-yield className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in-up">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-semibold text-sm">

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { AlertTriangle, Loader2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
@@ -10,6 +10,14 @@ interface Props {
   isUploading: boolean;
   onConfirm: () => void;
   onClose: () => void;
+  /** Surcharges pour l'envoi depuis l'assistant de CV ; par défaut, textes du dépôt d'un fichier. */
+  title?: string;
+  body?: ReactNode;
+  confirmLabel?: string;
+  /** false : pas de CV actif à remplacer, l'avertissement de remplacement est masqué. */
+  showWarning?: boolean;
+  /** Avertissement propre à l'appelant (l'assistant tutoie) ; par défaut, celui du dépôt d'un fichier. */
+  warningText?: string;
 }
 
 export default function CVReplaceModal({
@@ -18,6 +26,11 @@ export default function CVReplaceModal({
   isUploading,
   onConfirm,
   onClose,
+  title,
+  body,
+  confirmLabel,
+  showWarning = true,
+  warningText,
 }: Props) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -39,7 +52,7 @@ export default function CVReplaceModal({
               <AlertTriangle className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
             </div>
             <p className="text-sm font-semibold text-slate-900 dark:text-white">
-              {t('studentCv.replaceModal.title', 'Remplacer votre CV ?')}
+              {title ?? t('studentCv.replaceModal.title', 'Remplacer votre CV ?')}
             </p>
           </div>
           <button
@@ -54,12 +67,18 @@ export default function CVReplaceModal({
         {/* Corps */}
         <div className="p-5 flex flex-col gap-3">
           <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            {t('studentCv.replaceModal.body', 'Vous vous apprêtez à téléverser le fichier')}{' '}
-            <span className="font-semibold text-slate-800 dark:text-white">{fileName}</span>.
+            {body ?? (
+              <>
+                {t('studentCv.replaceModal.body', 'Vous vous apprêtez à téléverser le fichier')}{' '}
+                <span className="font-semibold text-slate-800 dark:text-white">{fileName}</span>.
+              </>
+            )}
           </p>
-          <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
-            {t('studentCv.replaceModal.warning', "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.")}
-          </div>
+          {showWarning && (
+            <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 rounded-xl text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
+              {warningText ?? t('studentCv.replaceModal.warning', "Cette action remplacera votre CV actuel, réinitialisera votre statut de validation de CV et remettra les gains d'XP éligibles en jeu pour ce cycle. Vos commentaires précédents seront conservés pour votre information.")}
+            </div>
+          )}
         </div>
 
         {/* Pied de page */}
@@ -77,7 +96,7 @@ export default function CVReplaceModal({
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
           >
             {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t('studentCv.replaceModal.confirm', 'Remplacer le CV')}
+            {confirmLabel ?? t('studentCv.replaceModal.confirm', 'Remplacer le CV')}
           </button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.cv.model.CV;
 import com.itic.paris.platform.cv.model.CVCommentaire;
 import com.itic.paris.platform.cv.model.CVStatut;
+import com.itic.paris.platform.cv.model.CvSource;
 import com.itic.paris.platform.cv.model.dtos.CVCommentaireCreateDto;
 import com.itic.paris.platform.cv.model.dtos.CVStatusUpdateDto;
 import com.itic.paris.platform.cv.repository.CVCommentaireRepository;
@@ -36,7 +37,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.Normalizer;
 import java.time.Instant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -49,8 +49,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -89,17 +89,34 @@ public class CVService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
 
-        CVStatut statutEnAttente = statutRepository.findAllByActifTrueOrderByOrdreAsc()
-                .stream().findFirst()
+        return replaceActiveCv(student, path -> cloudStorage.uploadFile(file, path), CvSource.UPLOAD, null);
+    }
+
+    /** Ecrit le nouveau fichier au chemin donne ; renvoie false si le stockage a echoue. */
+    @FunctionalInterface
+    public interface CvFileWriter {
+        boolean write(String path) throws IOException;
+    }
+
+    /**
+     * Chemin unique de remplacement du CV actif, partage par le depot manuel et l'assistant :
+     * premier statut actif, meme ligne cvs (student_id unique), XP de validation re-gagnable,
+     * ancien fichier supprime seulement apres la reussite du nouvel envoi.
+     */
+    @Transactional
+    public Map<String, Object> replaceActiveCv(Student student, CvFileWriter writer, CvSource source, String templateCode)
+            throws IOException {
+        CVStatut statutEnAttente = statutRepository.findFirstByActifTrueOrderByOrdreAsc()
                 .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_STATUT_NOT_FOUND));
 
-        CV cv = cvRepository.findByStudentId(studentId).orElse(new CV());
+        CV cv = cvRepository.findByStudentId(student.getId()).orElse(new CV());
         String previousPath = cv.getFilePath();
 
         // Le nouvel upload doit reussir avant qu'on touche a l'ancien fichier :
         // sinon un echec d'upload laisse l'etudiant sans CV du tout (ancien supprime, nouveau jamais arrive).
-        String path = "cvs/" + studentId + "-" + System.currentTimeMillis() + ".pdf";
-        boolean success = cloudStorage.uploadFile(file, path);
+        // Prefixe cvs/{studentId}- obligatoire : FileAccessFilter s'en sert pour autoriser l'etudiant en mode local.
+        String path = "cvs/" + student.getId() + "-" + System.currentTimeMillis() + ".pdf";
+        boolean success = writer.write(path);
         if (!success) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, MessageKey.CV_UPLOAD_FAILED);
         }
@@ -110,6 +127,8 @@ public class CVService {
         cv.setUploadedAt(Instant.now());
         cv.setUpdatedAt(null);
         cv.setXpAwarded(false);
+        cv.setSource(source);
+        cv.setTemplateCode(templateCode);
 
         awardStatusXPIfNeeded(cv, statutEnAttente);
 
@@ -119,9 +138,20 @@ public class CVService {
             cloudStorage.deleteFile(previousPath);
         }
 
-        auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
+        if (source == CvSource.BUILDER) {
+            auditLogService.log(AuditAction.CV_GENERATED, student, saved.getId(),
+                    "CV généré avec l'assistant (modèle " + templateCode + ")");
+        } else {
+            auditLogService.log(AuditAction.CV_UPLOADED, student, saved.getId(), "CV uploadé par l'étudiant");
+        }
 
         return buildCVResponse(saved);
+    }
+
+    /** CV de l'etudiant, vide s'il n'en a pas encore (« pas encore de CV » n'est pas une erreur). */
+    @Transactional(readOnly = true)
+    public Optional<Map<String, Object>> findMyCv(UUID studentId) {
+        return cvRepository.findByStudentId(studentId).map(this::buildCVResponse);
     }
 
     @Transactional(readOnly = true)
@@ -284,6 +314,8 @@ public class CVService {
         response.put("nomFichier", buildFriendlyFileName(cv.getStudent()));
         response.put("studentId", cv.getStudent().getId());
         response.put("xpAwarded", cv.getXpAwarded());
+        response.put("source", cv.getSource());
+        response.put("templateCode", cv.getTemplateCode());
 
         // Inclure les informations de l'étudiant pour éviter une seconde requête
         Map<String, Object> studentMap = new HashMap<>();
@@ -314,31 +346,9 @@ public class CVService {
      * indépendant du nom de stockage interne (UUID + timestamp) utilisé sur le disque/bucket.
      */
     private String buildFriendlyFileName(Student student) {
-        StringBuilder name = new StringBuilder("CV");
-        appendSlug(name, student.getLastName());
-        appendSlug(name, student.getFirstName());
-        if (student.getPromotion() != null) {
-            appendSlug(name, student.getPromotion().getName());
-        }
-        name.append(".pdf");
-        return name.toString();
+        return CvFileNames.friendlyPdfName(student.getLastName(), student.getFirstName(),
+                student.getPromotion() != null ? student.getPromotion().getName() : null);
     }
-
-    private void appendSlug(StringBuilder builder, String value) {
-        if (value == null || value.isBlank()) {
-            return;
-        }
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
-        String slug = FILENAME_UNSAFE_CHARS.matcher(normalized).replaceAll("-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-        if (!slug.isEmpty()) {
-            builder.append("_").append(slug);
-        }
-    }
-
-    private static final Pattern FILENAME_UNSAFE_CHARS = Pattern.compile("[^A-Za-z0-9]+");
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCVStats(UUID advisorId) {

@@ -34,6 +34,8 @@ export default function StudentLayout() {
           <div className="max-w-screen-xl mx-auto px-4 pt-3 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pt-10 lg:pb-8">
             <Outlet />
           </div>
+          {/* Place de la bannière « Installer l'application » : le bas de la page reste au-dessus d'elle. */}
+          <div aria-hidden="true" style={{ height: 'var(--pwa-banner-space, 0px)' }} />
         </main>
       </div>
     </RequireAuthMiddleware>

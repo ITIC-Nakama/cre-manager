@@ -417,6 +417,67 @@ public class DashboardControllerIntegrationTest {
                     .andExpect(jsonPath("$.data.counts.1", greaterThanOrEqualTo(1)))
                     .andExpect(jsonPath("$.data.counts.2", greaterThanOrEqualTo(1)));
         }
+
+        @Test
+        @DisplayName("« CV à relire » (overview + badge pending-count) ne compte que les CV « En attente »")
+        void cvsToReviewCountsOnlyPendingCvs() throws Exception {
+            CVStatut enAttente = cvStatutNamed("En attente");
+            CVStatut valide = cvStatutNamed("Validé");
+            CVStatut aCorriger = cvStatutNamed("À corriger");
+            long globalBefore = cvPendingCount(adminToken);
+
+            // Un CV par statut dans le portefeuille du conseiller : seul « En attente » attend une relecture.
+            studentWithCv("cv.pending.dashboard@itic.fr", enAttente);
+            studentWithCv("cv.validated.dashboard@itic.fr", valide);
+            studentWithCv("cv.tofix.dashboard@itic.fr", aCorriger);
+
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalCvs").value(3))
+                    .andExpect(jsonPath("$.data.cvsToReview").value(1));
+            assertThat(cvPendingCount(advisorToken)).isEqualTo(1);
+
+            // Vue globale (admin) : les CV « Validé » et « À corriger » ne s'ajoutent pas au compteur.
+            assertThat(cvPendingCount(adminToken)).isEqualTo(globalBefore + 1);
+            mockMvc.perform(get("/dashboard/overview")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.cvsToReview").value(globalBefore + 1));
+        }
+    }
+
+    private CVStatut cvStatutNamed(String nom) {
+        return cvStatutRepository.findAll().stream()
+                .filter(s -> s.getNom().equals(nom))
+                .findFirst().orElseThrow();
+    }
+
+    /** Etudiant du portefeuille du conseiller de test, avec un CV dans le statut donne. */
+    private void studentWithCv(String email, CVStatut statut) {
+        Student student = new Student();
+        student.setEmail(email);
+        student.setFirstName("Cv");
+        student.setLastName("Statut");
+        student.setPassword("Password123!");
+        student.setEmailVerified(true);
+        student.setRole(roleRepository.findByName(RoleEnum.STUDENT));
+        student.setAdvisor(advisor);
+        student = studentRepository.save(student);
+
+        CV cv = new CV();
+        cv.setStudent(student);
+        cv.setFilePath("cvs/" + student.getId() + ".pdf");
+        cv.setStatut(statut);
+        cvRepository.save(cv);
+    }
+
+    private long cvPendingCount(String token) throws Exception {
+        String body = mockMvc.perform(get("/dashboard/cv/pending-count")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body).path("data").asLong();
     }
 
     @Nested

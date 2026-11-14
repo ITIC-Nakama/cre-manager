@@ -36,10 +36,11 @@ jobs:
           mvn -B package
 
       # Compilation du Frontend React
+      # Node 24 (LTS) : Vitest 5 et jsdom 31 (tests du front) ne tournent pas sous Node 20 ; Vite 8 le prend en charge.
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: 'itic-cre-frontend/package-lock.json'
 
@@ -54,6 +55,12 @@ jobs:
           
           npm ci --legacy-peer-deps || npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
+
+      # Tests du front (Vitest) : un echec arrete le pipeline avant le deploiement (ex. boucle de « Mon CV », #76).
+      - name: Run Frontend Tests (Vitest)
+        run: |
+          cd itic-cre-frontend
+          npm test
 
       # Sauvegarde des artefacts pour le job de déploiement
       - name: Upload Backend Artifact
