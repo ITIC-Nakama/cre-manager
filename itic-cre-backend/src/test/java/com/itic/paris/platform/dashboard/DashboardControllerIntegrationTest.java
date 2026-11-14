@@ -722,10 +722,10 @@ public class DashboardControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("POST /dashboard/students/{studentId}/notify with message exceeding 1000 chars returns 400 Bad Request")
+        @DisplayName("POST /dashboard/students/{studentId}/notify with message exceeding 4000 chars returns 400 Bad Request")
         void notifyStudentMessageTooLongReturns400() throws Exception {
             SendReminderRequest request = new SendReminderRequest();
-            request.setMessage("A".repeat(1001));
+            request.setMessage("A".repeat(4001));
 
             mockMvc.perform(post("/dashboard/students/" + activeStudent.getId() + "/notify")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + advisorToken)
