@@ -32,7 +32,7 @@ public class TestAdminSeeder implements ApplicationRunner {
     @Value("${app.test.admin.email:test.admin@itic.fr}")
     private String email;
 
-    @Value("${app.test.admin.password:Test123!}")
+    @Value("${app.test.admin.password:}")
     private String password;
 
     @Value("${app.test.admin.first-name:Admin}")
@@ -45,6 +45,11 @@ public class TestAdminSeeder implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         if (!enabled) return;
+        // Aucun mot de passe par defaut (depot public) : sans TEST_ADMIN_PASSWORD, on ne cree rien.
+        if (password == null || password.isBlank()) {
+            log.warn("Compte de test non cree : app.test.admin.password est vide");
+            return;
+        }
         if (userRepository.existsByEmailIgnoreCase(email)) return;
 
         Role role = roleRepository.findByName(RoleEnum.ADMIN);

@@ -26,6 +26,7 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Auth & Sécurité** | `AuthenticationIntegrationTest.java` | 11 | Inscription étudiant, OTP email, login JWT, comptes staff avec mot de passe temporaire, changement de mot de passe obligatoire (`mustChangePassword`), modification de profil, scoping d'accès. |
 | **Photo de profil** | `ProfilePictureUploadIntegrationTest.java` | 5 | Upload de photo de profil (formats acceptés, taille max, remplacement de l'ancienne photo). |
 | **Gouvernance Admin & RBAC** | `UserGovernanceIntegrationTest.java` | 12 | Plafond de 3 admins actifs (le 3ème est accepté, le 4ème refusé), plafond et nombre d'admins actifs exposés par `GET /auth/admin/governance` (admins seulement, 403 pour un conseiller), auto-désactivation interdite, protection du dernier admin actif, interdiction de suppression physique admin, interdiction de réinitialiser le mot de passe d'un admin par un tiers, restriction des désactivations par rôle (Advisor désactive uniquement Student). |
+| **Comptes de test (seeders)** | `TestSeedersPasswordTest.java` | 6 | Aucun mot de passe par défaut (dépôt public) : seeders activés mais `TEST_*_PASSWORD` vide ou absent → aucun compte de test créé (admin, conseiller, étudiant) ; mot de passe configuré → compte créé comme avant. |
 | **Réactivation d'un compte** | `StudentReactivationIntegrationTest.java` | 6 | Email de prévenance à l'étudiant réactivé (événement `StudentAccountReactivatedEvent`, jamais pour un compte staff ni pour une réactivation refusée). Un conseiller (même non référent) réactive un compte étudiant : compte actif, `deactivatedAt` effacé, entrée `USER_REACTIVATED` au journal d'audit, CV de retour dans la liste par défaut et sorti de la vue « Comptes désactivés » ; l'admin aussi ; un étudiant refusé (403, et 401 `account-deactivated` pour son propre compte désactivé) ; un conseiller refusé sur un compte conseiller ou admin (403 `access-denied`, compte inchangé, rien au journal) ; l'admin réactive toujours un conseiller ; compte anonymisé RGPD jamais réactivable (403). |
 | **Affectation Conseiller (Admin-en-tant-que-conseiller)** | `AdvisorAssignmentIntegrationTest.java` | 26 | Affectation/retrait étudiant↔conseiller, un admin assignable comme conseiller référent au même titre qu'un conseiller, admins assignables entre eux, scoping du dashboard admin ("vue globale" vs `advisorId` précis). |
 | **Specifications & Filtres Etudiants** | `StudentSpecificationIntegrationTest.java` | 9 | Filtrage dynamique JPA Specification (nom, prénom, email, promotions, statut actif/inactif, seuil d'inactivité, étudiants nécessitant une action), filtre "sous contrat" (`underContract`) : déclaration vérifiée vs en attente, pas de cumul de postes (seule la plus récente compte), exclusion sur date de fin dépassée, comptage même avant que la date de début soit atteinte, et filtre dédié `needsContractVerification` isolant les déclarations en attente. |
@@ -46,7 +47,7 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Stockage Fichiers** | `FileAccessIntegrationTest.java` | 7 | Accès et upload de fichiers vers le stockage Cloud/Local (`ICloudStorage`), contrôle des permissions d'accès aux fichiers privés. |
 | **Jobboard — bouton « Postuler »** | `JobOfferApplyChannelIntegrationTest.java` (+ 17 offres de `JobOfferIntegrationTest.java` dotées d'un lien) | 8 | Extraction de l'adresse e-mail de candidature (première adresse, minuscules, ponctuation exclue), à la création, à la modification et à l'import externe ; lien seul accepté ; offre staff sans lien ni adresse refusée (400 `job-offer-no-apply-channel`) ; adresse exposée côté étudiant ; filtre staff « Sans moyen de postuler » (`noApplyChannel=true`, lien vide compris). |
 
-**Total : 491 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+**Total : 497 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -69,7 +70,7 @@ L'exécution des tests est strictement intégrée au pipeline d'intégration et 
 
 ### Fonctionnement de la Pipeline :
 1. **Étape Build Backend** : Commande `mvn -B package` (sans l'option `-DskipTests`).
-2. **Exécution des 414 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
+2. **Exécution des 497 tests** : Tous les tests unitaires et d'intégration sont exécutés sur la base H2 en mémoire.
 3. **Protection contre le Déploiement Cassé** : Si une assertion échoue ou qu'un bug est introduit, le job `build-and-compile` échoue immédiatement.
 4. **Annulation Automatique** : Le job de déploiement `deploy` (qui dépend de la réussite du build) est automatiquement **annulé**, et une alerte explicite contenant le commit et l'erreur est envoyée sur Discord.
 
