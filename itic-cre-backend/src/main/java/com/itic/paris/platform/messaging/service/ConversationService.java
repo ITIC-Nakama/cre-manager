@@ -9,6 +9,7 @@ import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
+import com.itic.paris.platform.messaging.event.ConversationMessagePostedEvent;
 import com.itic.paris.platform.messaging.model.Conversation;
 import com.itic.paris.platform.messaging.model.ConversationMessage;
 import com.itic.paris.platform.messaging.model.ConversationRead;
@@ -21,6 +22,7 @@ import com.itic.paris.platform.messaging.repository.ConversationReadRepository;
 import com.itic.paris.platform.messaging.repository.ConversationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,6 +75,7 @@ public class ConversationService {
     private final ConversationReadRepository readRepository;
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ─── Etudiant ───────────────────────────────────────────────────────────
 
@@ -262,6 +265,8 @@ public class ConversationService {
             conversation.setLastStaffMessageId(Math.max(message.getId(), orZero(conversation.getLastStaffMessageId())));
         }
         conversationRepository.save(conversation);
+        // Apres validation de la transaction : l'autre cote est peut-etre a prevenir par e-mail (ConversationNotificationService).
+        eventPublisher.publishEvent(new ConversationMessagePostedEvent(conversation.getId()));
         return message;
     }
 

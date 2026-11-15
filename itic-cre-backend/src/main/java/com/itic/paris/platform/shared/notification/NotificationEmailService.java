@@ -147,11 +147,16 @@ public class NotificationEmailService {
         sendHtml(event.email(), subject, html);
     }
 
+    /**
+     * Messagerie : « Vous avez un nouveau message », avec un lien direct vers la conversation, JAMAIS le contenu.
+     * toStudent : a l'etudiant (message de l'equipe) ; sinon au referent (message de l'etudiant).
+     */
     @Async
-    public void sendStudentReminder(String studentEmail, String studentFirstName,
-                                    String advisorName, String message) {
-        String html = emailTemplateService.renderStudentReminderEmail(studentFirstName, advisorName, message);
-        sendHtml(studentEmail, "Rappel de votre conseiller", html);
+    public void sendConversationMessageNotification(String to, String lang, String firstName, String senderName,
+                                                    String link, boolean toStudent) {
+        String html = emailTemplateService.renderConversationMessageEmail(lang, firstName, senderName, link, toStudent);
+        String subject = "en".equals(lang) ? "You have a new message" : "Vous avez un nouveau message";
+        sendHtml(to, subject, html);
     }
 
     @Async

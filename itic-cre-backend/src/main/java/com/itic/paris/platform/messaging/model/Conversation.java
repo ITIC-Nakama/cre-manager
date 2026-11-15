@@ -55,6 +55,24 @@ public class Conversation {
     @Column(name = "last_staff_message_id")
     private Long lastStaffMessageId;
 
+    // ─── E-mails de notification (V52) : au plus un toutes les 15 minutes par destinataire ─────────
+
+    /** Dernier e-mail envoye a l'etudiant pour ce fil. */
+    @Column(name = "student_notified_at")
+    private Instant studentNotifiedAt;
+
+    /** Dernier message de l'equipe traite pour l'etudiant (signale par e-mail, ou deja lu). */
+    @Column(name = "student_notified_message_id")
+    private Long studentNotifiedMessageId;
+
+    /** Dernier e-mail envoye au referent pour ce fil. */
+    @Column(name = "staff_notified_at")
+    private Instant staffNotifiedAt;
+
+    /** Dernier message de l'etudiant traite pour le referent (signale par e-mail, deja lu, ou sans referent). */
+    @Column(name = "staff_notified_message_id")
+    private Long staffNotifiedMessageId;
+
     /** Identifiant du dernier message du fil, des deux cotes confondus (0 : aucun). */
     public long lastMessageId() {
         return Math.max(lastStudentMessageId == null ? 0 : lastStudentMessageId,

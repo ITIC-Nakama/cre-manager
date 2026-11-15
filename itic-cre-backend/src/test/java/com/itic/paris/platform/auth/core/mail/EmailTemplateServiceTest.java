@@ -67,7 +67,7 @@ class EmailTemplateServiceTest {
         String credentials = emailTemplateService.renderAccountCredentialsEmail("fr", "Jean", "jean@itic.fr", "Temp1234!", true);
         String cvStatus = emailTemplateService.renderCVStatusChangeEmail("Jean", "Validé", "#10B981");
         String cvComment = emailTemplateService.renderCVCommentEmail("Jean", "Bon travail");
-        String reminder = emailTemplateService.renderStudentReminderEmail("Jean", "M. Martin", "Relance tes candidatures");
+        String reminder = emailTemplateService.renderConversationMessageEmail("fr", "Jean", "M. Martin", "http://localhost:5173/student/messages", true);
         String contractInvalidated = emailTemplateService.renderContractDeclarationInvalidatedEmail("fr", "Jean", "Acme Corp", "Alternant Backend");
         String reactivated = emailTemplateService.renderAccountReactivatedEmail("fr", "Jean");
 

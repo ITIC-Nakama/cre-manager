@@ -138,7 +138,7 @@ CVService.updateStatus()          CVService.addComment()
 | `shared/notification/NotificationEmailService.java` | Écoute l'événement **après commit**, envoie l'email en mode `@Async` |
 | `resources/templates/email/cv-notification.html` | Template Thymeleaf HTML partagé (type STATUS ou COMMENT) |
 
-Le rappel libre envoyé par un conseiller (`POST /dashboard/students/{id}/notify`) suit le même principe et utilise `resources/templates/email/student-reminder.html`. Son bouton "Accéder à mon espace" pointe vers `${FRONTEND_URL}/student/dashboard` — voir [Variables d'environnement](#variables-denvironnement-clés).
+Le bouton « Envoyer un message » d'un conseiller (`POST /dashboard/students/{id}/notify`) écrit, depuis la messagerie, dans le fil de l'étudiant ; l'étudiant est prévenu par `resources/templates/email/conversation-new-message.html` (« Vous avez un nouveau message », sans le contenu), dont le bouton pointe vers `${FRONTEND_URL}/student/messages` — voir [Variables d'environnement](#variables-denvironnement-clés).
 
 ---
 

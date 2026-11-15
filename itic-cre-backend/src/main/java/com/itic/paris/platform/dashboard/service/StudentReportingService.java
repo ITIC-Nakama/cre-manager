@@ -1,7 +1,6 @@
 package com.itic.paris.platform.dashboard.service;
 
 import com.itic.paris.platform.auth.core.exception.AppException;
-import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
 import com.itic.paris.platform.auth.repository.StudentRepository;
@@ -19,7 +18,7 @@ import com.itic.paris.platform.gamification.repository.GradeRepository;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.shared.config.AppConfigurationService;
 import com.itic.paris.platform.shared.local.MessageKey;
-import com.itic.paris.platform.shared.notification.NotificationEmailService;
+import com.itic.paris.platform.messaging.service.ConversationService;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -54,7 +54,7 @@ public class StudentReportingService {
     private final GradeRepository gradeRepository;
     private final XPHistoryRepository xpHistoryRepository;
     private final ICloudStorage cloudStorage;
-    private final NotificationEmailService notificationEmailService;
+    private final ConversationService conversationService;
     private final AppConfigurationService appConfigurationService;
 
     public Page<Map<String, Object>> getStudentList(StudentFilterCriteria criteria, Pageable pageable) {
@@ -287,6 +287,12 @@ public class StudentReportingService {
         return result;
     }
 
+    /**
+     * Bouton « Envoyer un message » (fiche etudiant, liste, tableau de bord) : depuis la messagerie (14/11/2026), le
+     * message est ecrit dans le fil de l'etudiant (qui le lit et y repond dans l'application) ; l'etudiant est prevenu
+     * par un e-mail SANS le contenu (anti-avalanche de la messagerie). Message vide : relance par defaut, dans sa langue.
+     */
+    @Transactional
     public void notifyStudent(UUID studentId, String customMessage) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
@@ -295,20 +301,13 @@ public class StudentReportingService {
             throw new AppException(HttpStatus.FORBIDDEN, MessageKey.ANONYMIZED_USER_CANNOT_BE_REACTIVATED);
         }
 
-        UUID advisorId = SecurityContextHelper.currentUserId();
-        User advisor = advisorId != null
-                ? userRepository.findById(advisorId).orElse(null)
-                : null;
-
-        String advisorName = advisor != null
-                ? advisor.getFirstName() + " " + advisor.getLastName()
-                : "Votre conseiller";
-
         String message = (customMessage != null && !customMessage.isBlank())
                 ? customMessage
-                : "Merci de vous connecter à la plateforme et de mettre à jour l'état de vos candidatures.";
+                : "en".equals(student.getLang())
+                        ? "Please log in to the platform and update the status of your applications."
+                        : "Merci de vous connecter à la plateforme et de mettre à jour l'état de vos candidatures.";
 
-        notificationEmailService.sendStudentReminder(
-                student.getEmail(), student.getFirstName(), advisorName, message);
+        conversationService.sendAsStaff(studentId, message);
     }
+
 }
