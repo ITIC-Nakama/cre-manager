@@ -4,7 +4,8 @@ import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.company.model.CompanySpaceProgram;
 import com.itic.paris.platform.jobboard.model.JobOffer;
 import com.itic.paris.platform.mailing.repository.MailingQueryRepository;
-import com.itic.paris.platform.matching.OfferMatchingService;
+import com.itic.paris.platform.matching.MatchingService;
+import com.itic.paris.platform.matching.RecommendationService;
 import com.itic.paris.platform.matching.StudentFormationResolver;
 import com.itic.paris.platform.shared.notification.NotificationEmailService;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +19,14 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.IsoFields;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Récapitulatif du lundi (8 h, Paris) : chaque étudiant actif, sans contrat, abonné, reçoit au plus 10 offres publiées
- * dans les 7 derniers jours, les plus proches de sa formation (score de {@link OfferMatchingService}). Rien s'il n'y en
+ * dans les 7 derniers jours, les mieux notées pour lui (score de {@link MatchingService} : formation, contrat, niveau, lieu,
+ * CV ; seules les offres en rapport avec sa formation sont retenues). Rien s'il n'y en
  * a aucune de pertinente. Un verrou par étudiant et par semaine empêche tout double envoi.
  */
 @Slf4j
@@ -41,7 +41,8 @@ public class WeeklyOfferDigestService {
     private final MailingLockService lock;
     private final EmailPreferenceService preferences;
     private final NotificationEmailService emailService;
-    private final OfferMatchingService matching;
+    private final MatchingService matching;
+    private final RecommendationService recommendations;
     private final StudentFormationResolver formations;
 
     @Value("${app.frontend.url:http://localhost:5173}")
@@ -61,14 +62,14 @@ public class WeeklyOfferDigestService {
             return 0;
         }
         Map<UUID, List<CompanySpaceProgram>> snapshot = formations.snapshot();
-        Map<String, List<JobOffer>> bestByFormation = new HashMap<>();
         int sent = 0;
         for (Student student : queries.findWeeklyDigestRecipients()) {
             List<CompanySpaceProgram> programs = StudentFormationResolver.programsFor(snapshot,
                     student.getPromotion().getId(), student.getStudyYear());
             if (programs.isEmpty()) continue;
-            String key = programs.stream().map(p -> p.getId().toString()).sorted().collect(Collectors.joining(","));
-            List<JobOffer> best = bestByFormation.computeIfAbsent(key, k -> rank(offers, programs));
+            MatchingService.StudentContext ctx = matching.context(student, programs,
+                    recommendations.validatedCvOf(student.getId()).orElse(null));
+            List<JobOffer> best = rank(offers, ctx);
             if (best.isEmpty() || !lock.tryAcquire(KIND, weekKey(day), student.getId())) continue;
             List<TargetedOfferMailingService.OfferLine> lines = best.stream().map(this::line).toList();
             emailService.sendWeeklyOffers(student.getEmail(), student.getLang(), student.getFirstName(), lines,
@@ -80,15 +81,13 @@ public class WeeklyOfferDigestService {
         return sent;
     }
 
-    /** Les 10 offres les plus pertinentes pour ces formations (score décroissant, puis les plus récentes). */
-    List<JobOffer> rank(List<JobOffer> offers, List<CompanySpaceProgram> programs) {
-        List<String[]> phrases = OfferMatchingService.phrases(programs);
-        if (phrases.isEmpty()) return List.of();
+    /** Les 10 offres les mieux notées pour l'étudiant (score décroissant, puis les plus récentes). */
+    List<JobOffer> rank(List<JobOffer> offers, MatchingService.StudentContext ctx) {
         record Scored(JobOffer offer, int score) {
         }
         return offers.stream()
-                .map(o -> new Scored(o, matching.keywordScore(o, phrases).score()))
-                .filter(s -> s.score() >= OfferMatchingService.RELEVANT)
+                .map(o -> matching.score(o, ctx).map(s -> new Scored(o, s.score())).orElse(null))
+                .filter(java.util.Objects::nonNull)
                 .sorted(Comparator.comparingInt(Scored::score).reversed()
                         .thenComparing(s -> s.offer().getEffectiveDate(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(MAX_OFFERS)
