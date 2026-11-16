@@ -7,7 +7,7 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare, Store
+  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare, Store, Map as MapIcon
 } from 'lucide-react';
 import { useNewCompanyRequestCount } from '../pages/advisor/espace-entreprise/useNewCompanyRequestCount';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +35,7 @@ export default function SupervisorLayout() {
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
     { label: t('dashboard.sidebar.etudiants'),          icon: Users,           to: '/supervisor/etudiants' },
+    { label: t('dashboard.sidebar.map', 'Carte des étudiants'), icon: MapIcon, to: '/supervisor/carte' },
     { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures', badge: contractPendingCount },
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },

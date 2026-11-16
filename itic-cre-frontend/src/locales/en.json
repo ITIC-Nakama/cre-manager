@@ -74,6 +74,18 @@
       "title": "Business space",
       "toggle": "Appear in the Business space",
       "explanation": "Once your CV is approved and as long as you have no contract, partner companies see your first name, last name, programme and CV in the school directory. Never your email or phone: they go through the Business Relations team."
+    },
+    "postal_code": {
+      "saved": "Postal code saved.",
+      "error": "Invalid postal code: 5 digits (e.g. 75011).",
+      "title": "Postal code",
+      "department": "Department: {{name}} ({{code}})",
+      "missing": "Not filled in yet",
+      "explanation": "The team only sees your department, to suggest companies near you.",
+      "save": "Save",
+      "banner": "Add your postal code: the team can then suggest companies near you.",
+      "banner_link": "Add",
+      "banner_later": "Later"
     }
   },
   "pwa": {
@@ -153,7 +165,8 @@
       "configuration": "Configuration",
       "parametres": "Settings",
       "logout": "Logout",
-      "company_space": "Business space"
+      "company_space": "Business space",
+      "map": "Student map"
     },
     "home": {
       "title": "Dashboard",
@@ -513,6 +526,16 @@
         "history": "Rating history",
         "less": "Less",
         "more": "{{count}} older rating(s)"
+      },
+      "postal_code": {
+        "saved": "Postal code saved.",
+        "error": "Invalid postal code: 5 digits (e.g. 75011).",
+        "label": "Postal code",
+        "save": "Save",
+        "cancel": "Cancel",
+        "department": "dept. {{code}}",
+        "none": "No postal code",
+        "edit": "Edit the postal code"
       }
     },
     "students": {
@@ -2765,5 +2788,31 @@
       "none": "No visits in the last 30 days.",
       "privacy": "Counters per day and per programme only: no IP address, no browser, no tracking cookie."
     }
+  },
+  "carte": {
+    "department_label": "{{name}} ({{code}}): {{count}} student(s)",
+    "title": "Student map",
+    "subtitle": "Active students by department, based on the postal code in their profile. Only the department is shown.",
+    "filter_program": "Programme",
+    "all_programs": "All programmes",
+    "filter_promotion": "Class",
+    "all_promotions": "All classes",
+    "filter_contract": "Contract",
+    "contract_all": "With or without a contract",
+    "contract_without": "Without a contract",
+    "contract_with": "With a contract",
+    "summary": "{{located}} student(s) located, {{idf}} of them in Île-de-France · {{missing}} without a postal code",
+    "idf": "Île-de-France",
+    "source": "Boundaries: IGN – Admin Express, via france-geojson (Open Licence).",
+    "others": "Other departments",
+    "others_none": "No students outside Île-de-France.",
+    "students_count": "{{count}} student(s)",
+    "students_none": "No students with these filters.",
+    "col_name": "Name",
+    "col_program": "Programme",
+    "col_promotion": "Class",
+    "col_contract": "Contract",
+    "contract_yes": "Yes",
+    "contract_no": "No"
   }
 }
