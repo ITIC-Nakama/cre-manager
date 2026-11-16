@@ -8,11 +8,12 @@ import { unwrap } from '../../../api-s/unwrap';
 /** Abonnements de l'étudiant aux e-mails d'offres (activés par défaut ; un lien de désinscription est dans chaque e-mail). */
 export interface EmailPreferences {
   targetedOffers: boolean;
+  weeklyDigest: boolean;
 }
 
 const KEY = ['me', 'email-preferences'] as const;
 
-/** Profil étudiant : « Offres ciblées du soir » (tutoiement). */
+/** Profil étudiant : « Offres ciblées du soir » et « Récapitulatif du lundi » (tutoiement). */
 export default function EmailPreferencesCard() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -34,6 +35,11 @@ export default function EmailPreferencesCard() {
       key: 'targetedOffers',
       title: t('student.email_prefs.targeted_title', 'Offres ciblées du soir'),
       subtitle: t('student.email_prefs.targeted_subtitle', 'À 18 h, les offres publiées dans la journée pour ta promotion (tant que tu n’as pas de contrat).'),
+    },
+    {
+      key: 'weeklyDigest',
+      title: t('student.email_prefs.weekly_title', 'Récapitulatif du lundi'),
+      subtitle: t('student.email_prefs.weekly_subtitle', 'Le lundi à 8 h, jusqu’à 10 nouvelles offres de la semaine proches de ta formation (tant que tu n’as pas de contrat).'),
     },
   ];
 
