@@ -169,7 +169,7 @@ export default function ExternalSourceDetail({
                                 type="text"
                                 value={form.departments}
                                 onChange={(e) => onFieldChange('departments', e.target.value)}
-                                placeholder={t('dashboard.admin.jobboard_external.field_departments_placeholder', 'Ex: 75,92,93 — vide = toute la France')}
+                                placeholder={t('dashboard.admin.jobboard_external.field_departments_placeholder', 'Ex: 75,92,93 — vide = Île-de-France (option cochée) ou toute la France')}
                                 className="w-full rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
                             />
                         </div>
@@ -196,7 +196,7 @@ export default function ExternalSourceDetail({
                                 type="text"
                                 value={form.departments}
                                 onChange={(e) => onFieldChange('departments', e.target.value)}
-                                placeholder={t('dashboard.admin.jobboard_external.field_location_placeholder', 'Ex: Paris, Lyon — vide = toute la France')}
+                                placeholder={t('dashboard.admin.jobboard_external.field_location_placeholder', 'Ex: Paris, Lyon — vide = Île-de-France (option cochée) ou toute la France')}
                                 className="w-full rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#E2762F]/30"
                             />
                         </div>
