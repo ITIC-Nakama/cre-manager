@@ -749,6 +749,17 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - Variables (facultatives) : `APP_MAILING_WEEKLY_DIGEST_ENABLED` (défaut `true`), `APP_MAILING_WEEKLY_DIGEST_CRON` (défaut `0 0 8 * * MON`).
 - **RGPD** : à l'anonymisation, abonnement coupé et lignes `scheduled_mailings` supprimées.
 
+## 20. Matching : score explicable offres / étudiants (lot 6)
+- **Sans IA externe** (`MatchingService`) : chaque point a sa raison, affichée à l'écran.
+  - **Formation** : mots-clés de la formation dans l'offre (intitulé 3, secteur 2, description 1 ; 9 au plus). **Une offre n'est proposée que si ce critère atteint 2 points.**
+  - **Contrat** : alternance +4, stage +2.
+  - **Niveau** : l'offre demande le niveau de l'étudiant (BTS / Bac+2, Bachelor / Bac+3, Mastère / Bac+5) +3, un autre niveau −2.
+  - **Lieu** : même département que l'étudiant (code postal du profil, lot 3) +3, sinon tous deux en Île-de-France +1 ; télétravail +1. Le lieu de l'offre est lu dans le format France Travail (« 75 - PARIS 11 »), un code postal ou « Paris ».
+  - **CV validé** : mots-clés de l'offre présents dans le texte du CV (PDF, assistant ou dépôt) +1 chacun, 3 au plus. Le texte est lu à la volée et gardé en mémoire tant que le CV ne change pas ; jamais stocké ni renvoyé.
+- **« Recommandées pour toi »** (page Offres de l'étudiant) : 10 offres au plus, publiées depuis 60 jours, non expirées, hors brouillons et hors offres déjà marquées « J'ai postulé ». Chaque carte affiche « Pourquoi : … » (tutoiement) ; un clic ouvre la fiche de l'offre. Sans formation rattachée : rien. `GET /jobboard/recommendations`.
+- **« Candidats suggérés »** (liste des offres de l'équipe, bouton ✨) : 20 étudiants **actifs, sans contrat** au plus, de la formation de l'offre, avec score et raisons (vouvoiement). « Envoyer l'offre » ouvre « Envoyer un message » prérempli (titre, entreprise, lien direct), qui écrit dans la conversation de l'étudiant. `GET /jobboard/offers/{id}/suggested-candidates` (équipe).
+- Le **récapitulatif du lundi** (§19) classe les offres de la semaine avec ce même score, par étudiant.
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).
