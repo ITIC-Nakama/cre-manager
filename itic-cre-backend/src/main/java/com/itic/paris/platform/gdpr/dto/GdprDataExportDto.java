@@ -29,6 +29,9 @@ public class GdprDataExportDto {
     /** Notes de l'equipe (1 a 5, commentaire), de la plus recente a la plus ancienne. */
     private List<RatingData> ratings;
 
+    /** Espace entreprise : choix d'apparition et demandes d'entreprises reçues (V55). */
+    private CompanySpaceData companySpace;
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -156,6 +159,27 @@ public class GdprDataExportDto {
         private int score;
         private String comment;
         private String author;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompanySpaceData {
+        /** « Apparaître dans l'Espace entreprise ». */
+        private boolean visible;
+        private List<CompanySpaceRequestData> requests;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompanySpaceRequestData {
+        private Instant date;
+        private String company;
+        private String formation;
+        private String status;
     }
 
     @Data

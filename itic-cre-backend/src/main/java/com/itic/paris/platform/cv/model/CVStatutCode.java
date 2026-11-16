@@ -6,5 +6,7 @@ package com.itic.paris.platform.cv.model;
  */
 public enum CVStatutCode {
     /** Le conseiller demande des corrections : tache « Corriger votre CV » cote etudiant. */
-    A_CORRIGER
+    A_CORRIGER,
+    /** CV validé : seul statut publié dans l'Espace entreprise (V55). */
+    VALIDE
 }

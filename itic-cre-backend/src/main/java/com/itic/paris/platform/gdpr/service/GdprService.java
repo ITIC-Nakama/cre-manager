@@ -53,6 +53,7 @@ public class GdprService {
     private final ReclamationRepository reclamationRepository;
     private final ConversationService conversationService;
     private final StudentRatingService studentRatingService;
+    private final com.itic.paris.platform.company.service.CompanySpaceAdminService companySpaceAdminService;
     private final ScheduledMailingRepository scheduledMailingRepository;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -92,6 +93,7 @@ public class GdprService {
         List<GdprDataExportDto.ReclamationData> reclamations = List.of();
         List<GdprDataExportDto.ConversationMessageData> conversation = List.of();
         List<GdprDataExportDto.RatingData> ratings = List.of();
+        GdprDataExportDto.CompanySpaceData companySpace = null;
 
         if (user instanceof Student student) {
             userProfile.setPromotion(student.getPromotion() != null ? student.getPromotion().getName() : null);
@@ -186,6 +188,7 @@ public class GdprService {
             // Messagerie : le fil avec l'equipe CRE
             conversation = conversationService.exportFor(student.getId());
             ratings = studentRatingService.exportFor(student.getId());
+            companySpace = companySpaceAdminService.exportFor(student);
         }
 
         return GdprDataExportDto.builder()
@@ -200,6 +203,7 @@ public class GdprService {
                 .reclamations(reclamations)
                 .conversation(conversation)
                 .ratings(ratings)
+                .companySpace(companySpace)
                 .build();
     }
 
@@ -295,6 +299,8 @@ public class GdprService {
             // E-mails d'offres : plus d'abonnement, traces d'envoi supprimees.
             student.setEmailTargetedOffers(false);
             scheduledMailingRepository.deleteByRecipientId(student.getId());
+            // Espace entreprise : retiré de l'annuaire, demandes d'entreprises le concernant supprimées.
+            companySpaceAdminService.deleteAllFor(student);
         }
 
         userRepository.save(user);

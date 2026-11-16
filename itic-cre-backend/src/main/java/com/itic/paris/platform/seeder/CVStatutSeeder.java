@@ -26,7 +26,7 @@ public class CVStatutSeeder implements ApplicationRunner {
 
         List<CVStatut> statuts = List.of(
                 build("En attente",  1, "#9CA3AF", true, 0, null),
-                build("Validé",      2, "#10B981", true, 30, null),
+                build("Validé",      2, "#10B981", true, 30, CVStatutCode.VALIDE),
                 build("À corriger",  3, "#F59E0B", true, 0, CVStatutCode.A_CORRIGER)
         );
 
