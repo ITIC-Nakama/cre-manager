@@ -55,8 +55,9 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Récapitulatif du lundi** | `WeeklyOfferDigestIntegrationTest.java` | 6 | Score : intitulé 3, secteur 2, description 1, sans accents ni majuscules, mots entiers (« rhum » ne vaut pas « rh »), HTML ignoré. Envoi : un e-mail par étudiant éligible, 10 offres au plus, la plus pertinente d'abord, sans offre hors formation, ancienne, brouillon ou désactivée ; rien pour un étudiant sous contrat, désabonné, désactivé ou sans formation. Verrou : un seul e-mail par semaine, nouvel envoi la semaine suivante. Aucune offre pertinente : aucun e-mail. Préférences (activées par défaut) et lien de désinscription qui ne coupe que le récapitulatif. Codes ROME préremplis, modifiables, format vérifié. |
 | **Sources d'offres : élargissement** | `JobSourcesWideningIntegrationTest.java` | 5 | Clé de dédoublonnage (accents, majuscules, ponctuation, « (e) », code postal ignorés, ville comparée). Même annonce chez deux sources, ou déjà déposée par l'équipe : gardée une fois, doublon compté. Codes ROME de l'admin plus ceux des formations, sans doublon ; réglage admin pour revenir aux seuls codes saisis (statistiques du panneau). JSearch : désactivé sans clé, visible dans le panneau ; conversion d'une offre (localisation, télétravail, HTML, date, type de contrat), éditeur Indeed écarté. Plafond mensuel d'appels compté en base. |
 | **Matching** | `MatchingIntegrationTest.java` | 4 | Lieu d'une offre (France Travail, code postal, Paris, Corse ; ville inconnue). « Recommandées pour toi » : offres de la formation seulement, hors brouillon, ancienne ou déjà postulée, la mieux notée d'abord avec ses raisons (formation, contrat, niveau Bac+3, près de chez soi) ; sans formation : rien ; équipe refusée. CV validé (PDF lu) : points et raison « CV ». « Candidats suggérés » : actifs, sans contrat, de la formation, le plus proche d'abord, 20 au plus ; étudiant refusé (403). Le récapitulatif du lundi (`WeeklyOfferDigestIntegrationTest`) utilise ce score. |
+| **Ma fiche formation** | `MyFormationIntegrationTest.java` | 3 | Pages préremplies d'après le site (BTS CG → `businessschool/bts/cg.html`, SIO, Mastère MSFO, Bachelor cyber ; 29 formations ; formations absentes du site sans page). Étudiant : sa formation et sa page, rien sans formation, équipe refusée. Back-office : adresse https seulement, vide = plus de bouton. |
 
-**Total : 563 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+**Total : 566 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -79,8 +80,9 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 | **Carte des étudiants** | `src/pages/advisor/carte/CartePage.test.tsx` | 4 | Île-de-France en carte (8 départements cliquables avec leur nombre), autres départements en liste, résumé ; clic sur un département : liste (nom, formation, promotion, contrat oui / non) en une requête ; filtre « Sans contrat » ; bandeau du code postal côté étudiant (affiché, « Plus tard », absent une fois renseigné). |
 | **E-mails d'offres (profil étudiant)** | `src/components/dashboard/parametres/EmailPreferencesCard.test.tsx` | 2 | Deux interrupteurs (« Offres ciblées du soir », « Récapitulatif du lundi ») cochés par défaut ; couper le récapitulatif n'envoie que ce choix. |
 | **Matching** | `src/components/matching/Matching.test.tsx` | 2 | « Recommandées pour toi » : « Pourquoi : … » au tutoiement, clic = ouverture de l'offre, rien sans recommandation. « Candidats suggérés » : score, raisons au vouvoiement, « Envoyer l'offre » prérempli (titre, entreprise, lien) envoyé dans la conversation. |
+| **Ma fiche formation** | `src/components/student/MyFormationButton.test.tsx` | 1 | Lien vers la page de la formation dans un nouvel onglet (`noopener`) ; rien sans page. |
 
-**Total front : 47 tests.**
+**Total front : 48 tests.**
 
 ## 3. Exécution Automatisée dans la CI/CD
 
