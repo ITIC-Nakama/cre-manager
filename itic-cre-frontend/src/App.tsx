@@ -47,6 +47,7 @@ import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import ReclamationsPage from './pages/advisor/reclamations/ReclamationsPage'
+import ConversationsPage from './pages/advisor/conversations/ConversationsPage'
 import AlumniPage from './pages/advisor/alumni/AlumniPage'
 import AlumniFormPage from './pages/public/AlumniFormPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
@@ -139,6 +140,8 @@ function App() {
           <Route path="/supervisor/contenu"       element={<LazyPage><ContenuPage /></LazyPage>} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />
           <Route path="/supervisor/reclamations"  element={<ReclamationsPage />} />
+          <Route path="/supervisor/conversations" element={<ConversationsPage />} />
+          <Route path="/supervisor/conversations/:studentId" element={<ConversationsPage />} />
           <Route path="/supervisor/alumni"        element={<AlumniPage />} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 

@@ -88,7 +88,7 @@ export default function ReclamationsPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                         <MessageCircleWarning className="h-7 w-7 text-[#E2762F] shrink-0" />
-                        {renderTitleWithGradient(t('dashboard.reclamations_advisor.title', 'Messages des étudiants'), 'itic-gradient-blue')}
+                        {renderTitleWithGradient(t('dashboard.reclamations_advisor.title', 'Demandes d’aide'), 'itic-gradient-blue')}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {t('dashboard.reclamations_advisor.subtitle', { count: totalElements, defaultValue: '{{count}} message(s)' })}

@@ -27,6 +27,8 @@ export function useInfiniteListQuery<T, P extends { page?: number }>(
          * sinon la liste est recalculee a chaque rendu (cf. le freeze d'infinite scroll deja corrige ici).
          */
         getItemKey?: (item: T) => string;
+        /** Rafraichissement periodique (ms), suspendu quand l'onglet est cache. */
+        refetchInterval?: number;
     } = {},
 ) {
     const query = useInfiniteQuery({
@@ -35,6 +37,7 @@ export function useInfiniteListQuery<T, P extends { page?: number }>(
         initialPageParam: 0,
         getNextPageParam: (lastPage) => (lastPage.number + 1 < lastPage.totalPages ? lastPage.number + 1 : undefined),
         enabled: options.enabled,
+        refetchInterval: options.refetchInterval,
     });
 
     const { getItemKey } = options;

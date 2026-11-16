@@ -7,12 +7,13 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings, MessageCircleWarning, Contact
+  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
 import { usePendingReclamationsCount } from '../hooks/useReclamations';
+import { useConversationUnreadCounts } from '../hooks/useConversations';
 import { useCvPendingCount, useContractPendingCount } from '../hooks/useDashboard';
 
 export default function SupervisorLayout() {
@@ -21,6 +22,8 @@ export default function SupervisorLayout() {
   const mainRef = useRef<HTMLElement>(null);
   useResetScrollOnNavigate(mainRef);
   const { data: pendingReclamationsCount } = usePendingReclamationsCount();
+  // Messagerie : fils non lus de mes étudiants et des étudiants sans référent (une requête par minute).
+  const { data: conversationCounts } = useConversationUnreadCounts();
   const { data: cvPendingCount } = useCvPendingCount();
   const { data: contractPendingCount } = useContractPendingCount();
 
@@ -32,7 +35,8 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures', badge: contractPendingCount },
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
-    { label: t('dashboard.sidebar.reclamations', 'Messages'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
+    { label: t('dashboard.sidebar.conversations', 'Conversations'), icon: MessagesSquare, to: '/supervisor/conversations', badge: conversationCounts?.badge },
+    { label: t('dashboard.sidebar.reclamations', 'Demandes d’aide'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
     { label: t('dashboard.sidebar.alumni', 'Alumni'),   icon: Contact,         to: '/supervisor/alumni' },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },

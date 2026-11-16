@@ -123,7 +123,8 @@
       "cv_validation": "Validation CV",
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
-      "reclamations": "Messages",
+      "reclamations": "Demandes d'aide",
+      "conversations": "Conversations",
       "conseillers": "Relations Entreprises",
       "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
@@ -1165,27 +1166,27 @@
       }
     },
     "reclamations_advisor": {
-      "title": "Messages des étudiants",
-      "subtitle": "{{count}} message(s)",
+      "title": "Demandes d'aide",
+      "subtitle": "{{count}} demande(s)",
       "filter_pending": "En attente",
       "filter_resolved": "Résolus",
       "filter_refused": "Refusés",
       "filter_all": "Tous",
-      "empty": "Aucun message.",
+      "empty": "Aucune demande.",
       "status_resolved": "Résolu",
       "status_pending": "En attente",
       "status_refused": "Refusé",
       "resolve_button": "Marquer résolu",
       "refuse_button": "Refuser",
       "reopen_button": "Rouvrir",
-      "toast_resolved": "Message marqué comme résolu.",
-      "toast_refused": "Message refusé.",
-      "toast_reopened": "Message rouvert.",
+      "toast_resolved": "Demande marquée comme résolue.",
+      "toast_refused": "Demande refusée.",
+      "toast_reopened": "Demande rouverte.",
       "toast_error": "Une erreur est survenue, réessayez.",
       "mine_only": "Mon portefeuille uniquement",
-      "my_pending_count": "{{count}} message(s) à traiter dans mon portefeuille",
-      "outside_pending_count": "{{count}} message(s) à traiter hors de mon portefeuille",
-      "outside_pending_count_hint": "Messages en attente d'étudiants qui ne sont pas dans mon portefeuille — décochez la case pour les voir dans la liste."
+      "my_pending_count": "{{count}} demande(s) à traiter dans mon portefeuille",
+      "outside_pending_count": "{{count}} demande(s) à traiter hors de mon portefeuille",
+      "outside_pending_count_hint": "Demandes en attente d'étudiants qui ne sont pas dans mon portefeuille — décochez la case pour les voir dans la liste."
     },
     "connaissances": {
       "tree": {
@@ -2486,6 +2487,48 @@
       "zoomOut": "Dézoomer",
       "cancel": "Annuler",
       "save": "Enregistrer la photo"
+    }
+  },
+  "conversation": {
+    "common": {
+      "today": "Aujourd’hui",
+      "yesterday": "Hier",
+      "messages": "Messages",
+      "former_staff": "Ancien conseiller",
+      "load_more": "Afficher les messages précédents",
+      "new_messages": "Nouveaux messages",
+      "send": "Envoyer",
+      "send_hint": "Envoyer (Ctrl + Entrée)",
+      "send_error": "Le message n’a pas pu être envoyé, réessayez."
+    },
+    "staff": {
+      "title": "Conversations",
+      "subtitle": "Un fil par étudiant, partagé par toute l’équipe CRE.",
+      "list_label": "Liste des conversations",
+      "thread_label": "Conversation",
+      "pick": "Choisissez une conversation, ou ouvrez-en une depuis la fiche d’un étudiant.",
+      "search": "Rechercher un étudiant (nom, e-mail)…",
+      "filters": "Filtres",
+      "filter_mine": "Mes étudiants",
+      "filter_all": "Tous",
+      "filter_unread": "Non lus",
+      "empty": "Aucune conversation pour l’instant. Ouvrez la fiche d’un étudiant pour lui écrire.",
+      "empty_search": "Aucune conversation ne correspond à cette recherche.",
+      "empty_unread": "Aucun message non lu.",
+      "unread_aria": "{{count}} non lu(s)",
+      "my_student": "Mon étudiant",
+      "referent": "Référent : {{name}}",
+      "no_referent": "Sans référent",
+      "inactive_short": "compte désactivé",
+      "not_found": "Cet étudiant est introuvable.",
+      "back": "Toutes les conversations",
+      "anonymized": "Compte anonymisé : plus de message possible.",
+      "inactive": "Compte désactivé : l’étudiant ne peut plus se connecter, vous ne pouvez plus lui écrire.",
+      "open_file": "Voir la fiche",
+      "read_by_student": "Lu",
+      "empty_thread": "Aucun message avec {{name}} pour l’instant. Écrivez-lui : {{name}} sera prévenu(e) par e-mail.",
+      "placeholder": "Écrire à {{name}}…",
+      "open_conversation": "Conversation"
     }
   }
 }
