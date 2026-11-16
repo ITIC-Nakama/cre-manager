@@ -784,6 +784,56 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 | Mastère MSFO M1, M2 | `businessschool/mastere/mo.html` | 200 | sûr (Management stratégique et financier des organisations) |
 | BTS TP RH, SAM/GPME 1A et 2A, B/A 1A et 2A, PI 1A et 2A, TP Santé ; Bachelor Business Développeur, FCG | aucune page sur le site | — | bouton masqué |
 
+## 22. Alerte « nouvelle offre pour ta formation », cartes et vue par formation (V60, lot 8)
+
+### Rattachement offre ↔ formation (`job_offer_programs`)
+- **Formation** = une des 39 formations de l'annuaire de l'Espace entreprise (lot 2). Un étudiant appartient à une formation par sa promotion et son année d'étude (même règle que le récapitulatif du lundi et le matching).
+- **Offre de l'équipe** : les formations sont choisies dans le formulaire (« Formations ciblées », multi-sélection, ou « Toutes les formations »). **Obligatoire pour publier** une offre de l'équipe ; un brouillon peut attendre. Contrôlé dans le formulaire ; l'API accepte encore une offre sans formation (aucune alerte), pour ne pas casser les intégrations existantes.
+- **Offre importée** (France Travail, La Bonne Alternance, Adzuna, JSearch) : formations **déduites** à l'import. France Travail donne le code ROME de l'offre (stocké dans `job_offers.rome_code`) : il doit faire partie des codes ROME de la formation **et** les mots-clés de la formation doivent donner au moins 2 points (score du matching : intitulé 3, secteur 2, description 1). Les autres sources ne donnent pas de code ROME : les mots-clés seuls.
+- Lien « choisi par l'équipe » (`manual`) ou « déduit à l'import ». Rattacher / détacher à la main depuis l'onglet Formations.
+
+### Déclencheurs de l'alerte
+- Publication d'une offre de l'équipe (création publiée, ou publication d'un brouillon) : étudiants de toutes ses formations.
+- Offre importée : une seule fois, à son insertion. Une offre en double (même entreprise, intitulé et ville chez une autre source, lot 5) n'est jamais insérée, donc ne déclenche rien.
+- Offre modifiée : **aucune nouvelle alerte**, sauf pour une formation **ajoutée** (seuls ses étudiants). Rattachement manuel (onglet Formations) : idem.
+- Brouillon, offre désactivée : rien.
+
+### Destinataires
+- Étudiants **actifs** de la formation, **sans contrat** (déclaré ou vérifié, en cours, comme le lot 1), abonnés (`students.email_instant_offers`, activé par défaut), e-mail valide, et formation dont les alertes sont **activées** (`company_space_programs.alerts_enabled`, activé par défaut).
+- Unicité (offre, étudiant) en base : un étudiant n'est jamais prévenu deux fois de la même offre.
+
+### File d'envoi (`offer_alert_outbox`) et regroupement
+- Chaque alerte est d'abord mise en file (`PENDING`), traitée **chaque minute** (`APP_MAILING_INSTANT_OFFERS_CRON`, défaut à la 15e seconde de chaque minute, heure de Paris).
+- **Regroupement** : on attend que la plus ancienne alerte en attente d'un étudiant ait **10 minutes** (`APP_MAILING_INSTANT_OFFERS_WINDOW_MINUTES`) ; toutes ses alertes en attente partent alors dans **un seul e-mail** (« 3 nouvelles offres pour ta formation »). « Instantané » veut donc dire « dans les 10 minutes ».
+- Au moment de l'envoi, on revérifie : étudiant encore actif, abonné et sans contrat, offre encore publiée et active ; sinon l'alerte est écartée (`SKIPPED`).
+- **Plafond** : 5 e-mails d'alerte par étudiant et par jour (heure de Paris, `APP_MAILING_INSTANT_OFFERS_DAILY_CAP`). Au-delà, l'alerte est **reportée** (`DEFERRED`) à l'**e-mail du soir** (lot 1, 18 h) ; elle y figure, puis passe en `EVENING`. Une alerte reportée après l'envoi de 18 h part dans l'e-mail du soir suivant.
+- Une offre déjà reçue en alerte instantanée **n'est jamais répétée** dans l'e-mail du soir.
+- **Échec d'envoi** : nouvel essai après 1 min puis 5 min ; au 3e échec, `FAILED` (visible dans le journal).
+- **Désactivé par défaut** : `APP_MAILING_INSTANT_OFFERS_ENABLED=false` ; tant qu'il est faux, rien n'est mis en file ni envoyé (l'aperçu des destinataires le signale).
+
+### E-mail
+- Objet : « Nouvelle offre pour ta formation — <intitulé> » (une offre) ou « <n> nouvelles offres pour ta formation ». Même charte que les autres e-mails d'offres, tutoiement, version texte.
+- Pour chaque offre : intitulé, entreprise, ville, type de contrat, source (Offre ITIC, France Travail…), bouton « Voir l'offre ». La date de début n'existe pas dans le modèle d'offre : non affichée.
+- Lien de désinscription en un clic (jeton signé, sujet `INSTANT_OFFERS`), qui ne coupe que ces alertes. Interrupteur « Alertes « nouvelle offre pour ta formation » » dans le profil.
+
+### Back-office
+- Écran des offres, onglet **Formations** : une ligne par formation (offres actives, nouvelles sur 7 jours, étudiants actifs, sous contrat, alertes activées, dernière alerte) ; clic → la liste des offres filtrée sur cette formation ; rattacher / détacher des offres ; **journal** des envois (offre, formation, destinataires, envoyés, en échec, regroupés, reportés au soir, en attente).
+- Liste des offres : colonne **Formation(s)**, **tri** par formation (ordre de l'annuaire de la première formation rattachée ; sans formation en dernier) et **filtre** multi-formations, gardé dans l'adresse (`?formations=`), combinable avec les autres filtres.
+- Bouton **« Destinataires de l'alerte »** sur une offre : nombre et liste des étudiants qui la recevront, sans rien envoyer.
+- Listes des **étudiants** et des **candidatures** : même filtre multi-formations (côté serveur), colonne « Formation » et **tri par formation** (promotion puis année d'étude, d'où se déduit la formation ; index V60).
+- Côté étudiant : « **Offres pour ma formation** » choisi par défaut (s'il a une formation), « Toutes les offres » à un clic.
+
+### Cartes (équipe CRE et admin)
+- `/supervisor/carte`, un onglet par carte : **Étudiants** (lot 3) et **Entreprises et offres** : offres en ligne et entreprises qui recrutent par département (déduit de la localisation de l'offre, même règle que le matching), filtres formations, type de contrat, source ; détail d'un département : entreprises et leurs offres. Aucune adresse exacte, carte SVG intégrée (aucune clé payante), utilisable à 390 px.
+- Le Google Sites `cre-pe` ne contient aucune carte (vérifié au lot 3 et au lot 8) : les deux cartes retenues sont celles-ci.
+
+### RGPD
+- File d'alertes de l'étudiant supprimée à l'anonymisation (et abonnement coupé). Aucune nouvelle donnée personnelle hors de cette file (identifiant étudiant, offre, dates d'envoi).
+
+### Liens courts et contact
+- Les 39 liens `itic.short.gy/<slug>` ont été vérifiés le 16/11/2026 : voir [LIENS_COURTS.md](./LIENS_COURTS.md) (28 existent, 11 à créer, 3 slugs déduits confirmés).
+- « Contactez-nous » (Espace entreprise) appelle le **01 43 73 20 40**, le numéro affiché ; le formulaire reste proposé (« Ou écrivez-nous »).
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

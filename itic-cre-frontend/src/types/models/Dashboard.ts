@@ -47,6 +47,8 @@ export interface StudentRow {
   email: string;
   phoneNumber?: string | null;
   promotion: { id: string; nom: string } | null;
+  /** Formation de l'annuaire déduite de la promotion et de l'année (lot 8). */
+  formation?: string | null;
   advisor: { id: string; firstName: string; lastName: string } | null;
   studyYear?: number | null;
   xpTotal: number;
@@ -95,6 +97,8 @@ export interface StudentListParams {
   starred?: boolean;
   /** Dernière note au moins égale (1 à 5). */
   minRating?: number;
+  /** Formations (lot 8) : identifiants séparés par des virgules. */
+  programIds?: string;
   sort?: string;
 }
 

@@ -132,6 +132,17 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
             },
             enableSorting: true,
         }),
+        col.accessor((row) => row.formation ?? '', {
+            id: 'formation',
+            header: t('formations.column_student', 'Formation'),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value
+                    ? <TruncatedText text={value} className="max-w-[180px] text-slate-600 dark:text-slate-300 text-sm" />
+                    : <span className="text-slate-300 dark:text-slate-600">—</span>;
+            },
+            enableSorting: true,
+        }),
         col.accessor((row) => row.advisor ? `${row.advisor.firstName} ${row.advisor.lastName}` : '', {
             id: 'advisor',
             header: t('dashboard.etudiants.table.advisor', 'Conseiller'),

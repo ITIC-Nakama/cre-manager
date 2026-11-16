@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import RecommendedOffers from '../../../components/matching/RecommendedOffers';
-import { Building2, Globe } from 'lucide-react';
+import { Building2, Globe, GraduationCap } from 'lucide-react';
+import { apiClient } from '../../../api-s/AxiosApiClient';
+import { unwrap } from '../../../api-s/unwrap';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
 import { useScrollTopOnChange } from '../../../hooks/useScrollTopOnChange';
@@ -15,6 +18,15 @@ export default function OffresPage() {
     const [activeTab, setActiveTab] = useState<OffresTab>('itic');
     useScrollTopOnChange(activeTab);
     const [, setSearchParams] = useSearchParams();
+    // « Offres pour ma formation » (lot 8) : choisi par défaut quand l'étudiant a une formation ; il peut tout voir.
+    const { data: myFormation, isPending: formationPending } = useQuery({
+        queryKey: ['me', 'formation'],
+        queryFn: () => apiClient.get('/me/formation').then((r) => unwrap<{ formation: string | null; pedagogyUrl: string | null }>(r)),
+        staleTime: 30 * 60_000,
+    });
+    const [showAll, setShowAll] = useState(false);
+    const hasFormation = !!myFormation?.formation;
+    const onlyMine = hasFormation && !showAll;
     // Une recommandation ouvre la fiche de l'offre (lien direct ?offre=, géré par l'onglet ITIC quelle que soit la source).
     const openOffer = (offerId: string) => {
         setActiveTab('itic');
@@ -62,7 +74,28 @@ export default function OffresPage() {
 
             <RecommendedOffers onOpen={openOffer} />
 
-            {activeTab === 'itic' ? <IticOffresTab /> : <ExternalOffresTab />}
+            {hasFormation && (
+                <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('student.offers_scope_label', 'Offres affichées')}>
+                    <button type="button" aria-pressed={onlyMine} onClick={() => setShowAll(false)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-semibold transition-colors cursor-pointer ${onlyMine
+                            ? 'bg-[#3f74ff] border-[#3f74ff] text-white'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#3f74ff]'}`}>
+                        <GraduationCap className="h-4 w-4" />
+                        {t('student.offers_mine', 'Offres pour ma formation')}
+                    </button>
+                    <button type="button" aria-pressed={!onlyMine} onClick={() => setShowAll(true)}
+                        className={`px-3 py-1.5 rounded-xl border text-sm font-semibold transition-colors cursor-pointer ${!onlyMine
+                            ? 'bg-[#3f74ff] border-[#3f74ff] text-white'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#3f74ff]'}`}>
+                        {t('student.offers_all', 'Toutes les offres')}
+                    </button>
+                    {onlyMine && <span className="text-xs text-slate-400">{myFormation?.formation}</span>}
+                </div>
+            )}
+
+            {/* Liste chargée une fois la formation connue : une seule requête, déjà filtrée sur « ma formation ». */}
+            {formationPending ? null
+                : activeTab === 'itic' ? <IticOffresTab myFormation={onlyMine} /> : <ExternalOffresTab myFormation={onlyMine} />}
         </div>
     );
 }

@@ -16,6 +16,8 @@ import { formatPromotionLabel } from '../../../utils/promotionUtils';
 import { formatStaffLabel } from '../../../utils/staffUtils';
 import CustomSelect from '../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../components/basics/FiltersPopover';
+import FormationFilter from '../../../components/offers/FormationFilter';
+import { useSearchParams } from 'react-router-dom';
 import StudentCard from './components/StudentCard';
 import StudentDrawer from './components/StudentDrawer';
 import InfiniteScrollSentinel from '../../../components/shared/InfiniteScrollSentinel';
@@ -42,6 +44,16 @@ export default function CandidaturesPage() {
     const [advisorFilter, setAdvisorFilter] = useState(() => (!isAdmin && currentUser ? String(currentUser.id) : ''));
     const [staleOnly, setStaleOnly] = useState(false);
     const [starredFilter, setStarredFilter] = useState<StarredFilter>('all');
+    // Filtre multi-formations et tri par formation (lot 8), gardés dans l'URL.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const formationFilter = searchParams.get('formations') ?? '';
+    const sortByFormation = searchParams.get('tri') === 'formation';
+    const setUrlParam = (key: string, value: string) => {
+        const next = new URLSearchParams(window.location.search);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        setSearchParams(next, { replace: true });
+    };
     // Par defaut on ecarte les etudiants deja sous contrat, comme sur la liste des etudiants.
     const [contractFilter, setContractFilter] = useState<ContractFilter>('not_under_contract');
     const [createdByFilter, setCreatedByFilter] = useState<CreatedByFilter>('all');
@@ -145,7 +157,9 @@ export default function CandidaturesPage() {
         needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
         createdByAdvisor: createdByFilter === 'advisor' ? true : createdByFilter === 'student' ? false : undefined,
-    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter, starredFilter, createdByFilter]);
+        programIds: formationFilter || undefined,
+        sort: sortByFormation ? 'formation,asc' : undefined,
+    }), [debouncedSearch, statusFilter, promotionFilter, contractTypeFilter, staleOnly, advisorFilter, contractFilter, starredFilter, createdByFilter, formationFilter, sortByFormation]);
 
     const {
         items, totalElements: totalStudents, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -281,6 +295,17 @@ export default function CandidaturesPage() {
                     options={starredFilterOptions}
                     onChange={(value) => handleStarredFilterChange(value as StarredFilter)}
                     icon={<Star className="h-4 w-4 text-slate-400" />}
+                    className="min-w-40"
+                />
+
+                <FormationFilter value={formationFilter} onChange={(csv) => setUrlParam('formations', csv)} className="w-full sm:w-64" />
+                <CustomSelect
+                    value={sortByFormation ? 'formation' : 'name'}
+                    options={[
+                        { value: 'name', label: t('formations.sort_name', 'Tri : nom') },
+                        { value: 'formation', label: t('formations.sort_formation', 'Tri : formation') },
+                    ]}
+                    onChange={(value) => setUrlParam('tri', value === 'formation' ? 'formation' : '')}
                     className="min-w-40"
                 />
 

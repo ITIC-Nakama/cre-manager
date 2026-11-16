@@ -65,8 +65,11 @@ public class JobOfferController {
             @RequestParam(required = false) UUID sectorId,
             @RequestParam(required = false) String source,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) List<UUID> programIds,
+            @RequestParam(defaultValue = "false") boolean myFormation,
             @PageableDefault(size = 20, sort = {"priorityContract", "effectiveDate"}, direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, source, location, pageable));
+        return ResponseEntity.ok(jobOfferService.getActiveOffers(search, contractTypeId, sectorId, source, location, programIds,
+                myFormation, pageable));
     }
 
     @GetMapping("/all")
@@ -85,9 +88,24 @@ public class JobOfferController {
             @RequestParam(required = false) String postedBy,
             @RequestParam(required = false) Boolean noApplyChannel,
             @RequestParam(required = false) Boolean draft,
+            @RequestParam(required = false) List<UUID> programIds,
             @PageableDefault(size = 20, sort = {"priorityContract", "effectiveDate"}, direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location,
-                postedBy, noApplyChannel, draft, pageable));
+                postedBy, noApplyChannel, draft, programIds, pageable));
+    }
+
+    @PostMapping("/" + ID + "/programs/{programId}")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Rattacher l'offre à une formation (alerte aux étudiants de la formation ajoutée)")
+    public ResponseEntity<JobOfferDTO> attachProgram(@PathVariable UUID id, @PathVariable UUID programId) {
+        return ResponseEntity.ok(jobOfferService.attachProgram(id, programId));
+    }
+
+    @DeleteMapping("/" + ID + "/programs/{programId}")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Détacher l'offre d'une formation (aucun e-mail)")
+    public ResponseEntity<JobOfferDTO> detachProgram(@PathVariable UUID id, @PathVariable UUID programId) {
+        return ResponseEntity.ok(jobOfferService.detachProgram(id, programId));
     }
 
     @PostMapping("/" + ID + "/publish")

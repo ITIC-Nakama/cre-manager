@@ -43,6 +43,14 @@ export interface JobOffer {
     staffPublishedAt?: string | null;
     /** Promotions ciblées (e-mail du soir) : renvoyées à l'équipe seulement, jamais à un étudiant. */
     targetPromotions?: { id: string; name: string }[] | null;
+    /** Formations rattachées (lot 8) : choisies par l'équipe (manual) ou déduites à l'import. */
+    programs?: OfferProgramRef[];
+}
+
+export interface OfferProgramRef {
+    id: string;
+    name: string;
+    manual: boolean;
 }
 
 export interface JobOfferPage {
@@ -86,6 +94,10 @@ export interface JobOfferListParams {
     noApplyChannel?: boolean;
     /** Liste staff : true = brouillons seulement (filtre « Brouillons »). */
     draft?: boolean;
+    /** Formations (lot 8) : identifiants séparés par des virgules. */
+    programIds?: string;
+    /** Étudiant : « Offres pour ma formation ». */
+    myFormation?: boolean;
     sort?: string;
 }
 
@@ -108,6 +120,10 @@ export interface JobOfferPayload {
     draft?: boolean;
     /** Promotions ciblées : leurs étudiants reçoivent l'offre dans l'e-mail du soir. */
     targetPromotionIds?: string[];
+    /** Formations ciblées : alerte instantanée à leurs étudiants (lot 8). */
+    programIds?: string[];
+    /** « Toutes les formations ». */
+    allPrograms?: boolean;
 }
 
 export interface ExternalSyncRun {

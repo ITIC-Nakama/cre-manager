@@ -37,6 +37,10 @@ public class StudentSpecification {
                 predicates.add(cb.equal(root.get("studyYear"), criteria.getStudyYear()));
             }
 
+            if (criteria.getFormations() != null) {
+                predicates.add(formationPredicate(root, cb, criteria.getFormations()));
+            }
+
             // Advisor filter — "mes etudiants" cote conseiller, ou filtrage par conseiller specifique cote admin
             if (criteria.getAdvisorId() != null) {
                 predicates.add(cb.equal(root.get("advisor").get("id"), criteria.getAdvisorId()));
@@ -122,9 +126,27 @@ public class StudentSpecification {
         };
     }
 
+    /** Étudiants d'au moins une de ces formations (promotion rattachée et, si la formation en a une, même année). */
+    static Predicate formationPredicate(Root<Student> root, jakarta.persistence.criteria.CriteriaBuilder cb,
+                                        List<com.itic.paris.platform.matching.FormationScope> scopes) {
+        if (scopes.isEmpty()) {
+            return cb.disjunction();
+        }
+        List<Predicate> any = new ArrayList<>();
+        for (com.itic.paris.platform.matching.FormationScope s : scopes) {
+            Predicate inPromotion = root.get("promotion").get("id").in(s.promotionIds());
+            any.add(s.studyYear() == null ? inPromotion : cb.and(inPromotion, cb.equal(root.get("studyYear"), s.studyYear())));
+        }
+        return cb.or(any.toArray(new Predicate[0]));
+    }
+
     public static Specification<Student> withStudentListFilters(StudentFilterCriteria criteria, Instant inactiveThreshold, Instant staleThreshold) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (criteria.getFormations() != null) {
+                predicates.add(formationPredicate(root, cb, criteria.getFormations()));
+            }
 
             // Exclude RGPD anonymized accounts unless explicitly requested by an admin
             if (!Boolean.TRUE.equals(criteria.getIncludeAnonymized())) {

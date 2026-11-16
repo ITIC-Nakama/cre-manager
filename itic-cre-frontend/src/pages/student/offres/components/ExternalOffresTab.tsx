@@ -25,7 +25,7 @@ function sourceLabel(t: TFunction, source: string): string {
     return t(`dashboard.offres.external.sources.${source}`);
 }
 
-export default function ExternalOffresTab() {
+export default function ExternalOffresTab({ myFormation = false }: { myFormation?: boolean }) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -60,7 +60,8 @@ export default function ExternalOffresTab() {
         contractTypeId: contractTypeFilter || undefined,
         source: sourceFilter || 'EXTERNAL',
         location: debouncedLocation || undefined,
-    }), [debouncedSearch, contractTypeFilter, sourceFilter, debouncedLocation]);
+        myFormation: myFormation || undefined,
+    }), [debouncedSearch, contractTypeFilter, sourceFilter, debouncedLocation, myFormation]);
 
     const {
         items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

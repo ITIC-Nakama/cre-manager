@@ -86,6 +86,17 @@ public class JobOfferSpecification {
      * Offres sans aucun moyen de postuler : ni lien (null ou vide), ni adresse e-mail de candidature
      * trouvée dans la description. Repère et filtre « Sans moyen de postuler » de la liste staff.
      */
+    /** Offres rattachées à au moins une de ces formations (lot 8). */
+    public static Specification<JobOffer> withPrograms(java.util.Collection<UUID> programIds) {
+        return (root, query, cb) -> {
+            var sub = query.subquery(Integer.class);
+            var link = sub.from(com.itic.paris.platform.alerts.model.OfferProgramLink.class);
+            sub.select(cb.literal(1)).where(cb.equal(link.get("id").get("offerId"), root.get("id")),
+                    link.get("id").get("programId").in(programIds));
+            return cb.exists(sub);
+        };
+    }
+
     public static Specification<JobOffer> withoutApplyChannel() {
         return (root, query, cb) -> cb.and(
                 cb.or(cb.isNull(root.get("externalLink")), cb.equal(cb.trim(root.get("externalLink")), "")),

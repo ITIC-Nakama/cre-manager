@@ -35,6 +35,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,6 +51,7 @@ public class DashboardController {
     private final StudentReportingService studentReportingService;
     private final ApplicationReportingService applicationReportingService;
     private final ApplicationService applicationService;
+    private final com.itic.paris.platform.matching.StudentFormationResolver formationResolver;
 
     @GetMapping("/overview")
     @Operation(summary = "Vue d'ensemble — totaux, XP moyen, actifs/inactifs, répartition grades, top 5, candidatures stale, CVs par statut. " +
@@ -128,14 +130,16 @@ public class DashboardController {
             @RequestParam(required = false) Boolean needsContractVerification,
             @RequestParam(required = false) Boolean starred,
             @RequestParam(required = false) Integer minRating,
+            @RequestParam(required = false) List<UUID> programIds,
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
+                .formations(formationScopes(programIds))
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .accountActive(accountActive).hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
                 .needsContractVerification(needsContractVerification).starred(starred).minRating(minRating)
                 .build();
-        return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
+        return ResponseEntity.ok(studentReportingService.getStudentList(criteria, formationSort(pageable)));
     }
 
     @GetMapping("/students/all")
@@ -201,16 +205,18 @@ public class DashboardController {
             @RequestParam(required = false) Boolean needsContractVerification,
             @RequestParam(required = false) Boolean starred,
             @RequestParam(required = false) Boolean createdByAdvisor,
+            @RequestParam(required = false) List<UUID> programIds,
             // Tri par defaut deterministe (id departage les homonymes) : sans ORDER BY, l'ordre des lignes
             // peut varier d'une requete a l'autre et un meme etudiant apparait sur deux pages du defilement infini.
             @PageableDefault(size = 20, sort = {"lastName", "firstName", "id"}) Pageable pageable) {
         ApplicationFilterCriteria criteria = ApplicationFilterCriteria.builder()
+                .formations(formationScopes(programIds))
                 .promotionId(promotionId).studyYear(studyYear).statusId(statusId).typeContratId(typeContratId)
                 .search(search).stale(stale).activeStudentsOnly(activeStudentsOnly).advisorId(advisorId)
                 .underContract(underContract).needsContractVerification(needsContractVerification).starred(starred)
                 .createdByAdvisor(createdByAdvisor)
                 .build();
-        return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, pageable));
+        return ResponseEntity.ok(applicationReportingService.getApplicationsGroupedByStudent(criteria, formationSort(pageable)));
     }
 
     @GetMapping("/applications/export")
@@ -328,5 +334,27 @@ public class DashboardController {
         }
         studentReportingService.notifyStudent(studentId, request != null ? request.getMessage() : null);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Filtre « Formation(s) » (lot 8) : formations de l'annuaire → promotions et années (null si pas de filtre). */
+    private List<com.itic.paris.platform.matching.FormationScope> formationScopes(List<UUID> programIds) {
+        return programIds == null || programIds.isEmpty() ? null : formationResolver.scopes(programIds);
+    }
+
+    /**
+     * Tri « formation » (lot 8) : la formation d'un étudiant se déduit de sa promotion et de son année d'étude ; on trie
+     * donc par nom de promotion puis année (index V60), puis par nom.
+     */
+    static Pageable formationSort(Pageable pageable) {
+        if (pageable == null || pageable.isUnpaged()) return pageable;
+        org.springframework.data.domain.Sort.Order order = pageable.getSort().getOrderFor("formation");
+        if (order == null) return pageable;
+        org.springframework.data.domain.Sort.Direction dir = order.getDirection();
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                new org.springframework.data.domain.Sort.Order(dir, "promotion.name"),
+                new org.springframework.data.domain.Sort.Order(dir, "studyYear"),
+                org.springframework.data.domain.Sort.Order.asc("lastName"),
+                org.springframework.data.domain.Sort.Order.asc("id"));
+        return org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 }

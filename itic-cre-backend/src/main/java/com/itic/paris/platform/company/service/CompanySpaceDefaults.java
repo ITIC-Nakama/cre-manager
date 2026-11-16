@@ -37,6 +37,14 @@ final class CompanySpaceDefaults {
         return new Program(level, domain, label, slug, false, SITES + sitesPage, keywords, year);
     }
 
+    /**
+     * Lien court qui existe (vérifié le 16/11/2026, docs/LIENS_COURTS.md) mais dont l'ancienne page cible a été supprimée
+     * ou a changé d'adresse : slug confirmé, ancienne page = celle du menu actuel du Google Sites.
+     */
+    private static Program confirmed(Level level, String domain, String label, String slug, String sitesPage, String keywords, Integer year) {
+        return new Program(level, domain, label, slug, true, SITES + sitesPage, keywords, year);
+    }
+
     private static final String MASTERE = "mastere|master";
 
     private static String mastere(String words) {
@@ -66,8 +74,8 @@ final class CompanySpaceDefaults {
             known(Level.BTS, "Communication & Marketing", "COM - 1A", "bts-com1a", "bts com|bts communication", 1),
             known(Level.BTS, "Communication & Marketing", "COM - 2A", "bts-com2a", "bts com|bts communication", 2),
             deduced(Level.BTS, "Ressources humaines", "TP RH", "bts-tprh", "tp-rh", "tp rh", null),
-            deduced(Level.BTS, "Ressources humaines", "SAM / GPME - 1A", "bts-gpme1a", "sam-gpme-1a", "bts sam|bts gpme", 1),
-            deduced(Level.BTS, "Ressources humaines", "SAM / GPME - 2A", "bts-gpme2a", "sam-gpme-2a", "bts sam|bts gpme", 2),
+            confirmed(Level.BTS, "Ressources humaines", "SAM / GPME - 1A", "bts-gpme1a", "sam-gpme-1a", "bts sam|bts gpme", 1),
+            confirmed(Level.BTS, "Ressources humaines", "SAM / GPME - 2A", "bts-gpme2a", "sam-gpme-2a", "bts sam|bts gpme", 2),
             known(Level.BTS, "Finance", "CG - 1A", "bts-cg1a", "bts cg", 1),
             known(Level.BTS, "Finance", "CG - 2A", "bts-cg2a", "bts cg", 2),
             deduced(Level.BTS, "Banque & Assurance", "B/A - 1A", "bts-ba1a", "ba-1a", "bts banque|bts assurance|bts ba", 1),
@@ -89,7 +97,7 @@ final class CompanySpaceDefaults {
             known(Level.MASTERE, "Informatique", "Fullstack - M2", "mast-fullstack2a", mastere("fullstack|full stack|dev|developpeur"), 2),
             known(Level.MASTERE, "Commerce", "MSC - M1", "mast-msc1a", "msc|" + mastere("msc"), 1),
             known(Level.MASTERE, "Commerce", "MSC - M2", "mast-msc2a", "msc|" + mastere("msc"), 2),
-            deduced(Level.MASTERE, "Communication & Marketing", "Communication - M1", "mast-com1a", "hfqnw192", mastere("communication|com"), 1),
+            confirmed(Level.MASTERE, "Communication & Marketing", "Communication - M1", "mast-com1a", "hfqnw192", mastere("communication|com"), 1),
             known(Level.MASTERE, "Communication & Marketing", "Communication - M2", "mast-com2a", mastere("communication|com"), 2),
             known(Level.MASTERE, "Ressources humaines", "MRH - M1", "mast-mrh1a", "mrh|" + mastere("rh|mrh"), 1),
             known(Level.MASTERE, "Ressources humaines", "MRH - M2", "mast-mrh2a", "mrh|" + mastere("rh|mrh"), 2),

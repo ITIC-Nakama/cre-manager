@@ -56,6 +56,7 @@ public class StudentReportingService {
     private final ICloudStorage cloudStorage;
     private final ConversationService conversationService;
     private final AppConfigurationService appConfigurationService;
+    private final com.itic.paris.platform.matching.StudentFormationResolver formationResolver;
 
     public Page<Map<String, Object>> getStudentList(StudentFilterCriteria criteria, Pageable pageable) {
         Instant staleThreshold = Instant.now().minus(appConfigurationService.getStaleAlertDays(), ChronoUnit.DAYS);
@@ -133,6 +134,10 @@ public class StudentReportingService {
                         .filter(a -> studentIds.contains(a.getStudent().getId()))
                         .collect(Collectors.groupingBy(a -> a.getStudent().getId(), Collectors.counting()));
 
+        // Formation de l'annuaire (lot 8), déduite de la promotion et de l'année : colonne « Formation » de la liste.
+        Map<UUID, List<com.itic.paris.platform.company.model.CompanySpaceProgram>> formations =
+                students.isEmpty() ? Map.of() : formationResolver.snapshot();
+
         return students.stream().map(student -> {
             Grade grade = GradeUtils.resolveGrade(student.getXpTotal(), allGrades);
             boolean active = student.getLastActivity() != null
@@ -157,6 +162,11 @@ public class StudentReportingService {
                              "firstName", student.getAdvisor().getFirstName(),
                              "lastName", student.getAdvisor().getLastName())
                     : null);
+            row.put("formation", student.getPromotion() == null ? null
+                    : com.itic.paris.platform.matching.StudentFormationResolver.programsFor(formations,
+                            student.getPromotion().getId(), student.getStudyYear()).stream()
+                            .map(com.itic.paris.platform.company.model.CompanySpaceProgram::displayName)
+                            .findFirst().orElse(null));
             row.put("studyYear", student.getStudyYear());
             row.put("xpTotal", student.getXpTotal());
             row.put("grade", grade != null

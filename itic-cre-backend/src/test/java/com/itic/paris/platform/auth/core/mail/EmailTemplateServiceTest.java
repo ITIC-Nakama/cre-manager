@@ -109,4 +109,24 @@ class EmailTemplateServiceTest {
         assertTrue(html.contains("#F43F5E"));
         assertTrue(html.contains("#3B71FF"));
     }
+
+    @Test
+    void rendersInstantOffersAlertWithSingularAndPluralWording() {
+        var one = java.util.List.of(new com.itic.paris.platform.alerts.service.OfferAlertMailer.AlertLine(
+                "Chargé de recrutement", "Acme", "75011 Paris", "Alternance", "ITIC", "https://cre/student/offres?offre=1"));
+        String single = emailTemplateService.renderInstantOffersEmail("fr", "Inès", "Bachelor RH", one, "https://cre/student/offres", "https://cre/unsub");
+        assertTrue(single.contains("Nouvelle offre pour ta formation"));
+        assertTrue(single.contains(">Tout juste arrivée</span> pour ta formation"));
+        assertTrue(single.contains("cette offre correspond"));
+        assertTrue(single.contains("https://cre/unsub"));
+
+        var two = new java.util.ArrayList<>(one);
+        two.add(new com.itic.paris.platform.alerts.service.OfferAlertMailer.AlertLine("Assistant RH", "Beta", null, null, "France Travail", "https://cre/2"));
+        String plural = emailTemplateService.renderInstantOffersEmail("fr", "Inès", "Bachelor RH", two, "https://cre/student/offres", "https://cre/unsub");
+        assertTrue(plural.contains("2 nouvelles offres pour ta formation"));
+        assertTrue(plural.contains(">Tout juste arrivées</span>"));
+        assertTrue(plural.contains("ces offres correspondent"));
+        assertTrue(plural.contains("France Travail"));
+        assertTrue(emailTemplateService.renderInstantOffersEmail("en", "Ines", null, two, "u", "x").contains("these offers match"));
+    }
 }

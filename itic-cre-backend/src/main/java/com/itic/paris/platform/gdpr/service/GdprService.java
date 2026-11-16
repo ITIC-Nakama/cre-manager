@@ -53,6 +53,7 @@ public class GdprService {
     private final ReclamationRepository reclamationRepository;
     private final ConversationService conversationService;
     private final StudentRatingService studentRatingService;
+    private final com.itic.paris.platform.alerts.service.OfferAlertService offerAlertService;
     private final com.itic.paris.platform.company.service.CompanySpaceAdminService companySpaceAdminService;
     private final ScheduledMailingRepository scheduledMailingRepository;
     private final ApplicationRepository applicationRepository;
@@ -300,6 +301,9 @@ public class GdprService {
             // E-mails d'offres : plus d'abonnement, traces d'envoi supprimees.
             student.setEmailTargetedOffers(false);
             student.setEmailWeeklyDigest(false);
+            // Alertes instantanées (lot 8) : abonnement coupé, file d'envoi de l'étudiant supprimée.
+            student.setEmailInstantOffers(false);
+            offerAlertService.deleteAllFor(student.getId());
             // Carte des étudiants : code postal et département effacés.
             student.setPostalCode(null);
             student.setDepartment(null);

@@ -138,7 +138,7 @@ public class MatchingService {
     }
 
     /** Département d'une localisation d'offre : code postal, format France Travail « 75 - PARIS 11 », ou Paris. */
-    static String department(String location) {
+    public static String department(String location) {
         if (location == null) return null;
         Matcher ft = FT_DEPARTMENT.matcher(location);
         if (ft.find()) return ft.group(1);

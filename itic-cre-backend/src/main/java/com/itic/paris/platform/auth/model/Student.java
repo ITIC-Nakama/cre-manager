@@ -69,6 +69,10 @@ public class Student extends User {
     @Column(name = "email_targeted_offers", nullable = false)
     private boolean emailTargetedOffers = true;
 
+    /** Alertes instantanées des nouvelles offres de sa formation (V60), activées par défaut. */
+    @Column(name = "email_instant_offers", nullable = false)
+    private boolean emailInstantOffers = true;
+
     /** Abonnement au récapitulatif du lundi (V57), activé par défaut ; lien de désinscription dans l'e-mail. */
     @Column(name = "email_weekly_digest", nullable = false)
     private boolean emailWeeklyDigest = true;

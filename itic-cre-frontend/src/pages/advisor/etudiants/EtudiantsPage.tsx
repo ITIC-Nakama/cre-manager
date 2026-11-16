@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -43,6 +43,8 @@ const PAGE_SIZE = 20;
 const SORT_FIELD_BY_COLUMN: Record<string, string> = {
     name: 'lastName',
     promotion: 'promotion.name',
+    // Tri par formation (lot 8) : le serveur trie par promotion puis année d'étude.
+    formation: 'formation',
     advisor: 'advisor.lastName',
     xpTotal: 'xpTotal',
     hasCv: 'hasCv',
@@ -67,6 +69,15 @@ export default function EtudiantsPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
     const [promotionFilter, setPromotionFilter] = useState('');
+    // Filtre multi-formations (lot 8), gardé dans l'URL (?formations=id1,id2).
+    const [searchParams, setSearchParams] = useSearchParams();
+    const formationFilter = searchParams.get('formations') ?? '';
+    const setFormationFilter = (csv: string) => {
+        const next = new URLSearchParams(window.location.search);
+        if (csv) next.set('formations', csv);
+        else next.delete('formations');
+        setSearchParams(next, { replace: true });
+    };
     const [studyYearFilter, setStudyYearFilter] = useState('');
     // Par defaut on ecarte les etudiants deja sous contrat (alternance/stage/CDI/CDD en cours) —
     // l'utilisateur peut choisir de les inclure ou de n'afficher qu'eux via le select.
@@ -192,8 +203,9 @@ export default function EtudiantsPage() {
         // Note minimale (dernière note de l'équipe).
         minRating: ['2', '3', '4', '5'].includes(starredFilter) ? Number(starredFilter) : undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
+        programIds: formationFilter || undefined,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, starredFilter, isAdmin, includeAnonymized, sorting]);
+    }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, starredFilter, isAdmin, includeAnonymized, formationFilter, sorting]);
 
     const {
         items: students, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
@@ -374,6 +386,8 @@ export default function EtudiantsPage() {
                     advisorFilter={advisorFilter}
                     contractFilter={contractFilter}
                     starredFilter={starredFilter}
+                    formationFilter={formationFilter}
+                    onFormationChange={(csv) => { setFormationFilter(csv); clearSelection(); }}
                     includeAnonymized={includeAnonymized}
                     isFetching={isFetching}
                     isLoading={isLoading}

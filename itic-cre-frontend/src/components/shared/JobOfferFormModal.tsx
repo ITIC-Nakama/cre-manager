@@ -12,6 +12,8 @@ import { usePromotions } from '../../hooks/usePromotions';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { useCloseGuard } from '../../hooks/useCloseGuard';
 import DraftRestoreBanner from './DraftRestoreBanner';
+import FormationPicker from '../offers/FormationPicker';
+import { usePrograms } from '../../hooks/usePrograms';
 
 interface Props {
     offer?: JobOffer | null;
@@ -52,17 +54,23 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
     const [externalLink, setExternalLink] = useState(offer?.externalLink ?? '');
     const [targetPromotionIds, setTargetPromotionIds] = useState<string[]>(offer?.targetPromotions?.map((p) => p.id) ?? []);
     const { data: promotions } = usePromotions();
+    // Formations ciblées (lot 8) : toutes les formations rattachées à l'offre sont présélectionnées.
+    const { data: allPrograms } = usePrograms();
+    const [programIds, setProgramIds] = useState<string[]>(offer?.programs?.map((p) => p.id) ?? []);
+    const [allProgramsOn, setAllProgramsOn] = useState(false);
+    const allLinked = !!allPrograms && allPrograms.length > 0 && allPrograms.every((p) => programIds.includes(p.id));
     // Offre de l'équipe, nouvelle ou brouillon : « Enregistrer comme brouillon » et « Publier ». Offre publiée : « Enregistrer ».
     const canDraft = !offer || !!offer.draft;
     const isStaffOffer = !offer || offer.source === 'MANUAL';
     const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
 
     // Brouillon dans le navigateur (formulaire long) : repris à la réouverture, effacé à l'enregistrement.
-    const values = { title, company, description, location, contractTypeId, sectorId, externalLink, targetPromotionIds };
+    const values = { title, company, description, location, contractTypeId, sectorId, externalLink, targetPromotionIds, programIds, allProgramsOn };
     const initial = useMemo(() => ({
         title: offer?.title ?? '', company: offer?.company ?? '', description: offer?.description ?? '',
         location: offer?.location ?? '', contractTypeId: offer?.contractType.id ?? '', sectorId: offer?.sector?.id ?? '',
         externalLink: offer?.externalLink ?? '', targetPromotionIds: offer?.targetPromotions?.map((p) => p.id) ?? [],
+        programIds: offer?.programs?.map((p) => p.id) ?? [], allProgramsOn: false,
     }), [offer]);
     const draft = useFormDraft(`offre:${offer?.id ?? 'nouvelle'}`, values, initial, !isReadOnly);
     const restoreDraft = () => {
@@ -71,6 +79,8 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         setTitle(v.title); setCompany(v.company); setDescription(v.description); setLocation(v.location);
         setContractTypeId(v.contractTypeId); setSectorId(v.sectorId); setExternalLink(v.externalLink);
         setTargetPromotionIds(v.targetPromotionIds);
+        setProgramIds(v.programIds ?? []);
+        setAllProgramsOn(!!v.allProgramsOn);
     };
     const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
     const togglePromotion = (id: string) =>
@@ -130,6 +140,10 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         if (!asDraft && !trimmedLink && !findApplicationEmail(description)) {
             errors.externalLink = t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.');
         }
+        // Formations ciblées : obligatoires à la publication d'une offre de l'équipe (un brouillon peut attendre).
+        if (!asDraft && isStaffOffer && !allProgramsOn && programIds.length === 0) {
+            errors.programIds = t('formations.picker_required', 'Choisissez au moins une formation, ou « Toutes les formations ».');
+        }
         return errors;
     };
 
@@ -154,6 +168,8 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                 externalLink: externalLink.trim() || undefined,
                 draft: canDraft ? asDraft : undefined,
                 targetPromotionIds: isStaffOffer ? targetPromotionIds : undefined,
+                programIds: isStaffOffer && !(allProgramsOn || allLinked) ? programIds : undefined,
+                allPrograms: isStaffOffer && (allProgramsOn || allLinked) ? true : undefined,
             });
             draft.clear();
             onClose();
@@ -396,6 +412,25 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                             );
                         })()}
                     </div>
+
+                    {isStaffOffer && (
+                        <FormationPicker
+                            value={programIds}
+                            all={allProgramsOn || allLinked}
+                            disabled={isReadOnly}
+                            error={fieldErrors.programIds}
+                            onChange={(ids, all) => {
+                                setProgramIds(all ? ids : (allLinked && !all ? [] : ids));
+                                setAllProgramsOn(all);
+                                setFieldErrors((prev) => {
+                                    if (!prev.programIds) return prev;
+                                    const next = { ...prev };
+                                    delete next.programIds;
+                                    return next;
+                                });
+                            }}
+                        />
+                    )}
 
                     {isStaffOffer && (
                         <fieldset className="space-y-2">

@@ -40,6 +40,15 @@ public class JobOffer {
     @Formula("coalesce(published_at, staff_published_at, created_at)")
     private Instant effectiveDate;
 
+    /** Tri par formation (V60) : rang de la première formation rattachée dans l'annuaire ; sans formation : en dernier. */
+    @Formula("(select coalesce(min(p.sort_order), 9999) from job_offer_programs jop "
+            + "join company_space_programs p on p.id = jop.program_id where jop.offer_id = id)")
+    private int formationSort;
+
+    /** Code ROME donné par la source (France Travail), pour rattacher l'offre importée à une formation (V60). */
+    @jakarta.persistence.Column(name = "rome_code", length = 10)
+    private String romeCode;
+
     // Champ calcule en lecture seule, expose uniquement pour permettre de prioriser Stage/Alternance
     // dans le tri (Sort.by("priorityContract", "effectiveDate"), les deux en DESC) sans changer le
     // tri chronologique au sein de chaque groupe — 1 = Stage/Alternance, 0 = tout le reste.

@@ -155,6 +155,10 @@ export interface ApplicationListParams {
     needsContractVerification?: boolean;
     starred?: boolean;
     createdByAdvisor?: boolean;
+    /** Formations (lot 8) : identifiants séparés par des virgules. */
+    programIds?: string;
+    /** « formation,asc » : tri par formation (promotion puis année), côté serveur. */
+    sort?: string;
 }
 
 export interface StudentGroupDTO {

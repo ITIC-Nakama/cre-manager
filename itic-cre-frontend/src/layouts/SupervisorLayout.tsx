@@ -35,7 +35,7 @@ export default function SupervisorLayout() {
   const commonItems: NavItem[] = [
     { label: t('dashboard.sidebar.accueil'),            icon: LayoutDashboard, to: '/supervisor/dashboard' },
     { label: t('dashboard.sidebar.etudiants'),          icon: Users,           to: '/supervisor/etudiants' },
-    { label: t('dashboard.sidebar.map', 'Carte des étudiants'), icon: MapIcon, to: '/supervisor/carte' },
+    { label: t('dashboard.sidebar.maps', 'Cartes'), icon: MapIcon, to: '/supervisor/carte' },
     { label: t('dashboard.sidebar.candidatures_suivi'), icon: Briefcase,       to: '/supervisor/candidatures', badge: contractPendingCount },
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },

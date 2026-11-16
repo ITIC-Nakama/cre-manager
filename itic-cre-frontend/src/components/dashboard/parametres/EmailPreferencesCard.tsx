@@ -9,6 +9,7 @@ import { unwrap } from '../../../api-s/unwrap';
 export interface EmailPreferences {
   targetedOffers: boolean;
   weeklyDigest: boolean;
+  instantOffers: boolean;
 }
 
 const KEY = ['me', 'email-preferences'] as const;
@@ -31,6 +32,11 @@ export default function EmailPreferencesCard() {
   });
 
   const rows: { key: keyof EmailPreferences; title: string; subtitle: string }[] = [
+    {
+      key: 'instantOffers',
+      title: t('student.email_prefs.instant_title', 'Alertes « nouvelle offre pour ta formation »'),
+      subtitle: t('student.email_prefs.instant_subtitle', 'Dès qu’une offre de ta formation est publiée (regroupées sur quelques minutes, 5 e-mails par jour au plus), tant que tu n’as pas de contrat.'),
+    },
     {
       key: 'targetedOffers',
       title: t('student.email_prefs.targeted_title', 'Offres ciblées du soir'),

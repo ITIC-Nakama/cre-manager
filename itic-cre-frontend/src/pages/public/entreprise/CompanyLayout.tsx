@@ -9,6 +9,9 @@ import CompanyRequestModal from '../../../components/company/CompanyRequestModal
 import { rememberCompanySpaceKey } from '../../../api-s/requests/CompanySpaceRequest';
 import { useCompanyDirectory } from './useCompanyDirectory';
 
+/** Numéro du Pôle Entreprises affiché sur le Google Sites (repris tel quel). */
+const CONTACT_PHONE = '01 43 73 20 40';
+
 /** Jamais dans les moteurs de recherche : balise robots « noindex » le temps de la visite. */
 function useNoIndex() {
     useEffect(() => {
@@ -91,10 +94,17 @@ export default function CompanyLayout() {
                                 )}
                             </div>
                         </div>
-                        <button type="button" onClick={() => setContactOpen(true)}
-                            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#3f74ff] text-white font-semibold hover:bg-[#2f63ee] cursor-pointer">
-                            <Send className="h-4 w-4" /> {t('company.contact_us', 'Contactez-nous')}
-                        </button>
+                        {/* « Contactez-nous » = le numéro affiché (lot 8) ; le formulaire reste proposé juste en dessous. */}
+                        <div className="flex flex-col items-stretch gap-2">
+                            <a href={`tel:${(texts.phone || CONTACT_PHONE).replace(/\s+/g, '')}`}
+                                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#3f74ff] text-white font-semibold hover:bg-[#2f63ee]">
+                                <Phone className="h-4 w-4" /> {t('company.contact_us', 'Contactez-nous')} · {texts.phone || CONTACT_PHONE}
+                            </a>
+                            <button type="button" onClick={() => setContactOpen(true)}
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#3f74ff] hover:bg-[#3f74ff]/10 cursor-pointer">
+                                <Send className="h-4 w-4" /> {t('company.contact_form', 'Ou écrivez-nous')}
+                            </button>
+                        </div>
                     </footer>
                 )}
             </div>
