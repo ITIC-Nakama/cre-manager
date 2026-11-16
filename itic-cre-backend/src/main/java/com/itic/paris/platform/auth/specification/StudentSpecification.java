@@ -114,8 +114,8 @@ public class StudentSpecification {
             // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
             if (criteria.getStarred() != null) {
                 predicates.add(Boolean.TRUE.equals(criteria.getStarred())
-                        ? cb.isNotNull(root.get("starRating"))
-                        : cb.isNull(root.get("starRating")));
+                        ? cb.isNotNull(root.get("latestRating"))
+                        : cb.isNull(root.get("latestRating")));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -242,8 +242,11 @@ public class StudentSpecification {
             // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
             if (criteria.getStarred() != null) {
                 predicates.add(Boolean.TRUE.equals(criteria.getStarred())
-                        ? cb.isNotNull(root.get("starRating"))
-                        : cb.isNull(root.get("starRating")));
+                        ? cb.isNotNull(root.get("latestRating"))
+                        : cb.isNull(root.get("latestRating")));
+            }
+            if (criteria.getMinRating() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("latestRating"), criteria.getMinRating()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -287,6 +290,23 @@ public class StudentSpecification {
         );
 
         return Boolean.TRUE.equals(underContract) ? cb.exists(contractSubquery) : cb.not(cb.exists(contractSubquery));
+    }
+
+    /**
+     * Contrat DECLARE ou VERIFIE, encore en cours (date de fin vide ou pas encore passee) : regle des vues de CV
+     * (un etudiant qui a declare un contrat sort des CV « a relire » sans attendre la verification). Meme regle que
+     * CVRepository.STUDENT_UNDER_CONTRACT.
+     */
+    public static Predicate contractDeclaredOrVerifiedPredicate(Expression<?> root, CriteriaQuery<?> query, CriteriaBuilder cb,
+                                                                boolean underContract) {
+        Subquery<UUID> contract = query.subquery(UUID.class);
+        Root<Application> appRoot = contract.from(Application.class);
+        Join<Application, ApplicationStatus> statusJoin = appRoot.join("status", JoinType.INNER);
+        contract.select(appRoot.get("id")).where(
+                cb.equal(appRoot.get("student"), root),
+                cb.isTrue(statusJoin.get("compteCommeContrat")),
+                cb.or(cb.isNull(appRoot.get("endDate")), cb.greaterThanOrEqualTo(appRoot.get("endDate"), LocalDate.now())));
+        return underContract ? cb.exists(contract) : cb.not(cb.exists(contract));
     }
 
     /**

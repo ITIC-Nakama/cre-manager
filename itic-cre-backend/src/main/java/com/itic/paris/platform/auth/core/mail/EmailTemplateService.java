@@ -137,6 +137,20 @@ public class EmailTemplateService {
         return templateEngine.process("email/conversation-new-message", context);
     }
 
+    /** E-mail du soir des offres ciblees (liste d'offres, lien vers toutes les offres, lien de desinscription). */
+    public String renderTargetedOffersEmail(String lang, String firstName,
+                                            java.util.List<com.itic.paris.platform.mailing.service.TargetedOfferMailingService.OfferLine> offers,
+                                            String allOffersUrl, String unsubscribeUrl) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("offers", offers);
+        context.setVariable("allOffersUrl", allOffersUrl);
+        context.setVariable("unsubscribeUrl", unsubscribeUrl);
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/targeted-offers", context);
+    }
+
     public String renderContractDeclarationInvalidatedEmail(String lang, String firstName, String entreprise, String poste) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));

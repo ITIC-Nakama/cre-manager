@@ -83,7 +83,7 @@ class CVUnderContractIntegrationTest {
     private Student alice;
     /** Contrat vérifié, sans date de fin : sous contrat, CV masqué. */
     private Student bruno;
-    /** Contrat déclaré mais pas encore vérifié : pas « sous contrat », CV à relire. */
+    /** Contrat déclaré mais pas encore vérifié : depuis le 16/11/2026, déjà « sous contrat » pour les CV (CV masqué). */
     private Student chloe;
     /** Contrat vérifié terminé hier (fin ou rupture) : CV de retour en validation. */
     private Student david;
@@ -130,30 +130,30 @@ class CVUnderContractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Liste par défaut : le CV d'un étudiant sous contrat disparaît ; déclaration non vérifiée ou contrat terminé : le CV reste")
+    @DisplayName("Liste par défaut : contrat vérifié OU seulement déclaré, le CV disparaît ; contrat terminé : le CV reste")
     void defaultListHidesStudentsUnderContract() throws Exception {
-        assertThat(listedStudentIds(portfolio)).containsExactlyInAnyOrder(alice.getId(), chloe.getId(), david.getId());
+        assertThat(listedStudentIds(portfolio)).containsExactlyInAnyOrder(alice.getId(), david.getId());
     }
 
     @Test
-    @DisplayName("Puce « Sous contrat » : seulement les étudiants sous contrat, CV inchangé")
+    @DisplayName("Puce « Sous contrat » : contrats vérifiés et déclarés, CV inchangé")
     void underContractViewListsOnlyThem() throws Exception {
-        assertThat(listedStudentIds(portfolio + "&underContract=true")).containsExactly(bruno.getId());
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).containsExactlyInAnyOrder(bruno.getId(), chloe.getId());
 
         Map<UUID, Long> underContractStats = stats(portfolio + "&underContract=true");
-        assertThat(total(underContractStats)).isEqualTo(1);
-        assertThat(underContractStats.get(enAttente.getId())).isEqualTo(1);
+        assertThat(total(underContractStats)).isEqualTo(2);
+        assertThat(underContractStats.get(enAttente.getId())).isEqualTo(2);
         assertThat(cvRepository.findById(cvBruno.getId()).orElseThrow().getStatut().getId()).isEqualTo(enAttente.getId());
     }
 
     @Test
     @DisplayName("Puces, badge et tuile « CVs à examiner » suivent la liste : l'étudiant sous contrat n'y compte pas")
     void countersFollowTheList() throws Exception {
-        assertThat(total(stats(portfolio))).isEqualTo(3).isEqualTo(listedTotal(portfolio));
-        // 4 CV « En attente » dans le portefeuille, mais Bruno est sous contrat : 3 à relire.
-        assertThat(pendingCount()).isEqualTo(3);
-        assertThat(overview("cvsToReview")).isEqualTo(3);
-        assertThat(overview("totalCvs")).isEqualTo(3);
+        assertThat(total(stats(portfolio))).isEqualTo(2).isEqualTo(listedTotal(portfolio));
+        // 4 CV « En attente » dans le portefeuille, mais Bruno (vérifié) et Chloé (déclaré) sont sous contrat : 2 à relire.
+        assertThat(pendingCount()).isEqualTo(2);
+        assertThat(overview("cvsToReview")).isEqualTo(2);
+        assertThat(overview("totalCvs")).isEqualTo(2);
     }
 
     @Test
@@ -182,8 +182,8 @@ class CVUnderContractIntegrationTest {
         assertThat(listedStudentIds(search + "&underContract=true")).containsExactly(inesContrat.getId());
         assertThat(total(stats(search + "&underContract=true"))).isEqualTo(1).isEqualTo(listedTotal(search + "&underContract=true"));
 
-        // Sans recherche, la puce « Sous contrat » compte Bruno et l'homonyme : toujours égale à la liste.
-        assertThat(total(stats(portfolio + "&underContract=true"))).isEqualTo(2)
+        // Sans recherche, la puce « Sous contrat » compte Bruno, Chloé et l'homonyme : toujours égale à la liste.
+        assertThat(total(stats(portfolio + "&underContract=true"))).isEqualTo(3)
                 .isEqualTo(listedTotal(portfolio + "&underContract=true"));
 
         // Vue « Comptes désactivés » avec recherche : même règle.
@@ -207,7 +207,7 @@ class CVUnderContractIntegrationTest {
                 .andExpect(status().isOk());
 
         assertThat(listedStudentIds(portfolio)).contains(bruno.getId());
-        assertThat(listedStudentIds(portfolio + "&underContract=true")).isEmpty();
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).doesNotContain(bruno.getId());
         assertThat(pendingCount()).isEqualTo(pendingBefore + 1);
         assertThat(cvRepository.findById(cvBruno.getId()).orElseThrow().getStatut().getId()).isEqualTo(enAttente.getId());
     }
@@ -218,7 +218,7 @@ class CVUnderContractIntegrationTest {
         brunoContract.setEndDate(LocalDate.now());
         applicationRepository.save(brunoContract);
 
-        assertThat(listedStudentIds(portfolio + "&underContract=true")).containsExactly(bruno.getId());
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).contains(bruno.getId());
         assertThat(listedStudentIds(portfolio)).doesNotContain(bruno.getId());
     }
 
@@ -230,7 +230,47 @@ class CVUnderContractIntegrationTest {
                 .andExpect(status().isOk());
 
         assertThat(listedStudentIds(portfolio)).contains(bruno.getId());
-        assertThat(listedStudentIds(portfolio + "&underContract=true")).isEmpty();
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).doesNotContain(bruno.getId());
+    }
+
+    @Test
+    @DisplayName("Contrat déclaré APRÈS la validation du CV : le CV quitte « Validé » dès la déclaration, et reste masqué une fois le contrat vérifié")
+    void contractDeclaredAfterValidationHidesValidatedCv() throws Exception {
+        CVStatut valide = statut("valid");
+        Student emma = student("emma.cv-contrat@itic.fr", "Emma");
+        cv(emma, valide);
+        assertThat(listedStudentIds(portfolio + "&statutId=" + valide.getId())).contains(emma.getId());
+
+        Application declared = contract(emma, false, null);
+        assertThat(listedStudentIds(portfolio + "&statutId=" + valide.getId())).doesNotContain(emma.getId());
+        assertThat(stats(portfolio).getOrDefault(valide.getId(), 0L)).isZero();
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).contains(emma.getId());
+
+        declared.setContractVerified(true);
+        applicationRepository.save(declared);
+        assertThat(listedStudentIds(portfolio + "&statutId=" + valide.getId())).doesNotContain(emma.getId());
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).contains(emma.getId());
+    }
+
+    @Test
+    @DisplayName("CV « À corriger » : absent dès que l'étudiant déclare un contrat, et quand le compte est désactivé")
+    void toFixCvHiddenWhenContractDeclaredOrAccountDeactivated() throws Exception {
+        CVStatut aCorriger = statut("corriger");
+        Student farah = student("farah.cv-contrat@itic.fr", "Farah");
+        Student gael = student("gael.cv-contrat@itic.fr", "Gael");
+        cv(farah, aCorriger);
+        cv(gael, aCorriger);
+        String toFix = portfolio + "&statutId=" + aCorriger.getId();
+        assertThat(listedStudentIds(toFix)).containsExactlyInAnyOrder(farah.getId(), gael.getId());
+
+        contract(farah, false, null);
+        gael.setActive(false);
+        gael.setDeactivatedAt(Instant.now());
+        studentRepository.save(gael);
+
+        assertThat(listedStudentIds(toFix)).isEmpty();
+        assertThat(stats(portfolio).getOrDefault(aCorriger.getId(), 0L)).isZero();
+        assertThat(listedStudentIds(portfolio + "&accountActive=false")).contains(gael.getId());
     }
 
     @Test
@@ -241,12 +281,19 @@ class CVUnderContractIntegrationTest {
         studentRepository.save(bruno);
 
         assertThat(listedStudentIds(portfolio + "&accountActive=false")).containsExactly(bruno.getId());
-        assertThat(listedStudentIds(portfolio + "&underContract=true")).isEmpty();
+        assertThat(listedStudentIds(portfolio + "&underContract=true")).doesNotContain(bruno.getId());
         assertThat(listedStudentIds(portfolio)).doesNotContain(bruno.getId());
         assertThat(total(stats(portfolio + "&accountActive=false"))).isEqualTo(1);
     }
 
     // ─── Outils ────────────────────────────────────────────────────────────────
+
+    private CVStatut statut(String nameFragment) {
+        return cvStatutRepository.findAllByActifTrueOrderByOrdreAsc().stream()
+                .filter(s -> s.getNom().toLowerCase().contains(nameFragment))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Statut « " + nameFragment + " » absent du seed"));
+    }
 
     private Student student(String email, String firstName) {
         Student s = new Student();

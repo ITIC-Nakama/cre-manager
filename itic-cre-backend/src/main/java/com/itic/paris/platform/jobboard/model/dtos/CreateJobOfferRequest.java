@@ -35,6 +35,12 @@ public class CreateJobOfferRequest {
 
     private UUID sectorId;
 
+    /** true : « Enregistrer comme brouillon » (offre invisible des etudiants, moyen de postuler non controle). */
+    private Boolean draft;
+
+    /** Promotions ciblees : e-mail du soir aux etudiants de ces promotions (jamais affiche aux etudiants). */
+    private java.util.List<UUID> targetPromotionIds;
+
     @URL(message = "externalLink must be a valid http(s) URL")
     @Size(max = 2048)
     private String externalLink;

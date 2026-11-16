@@ -172,6 +172,7 @@ public class StudentReportingService {
             row.put("contractNeedsVerification", studentIdsNeedingVerification.contains(student.getId()));
             row.put("isAnonymized", student.isAnonymized());
             row.put("starRating", student.getStarRating());
+            row.put("latestRating", student.getLatestRating());
             return row;
         }).toList();
     }
@@ -247,6 +248,7 @@ public class StudentReportingService {
         detail.put("email", student.getEmail());
         detail.put("isAnonymized", student.isAnonymized());
         detail.put("starRating", student.getStarRating());
+        detail.put("latestRating", student.getLatestRating());
         detail.put("phoneNumber", student.getPhoneNumber());
         detail.put("emailVerified", student.isEmailVerified());
         detail.put("promotion", student.getPromotion() != null
@@ -279,6 +281,8 @@ public class StudentReportingService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.STUDENT_NOT_FOUND));
         student.setStarRating(starRating);
+        // Ancien point d'acces (etoiles 0 a 3), garde pour compatibilite : meme correspondance que V53 (etoiles + 2).
+        student.setLatestRating(starRating == null ? null : starRating + 2);
         studentRepository.save(student);
 
         Map<String, Object> result = new LinkedHashMap<>();

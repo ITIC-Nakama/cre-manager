@@ -40,6 +40,8 @@ public class JobApplicationService {
         }
 
         JobOffer jobOffer = jobOfferRepository.findById(jobOfferId)
+                // Un brouillon n'existe pas pour un etudiant.
+                .filter(offer -> !offer.isDraft())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
 
         JobApplication application = new JobApplication();

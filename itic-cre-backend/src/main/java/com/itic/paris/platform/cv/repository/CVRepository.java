@@ -21,8 +21,12 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
       * encore passee — meme regle que le tableau de bord (ApplicationRepository.CONFIRMED_ACTIVE_CONTRACT,
       * StudentSpecification.underContractPredicate). Calcule a chaque requete : a la fin ou a la rupture du
       * contrat (date de fin passee), ou si la declaration est invalidee, le CV revient tout seul en validation. */
+    // Depuis le 16/11/2026 (document Drive de Jules) : un contrat DECLARE suffit, sans attendre la verification
+    // par l'equipe. Un contrat declare ou verifie, encore en cours, sort le CV des vues « a relire » (« En attente »,
+    // « A corriger », « Valide »...) et le range dans « Sous contrat ». Une declaration invalidee repasse sur un
+    // statut qui ne compte pas comme contrat : le CV revient.
     String STUDENT_UNDER_CONTRACT = "EXISTS (SELECT a.id FROM Application a WHERE a.student = c.student AND "
-            + ApplicationRepository.CONFIRMED_ACTIVE_CONTRACT + ")";
+            + "a.status.compteCommeContrat = true AND " + ApplicationRepository.CONTRACT_STILL_ACTIVE + ")";
 
     /** CV a relire : compte actif et etudiant pas sous contrat. Regle de la liste par defaut de « Validation des
       * CVs » (CVSpecification), de ses puces, du badge de la sidebar et de la tuile « CVs a examiner ». */

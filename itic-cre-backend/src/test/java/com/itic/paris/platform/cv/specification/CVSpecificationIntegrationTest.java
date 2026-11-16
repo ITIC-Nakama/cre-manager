@@ -133,7 +133,7 @@ class CVSpecificationIntegrationTest {
     @Test
     @DisplayName("Should filter CVs by whether the owning student is starred")
     void testFilterByStarred() {
-        student.setStarRating(2);
+        student.setLatestRating(4); // derniere note (V53) : c'est elle que suit le filtre « noté »
         studentRepository.save(student);
 
         Role studentRole = roleRepository.findByName(RoleEnum.STUDENT);

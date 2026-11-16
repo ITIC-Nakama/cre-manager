@@ -59,4 +59,16 @@ public class JobOfferDTO {
     @Schema(description = "Adresse e-mail de candidature trouvée dans la description, null sinon (bouton « Postuler » par e-mail)",
             accessMode = Schema.AccessMode.READ_ONLY)
     private String emailCandidature;
+
+    /** Brouillon : visible de l'equipe seulement. */
+    private Boolean draft;
+
+    /** Publication par l'equipe (null pour un brouillon et pour une offre externe). */
+    private Instant staffPublishedAt;
+
+    /** Promotions ciblees, renseignees pour l'equipe seulement (null cote etudiant). */
+    private java.util.List<TargetPromotion> targetPromotions;
+
+    public record TargetPromotion(UUID id, String name) {
+    }
 }

@@ -46,8 +46,8 @@ public class CVSpecification {
                 predicates.add(cb.isFalse(studentJoin.get("active")));
             } else {
                 predicates.add(cb.isTrue(studentJoin.get("active")));
-                // « Sous contrat » : meme definition que le tableau de bord (StudentSpecification).
-                predicates.add(StudentSpecification.underContractPredicate(
+                // « Sous contrat » des CV : contrat declare OU verifie, encore en cours (CVRepository.STUDENT_UNDER_CONTRACT).
+                predicates.add(StudentSpecification.contractDeclaredOrVerifiedPredicate(
                         studentJoin, query, cb, Boolean.TRUE.equals(underContract)));
             }
 
@@ -74,8 +74,8 @@ public class CVSpecification {
             // Starred/unstarred filter — note manuelle conseiller/admin, null = jamais note.
             if (starred != null) {
                 predicates.add(Boolean.TRUE.equals(starred)
-                        ? cb.isNotNull(studentJoin.get("starRating"))
-                        : cb.isNull(studentJoin.get("starRating")));
+                        ? cb.isNotNull(studentJoin.get("latestRating"))
+                        : cb.isNull(studentJoin.get("latestRating")));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -36,7 +36,8 @@ public class JobOffer {
     // null) se retrouvent artificiellement groupees en tete ou en queue de liste : coalesce vers
     // created_at pour elles, comme le fait deja le reste du code (voir commentaire sur publishedAt
     // plus bas).
-    @Formula("coalesce(published_at, created_at)")
+    // staff_published_at (V54) : un brouillon publie plus tard remonte a sa date de publication.
+    @Formula("coalesce(published_at, staff_published_at, created_at)")
     private Instant effectiveDate;
 
     // Champ calcule en lecture seule, expose uniquement pour permettre de prioriser Stage/Alternance
@@ -119,6 +120,26 @@ public class JobOffer {
 
     @Column(name = "is_active", nullable = false)
     private Boolean active = true;
+
+    /** Brouillon (V54) : visible de l'equipe seulement ; le moyen de postuler n'est controle qu'a la publication. */
+    @Column(nullable = false)
+    private boolean draft = false;
+
+    /** Publication par l'equipe (creation publiee ou publication d'un brouillon), null pour un brouillon. */
+    @Column(name = "staff_published_at")
+    private Instant staffPublishedAt;
+
+    /**
+     * Promotions ciblees (V54) : leurs etudiants recoivent l'offre dans l'e-mail du soir. JAMAIS exposees aux etudiants
+     * (JobOfferService.mapToDTO ne les renseigne que pour l'equipe).
+     */
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
+    @ManyToMany
+    @JoinTable(name = "job_offer_target_promotions",
+            joinColumns = @JoinColumn(name = "job_offer_id"),
+            inverseJoinColumns = @JoinColumn(name = "promotion_id"))
+    private java.util.Set<com.itic.paris.platform.auth.model.Promotion> targetPromotions = new java.util.HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "created_by_id")
