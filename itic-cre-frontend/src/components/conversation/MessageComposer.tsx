@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, SendHorizontal } from 'lucide-react';
 import { CONVERSATION_MESSAGE_MAX } from '../../types/models/Conversation';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import DraftRestoreBanner from '../shared/DraftRestoreBanner';
 
 interface Props {
   placeholder: string;
@@ -10,12 +12,16 @@ interface Props {
   onSend: (body: string) => Promise<unknown>;
   /** Écriture impossible (compte désactivé) : la raison s'affiche à la place de la zone de saisie. */
   disabledReason?: string | null;
+  /** Brouillon dans le navigateur : identifiant du fil (ex. « conversation:moi », « conversation:<étudiant> »). */
+  draftKey?: string;
+  audience?: 'staff' | 'student';
 }
 
 /** Zone de réponse : grandit avec le texte (6 lignes au plus), Ctrl+Entrée ou ⌘+Entrée pour envoyer. */
-export default function MessageComposer({ placeholder, sending, onSend, disabledReason }: Props) {
+export default function MessageComposer({ placeholder, sending, onSend, disabledReason, draftKey, audience = 'staff' }: Props) {
   const { t } = useTranslation();
   const [text, setText] = useState('');
+  const draft = useFormDraft(draftKey ?? 'conversation', text, '', !!draftKey && !disabledReason);
   const areaRef = useRef<HTMLTextAreaElement>(null);
   const trimmed = text.trim();
   const tooLong = text.length > CONVERSATION_MESSAGE_MAX;
@@ -39,6 +45,7 @@ export default function MessageComposer({ placeholder, sending, onSend, disabled
     if (!trimmed || tooLong || sending) return;
     try {
       await onSend(trimmed);
+      draft.clear();
       setText('');
       areaRef.current?.focus();
     } catch {
@@ -57,6 +64,12 @@ export default function MessageComposer({ placeholder, sending, onSend, disabled
     <form className="flex items-end gap-2 px-3 sm:px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
       onSubmit={(event) => { event.preventDefault(); void send(); }}>
       <div className="flex-1 min-w-0">
+        {draft.pending && (
+          <div className="mb-2">
+            <DraftRestoreBanner savedAt={draft.pending.savedAt} audience={audience}
+              onRestore={() => { const v = draft.restore(); if (v !== null) setText(v); }} onDiscard={draft.discard} />
+          </div>
+        )}
         <label htmlFor="conversation-composer" className="sr-only">{placeholder}</label>
         <textarea id="conversation-composer" ref={areaRef} rows={1} value={text} onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown} placeholder={placeholder} maxLength={CONVERSATION_MESSAGE_MAX + 200}

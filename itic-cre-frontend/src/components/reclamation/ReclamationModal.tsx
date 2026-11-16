@@ -6,6 +6,9 @@ import { CheckCircle2, Clock, Loader2, MessageCircleWarning, Trash2, UserRoundX,
 import { useCreateReclamation, useDeleteReclamation, useMyReclamationsInfinite, useReclamationFormContext } from '../../hooks/useReclamations';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { useModalClose } from '../../hooks/useModalClose';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useCloseGuard } from '../../hooks/useCloseGuard';
+import DraftRestoreBanner from '../shared/DraftRestoreBanner';
 import InfiniteScrollSentinel from '../shared/InfiniteScrollSentinel';
 import type { ReclamationStatus } from '../../types/models/Reclamation';
 
@@ -14,6 +17,8 @@ interface Props {
 }
 
 type Tab = 'new' | 'history';
+
+const EMPTY_REQUEST = { message: '', phoneNumber: '' };
 
 const STATUS_STYLES: Record<ReclamationStatus, string> = {
     PENDING: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
@@ -30,6 +35,13 @@ export default function ReclamationModal({ onClose }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
     useLockBodyScroll(scrollRef, true);
     const { isClosing, handleClose } = useModalClose(onClose);
+    // Brouillon (navigateur) ; la fenêtre ne se ferme plus par un clic à côté, et demande confirmation si le texte a changé.
+    const draft = useFormDraft('demande-aide', { message, phoneNumber }, EMPTY_REQUEST);
+    const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, handleClose, 'student');
+    const restoreDraft = () => {
+        const v = draft.restore();
+        if (v) { setMessage(v.message); setPhoneNumber(v.phoneNumber); }
+    };
 
     const { data: formContext, isLoading: formContextLoading } = useReclamationFormContext();
     const needsPhone = !formContext?.phoneNumber;
@@ -70,6 +82,7 @@ export default function ReclamationModal({ onClose }: Props) {
                 phoneNumber: needsPhone ? phoneNumber.trim() : undefined,
             });
             toast.success(t('dashboard.reclamations.form.success', 'Votre message a été envoyé, vous serez recontacté bientôt.'));
+            draft.clear();
             setMessage('');
             setPhoneNumber('');
             setTab('history');
@@ -84,7 +97,6 @@ export default function ReclamationModal({ onClose }: Props) {
     return createPortal(
         <div
             className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
-            onClick={handleClose}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
@@ -98,7 +110,8 @@ export default function ReclamationModal({ onClose }: Props) {
                         </p>
                     </div>
                     <button
-                        onClick={handleClose}
+                        onClick={requestClose}
+                        aria-label={t('drafts.close_confirm', 'Fermer')}
                         className="p-2.5 sm:p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                     >
                         <X className="h-6 w-6 sm:h-4 sm:w-4" />
@@ -142,6 +155,9 @@ export default function ReclamationModal({ onClose }: Props) {
                         </div>
                     ) : tab === 'new' ? (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                            {draft.pending && (
+                                <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="student" onRestore={restoreDraft} onDiscard={draft.discard} />
+                            )}
                             <div className="flex flex-col gap-2.5 text-sm text-slate-500 dark:text-slate-400">
                                 <p>
                                     {t('dashboard.reclamations.form.intro_p1', "Cet espace vous permet d'échanger directement avec votre CRE et de nous contacter en cas de question, de difficulté ou de situation particulière rencontrée au sein de votre entreprise.")}
@@ -254,6 +270,7 @@ export default function ReclamationModal({ onClose }: Props) {
                 </div>
                 </div>
             </div>
+            {closeDialog}
         </div>,
         document.body
     );

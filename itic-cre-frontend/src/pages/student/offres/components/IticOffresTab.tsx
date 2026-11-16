@@ -1,4 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobOfferById } from '../../../../api-s/requests/JobOfferRequest';
 import {
     Search, Loader2, Briefcase, MapPin, FileSignature, Layers, X,
 } from 'lucide-react';
@@ -27,6 +30,25 @@ export default function IticOffresTab() {
     const [locationFilter, setLocationFilter] = useState('');
     const [debouncedLocation, setDebouncedLocation] = useState('');
     const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null);
+    // Lien direct d'un e-mail d'offres (/student/offres?offre=<id>) : la fiche de l'offre s'ouvre.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const linkedOfferId = searchParams.get('offre');
+    const { data: linkedOffer } = useQuery({
+        queryKey: ['jobboard', 'offer', linkedOfferId],
+        queryFn: () => fetchJobOfferById(linkedOfferId as string),
+        enabled: !!linkedOfferId,
+        retry: false,
+        staleTime: 60_000,
+    });
+    const shownOffer = selectedOffer ?? (linkedOfferId ? linkedOffer ?? null : null);
+    const closeOffer = () => {
+        setSelectedOffer(null);
+        if (linkedOfferId) {
+            const next = new URLSearchParams(searchParams);
+            next.delete('offre');
+            setSearchParams(next, { replace: true });
+        }
+    };
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -222,11 +244,11 @@ export default function IticOffresTab() {
             )}
 
                     {/* Detail Modal */}
-                    {selectedOffer && (
+                    {shownOffer && (
                         <JobOfferDetailModal
-                            offer={selectedOffer}
-                            onClose={() => setSelectedOffer(null)}
-                            isApplied={!!appliedApplicationByOfferId.get(selectedOffer.id)}
+                            offer={shownOffer}
+                            onClose={closeOffer}
+                            isApplied={!!appliedApplicationByOfferId.get(shownOffer.id)}
                             onApply={handleApply}
                             onPostuler={(o) => handlePostuler(o, setSelectedOffer)}
                             onWithdraw={(offer) => {

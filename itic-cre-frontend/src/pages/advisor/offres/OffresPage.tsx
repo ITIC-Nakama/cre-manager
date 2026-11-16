@@ -137,7 +137,9 @@ export default function OffresPage() {
         search: debouncedSearch || undefined,
         contractTypeId: contractTypeFilter || undefined,
         sectorId: isInternalSource ? (sectorFilter || undefined) : undefined,
-        active: activeFilter === '' ? undefined : activeFilter === 'true',
+        // « Brouillons » : filtre à part (une offre en brouillon est active, mais invisible des étudiants).
+        active: activeFilter === '' || activeFilter === 'draft' ? undefined : activeFilter === 'true',
+        draft: activeFilter === 'draft' ? true : undefined,
         source: sourceFilter || undefined,
         location: debouncedLocation || undefined,
         postedBy: postedByFilter || undefined,
@@ -169,6 +171,7 @@ export default function OffresPage() {
         { value: '', label: t('dashboard.offres.filter_all_statuses', 'Toutes les offres') },
         { value: 'true', label: t('dashboard.offres.table.active', 'Active') },
         { value: 'false', label: t('dashboard.offres.table.inactive', 'Inactive') },
+        { value: 'draft', label: t('dashboard.offres.filter_drafts', 'Brouillons') },
     ], [t]);
 
     const applyChannelOptions = useMemo(() => [

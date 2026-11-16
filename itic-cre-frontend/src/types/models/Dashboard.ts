@@ -61,6 +61,8 @@ export interface StudentRow {
   contractNeedsVerification: boolean;
   isAnonymized?: boolean;
   starRating: number | null;
+  /** Dernière note de l'équipe (1 à 5), null si jamais noté. */
+  latestRating?: number | null;
 }
 
 export interface StudentPage {
@@ -88,6 +90,8 @@ export interface StudentListParams {
   underContract?: boolean;
   needsContractVerification?: boolean;
   starred?: boolean;
+  /** Dernière note au moins égale (1 à 5). */
+  minRating?: number;
   sort?: string;
 }
 

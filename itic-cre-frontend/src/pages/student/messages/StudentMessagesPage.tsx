@@ -85,6 +85,8 @@ export default function StudentMessagesPage() {
 
         <MessageComposer
           placeholder={t('conversation.student.placeholder', 'Écris ton message…')}
+          draftKey="conversation:moi"
+          audience="student"
           sending={send.isPending}
           onSend={(body) => send.mutateAsync(body).catch((err) => {
             toast.error(getApiErrorMessage(err, t('conversation.student.send_error', 'Ton message n’a pas pu être envoyé, réessaie.')));

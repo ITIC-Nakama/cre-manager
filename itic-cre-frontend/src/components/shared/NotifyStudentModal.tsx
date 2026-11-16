@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Mail, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useModalLayer } from '../../hooks/useModalLayer';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useCloseGuard } from '../../hooks/useCloseGuard';
+import DraftRestoreBanner from './DraftRestoreBanner';
 
 interface Student {
   id: string;
@@ -21,11 +24,14 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
   useModalLayer();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const draft = useFormDraft(`message:${student.id}`, message, '');
+  const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
 
   const handleSend = async () => {
     setSending(true);
     try {
       await onSend(message.trim() || undefined);
+      draft.clear();
       onClose();
     } finally {
       setSending(false);
@@ -50,7 +56,7 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
@@ -59,6 +65,10 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
 
         {/* Body */}
         <div className="p-5 space-y-4">
+          {draft.pending && (
+            <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="staff"
+              onRestore={() => { const v = draft.restore(); if (v !== null) setMessage(v); }} onDiscard={draft.discard} />
+          )}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -84,7 +94,7 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
           <button
-            onClick={onClose}
+            onClick={requestClose}
             disabled={sending}
             className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
           >
@@ -100,6 +110,7 @@ export default function NotifyStudentModal({ student, onClose, onSend }: Props) 
           </button>
         </div>
       </div>
+      {closeDialog}
     </div>
   );
 }

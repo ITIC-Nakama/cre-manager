@@ -5,7 +5,8 @@ import FiltersPopover from '../../../../components/basics/FiltersPopover';
 
 export type FilterStatus = 'all' | 'active' | 'inactive' | 'disabled' | 'stale' | 'has-cv' | 'no-cv';
 export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | 'needs_verification';
-export type StarredFilter = 'all' | 'starred' | 'unstarred';
+/** Filtre de note : toutes, non noté, noté, ou note minimale ('2' à '5'). */
+export type StarredFilter = 'all' | 'starred' | 'unstarred' | '2' | '3' | '4' | '5';
 
 interface FilterOption {
     value: string;

@@ -4,6 +4,7 @@ import type { UserProfileDTO } from '../types/models/User';
 import { LogoutRequest } from '../api-s/requests/AuthRequest';
 import { registerForceLogoutHandler } from '../api-s/AxiosApiClient';
 import { queryClient } from '../queryClient';
+import { clearAllFormDrafts } from '../utils/formDrafts';
 
 type UserStore = {
     user: UserProfileDTO | null;
@@ -26,6 +27,8 @@ export const useUserStore = create<UserStore>()(
             logout: async () => {
                 set({ user: null });
                 queryClient.clear();
+                // Brouillons des formulaires (navigateur) : effacés à la déconnexion.
+                clearAllFormDrafts();
                 try {
                     await LogoutRequest();
                 } catch (error) {

@@ -50,6 +50,7 @@ import GamificationPage from './pages/advisor/gamification/GamificationPage'
 import ReclamationsPage from './pages/advisor/reclamations/ReclamationsPage'
 import ConversationsPage from './pages/advisor/conversations/ConversationsPage'
 import AlumniPage from './pages/advisor/alumni/AlumniPage'
+import UnsubscribePage from './pages/public/UnsubscribePage'
 import AlumniFormPage from './pages/public/AlumniFormPage'
 import AdvisorPage from './pages/admin/AdvisorPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
@@ -107,6 +108,8 @@ function App() {
 
         {/* Public alumni contact form — hors AuthLayout : reste accessible même connecté */}
         <Route path="/alumni" element={<AlumniFormPage />} />
+        {/* Lien « Ne plus recevoir ces e-mails » des e-mails d'offres (sans connexion) */}
+        <Route path="/email/desinscription" element={<UnsubscribePage />} />
 
         {/* Root dashboard redirection */}
         <Route path="/dashboard" element={<DashboardRedirect />} />

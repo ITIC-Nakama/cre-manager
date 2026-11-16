@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useCloseGuard } from '../../hooks/useCloseGuard';
+import DraftRestoreBanner from './DraftRestoreBanner';
 import { Link } from 'react-router-dom';
 import { X, FileText, MessageSquare, Send, Loader2, CheckCircle, Clock, AlertTriangle, ChevronDown, Trash2, Eye, Download, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +48,9 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
     const { t } = useTranslation();
     const [cv, setCv] = useState<CVRow>(initialCv);
     const [newComment, setNewComment] = useState('');
+    // Brouillon du commentaire (navigateur), confirmation avant de fermer la fiche si un commentaire est en cours.
+    const commentDraft = useFormDraft(`cv-commentaire:${initialCv.id}`, newComment, '');
+    const { requestClose, dialog: closeDialog } = useCloseGuard(commentDraft.dirty, onClose, 'staff');
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
     const covered = useModalLayer();
@@ -75,6 +81,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
         if (!contenu) return;
         try {
             await addComment.mutateAsync({ cvId: cv.id, contenu });
+            commentDraft.clear();
             setNewComment('');
             toast.success(t('dashboard.cv.toast.comment_added', 'Commentaire ajouté.'));
         } catch {
@@ -96,7 +103,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
     return (
         <div
             className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${covered ? '' : 'bg-black/60'}`}
-            onClick={(e) => e.target === e.currentTarget && onClose()}
+            onClick={(e) => e.target === e.currentTarget && requestClose()}
         >
             {/* Le visualiseur PDF est rendu dans ce conteneur : on masque seulement le panneau et son fond pendant l'apercu */}
             <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] ${covered ? 'hidden' : 'flex'} flex-col`}>
@@ -156,7 +163,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
                     </div>
                     )}
                     <button
-                        onClick={onClose}
+                        onClick={requestClose}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                     >
                         <X className="h-4 w-4" />
@@ -328,6 +335,10 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
                                 </label>
                                 <span className="text-xs text-slate-400">{newComment.length}/10000</span>
                             </div>
+                            {commentDraft.pending && (
+                                <DraftRestoreBanner savedAt={commentDraft.pending.savedAt} audience="staff"
+                                    onRestore={() => { const v = commentDraft.restore(); if (v !== null) setNewComment(v); }} onDiscard={commentDraft.discard} />
+                            )}
                             <textarea
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
@@ -360,6 +371,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
                 fileName="CV.pdf"
                 onClose={() => setPreviewOpen(false)}
             />
+            {closeDialog}
         </div>
     );
 }
