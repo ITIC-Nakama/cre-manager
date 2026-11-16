@@ -37,6 +37,7 @@ import CategoryArticlesPage from './pages/student/connaissances/CategoryArticles
 import ArticleReaderPage from './pages/student/connaissances/ArticleReaderPage'
 import QuizPage from './pages/student/connaissances/QuizPage'
 import ConseillersPage from './pages/student/conseillers/ConseillersPage'
+import StudentMessagesPage from './pages/student/messages/StudentMessagesPage'
 import AdvisorDashboard from './pages/advisor/dashboard/AdvisorDashboard'
 import EtudiantsPage from './pages/advisor/etudiants/EtudiantsPage'
 import CandidaturesPage from './pages/advisor/candidatures/CandidaturesPage'
@@ -118,6 +119,7 @@ function App() {
           <Route path="/student/candidatures/:id" element={<CandidatureDetailPage />} />
           <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/conseillers"   element={<ConseillersPage />} />
+          <Route path="/student/messages"      element={<StudentMessagesPage />} />
           <Route path="/student/connaissances"                        element={<LazyPage><SkillTreePage /></LazyPage>} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />

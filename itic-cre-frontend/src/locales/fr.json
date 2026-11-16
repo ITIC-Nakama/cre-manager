@@ -125,6 +125,7 @@
       "gamification": "Gamification",
       "reclamations": "Demandes d'aide",
       "conversations": "Conversations",
+      "messages": "Messages",
       "conseillers": "Relations Entreprises",
       "conseillers_directory": "Conseillers",
       "promotions": "Promotions",
@@ -2529,6 +2530,19 @@
       "empty_thread": "Aucun message avec {{name}} pour l’instant. Écrivez-lui : {{name}} sera prévenu(e) par e-mail.",
       "placeholder": "Écrire à {{name}}…",
       "open_conversation": "Conversation"
+    },
+    "student": {
+      "title": "Messages",
+      "subtitle": "Écris à l’équipe CRE quand tu veux : ta question, une nouvelle, un doute.",
+      "thread_label": "Ta conversation avec l’équipe CRE",
+      "team": "Équipe CRE",
+      "referent": "Ton conseiller : {{name}}, prévenu(e) à chaque message",
+      "no_referent": "Tu n’as pas encore de conseiller : toute l’équipe CRE lit tes messages.",
+      "load_error": "Tes messages n’ont pas pu être chargés. Réessaie dans un instant.",
+      "empty": "Pas encore de message. Pose ta question à l’équipe CRE : ton conseiller est prévenu par e-mail et te répond ici.",
+      "placeholder": "Écris ton message…",
+      "send_error": "Ton message n’a pas pu être envoyé, réessaie.",
+      "staff_author": "{{name}} · équipe CRE"
     }
   }
 }

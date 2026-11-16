@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useInfiniteListQuery } from './useInfiniteListQuery';
 import {
-  fetchConversationUnreadCounts, fetchConversations, fetchStudentThread, markStudentThreadRead, sendToStudent,
+  fetchConversationUnreadCounts, fetchConversations, fetchMyThread, fetchMyUnreadCount, fetchStudentThread,
+  markMyThreadRead, markStudentThreadRead, sendMyMessage, sendToStudent,
 } from '../api-s/requests/ConversationRequest';
 import type { ConversationSummary, ConversationThread, FetchConversationsParams } from '../types/models/Conversation';
 
@@ -68,6 +69,54 @@ export function useMarkStudentThreadRead(studentId: string) {
         thread ? { ...thread, unreadCount: 0, lastReadMessageId: Math.max(thread.lastReadMessageId, lastMessageId) } : thread);
       void queryClient.invalidateQueries({ queryKey: COUNTS_KEY });
       void queryClient.invalidateQueries({ queryKey: LIST_KEY });
+    },
+  });
+}
+
+// ─── Étudiant ───────────────────────────────────────────────────────────────
+
+const MY_KEY = ['my-conversation'] as const;
+const MY_THREAD_KEY = [...MY_KEY, 'thread'] as const;
+const MY_UNREAD_KEY = [...MY_KEY, 'unread-count'] as const;
+
+/** Badge « Messages » du menu étudiant : une requête par minute. */
+export function useMyConversationUnreadCount() {
+  return useQuery({
+    queryKey: MY_UNREAD_KEY,
+    queryFn: fetchMyUnreadCount,
+    refetchInterval: COUNTS_POLL_MS,
+    staleTime: 30_000,
+  });
+}
+
+export function useMyThread(limit: number) {
+  return useQuery({
+    queryKey: [...MY_THREAD_KEY, limit],
+    queryFn: () => fetchMyThread(limit),
+    refetchInterval: THREAD_POLL_MS,
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useSendMyMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => sendMyMessage(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: MY_THREAD_KEY });
+    },
+  });
+}
+
+/** Comme côté équipe : le fil passe à 0 non lu sans être redemandé, seul le badge est rafraîchi. */
+export function useMarkMyThreadRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (lastMessageId: number) => markMyThreadRead(lastMessageId),
+    onSuccess: (_, lastMessageId) => {
+      queryClient.setQueriesData<ConversationThread>({ queryKey: MY_THREAD_KEY }, (thread) =>
+        thread ? { ...thread, unreadCount: 0, lastReadMessageId: Math.max(thread.lastReadMessageId, lastMessageId) } : thread);
+      void queryClient.invalidateQueries({ queryKey: MY_UNREAD_KEY });
     },
   });
 }

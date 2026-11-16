@@ -29,3 +29,21 @@ export function sendToStudent(studentId: string, body: string): Promise<Conversa
 export function markStudentThreadRead(studentId: string, lastMessageId: number): Promise<void> {
   return apiClient.post(`/dashboard/conversations/students/${studentId}/read`, { lastMessageId }).then(() => undefined);
 }
+
+// ─── Étudiant ─────────────────────────────────────────────────────────────────
+
+export function fetchMyThread(limit: number): Promise<ConversationThread> {
+  return apiClient.get('/conversation/me', { params: { limit } }).then((r) => unwrap<ConversationThread>(r));
+}
+
+export function fetchMyUnreadCount(): Promise<number> {
+  return apiClient.get('/conversation/me/unread-count').then((r) => unwrap<number>(r));
+}
+
+export function sendMyMessage(body: string): Promise<ConversationMessage> {
+  return apiClient.post('/conversation/me/messages', { body }).then((r) => unwrap<ConversationMessage>(r));
+}
+
+export function markMyThreadRead(lastMessageId: number): Promise<void> {
+  return apiClient.post('/conversation/me/read', { lastMessageId }).then(() => undefined);
+}
