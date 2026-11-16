@@ -662,6 +662,13 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
   - un message écrit pendant ces 15 minutes et toujours non lu à leur fin est signalé à ce moment-là (contrôle chaque minute, `app.messaging.notification-scheduler.enabled`) : aucun message ne reste sans avis ;
   - le fil est verrouillé pendant la décision : deux messages simultanés ne donnent qu'un e-mail ;
   - compte étudiant désactivé ou anonymisé : aucun e-mail.
+- **Onglet « Conversations »** (conseillers et admins, `/supervisor/conversations`, 15/11/2026) :
+  - entrée de menu « Conversations » avec le badge `badge` ; l'ancien menu « Messages » (réclamations) s'appelle désormais **« Demandes d'aide »**, et les réclamations restent séparées de la messagerie ;
+  - liste triée par dernier message, filtres « Mes étudiants » (par défaut pour un conseiller), « Tous » (par défaut pour un admin) et « Non lus », avec leurs compteurs, et recherche ;
+  - fil avec zone de réponse (Ctrl + Entrée), ligne « Nouveaux messages », « Lu » quand l'étudiant a lu, « Afficher les messages précédents » ; compte désactivé : lecture seule ;
+  - accès depuis la fiche étudiant (bouton « Conversation ») ; sur mobile, la liste puis le fil (`/supervisor/conversations/{studentId}`) ;
+  - rafraîchissement par interrogation, sans temps réel : compteurs et liste toutes les 60 secondes, fil ouvert toutes les 12 secondes, suspendu quand l'onglet est caché ; un seul « lu » par nouveau message, le fil n'est pas redemandé ensuite (aucune boucle de requêtes) ;
+  - vouvoiement, comme le reste de l'espace conseiller.
 
 ## Notes de fiabilité de ce document
 

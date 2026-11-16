@@ -63,9 +63,10 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 | **Photo du CV (assistant)** | `src/pages/student/cv-builder/CVBuilderPhoto.test.tsx` | 7 | Photo de profil : case cochée, vignette chargée une fois ; sans photo : « Ajouter une photo », pas de case ; GIF et plus de 5 Mo refusés, un JPEG ou un WebP ouvre le recadrage (champ fichier : `image/jpeg,image/png,image/webp`) ; Linéaire : cadre carré, envoi de la photo d'origine et de la zone choisie ; autres modèles : cadre 5:6, vignette demandée au format du modèle ; « Revenir à ma photo de profil » (appel, message, aperçu recalculé) ; noms « (optimisé ATS) » sur les cartes. |
 | **Bannière « Installer l'application »** | `src/components/common/PwaInstallBanner.test.tsx` | 3 | Place réservée en bas des pages ; s'efface quand une fenêtre s'ouvre et revient à sa fermeture ; attend la fermeture du bandeau cookies. |
 | **Recadrage de la photo** | `src/pages/student/cv-builder/components/photo/cropMath.test.ts` | 3 | Photo centrée et couvrante au départ, jamais de bande vide, zoom autour du centre dans les limites. |
+| **Conversations (conseiller)** | `src/pages/advisor/conversations/ConversationsPage.test.tsx` | 5 | Liste : « Mes étudiants » par défaut avec les compteurs, un appel par endpoint. Fil non lu : « Nouveaux messages », « lu » envoyé une seule fois, fil non redemandé. Étudiant sans aucun message : invitation à écrire, aucun « lu », un seul appel au fil. Réponse envoyée (espaces retirés), zone vidée. Compte désactivé : la raison remplace la zone de saisie. |
 | **Orientation d'un WebP** | `src/pages/student/cv-builder/components/photo/photoOrientation.test.ts` | 3 | Orientation EXIF lue dans le bloc `EXIF` d'un WebP (TIFF brut, ou précédé de « Exif ») ; sans EXIF, JPEG ou bloc de taille impossible : 1. Sert à redresser la photo avant le recadrage (Chrome et Edge n'appliquent pas l'orientation d'un WebP, le serveur si). |
 
-**Total front : 22 tests.**
+**Total front : 27 tests.**
 
 ## 3. Exécution Automatisée dans la CI/CD
 
