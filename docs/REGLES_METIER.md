@@ -229,6 +229,20 @@ Chaque source a une ligne dans `external_source_configs` (`enabled`, `romeCodes`
 réglage global unique dans `jobboard_sync_settings` (une ligne `GLOBAL`, comme
 `scheduledSyncEnabled`), édité une seule fois et appliqué aux 3 sources — voir plus bas.
 
+### Élargissement, dédoublonnage entre sources et agrégateur (V58, lot 5 ; détail : `docs/JOBBOARD_SOURCES_AUDIT.md`)
+- **Codes ROME des formations ITIC** : deux réglages globaux (`jobboard_sync_settings`), activés par défaut et modifiables dans Offres → Offres externes.
+  - « Ajouter les codes ROME des formations ITIC » : France Travail et La Bonne Alternance cherchent les codes de l'admin **plus** ceux des formations visibles de l'Espace entreprise.
+  - « Île-de-France par défaut » : sans zone saisie pour une source, recherche en région 11 (France Travail), dans les départements 75 à 95 (La Bonne Alternance) ou avec `where=Ile-de-France` (Adzuna).
+  - La règle « non configuré = aucune restriction » s'applique toujours quand ni l'admin ni les formations ne donnent de critère, ou quand les réglages sont décochés.
+- **La Bonne Alternance** : un appel par paquet de 10 codes ROME, chacun avec son plafond (l'API n'a pas de pagination).
+- **Dédoublonnage entre sources** : à la synchronisation, une offre dont l'entreprise, l'intitulé et la ville correspondent à une offre déjà active n'est pas recopiée, quelle que soit sa source (équipe comprise). La comparaison ignore accents, majuscules, ponctuation, code postal et « (e) ». Le journal de synchronisation compte ces doublons par source.
+- **JSearch** (RapidAPI), **désactivé par défaut** :
+  - activation : `JOBBOARD_JSEARCH_ENABLED` et `JOBBOARD_JSEARCH_API_KEY` ;
+  - plafond mensuel d'appels compté en base (`provider_api_usage`, `JOBBOARD_JSEARCH_MONTHLY_CALL_CAP`, 100 par défaut) ;
+  - éditeurs exclus : « Indeed » par défaut ;
+  - recherche « télétravail » : seule source à filtrer le télétravail.
+- **Indeed, Welcome to the Jungle et JobTeaser** ne sont pas branchés : pas d'API publique de recherche d'offres, et pas d'aspiration des pages.
+
 ### Synchronisation
 - Déclenchée automatiquement (`jobboard.sync.cron`, tous les jours à 2h par défaut) ou
   manuellement (`POST /jobboard/admin/external/sync`, `ADMIN` uniquement, réponse `202 Accepted` —
