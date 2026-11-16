@@ -47,4 +47,12 @@ public class JobboardSyncSettings {
      */
     @Column(name = "excluded_employers", length = 1000)
     private String excludedEmployers;
+
+    /** Ajoute aux codes ROME saisis par l'admin ceux des formations ITIC (Espace entreprise → Formations), V58. */
+    @Column(name = "include_formation_rome", nullable = false)
+    private Boolean includeFormationRome = true;
+
+    /** Sans zone saisie pour une source : recherche en Île-de-France (région 11 / départements 75 à 95), V58. */
+    @Column(name = "default_zone_ile_de_france", nullable = false)
+    private Boolean defaultZoneIleDeFrance = true;
 }

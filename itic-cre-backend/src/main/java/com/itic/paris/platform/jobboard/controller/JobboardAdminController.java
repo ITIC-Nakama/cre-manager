@@ -74,6 +74,13 @@ public class JobboardAdminController {
         return ResponseEntity.ok(externalJobSyncService.updateCriteria(source, criteria));
     }
 
+    @PutMapping("/widening")
+    @Operation(summary = "Élargissement : ajouter les codes ROME des formations ITIC, Île-de-France par défaut")
+    public ResponseEntity<ExternalJobboardStatsDTO> updateWidening(
+            @RequestBody com.itic.paris.platform.jobboard.external.dto.WideningRequest request) {
+        return ResponseEntity.ok(externalJobSyncService.updateWidening(request));
+    }
+
     @PutMapping("/excluded-employers")
     @Operation(summary = "Modifier la liste noire globale d'employeurs exclus, appliquée en une seule fois "
             + "aux trois sources externes")

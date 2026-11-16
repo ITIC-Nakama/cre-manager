@@ -30,6 +30,14 @@ import java.util.regex.Pattern;
 @Slf4j
 public abstract class AbstractJobProvider implements ExternalJobProvider {
 
+    /** Région INSEE et départements d'Île-de-France (zone par défaut, réglage global désactivable). */
+    public static final String ILE_DE_FRANCE_REGION = "11";
+    public static final List<String> ILE_DE_FRANCE_DEPARTMENTS = List.of("75", "77", "78", "91", "92", "93", "94", "95");
+
+    /** Formations de l'annuaire (codes ROME) ; absent dans certains contextes de test. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    protected com.itic.paris.platform.company.repository.CompanySpaceProgramRepository programRepository;
+
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
 
@@ -83,6 +91,39 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
+    }
+
+    private JobboardSyncSettings syncSettings() {
+        return syncSettingsRepository.findById(JobboardSyncSettings.SINGLETON_ID).orElseGet(JobboardSyncSettings::new);
+    }
+
+    /** Codes ROME des formations ITIC visibles de l'annuaire (dédoublonnés, triés). */
+    public List<String> formationRomeCodes() {
+        if (programRepository == null) {
+            return List.of();
+        }
+        return programRepository.findAll().stream()
+                .filter(com.itic.paris.platform.company.model.CompanySpaceProgram::isVisible)
+                .flatMap(p -> resolveCsvCriteria(p.getRomeCodes()).stream())
+                .map(c -> c.toUpperCase(Locale.ROOT))
+                .distinct().sorted().toList();
+    }
+
+    /**
+     * Codes ROME effectivement cherchés : ceux de l'admin, plus ceux des formations ITIC si le réglage global est actif.
+     * Vide = aucune restriction de filière (règle inchangée).
+     */
+    public List<String> effectiveRomeCodes(String configValue) {
+        java.util.LinkedHashSet<String> codes = new java.util.LinkedHashSet<>(resolveCsvCriteria(configValue));
+        if (Boolean.TRUE.equals(syncSettings().getIncludeFormationRome())) {
+            codes.addAll(formationRomeCodes());
+        }
+        return List.copyOf(codes);
+    }
+
+    /** Zone par défaut quand l'admin n'en a saisi aucune pour la source (réglage global). */
+    protected boolean defaultZoneIleDeFrance() {
+        return Boolean.TRUE.equals(syncSettings().getDefaultZoneIleDeFrance());
     }
 
     /** Nombre maximum d'offres à récupérer par synchronisation, éditable par un admin (Paramètres). */

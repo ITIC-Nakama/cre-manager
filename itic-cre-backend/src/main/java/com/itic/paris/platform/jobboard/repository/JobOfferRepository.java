@@ -32,6 +32,10 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, UUID>, JpaSp
 
     boolean existsBySourceId(String sourceId);
 
+    /** Entreprise, intitulé et localisation des offres actives : dédoublonnage entre sources à la synchronisation. */
+    @org.springframework.data.jpa.repository.Query("SELECT o.company, o.title, o.location FROM JobOffer o WHERE o.active = true")
+    java.util.List<Object[]> findActiveIdentities();
+
     long countBySourceAndActiveTrue(String source);
 
     /**

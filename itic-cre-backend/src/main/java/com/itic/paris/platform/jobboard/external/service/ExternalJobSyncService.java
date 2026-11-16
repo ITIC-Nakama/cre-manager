@@ -202,6 +202,12 @@ public class ExternalJobSyncService {
         Map<String, Object> details = new LinkedHashMap<>();
 
         try {
+            // Dédoublonnage entre sources : clés (entreprise + intitulé + ville) des offres actives, complétées au fil de la sync.
+            java.util.Set<String> knownKeys = new java.util.HashSet<>();
+            for (Object[] row : jobOfferRepository.findActiveIdentities()) {
+                String key = com.itic.paris.platform.jobboard.external.CrossSourceDeduplicator.key((String) row[0], (String) row[1], (String) row[2]);
+                if (key != null) knownKeys.add(key);
+            }
             for (AbstractJobProvider provider : providers) {
                 String source = provider.getSource();
                 if (!provider.isEnabled()) {
@@ -210,11 +216,12 @@ public class ExternalJobSyncService {
                 }
                 try {
                     List<ExternalJobOfferDTO> offers = provider.fetchOffers();
-                    int[] counts = persistOffers(provider, offers);
+                    int[] counts = persistOffers(provider, offers, knownKeys);
                     inserted += counts[0];
-                    skipped += counts[1];
-                    details.put(source, Map.of("inserted", counts[0], "skipped", counts[1]));
-                    log.info("[JOBOARD SYNC] {} : {} insérées, {} ignorées", source, counts[0], counts[1]);
+                    skipped += counts[1] + counts[2];
+                    details.put(source, Map.of("inserted", counts[0], "skipped", counts[1], "duplicates", counts[2]));
+                    log.info("[JOBOARD SYNC] {} : {} insérées, {} ignorées, {} doublons d'une autre source",
+                            source, counts[0], counts[1], counts[2]);
                 } catch (Exception e) {
                     // Un provider en erreur n'arrête pas la sync des autres
                     syncLog.setStatus(SyncLog.STATUS_PARTIAL);
@@ -256,12 +263,14 @@ public class ExternalJobSyncService {
     }
 
     /**
-     * Insère les offres d'un provider. Idempotent : les offres déjà connues
-     * (même source_id) sont ignorées. Retourne [insérées, ignorées].
+     * Insère les offres d'un provider. Idempotent : les offres déjà connues (même source_id) sont ignorées, et une offre
+     * déjà présente via une autre source (même entreprise, intitulé et ville) n'est pas recopiée.
+     * Retourne [insérées, ignorées, doublons d'une autre source] ; knownKeys est complété avec les offres insérées.
      */
-    private int[] persistOffers(AbstractJobProvider provider, List<ExternalJobOfferDTO> offers) {
+    public int[] persistOffers(AbstractJobProvider provider, List<ExternalJobOfferDTO> offers, java.util.Set<String> knownKeys) {
         int inserted = 0;
         int skipped = 0;
+        int duplicates = 0;
 
         for (ExternalJobOfferDTO dto : offers) {
             if (dto.sourceId() == null || jobOfferRepository.existsBySourceId(dto.sourceId())) {
@@ -272,6 +281,12 @@ public class ExternalJobSyncService {
             if (dto.title() == null || dto.title().length() < 5
                     || dto.description() == null || dto.description().isBlank()) {
                 skipped++;
+                continue;
+            }
+
+            String identity = com.itic.paris.platform.jobboard.external.CrossSourceDeduplicator.key(dto.company(), dto.title(), dto.location());
+            if (identity != null && knownKeys.contains(identity)) {
+                duplicates++;
                 continue;
             }
 
@@ -287,13 +302,16 @@ public class ExternalJobSyncService {
             try {
                 jobOfferRepository.save(offer);
                 inserted++;
+                if (identity != null) {
+                    knownKeys.add(identity);
+                }
             } catch (Exception e) {
                 // Doublon concurrent (contrainte unique source_id) ou validation : on ignore
                 skipped++;
                 log.debug("[JOBOARD SYNC] Offre {} ignorée: {}", dto.sourceId(), e.getMessage());
             }
         }
-        return new int[]{inserted, skipped};
+        return new int[]{inserted, skipped, duplicates};
     }
 
     /**
@@ -344,8 +362,25 @@ public class ExternalJobSyncService {
                 .orElse(null);
 
         JobboardSyncSettings settings = getOrCreateSyncSettings();
+        String formationRomeCodes = providers.isEmpty() ? null : String.join(",", providers.get(0).formationRomeCodes());
         return new ExternalJobboardStatsDTO(isSyncInProgress(), settings.getScheduledSyncEnabled(),
-                settings.getSyncIntervalDays(), settings.getExcludedEmployers(), lastSync, sources);
+                settings.getSyncIntervalDays(), settings.getExcludedEmployers(),
+                Boolean.TRUE.equals(settings.getIncludeFormationRome()), Boolean.TRUE.equals(settings.getDefaultZoneIleDeFrance()),
+                formationRomeCodes, lastSync, sources);
+    }
+
+    /** Élargissement des sources : codes ROME des formations ITIC et zone Île-de-France par défaut (admin). */
+    @org.springframework.transaction.annotation.Transactional
+    public ExternalJobboardStatsDTO updateWidening(com.itic.paris.platform.jobboard.external.dto.WideningRequest request) {
+        JobboardSyncSettings settings = getOrCreateSyncSettings();
+        if (request.includeFormationRome() != null) {
+            settings.setIncludeFormationRome(request.includeFormationRome());
+        }
+        if (request.defaultZoneIleDeFrance() != null) {
+            settings.setDefaultZoneIleDeFrance(request.defaultZoneIleDeFrance());
+        }
+        syncSettingsRepository.save(settings);
+        return getStats();
     }
 
     /** Répartition des offres actives d'une source par type de contrat, pour vérifier en direct

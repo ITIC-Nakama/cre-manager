@@ -108,8 +108,11 @@ public class FranceTravailProvider extends AbstractJobProvider {
         }
 
         var config = currentConfig();
-        List<String> romeCodes = resolveCsvCriteria(config.getRomeCodes());
+        List<String> romeCodes = effectiveRomeCodes(config.getRomeCodes());
         List<String> regions = resolveCsvCriteria(config.getRegions());
+        if (regions.isEmpty() && defaultZoneIleDeFrance()) {
+            regions = List.of(ILE_DE_FRANCE_REGION);
+        }
         List<String> excludedEmployers = currentExcludedEmployers();
         // Aucun code ROME configuré = aucune restriction de filière — codeROME est optionnel sur
         // cette API, l'omettre renvoie toutes professions confondues pour les autres criteres donnes.
