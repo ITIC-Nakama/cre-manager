@@ -67,6 +67,13 @@
       "unsubscribed_text": "You will no longer receive these offer emails. You can turn them back on anytime in your profile.",
       "invalid_text": "This unsubscribe link is not valid. You can manage your emails from your profile.",
       "go_profile": "Manage my emails"
+    },
+    "company_space": {
+      "saved": "Preference saved.",
+      "error": "The preference could not be saved.",
+      "title": "Business space",
+      "toggle": "Appear in the Business space",
+      "explanation": "Once your CV is approved and as long as you have no contract, partner companies see your first name, last name, programme and CV in the school directory. Never your email or phone: they go through the Business Relations team."
     }
   },
   "pwa": {
@@ -145,7 +152,8 @@
       "audit": "Audit Log",
       "configuration": "Configuration",
       "parametres": "Settings",
-      "logout": "Logout"
+      "logout": "Logout",
+      "company_space": "Business space"
     },
     "home": {
       "title": "Dashboard",
@@ -2596,5 +2604,166 @@
     "close_message_staff": "Your text is not sent. It stays saved as a draft on this device: you can resume it.",
     "close_confirm": "Close",
     "close_cancel": "Keep editing"
+  },
+  "company": {
+    "request": {
+      "default_message": "Hello, we are interested in the profile of {{name}} ({{formation}}). Could you put us in touch?",
+      "error": "Your request could not be sent. Please try again.",
+      "title_candidate": "I am interested in this profile",
+      "title_contact": "Contact us",
+      "close": "Close",
+      "sent_title": "Thank you, your request has been sent",
+      "sent_text": "The Business Relations team will get back to you shortly.",
+      "company": "Company",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "message": "Message",
+      "privacy": "Your contact details are only used to get back to you. They are deleted one year after your request.",
+      "submit": "Send my request"
+    },
+    "program": {
+      "empty_title": "No CV available at the moment",
+      "empty_text": "Contact us: the Business Relations team will introduce the available profiles.",
+      "count": "{{count}} CV(s) available",
+      "back": "All programmes",
+      "not_found": "This programme is not available.",
+      "see_all": "See all programmes"
+    },
+    "card": {
+      "formation": "Programme",
+      "promotion": "Class",
+      "rhythm": "Schedule",
+      "availability": "Availability",
+      "view_cv": "View CV",
+      "preview_disabled": "Disabled in the preview",
+      "interested": "I am interested"
+    },
+    "directory": {
+      "title": "Our candidates",
+      "subtitle": "Choose a programme to browse our students’ CVs."
+    },
+    "cv_count": "{{count}} CV",
+    "home": {
+      "cta": "See our candidates",
+      "domains": "{{count}} field(s)",
+      "total": "{{count}} CVs available right now."
+    },
+    "title": "Business Space",
+    "nav": {
+      "home": "Home",
+      "candidates": "Our candidates"
+    },
+    "unavailable_title": "Page unavailable",
+    "unavailable_text": "This link is not valid or has been replaced. Please contact the ITIC Paris Business Relations team.",
+    "phone": "Phone: {{phone}}",
+    "contact_us": "Contact us"
+  },
+  "company_admin": {
+    "tabs": {
+      "programs": "Programmes",
+      "requests": "Requests",
+      "stats": "Statistics",
+      "settings": "Texts and access"
+    },
+    "title": "Business space",
+    "subtitle": "The public CV directory for companies. A student appears automatically once their CV is approved, as long as they have no contract, their account is active and they have not opted out.",
+    "open_public": "Open the Business space",
+    "saved": "Saved.",
+    "save_error": "The change could not be saved.",
+    "programs": {
+      "add": "Add a programme",
+      "hint": "Classes are matched automatically by keywords (e.g. “bts sio”), or picked by hand. Study year: 1A / M1 = 1, 2A / M2 = 2.",
+      "unlinked": "{{count}} visible programme(s) with no class linked: their page stays empty. Adjust the keywords or pick the classes.",
+      "col_program": "Programme",
+      "col_address": "Address",
+      "col_promotions": "Linked classes",
+      "col_cv": "CVs",
+      "col_views": "Views 30 d",
+      "year": "year {{year}}",
+      "to_confirm": "to confirm",
+      "none": "None",
+      "manual": "picked by hand",
+      "auto": "by keywords",
+      "preview": "Preview",
+      "copy": "Copy link",
+      "hide": "Hide",
+      "show": "Show",
+      "edit": "Edit"
+    },
+    "close": "Close",
+    "form": {
+      "level": "Level",
+      "domain": "Field",
+      "label": "Displayed name",
+      "slug": "Short address (as in itic.short.gy/…)",
+      "slug_confirmed": "Address confirmed (existing short link)",
+      "year": "Study year",
+      "all_years": "All",
+      "keywords": "Matching keywords",
+      "rhythm": "Schedule (shown on cards)",
+      "rhythm_placeholder": "2 days at school / 3 days at work",
+      "availability": "Availability (shown on cards)",
+      "availability_placeholder": "From September 2026",
+      "promotions": "Classes picked by hand",
+      "promotions_hint": "If you pick some, they replace the keywords.",
+      "visible": "Visible in the Business space",
+      "delete": "Remove",
+      "save": "Save",
+      "delete_title": "Remove this programme?",
+      "delete_message": "Its public page will no longer be available. The CVs stay in the CRE."
+    },
+    "preview_title": "Preview: what a company sees",
+    "preview_hidden": "(hidden programme)",
+    "link_copied": "Link copied",
+    "copy_error": "Copy failed: select the link manually.",
+    "requests": {
+      "new": "New",
+      "handled": "Handled",
+      "all": "All",
+      "empty": "No requests.",
+      "badge_new": "New",
+      "badge_handled": "Handled",
+      "mark_handled": "Mark as handled",
+      "reopen": "Mark as new",
+      "about": "Profile:",
+      "handled_by": "Handled by {{name}} on {{date}}",
+      "retention": "Company contact details are deleted one year after their request."
+    },
+    "settings": {
+      "home_title": "Home title",
+      "home_intro": "Home text",
+      "promotion_intro": "Programme page text",
+      "promotion_intro_hint": "{formation} is replaced by the programme name.",
+      "warning": "Warning",
+      "contact_title": "Contact block title",
+      "contact_text": "Contact block text",
+      "address": "Address",
+      "phone": "Phone",
+      "notification_email": "Address notified of each request",
+      "notification_email_hint": "Empty: menu badge only.",
+      "texts": "Texts and contact",
+      "admin_only": "Only administrators can change this.",
+      "private_title": "Private link access",
+      "private_text": "Off: the Business space is open to anyone who has the address (never listed by search engines). On: only people with the link including the key can access it.",
+      "private_on": "On",
+      "private_off": "Off",
+      "regenerate": "Generate a new key",
+      "regenerate_title": "Generate a new key?",
+      "regenerate_message": "Links already sent to companies will stop working."
+    },
+    "stats": {
+      "cv": "CVs online",
+      "pages": "Page views (30 d)",
+      "cv_views": "CVs opened (30 d)",
+      "requests": "Requests (30 d)",
+      "new_requests": "Requests to handle",
+      "hidden": "Students who opted out",
+      "col_pages": "Page views",
+      "col_cv": "CVs opened",
+      "col_requests": "Requests",
+      "none": "No visits in the last 30 days.",
+      "privacy": "Counters per day and per programme only: no IP address, no browser, no tracking cookie."
+    }
   }
 }

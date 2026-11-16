@@ -67,6 +67,13 @@
       "unsubscribed_text": "Tu ne recevras plus ces e-mails d’offres. Tu peux les réactiver à tout moment dans ton profil.",
       "invalid_text": "Ce lien de désinscription n’est pas valide. Tu peux gérer tes e-mails depuis ton profil.",
       "go_profile": "Gérer mes e-mails"
+    },
+    "company_space": {
+      "saved": "Préférence enregistrée.",
+      "error": "La préférence n’a pas pu être enregistrée.",
+      "title": "Espace entreprise",
+      "toggle": "Apparaître dans l’Espace entreprise",
+      "explanation": "Quand ton CV est validé et tant que tu n’as pas de contrat, les entreprises partenaires voient ton prénom, ton nom, ta formation et ton CV dans l’annuaire de l’école. Ni ton e-mail ni ton téléphone : elles passent par le Pôle Entreprises."
     }
   },
   "pwa": {
@@ -145,7 +152,8 @@
       "audit": "Journal d'audit",
       "configuration": "Configuration",
       "parametres": "Paramètres",
-      "logout": "Déconnexion"
+      "logout": "Déconnexion",
+      "company_space": "Espace entreprise"
     },
     "home": {
       "title": "Tableau de bord",
@@ -2596,5 +2604,166 @@
     "close_message_staff": "Votre texte n’est pas envoyé. Il reste enregistré comme brouillon sur cet appareil : vous pourrez le reprendre.",
     "close_confirm": "Fermer",
     "close_cancel": "Continuer"
+  },
+  "company": {
+    "request": {
+      "default_message": "Bonjour, le profil de {{name}} ({{formation}}) nous intéresse. Pouvez-vous nous mettre en relation ?",
+      "error": "Votre demande n’a pas pu être envoyée. Merci de réessayer.",
+      "title_candidate": "Ce profil m’intéresse",
+      "title_contact": "Contactez-nous",
+      "close": "Fermer",
+      "sent_title": "Merci, votre demande est envoyée",
+      "sent_text": "L’équipe du Pôle Entreprises vous recontacte rapidement.",
+      "company": "Entreprise",
+      "name": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone (facultatif)",
+      "message": "Message",
+      "privacy": "Vos coordonnées servent uniquement à vous recontacter. Elles sont supprimées un an après votre demande.",
+      "submit": "Envoyer ma demande"
+    },
+    "program": {
+      "empty_title": "Aucun CV disponible pour le moment",
+      "empty_text": "Contactez-nous : l’équipe du Pôle Entreprises vous présentera les profils disponibles.",
+      "count": "{{count}} CV disponible(s)",
+      "back": "Toutes les formations",
+      "not_found": "Cette formation n’est pas disponible.",
+      "see_all": "Voir toutes les formations"
+    },
+    "card": {
+      "formation": "Formation",
+      "promotion": "Promotion",
+      "rhythm": "Rythme",
+      "availability": "Disponibilité",
+      "view_cv": "Voir le CV",
+      "preview_disabled": "Désactivé dans l’aperçu",
+      "interested": "Ce profil m’intéresse"
+    },
+    "directory": {
+      "title": "Répertoire de nos candidats",
+      "subtitle": "Choisissez une formation pour consulter les CV de nos étudiants."
+    },
+    "cv_count": "{{count}} CV",
+    "home": {
+      "cta": "Voir nos candidats",
+      "domains": "{{count}} domaine(s)",
+      "total": "{{count}} CV disponibles en ce moment."
+    },
+    "title": "Espace Entreprise",
+    "nav": {
+      "home": "Accueil",
+      "candidates": "Nos candidats"
+    },
+    "unavailable_title": "Page indisponible",
+    "unavailable_text": "Ce lien n’est pas valide ou a été remplacé. Contactez le Pôle Entreprises d’ITIC Paris.",
+    "phone": "Tél. : {{phone}}",
+    "contact_us": "Contactez-nous"
+  },
+  "company_admin": {
+    "tabs": {
+      "programs": "Formations",
+      "requests": "Demandes",
+      "stats": "Statistiques",
+      "settings": "Textes et accès"
+    },
+    "title": "Espace entreprise",
+    "subtitle": "L’annuaire public des CV pour les entreprises. Un étudiant y apparaît automatiquement quand son CV est validé, tant qu’il n’a pas de contrat, que son compte est actif et qu’il ne s’y est pas opposé.",
+    "open_public": "Ouvrir l’Espace entreprise",
+    "saved": "Enregistré.",
+    "save_error": "La modification n’a pas pu être enregistrée.",
+    "programs": {
+      "add": "Ajouter une formation",
+      "hint": "Promotions rattachées automatiquement par mots-clés (ex. « bts sio »), ou choisies à la main. Année d’étude : 1A / M1 = 1, 2A / M2 = 2.",
+      "unlinked": "{{count}} formation(s) visible(s) sans promotion rattachée : leur page reste vide. Ajustez les mots-clés ou choisissez les promotions.",
+      "col_program": "Formation",
+      "col_address": "Adresse",
+      "col_promotions": "Promotions rattachées",
+      "col_cv": "CV",
+      "col_views": "Vues 30 j",
+      "year": "année {{year}}",
+      "to_confirm": "à confirmer",
+      "none": "Aucune",
+      "manual": "choisies à la main",
+      "auto": "par mots-clés",
+      "preview": "Aperçu",
+      "copy": "Copier le lien",
+      "hide": "Masquer",
+      "show": "Afficher",
+      "edit": "Modifier"
+    },
+    "close": "Fermer",
+    "form": {
+      "level": "Niveau",
+      "domain": "Domaine",
+      "label": "Nom affiché",
+      "slug": "Adresse courte (comme itic.short.gy/…)",
+      "slug_confirmed": "Adresse confirmée (lien court existant)",
+      "year": "Année d’étude",
+      "all_years": "Toutes",
+      "keywords": "Mots-clés de rattachement",
+      "rhythm": "Rythme (sur les cartes)",
+      "rhythm_placeholder": "2 jours école / 3 jours entreprise",
+      "availability": "Disponibilité (sur les cartes)",
+      "availability_placeholder": "Dès septembre 2026",
+      "promotions": "Promotions choisies à la main",
+      "promotions_hint": "Si vous en choisissez, elles remplacent les mots-clés.",
+      "visible": "Visible dans l’Espace entreprise",
+      "delete": "Retirer",
+      "save": "Enregistrer",
+      "delete_title": "Retirer cette formation ?",
+      "delete_message": "Sa page publique ne sera plus accessible. Les CV restent dans le CRE."
+    },
+    "preview_title": "Aperçu : ce que voit une entreprise",
+    "preview_hidden": "(formation masquée)",
+    "link_copied": "Lien copié",
+    "copy_error": "Copie impossible : sélectionnez le lien à la main.",
+    "requests": {
+      "new": "Nouvelles",
+      "handled": "Traitées",
+      "all": "Toutes",
+      "empty": "Aucune demande.",
+      "badge_new": "Nouvelle",
+      "badge_handled": "Traitée",
+      "mark_handled": "Marquer comme traitée",
+      "reopen": "Remettre en nouvelle",
+      "about": "Profil :",
+      "handled_by": "Traitée par {{name}} le {{date}}",
+      "retention": "Les coordonnées des entreprises sont supprimées un an après leur demande."
+    },
+    "settings": {
+      "home_title": "Titre de l’accueil",
+      "home_intro": "Texte de l’accueil",
+      "promotion_intro": "Texte d’une page de formation",
+      "promotion_intro_hint": "{formation} est remplacé par le nom de la formation.",
+      "warning": "Avertissement",
+      "contact_title": "Titre du bloc contact",
+      "contact_text": "Texte du bloc contact",
+      "address": "Adresse",
+      "phone": "Téléphone",
+      "notification_email": "Adresse prévenue à chaque demande",
+      "notification_email_hint": "Vide : seulement le badge du menu.",
+      "texts": "Textes et contact",
+      "admin_only": "Modification réservée aux administrateurs.",
+      "private_title": "Accès par lien privé",
+      "private_text": "Désactivé : l’Espace entreprise est ouvert à toute personne qui a l’adresse (jamais référencé par les moteurs de recherche). Activé : seules les personnes qui ont le lien avec la clé y accèdent.",
+      "private_on": "Activé",
+      "private_off": "Désactivé",
+      "regenerate": "Générer une nouvelle clé",
+      "regenerate_title": "Générer une nouvelle clé ?",
+      "regenerate_message": "Les liens déjà envoyés aux entreprises cesseront de fonctionner."
+    },
+    "stats": {
+      "cv": "CV en ligne",
+      "pages": "Pages vues (30 j)",
+      "cv_views": "CV ouverts (30 j)",
+      "requests": "Demandes (30 j)",
+      "new_requests": "Demandes à traiter",
+      "hidden": "Étudiants qui ne veulent pas apparaître",
+      "col_pages": "Pages vues",
+      "col_cv": "CV ouverts",
+      "col_requests": "Demandes",
+      "none": "Aucune visite sur les 30 derniers jours.",
+      "privacy": "Compteurs par jour et par formation uniquement : ni adresse IP, ni navigateur, ni cookie de mesure."
+    }
   }
 }

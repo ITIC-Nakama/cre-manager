@@ -7,8 +7,9 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare
+  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare, Store
 } from 'lucide-react';
+import { useNewCompanyRequestCount } from '../pages/advisor/espace-entreprise/useNewCompanyRequestCount';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
@@ -26,6 +27,8 @@ export default function SupervisorLayout() {
   const { data: conversationCounts } = useConversationUnreadCounts();
   const { data: cvPendingCount } = useCvPendingCount();
   const { data: contractPendingCount } = useContractPendingCount();
+  // Espace entreprise : demandes d'entreprises nouvelles (une requête par minute).
+  const { data: newCompanyRequests } = useNewCompanyRequestCount();
 
   const isAdmin = user?.role === Role.ADMIN;
 
@@ -38,6 +41,7 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.conversations', 'Conversations'), icon: MessagesSquare, to: '/supervisor/conversations', badge: conversationCounts?.badge },
     { label: t('dashboard.sidebar.reclamations', 'Demandes d’aide'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
     { label: t('dashboard.sidebar.alumni', 'Alumni'),   icon: Contact,         to: '/supervisor/alumni' },
+    { label: t('dashboard.sidebar.company_space', 'Espace entreprise'), icon: Store, to: '/supervisor/espace-entreprise', badge: newCompanyRequests },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
   ];

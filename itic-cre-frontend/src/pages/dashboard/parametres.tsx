@@ -10,6 +10,7 @@ import PreferencesCard from '../../components/dashboard/parametres/PreferencesCa
 import SecurityCard from '../../components/dashboard/parametres/SecurityCard';
 import GdprCard from '../../components/dashboard/parametres/GdprCard';
 import EmailPreferencesCard from '../../components/dashboard/parametres/EmailPreferencesCard';
+import CompanySpaceCard from '../../components/dashboard/parametres/CompanySpaceCard';
 import AppConfigCard from '../../components/dashboard/parametres/AppConfigCard';
 import ParametresSubmenu, { type ParametresTab } from '../../components/dashboard/parametres/ParametresSubmenu';
 import { useUpdatePassword } from '../../hooks/useAuth';
@@ -115,6 +116,7 @@ export default function ParametresPage() {
 
           <PreferencesCard />
           {user?.role === Role.STUDENT && <EmailPreferencesCard />}
+          {user?.role === Role.STUDENT && <CompanySpaceCard />}
 
           <SecurityCard onChangePassword={() => setModalOpen(true)} />
 
