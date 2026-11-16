@@ -2825,5 +2825,29 @@
     "col_contract": "Contract",
     "contract_yes": "Yes",
     "contract_no": "No"
+  },
+  "matching": {
+    "reason": {
+      "formation_student": "close to your programme ({{list}})",
+      "formation_staff": "close to their programme ({{list}})",
+      "contract": "as {{label}}",
+      "level": "{{level}} level required",
+      "near_student": "near you ({{name}})",
+      "near_staff": "in their department ({{name}})",
+      "idf": "in Île-de-France",
+      "remote": "remote work possible",
+      "cv_student": "your CV mentions {{list}}",
+      "cv_staff": "their CV mentions {{list}}"
+    },
+    "recommended_title": "Recommended for you",
+    "why": "Why:",
+    "suggested_title": "Suggested candidates",
+    "close": "Close",
+    "suggested_none": "No student without a contract matches this offer (programme, keywords).",
+    "score_title": "Matching score",
+    "department": "dept. {{code}}",
+    "send_offer": "Send the offer",
+    "send_message": "Hello {{firstName}}, this offer might interest you: “{{title}}” at {{company}}. You can see it here: {{link}}",
+    "sent": "Message sent in the student's conversation."
   }
 }

@@ -15,16 +15,18 @@ interface Student {
 
 interface Props {
   student: Student;
+  /** Texte prérempli (ex. « Candidats suggérés » : l'offre et son lien). */
+  initialMessage?: string;
   onClose: () => void;
   onSend: (message?: string) => Promise<void>;
 }
 
-export default function NotifyStudentModal({ student, onClose, onSend }: Props) {
+export default function NotifyStudentModal({ student, initialMessage = '', onClose, onSend }: Props) {
   const { t } = useTranslation();
   useModalLayer();
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialMessage);
   const [sending, setSending] = useState(false);
-  const draft = useFormDraft(`message:${student.id}`, message, '');
+  const draft = useFormDraft(`message:${student.id}`, message, initialMessage);
   const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
 
   const handleSend = async () => {

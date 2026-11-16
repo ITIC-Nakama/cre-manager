@@ -13,6 +13,7 @@ import { useStudentDetailActions } from '../../../hooks/useStudentDetailActions'
 import JobOfferFormModal from '../../../components/shared/JobOfferFormModal';
 import JobOfferDetailModal from '../../../components/shared/JobOfferDetailModal';
 import JobOfferApplicantsModal from '../../../components/shared/JobOfferApplicantsModal';
+import SuggestedCandidatesModal from '../../../components/matching/SuggestedCandidatesModal';
 import StudentDetailModal from '../../../components/shared/StudentDetailModal';
 import NotifyStudentModal from '../../../components/shared/NotifyStudentModal';
 import DeclareContractModal from '../../../components/shared/DeclareContractModal';
@@ -99,6 +100,7 @@ export default function OffresPage() {
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [wipeDialogOpen, setWipeDialogOpen] = useState(false);
     const [applicantsOffer, setApplicantsOffer] = useState<JobOffer | null>(null);
+    const [suggestOffer, setSuggestOffer] = useState<JobOffer | null>(null);
     const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const locationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -398,8 +400,11 @@ export default function OffresPage() {
                 onLoadMore={fetchNextPage}
                 onView={setViewingOffer}
                 onEdit={(offer) => { setEditingOffer(offer); setIsReadOnly(false); setFormOpen(true); }}
+                onSuggest={setSuggestOffer}
                 onViewApplicants={setApplicantsOffer}
             />
+
+            {suggestOffer && <SuggestedCandidatesModal offer={suggestOffer} onClose={() => setSuggestOffer(null)} />}
 
             {viewingOffer && (
                 <JobOfferDetailModal

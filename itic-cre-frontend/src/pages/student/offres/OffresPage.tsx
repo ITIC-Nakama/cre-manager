@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import RecommendedOffers from '../../../components/matching/RecommendedOffers';
 import { Building2, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTitleWithGradient } from '../../../utils/titleUtils';
@@ -12,6 +14,12 @@ export default function OffresPage() {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<OffresTab>('itic');
     useScrollTopOnChange(activeTab);
+    const [, setSearchParams] = useSearchParams();
+    // Une recommandation ouvre la fiche de l'offre (lien direct ?offre=, géré par l'onglet ITIC quelle que soit la source).
+    const openOffer = (offerId: string) => {
+        setActiveTab('itic');
+        setSearchParams({ offre: offerId });
+    };
 
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
@@ -51,6 +59,8 @@ export default function OffresPage() {
                     </button>
                 </div>
             </div>
+
+            <RecommendedOffers onOpen={openOffer} />
 
             {activeTab === 'itic' ? <IticOffresTab /> : <ExternalOffresTab />}
         </div>
