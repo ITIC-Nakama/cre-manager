@@ -124,6 +124,11 @@ export function updateExternalSourceCriteria(source: string, criteria: ExternalS
         .then((response) => unwrap<ExternalJobboardStats>(response));
 }
 
+/** Élargissement des sources : codes ROME des formations ITIC, Île-de-France par défaut (admin). */
+export function updateSourcesWidening(body: { includeFormationRome?: boolean; defaultZoneIleDeFrance?: boolean }): Promise<ExternalJobboardStats> {
+    return apiClient.put('/jobboard/admin/external/widening', body).then((response) => unwrap<ExternalJobboardStats>(response));
+}
+
 export function updateExcludedEmployers(excludedEmployers: string): Promise<ExternalJobboardStats> {
     return apiClient
         .put('/jobboard/admin/external/excluded-employers', { excludedEmployers })

@@ -296,7 +296,13 @@
         "confirm_disable_title": "Disable this source?",
         "confirm_disable_message_one": "The offer currently imported from {{label}} will be permanently deleted. Re-enabling won't restore it — the next sync will fetch it again.",
         "confirm_disable_message_other": "All {{count}} offers currently imported from {{label}} will be permanently deleted. Re-enabling won't restore them — the next sync will fetch them again.",
-        "confirm_disable_button": "Disable and delete"
+        "confirm_disable_button": "Disable and delete",
+        "widening_label": "Widening (all sources)",
+        "widening_rome": "Add the ROME codes of ITIC programmes",
+        "widening_rome_hint": "France Travail and La Bonne Alternance also search the jobs of every Business space programme.",
+        "widening_zone": "Île-de-France by default",
+        "widening_zone_hint": "When no area is set for a source: Île-de-France region (departments 75 to 95).",
+        "widening_codes": "Programme ROME codes:"
       }
     },
     "advisor": {
