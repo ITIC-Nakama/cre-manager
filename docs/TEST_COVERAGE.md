@@ -64,9 +64,10 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 | **Bannière « Installer l'application »** | `src/components/common/PwaInstallBanner.test.tsx` | 3 | Place réservée en bas des pages ; s'efface quand une fenêtre s'ouvre et revient à sa fermeture ; attend la fermeture du bandeau cookies. |
 | **Recadrage de la photo** | `src/pages/student/cv-builder/components/photo/cropMath.test.ts` | 3 | Photo centrée et couvrante au départ, jamais de bande vide, zoom autour du centre dans les limites. |
 | **Conversations (conseiller)** | `src/pages/advisor/conversations/ConversationsPage.test.tsx` | 5 | Liste : « Mes étudiants » par défaut avec les compteurs, un appel par endpoint. Fil non lu : « Nouveaux messages », « lu » envoyé une seule fois, fil non redemandé. Étudiant sans aucun message : invitation à écrire, aucun « lu », un seul appel au fil. Réponse envoyée (espaces retirés), zone vidée. Compte désactivé : la raison remplace la zone de saisie. |
+| **Messages (étudiant)** | `src/pages/student/messages/StudentMessagesPage.test.tsx` | 3 | Aucun message : invitation à écrire (tutoiement), référent indiqué, un seul appel, aucun « lu ». Message de l'équipe non lu : signé « … · équipe CRE », « Nouveaux messages », marqué lu une seule fois, fil non redemandé. Réponse envoyée avec Ctrl + Entrée, zone vidée ; sans référent, « toute l'équipe CRE lit tes messages ». |
 | **Orientation d'un WebP** | `src/pages/student/cv-builder/components/photo/photoOrientation.test.ts` | 3 | Orientation EXIF lue dans le bloc `EXIF` d'un WebP (TIFF brut, ou précédé de « Exif ») ; sans EXIF, JPEG ou bloc de taille impossible : 1. Sert à redresser la photo avant le recadrage (Chrome et Edge n'appliquent pas l'orientation d'un WebP, le serveur si). |
 
-**Total front : 27 tests.**
+**Total front : 30 tests.**
 
 ## 3. Exécution Automatisée dans la CI/CD
 
