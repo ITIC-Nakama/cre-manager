@@ -27,4 +27,15 @@ public interface MailingQueryRepository extends Repository<JobOffer, UUID> {
             + "AND s.promotion.id IN :promotionIds AND NOT EXISTS (SELECT a.id FROM Application a WHERE a.student = s "
             + "AND a.status.compteCommeContrat = true AND (a.endDate IS NULL OR a.endDate >= CURRENT_DATE))")
     List<Student> findTargetedOfferRecipients(@Param("promotionIds") Collection<UUID> promotionIds);
+
+    /** Offres visibles des étudiants publiées entre from (inclus) et to (exclu), toutes sources (date de publication effective). */
+    @Query("SELECT o FROM JobOffer o LEFT JOIN FETCH o.contractType LEFT JOIN FETCH o.sector "
+            + "WHERE o.draft = false AND o.active = true AND o.effectiveDate >= :from AND o.effectiveDate < :to")
+    List<JobOffer> findPublishedBetween(@Param("from") Instant from, @Param("to") Instant to);
+
+    /** Destinataires du récapitulatif du lundi : compte actif, abonné, avec une promotion, SANS contrat en cours. */
+    @Query("SELECT s FROM Student s JOIN FETCH s.promotion WHERE s.active = true AND s.emailWeeklyDigest = true "
+            + "AND NOT EXISTS (SELECT a.id FROM Application a WHERE a.student = s "
+            + "AND a.status.compteCommeContrat = true AND (a.endDate IS NULL OR a.endDate >= CURRENT_DATE))")
+    List<Student> findWeeklyDigestRecipients();
 }

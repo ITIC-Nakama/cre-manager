@@ -23,7 +23,7 @@ public class EmailPreferenceController {
 
     private final EmailPreferenceService service;
 
-    public record UpdateRequest(Boolean targetedOffers) {
+    public record UpdateRequest(Boolean targetedOffers, Boolean weeklyDigest) {
     }
 
     public record UnsubscribeRequest(String token) {
@@ -31,7 +31,7 @@ public class EmailPreferenceController {
 
     @GetMapping("/me/email-preferences")
     @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "Mes abonnements : offres ciblées du soir")
+    @Operation(summary = "Mes abonnements : offres ciblées du soir, récapitulatif du lundi")
     public ResponseEntity<Preferences> get() {
         return ResponseEntity.ok(service.get(SecurityContextHelper.currentUserId()));
     }
@@ -40,7 +40,7 @@ public class EmailPreferenceController {
     @PreAuthorize("hasRole('STUDENT')")
     @Operation(summary = "Modifier mes abonnements (champs absents : inchangés)")
     public ResponseEntity<Preferences> update(@RequestBody UpdateRequest request) {
-        return ResponseEntity.ok(service.update(SecurityContextHelper.currentUserId(), request.targetedOffers()));
+        return ResponseEntity.ok(service.update(SecurityContextHelper.currentUserId(), request.targetedOffers(), request.weeklyDigest()));
     }
 
     @PostMapping("/public/email-preferences/unsubscribe")

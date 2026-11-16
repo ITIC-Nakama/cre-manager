@@ -61,6 +61,10 @@ public class CompanySpaceSettings {
     @Column(name = "programs_initialized", nullable = false)
     private boolean programsInitialized;
 
+    /** Codes ROME et mots-clés préremplis une fois (V57) : une valeur effacée par l'équipe ne revient pas. */
+    @Column(name = "matching_initialized", nullable = false)
+    private boolean matchingInitialized;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }

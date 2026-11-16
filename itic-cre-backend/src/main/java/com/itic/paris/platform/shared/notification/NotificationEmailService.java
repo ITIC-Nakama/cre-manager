@@ -174,6 +174,18 @@ public class NotificationEmailService {
         sendHtml(to, subject, html);
     }
 
+    /** Récapitulatif du lundi : jusqu'à 10 offres de la semaine, proches de la formation de l'étudiant. */
+    @Async
+    public void sendWeeklyOffers(String to, String lang, String firstName,
+                                 java.util.List<com.itic.paris.platform.mailing.service.TargetedOfferMailingService.OfferLine> offers,
+                                 String allOffersUrl, String unsubscribeUrl) {
+        String html = emailTemplateService.renderWeeklyOffersEmail(lang, firstName, offers, allOffersUrl, unsubscribeUrl);
+        String subject = "en".equals(lang)
+                ? (offers.size() > 1 ? "Your " + offers.size() + " offers of the week" : "Your offer of the week")
+                : (offers.size() > 1 ? "Vos " + offers.size() + " offres de la semaine" : "Votre offre de la semaine");
+        sendHtml(to, subject, html);
+    }
+
     /** Demande d'une entreprise depuis l'Espace entreprise, envoyée à l'adresse choisie dans le back-office. */
     @Async
     public void sendCompanySpaceRequest(String to, String company, String contactName, String email, String phone,

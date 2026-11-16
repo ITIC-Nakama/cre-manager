@@ -69,6 +69,10 @@ public class Student extends User {
     @Column(name = "email_targeted_offers", nullable = false)
     private boolean emailTargetedOffers = true;
 
+    /** Abonnement au récapitulatif du lundi (V57), activé par défaut ; lien de désinscription dans l'e-mail. */
+    @Column(name = "email_weekly_digest", nullable = false)
+    private boolean emailWeeklyDigest = true;
+
     /** Apparaître dans l'Espace entreprise (V55), oui par défaut ; l'étudiant peut le couper dans son profil. */
     @Column(name = "company_space_visible", nullable = false)
     private boolean companySpaceVisible = true;

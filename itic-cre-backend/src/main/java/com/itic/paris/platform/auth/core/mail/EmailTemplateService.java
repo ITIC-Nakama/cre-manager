@@ -167,6 +167,19 @@ public class EmailTemplateService {
         return templateEngine.process("email/company-space-request", context);
     }
 
+    public String renderWeeklyOffersEmail(String lang, String firstName,
+                                          java.util.List<com.itic.paris.platform.mailing.service.TargetedOfferMailingService.OfferLine> offers,
+                                          String allOffersUrl, String unsubscribeUrl) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("firstName", firstName != null ? firstName.trim() : "");
+        context.setVariable("offers", offers);
+        context.setVariable("allOffersUrl", allOffersUrl);
+        context.setVariable("unsubscribeUrl", unsubscribeUrl);
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/weekly-offers", context);
+    }
+
     public String renderContractDeclarationInvalidatedEmail(String lang, String firstName, String entreprise, String poste) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));

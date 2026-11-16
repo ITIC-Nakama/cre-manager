@@ -66,6 +66,21 @@ public class CompanySpaceSettingsService implements ApplicationRunner {
             settings.setProgramsInitialized(true);
             settingsRepository.save(settings);
         }
+        if (!settings.isMatchingInitialized()) {
+            int filled = 0;
+            for (CompanySpaceProgram p : programRepository.findAll()) {
+                FormationMatchingDefaults.Matching m = FormationMatchingDefaults.BY_SLUG.get(p.getSlug());
+                if (m != null && p.getRomeCodes() == null && p.getOfferKeywords() == null) {
+                    p.setRomeCodes(m.romeCodes());
+                    p.setOfferKeywords(m.keywords());
+                    programRepository.save(p);
+                    filled++;
+                }
+            }
+            settings.setMatchingInitialized(true);
+            settingsRepository.save(settings);
+            log.info("Espace entreprise : codes ROME et mots-clés d'offres préremplis ({} formations)", filled);
+        }
     }
 
     @Transactional

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html th:lang="${lang}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="color-scheme" content="light dark"/>
+    <meta name="supported-color-schemes" content="light dark"/>
+    <title th:text="${brandName}">ITIC Paris CRE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .bg-page { background-color: #020203 !important; }
+            .bg-frame { background-color: #0d0f16 !important; }
+            .bg-body { background-color: #15171f !important; }
+            .bg-card { background-color: #1e2130 !important; border-color: #2a2e3f !important; }
+            .text-primary { color: #ffffff !important; }
+            .text-secondary { color: #9aa0a6 !important; }
+        }
+    </style>
+</head>
+<!-- E-mail du soir des offres ciblees : une ligne par offre publiee dans la journee pour la promotion de l'etudiant. -->
+<body class="bg-page" style="margin:0;padding:0;background-color:#eef0f3;font-family:'Roboto',Arial,sans-serif;" bgcolor="#eef0f3">
+    <table width="100%" cellpadding="0" cellspacing="0" class="bg-page" style="background-color:#eef0f3;padding:40px 0;" bgcolor="#eef0f3">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                       style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td class="bg-frame" style="background-color:#f7f8fa;border-top:4px solid #3B71FF;padding:28px 40px;" bgcolor="#f7f8fa">
+                            <span class="text-secondary" style="display:block;padding-bottom:18px;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#6b7280;" th:text="${brandName}">ITIC Paris CRE</span>
+                            <h1 class="text-primary" style="margin:0;font-size:22px;font-weight:700;color:#111827;">
+                                <span th:if="${lang == 'en'}">Your offers of the week</span>
+                                <span th:if="${lang != 'en'}">Vos offres de la semaine</span>
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="bg-body" style="background-color:#ffffff;padding:32px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;" bgcolor="#ffffff">
+                            <p class="text-primary" style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#111827;">
+                                <span th:if="${lang == 'en'}">Hello</span><span th:if="${lang != 'en'}">Bonjour</span>
+                                <strong style="color:#3B71FF;" th:text="${firstName}">Inès</strong>,
+                            </p>
+                            <p class="text-secondary" style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#6b7280;">
+                                <span th:if="${lang == 'en'}">The most relevant new offers of the last 7 days for your programme:</span>
+                                <span th:if="${lang != 'en'}">Les nouvelles offres des 7 derniers jours les plus proches de votre formation :</span>
+                            </p>
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr th:each="offer : ${offers}">
+                                    <td style="padding:0 0 12px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" class="bg-card"
+                                               style="border:1px solid #e5e7eb;border-radius:12px;background-color:#f9fafb;" bgcolor="#f9fafb">
+                                            <tr>
+                                                <td style="padding:16px 18px;">
+                                                    <a th:href="${offer.link()}" target="_blank" style="font-size:15px;font-weight:700;color:#3B71FF;text-decoration:none;" th:text="${offer.title()}">Alternance développeur</a>
+                                                    <p class="text-secondary" style="margin:6px 0 0 0;font-size:13px;color:#6b7280;">
+                                                        <span th:text="${offer.company()}">Entreprise</span><span th:if="${offer.location() != null}"> · <span th:text="${offer.location()}">Paris</span></span><span th:if="${offer.contractType() != null}"> · <span th:text="${offer.contractType()}">Alternance</span></span>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table cellpadding="0" cellspacing="0" style="margin-top:12px;">
+                                <tr>
+                                    <td style="background-color:#3B71FF;border-radius:11px;" bgcolor="#3B71FF">
+                                        <a th:href="${allOffersUrl}" target="_blank" style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;">
+                                            <span th:if="${lang == 'en'}">See all offers →</span><span th:if="${lang != 'en'}">Voir toutes les offres →</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="bg-frame" style="background-color:#f7f8fa;border-radius:0 0 16px 16px;padding:24px 40px;border:1px solid #e5e7eb;border-top:none;text-align:center;" bgcolor="#f7f8fa">
+                            <p class="text-primary" style="margin:0 0 6px 0;font-size:13px;font-weight:700;color:#111827;" th:text="${brandName}">ITIC Paris CRE</p>
+                            <p class="text-secondary" style="margin:0 0 8px 0;font-size:11px;color:#6b7280;line-height:1.5;">
+                                <span th:if="${lang == 'en'}">You receive this Monday summary because you are not yet under contract.</span>
+                                <span th:if="${lang != 'en'}">Vous recevez ce récapitulatif du lundi car vous n'êtes pas encore sous contrat.</span>
+                            </p>
+                            <a th:href="${unsubscribeUrl}" style="font-size:11px;color:#6b7280;text-decoration:underline;">
+                                <span th:if="${lang == 'en'}">Stop receiving these emails</span><span th:if="${lang != 'en'}">Ne plus recevoir ces emails</span>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
