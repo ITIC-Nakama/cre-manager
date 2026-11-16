@@ -76,8 +76,8 @@ export default function IdfMap({ counts, selected, onSelect, label }: {
                 if (!paris) return null;
                 return (
                     <g className="pointer-events-none select-none">
-                        <line x1={paris.cx} y1={paris.cy} x2={paris.cx + 26} y2={paris.cy - 42} className="stroke-slate-400" strokeWidth={1} />
-                        <text x={paris.cx + 30} y={paris.cy - 46} className="fill-slate-700 dark:fill-slate-200 text-[14px] font-bold">
+                        <line x1={paris.cx} y1={paris.cy} x2={paris.cx - 58} y2={paris.cy - 40} className="stroke-slate-400" strokeWidth={1} />
+                        <text x={paris.cx - 62} y={paris.cy - 44} textAnchor="end" className="fill-slate-700 dark:fill-slate-200 text-[14px] font-bold">
                             75 · {counts['75'] ?? 0}
                         </text>
                     </g>
