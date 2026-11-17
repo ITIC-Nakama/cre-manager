@@ -69,7 +69,7 @@ public class EmailPreferenceService {
         return of(s);
     }
 
-    private static Preferences of(Student s) {
+    private Preferences of(Student s) {
         return new Preferences(s.isEmailTargetedOffers(), s.isEmailWeeklyDigest(), s.isEmailInstantOffers(), instantOffersAvailable);
     }
 
