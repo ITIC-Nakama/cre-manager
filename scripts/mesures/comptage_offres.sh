@@ -68,13 +68,16 @@ PSQL = (json.loads(os.environ["CRE_PSQL"]) if os.environ.get("CRE_PSQL", "").sta
         else os.environ.get("CRE_PSQL", "sudo -u postgres psql").split())
 
 def sql(q):
-    r = subprocess.run(PSQL + ["-d", DB, "-X", "-q", "-At", "-F", "\x1f", "-v", "ON_ERROR_STOP=1",
+    # Séparateurs d'enregistrement et de champ dédiés : un intitulé ou un nom d'entreprise contenant un retour à la
+    # ligne ne coupe plus l'enregistrement (cause du plantage du 17/11, ligne 183).
+    r = subprocess.run(PSQL + ["-d", DB, "-X", "-q", "-At", "-F", "\x1f", "-R", "\x1e", "-v", "ON_ERROR_STOP=1",
                                "-c", "SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY",
                                "-c", "SET statement_timeout = '120s'", "-c", q],
                        capture_output=True, text=True, encoding="utf-8", errors="replace", stdin=subprocess.DEVNULL)
     if r.returncode != 0:
         raise RuntimeError("requête refusée (code %d)" % r.returncode)
-    return [line.split("\x1f") for line in r.stdout.splitlines() if line]
+    raw = r.stdout[:-1] if r.stdout.endswith("\n") else r.stdout
+    return [rec.split("\x1f") for rec in raw.split("\x1e") if rec != ""]
 
 # ─── Dédoublonnage : même règle que CrossSourceDeduplicator (PR #91) ───────────────────────────
 INCLUSIVE = re.compile(r"\((?:e|es|ee|ne|le|se|euse|rice|trice|ere|ve)\)")
@@ -103,7 +106,7 @@ def dedup_key(company, title, location):
 
 # ─── HTTP : jamais d'URL ni de clé dans la sortie, appels comptés et plafonnés ──────────────────
 CALLS = {"FRANCE_TRAVAIL": 0, "BONNE_ALTERNANCE": 0, "ADZUNA": 0, "JSEARCH": 0}
-CAP = {"FRANCE_TRAVAIL": 230, "BONNE_ALTERNANCE": 45, "ADZUNA": 60, "JSEARCH": 3}
+CAP = {"FRANCE_TRAVAIL": 230, "BONNE_ALTERNANCE": 45, "ADZUNA": 85, "JSEARCH": 3}
 PAUSE = {"FRANCE_TRAVAIL": 0.15, "BONNE_ALTERNANCE": 0.4, "ADZUNA": 2.6, "JSEARCH": 1.0}
 ERRORS = {k: 0 for k in CALLS}
 
@@ -166,9 +169,12 @@ out("COMPTAGE DES OFFRES — lecture seule —", time.strftime("%Y-%m-%d %H:%M %
 out("=" * 78)
 active = {s: int(n) for s, n in sql("SELECT source, count(*) FROM job_offers WHERE is_active GROUP BY source")}
 total_active = sum(active.values())
-out("\n[1] Offres actives dans le CRE aujourd'hui : %d" % total_active)
+alt_active = {r[0]: int(r[1]) for r in sql("SELECT o.source, count(*) FROM job_offers o JOIN contract_types c ON c.id = o.contract_type_id "
+                                           "WHERE o.is_active AND c.label ILIKE 'alternance%' GROUP BY o.source")}
+total_alt = sum(alt_active.values())
+out("\n[1] Offres actives dans le CRE aujourd'hui : %d, dont alternance : %d" % (total_active, total_alt))
 for s in sorted(active, key=lambda k: -active[k]):
-    out("      %-18s %7d" % (s, active[s]))
+    out("      %-18s %7d   dont alternance %6d" % (s, active[s], alt_active.get(s, 0)))
 fresh = {s: (int(a), int(b), int(c)) for s, a, b, c in sql(
     "SELECT source, count(*) FILTER (WHERE created_at > now() - interval '7 days'), "
     "count(*) FILTER (WHERE created_at > now() - interval '30 days'), "
@@ -280,10 +286,12 @@ def ft():
     crit = {"main": (c["romes"] or [None], c["regions"]),
             "pr91": (list(dict.fromkeys(c["romes"] + FORMATION_ROMES)), c["regions"] or ["11"])}
     res = {}
+    labels = {"E2": "apprentissage (E2)", "FS": "professionnalisation (FS)", "stage": "stage (mot-clé)", "CDI": "CDI", "CDD": "CDD"}
     for name, (romes, regions) in crit.items():
-        tot, importable, alt, per_rome = 0, 0, 0, {}
+        tot, importable, alt, imp_alt, per_rome = 0, 0, 0, 0, {}
+        per_bucket = {k: [0, 0] for k in labels}
         for rome in romes:
-            r_tot, r_alt, r_imp = 0, 0, 0
+            r_tot, r_alt = 0, 0
             for b in FT_BUCKETS:
                 try:
                     n, _ = total(rome, b, regions)
@@ -291,19 +299,26 @@ def ft():
                     n = None
                 if n is None:
                     continue
-                r_tot += n
-                r_imp += min(n, PRIO_Q if b[3] else NORM_Q, 1150)
+                q = min(n, PRIO_Q if b[3] else NORM_Q, 1150)
+                bk = b[0] or b[1] or b[2]
+                per_bucket[bk][0] += n; per_bucket[bk][1] += q
+                r_tot += n; importable += q
                 if b[0] in ("E2", "FS"):
-                    r_alt += n
-            tot += r_tot; alt += r_alt; importable += r_imp
+                    r_alt += n; imp_alt += q
+            tot += r_tot; alt += r_alt
             per_rome[rome or "(tous métiers)"] = (r_tot, r_alt)
         importable = min(importable, MAX * len(romes))
-        res[name] = dict(total=tot, alternance=alt, importable=importable, per_rome=per_rome, romes=len(romes),
-                         zone=",".join(regions) or "France entière")
-        out("    %-5s : %d code(s) ROME, zone %s → %d offres (dont alternance %d) ; importables par synchro ≈ %d"
-            % (name, len([r for r in romes if r]), res[name]["zone"], tot, alt, importable))
-    out("    (total = somme des 5 recherches de la synchro : alternance E2/FS, stage, CDI, CDD ; une offre peut compter 2 fois, "
-        "ex. alternance en CDD)")
+        imp_alt = min(imp_alt, importable)
+        res[name] = dict(total=tot, alternance=alt, importable=importable, importable_alt=imp_alt, per_rome=per_rome,
+                         romes=len(romes), zone=",".join(regions) or "France entière")
+        out("    %-5s : %d code(s) ROME, zone %s → %d offres, dont alternance (E2+FS) %d ; importables par synchro ≈ %d, dont alternance ≈ %d"
+            % (name, len([r for r in romes if r]), res[name]["zone"], tot, alt, importable, imp_alt))
+        out("            détail des 5 recherches de la synchro (disponibles / importables par synchro) :")
+        for bk, (n, q) in per_bucket.items():
+            out("              %-27s %7d / %7d" % (labels[bk], n, q))
+    out("    (total = somme des 5 recherches ; une offre peut compter 2 fois, ex. alternance en CDD trouvée aussi par la recherche CDD)")
+    out("    ⚠ Dans le CRE, le type de contrat d'une offre France Travail est déduit de son INTITULÉ (alternance, alternant, apprenti,")
+    out("      professionnalisation) : une offre trouvée par la recherche E2/FS sans ces mots est enregistrée en CDD ou CDI.")
     out("    Détail PR #91 par code ROME (toutes recherches / alternance) :")
     for rome, (t, a) in sorted(res["pr91"]["per_rome"].items(), key=lambda kv: -kv[1][0]):
         out("      %-6s %6d / %6d" % (rome, t, a))
@@ -346,7 +361,7 @@ def lba():
     res = {}
     jobs = search(c["romes"], depts_main)
     n_main = len(jobs) if jobs is not None else None
-    res["main"] = dict(total=n_main, importable=min(n_main or 0, MAX))
+    res["main"] = dict(total=n_main, alternance=n_main, importable=min(n_main or 0, MAX), importable_alt=min(n_main or 0, MAX))
     out("    main  : %d code(s) ROME, zone %s → %s offres renvoyées (1 appel)"
         % (len(c["romes"]), ",".join(depts_main) or "France entière", n_main))
     romes91 = list(dict.fromkeys(c["romes"] + FORMATION_ROMES))
@@ -356,7 +371,8 @@ def lba():
         jobs = search(romes91[i:i + 10], depts91) or []
         ids = {(j.get("identifier") or {}).get("id") for j in jobs}
         n91 += len(ids - seen); imp += min(len(ids - seen), MAX); seen |= ids
-    res["pr91"] = dict(total=n91, importable=imp)
+    res["pr91"] = dict(total=n91, alternance=n91, importable=imp, importable_alt=imp)
+    out("    (La Bonne Alternance ne renvoie que de l'alternance : total = alternance ; pas de total dans l'API, on compte les offres renvoyées)")
     out("    pr91  : %d codes ROME par paquets de 10, zone %s → %d offres distinctes" % (len(romes91), "IDF (8 dép.)"
         if not depts_main else ",".join(depts_main), n91))
     out("    Détail PR #91 par code ROME (offres renvoyées) :")
@@ -383,13 +399,15 @@ def adzuna():
         return None
     cache = {}
 
-    def count(what, category, where, permanent, per_page=1):
-        k = (what, category, where, permanent, per_page)
+    def count(what, category, where, permanent, per_page=1, what_or=None):
+        k = (what, category, where, permanent, per_page, what_or)
         if k in cache:
             return cache[k]
         params = [("app_id", app_id), ("app_key", key), ("results_per_page", per_page), ("sort_by", "date")]
         if what:
             params.append(("what", what))
+        if what_or:
+            params.append(("what_or", what_or))
         if category:
             params.append(("category", category))
         if where:
@@ -416,17 +434,27 @@ def adzuna():
     nq = max(1, (MAX - MAX * 2 // 3) // norm_n) if norm_n else 0
     res = {}
     for name, where in (("main", c["departments"] or None), ("pr91", c["departments"] or "Ile-de-France")):
-        tot, imp = 0, 0
+        tot, imp, imp_alt = 0, 0, 0
         for cat in (c["categories"] or [None]):
             for what, perm, prio in loop:
                 n, _ = count(what, cat, where, perm)
                 if n is None:
                     continue
-                tot += n; imp += min(n, pq if prio else nq, 1000)
+                q = min(n, pq if prio else nq, 1000)
+                tot += n; imp += q
+                if what in ("alternance", "apprentissage", "professionnalisation"):
+                    imp_alt += q
         imp = min(imp, MAX * len(c["categories"] or [None]))
-        res[name] = dict(total=tot, importable=imp, zone=where or "France entière")
+        alt_n, _ = count(None, None, where, False, 1, what_or="alternance alternant apprenti apprentissage professionnalisation")
+        imp_alt = min(imp_alt, alt_n if alt_n is not None else imp_alt, imp)
+        res[name] = dict(total=tot, alternance=alt_n, importable=imp, importable_alt=imp_alt, zone=where or "France entière")
         out("    %-5s : zone %s, %d recherche(s) × %d catégorie(s) → %d offres (somme des recherches) ; importables par synchro ≈ %d"
-            % (name, where or "France entière", len(loop), len(c["categories"] or [None]), tot, imp))
+            % (name, "(lieu renseigné)" if c["departments"] else (where or "France entière"), len(loop),
+               len(c["categories"] or [None]), tot, imp))
+        out("            alternance : %s offres distinctes contenant un mot d'alternance (toutes catégories) ; importables ≈ %d"
+            % (alt_n, imp_alt))
+    if c["departments"]:
+        out("    (lieu déjà renseigné dans les critères : la PR #91 ne change rien pour Adzuna, qui n'utilise pas les codes ROME)")
     _, rows = count("alternance", None, "Ile-de-France", False, 50)
     res["sample"] = [k for k in (dedup_key((o.get("company") or {}).get("display_name"), o.get("title"),
                                            (o.get("location") or {}).get("display_name")) for o in rows) if k]
@@ -487,20 +515,27 @@ out("    Échantillon : France Travail = 4 × 150 (alternance E2, ROME M1805, D1
 out("\n" + "=" * 78)
 out("TABLEAU (nombres seulement)")
 out("=" * 78)
-out("Offres actives dans le CRE aujourd'hui : %d" % total_active)
-out("%-18s %14s %14s %16s %16s %7s" % ("source", "dispo main", "dispo PR #91", "import./synchro", "après dédoubl.", "appels"))
-est_total = 0
+out("Offres actives dans le CRE aujourd'hui : %d au total, dont %d en alternance" % (total_active, total_alt))
+out("Chaque case : TOTAL / ALTERNANCE")
+H = "%-17s %17s %17s %19s %19s %6s"
+out(H % ("source", "dispo main", "dispo PR #91", "import./synchro #91", "après dédoublonnage", "appels"))
+est_total, est_alt = 0, 0
+def pair(a, b):
+    return "%s / %s" % ("?" if a is None else a, "?" if b is None else b)
 for s in ("FRANCE_TRAVAIL", "BONNE_ALTERNANCE", "ADZUNA"):
     r = R.get(s)
     if not r:
-        out("%-18s %14s %14s %16s %16s %7d" % (s, "non mesuré", "non mesuré", "-", "-", CALLS[s]))
+        out(H % (s, "non mesuré", "non mesuré", "-", "-", CALLS[s]))
         continue
-    imp = r["pr91"]["importable"]
-    after = round(imp * (1 - dup_rates.get(s, 0)))
-    est_total += after
-    out("%-18s %14s %14s %16s %16s %7d" % (s, r["main"]["total"], r["pr91"]["total"], imp, after, CALLS[s]))
-out("%-18s %14s %14s %16s %16s %7d" % ("JSEARCH", "coupé", (R["JSEARCH"] or {}).get("first_pages", "pas de clé"), "-", "-", CALLS["JSEARCH"]))
-out("Total estimé importable par synchro après dédoublonnage (hors offres ITIC) : %d" % est_total)
+    p91 = r["pr91"]
+    rate = dup_rates.get(s, 0)
+    after, after_alt = round(p91["importable"] * (1 - rate)), round(p91["importable_alt"] * (1 - rate))
+    est_total += after; est_alt += after_alt
+    out(H % (s, pair(r["main"]["total"], r["main"].get("alternance")), pair(p91["total"], p91.get("alternance")),
+             pair(p91["importable"], p91["importable_alt"]), pair(after, after_alt), CALLS[s]))
+out(H % ("JSEARCH", "coupé", str((R["JSEARCH"] or {}).get("first_pages", "pas de clé")), "-", "-", CALLS["JSEARCH"]))
+out("Estimé importable par synchro après dédoublonnage (hors offres ITIC) : %d au total, dont %d en alternance" % (est_total, est_alt))
+out("(« alternance » côté API = recherches E2/FS pour France Travail, tout LBA, mots d'alternance pour Adzuna ; côté CRE = libellé déduit de l'intitulé)")
 for s in CALLS:
     if CALLS[s] >= CAP[s]:
         out("ATTENTION %s : plafond de %d appels atteint, mesure INCOMPLÈTE (chiffres sous-estimés)" % (s, CAP[s]))
