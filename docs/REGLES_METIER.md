@@ -682,8 +682,9 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - **E-mails « Vous avez un nouveau message »** (migration V52) :
   - l'équipe écrit : l'**étudiant** est prévenu ; l'étudiant écrit : son **référent** est prévenu (sans référent, ou référent désactivé : personne ; le fil compte alors dans le badge de toute l'équipe) ;
   - contenu : qui a écrit et un **lien direct** (`/student/messages`, `/supervisor/conversations/{id}`), **jamais le texte du message** ; dans la langue du destinataire (fr/en) ;
-  - **anti-avalanche** : au plus **un e-mail toutes les 15 minutes par fil et par destinataire**, et seulement pour des messages qu'il n'a ni lus ni déjà vus signalés. Un message déjà lu au moment de l'envoi ne donne aucun e-mail ;
-  - un message écrit pendant ces 15 minutes et toujours non lu à leur fin est signalé à ce moment-là (contrôle chaque minute, `app.messaging.notification-scheduler.enabled`) : aucun message ne reste sans avis ;
+  - **délai (PR #96, remplace la règle des 15 minutes)** : l'e-mail ne part que si un message est resté **non lu pendant 1 heure** (`APP_MESSAGING_EMAIL_DELAY_MINUTES`, 60 par défaut). Lu avant : **aucun e-mail**. Contrôle chaque minute (`app.messaging.notification-scheduler.enabled`) ;
+  - **un seul rappel par série** de messages non lus, par fil et par destinataire : **pas de relance tant que le destinataire n'a pas lu**, même si d'autres messages arrivent. Un nouveau rappel n'est possible que pour des messages écrits **après sa dernière lecture**, 1 heure après le premier d'entre eux ;
+  - seul un rappel réellement envoyé bloque une relance : une série traitée sans e-mail (sans référent, compte désactivé) ne bloque pas les messages suivants, et un référent nommé plus tard est prévenu normalement. Limite connue : si le référent change alors qu'un rappel non lu attend, le nouveau référent n'est prévenu qu'après avoir lu le fil une première fois ;
   - le fil est verrouillé pendant la décision : deux messages simultanés ne donnent qu'un e-mail ;
   - compte étudiant désactivé ou anonymisé : aucun e-mail.
 - **Onglet « Conversations »** (conseillers et admins, `/supervisor/conversations`, 15/11/2026) :

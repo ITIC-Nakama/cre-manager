@@ -11,8 +11,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Chaque minute : les messages ecrits pendant les 15 minutes qui suivent un e-mail, et toujours pas lus, sont signales
- * a la fin de cette periode (sinon ils resteraient sans avis). Desactivable : app.messaging.notification-scheduler.enabled.
+ * Chaque minute : envoie les rappels « Vous avez un nouveau message » des fils dont un message est reste non lu pendant
+ * le delai (app.messaging.email-delay-minutes, 60 par defaut). Desactivable : app.messaging.notification-scheduler.enabled.
  */
 @Slf4j
 @Component
@@ -29,10 +29,10 @@ public class ConversationNotificationScheduler {
         sendPending(Instant.now());
     }
 
-    /** Fils dont un message n'a pas encore ete traite et dont la periode de 15 minutes est passee ; renvoie les e-mails envoyes. */
+    /** Fils ayant un message pas encore traite ; le service decide pour chacun. Renvoie le nombre d'e-mails envoyes. */
     public int sendPending(Instant now) {
         int sent = 0;
-        for (UUID id : conversationRepository.findWithPendingNotifications(now.minus(ConversationNotificationService.THROTTLE))) {
+        for (UUID id : conversationRepository.findWithPendingNotifications()) {
             try {
                 sent += notificationService.notifyIfDue(id, now);
             } catch (RuntimeException e) {

@@ -29,20 +29,24 @@ import java.util.UUID;
  * E-mails « Vous avez un nouveau message » de la messagerie : un simple avis, avec un lien direct, JAMAIS le contenu.
  * <ul>
  *   <li>l'equipe ecrit : l'etudiant est prevenu ; l'etudiant ecrit : son referent est prevenu (sans referent :
- *       personne, le fil compte alors dans le badge de toute l'equipe) ;</li>
- *   <li>anti-avalanche : au plus un e-mail toutes les 15 minutes par fil et par destinataire, et seulement pour des
- *       messages qu'il n'a ni lus ni deja vus signales ;</li>
- *   <li>un message ecrit pendant ces 15 minutes est signale a leur fin s'il n'est toujours pas lu
- *       ({@link ConversationNotificationScheduler}, chaque minute) : aucun message ne reste sans avis.</li>
+ *       personne, le fil compte alors dans le badge de toute l'equipe) ; jamais vers un compte desactive ou anonymise ;</li>
+ *   <li><b>delai</b> : l'e-mail ne part que si un message est reste NON LU pendant le delai
+ *       ({@code app.messaging.email-delay-minutes}, 60 par defaut). Lu avant : aucun e-mail ;</li>
+ *   <li><b>un seul rappel par serie</b> de messages non lus, par fil et par destinataire : pas de relance tant que le
+ *       destinataire n'a pas lu. Un nouveau rappel n'est possible que pour des messages ecrits apres sa derniere lecture.</li>
  * </ul>
- * Le fil est verrouille (SELECT ... FOR UPDATE) pendant la decision : deux messages simultanes ne donnent qu'un e-mail.
+ * Le controle passe chaque minute ({@link ConversationNotificationScheduler}). Le fil est verrouille
+ * (SELECT ... FOR UPDATE) pendant la decision : deux passages simultanes ne donnent qu'un e-mail.
+ * <p>
+ * Etat par cote : {@code *NotifiedMessageId} = dernier message deja traite (rappel envoye, deja lu, ou sans destinataire
+ * joignable) ; {@code *NotifiedAt} = date du dernier rappel REELLEMENT envoye, remise a null quand une serie est traitee
+ * sans e-mail. Seul un rappel reellement envoye et non lu depuis bloque une relance : un referent nomme plus tard, ou un
+ * compte reactive, peut donc etre prevenu des messages suivants.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationNotificationService {
-
-    public static final Duration THROTTLE = Duration.ofMinutes(15);
 
     private final ConversationRepository conversationRepository;
     private final ConversationMessageRepository messageRepository;
@@ -53,10 +57,20 @@ public class ConversationNotificationService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    /** Delai pendant lequel un message doit rester non lu avant l'e-mail (APP_MESSAGING_EMAIL_DELAY_MINUTES). */
+    @Value("${app.messaging.email-delay-minutes:60}")
+    private long delayMinutes;
+
     /** Destinataire d'un avis, decide et reserve dans la transaction ; l'e-mail part apres. */
     record Notice(String email, String lang, String firstName, String senderName, String link, boolean toStudent) {
     }
 
+    /** Delai effectif (jamais negatif). */
+    public Duration delay() {
+        return Duration.ofMinutes(Math.max(0, delayMinutes));
+    }
+
+    /** Juste apres un message : rien ne part tant que le delai n'est pas ecoule (sauf delai a 0). */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onMessagePosted(ConversationMessagePostedEvent event) {
@@ -79,43 +93,72 @@ public class ConversationNotificationService {
         return notices.size();
     }
 
+    /** Ce qu'il faut faire pour un cote du fil. */
+    private enum Decision { NOTHING, HANDLED_WITHOUT_EMAIL, SEND }
+
+    private Decision decideSide(Conversation c, Long lastMessageId, Long notifiedMessageId, Instant notifiedAt,
+                                User recipient, boolean fromStudent, Instant now) {
+        if (lastMessageId == null || lastMessageId <= orZero(notifiedMessageId)) {
+            return Decision.NOTHING; // rien de nouveau depuis le dernier traitement
+        }
+        boolean reachable = recipient != null && recipient.isActive() && !recipient.isAnonymized();
+        if (!reachable) {
+            return Decision.HANDLED_WITHOUT_EMAIL; // sans referent, ou compte desactive : jamais d'e-mail
+        }
+        long read = lastRead(c, recipient.getId());
+        if (read >= lastMessageId) {
+            return Decision.HANDLED_WITHOUT_EMAIL; // tout est lu : rien a signaler
+        }
+        if (notifiedAt != null && orZero(notifiedMessageId) > read) {
+            return Decision.NOTHING; // un rappel est deja parti et n'a pas ete lu depuis : pas de relance
+        }
+        Instant oldestUnread = messageRepository.oldestFromSideAfter(c.getId(), fromStudent, read);
+        if (oldestUnread == null || oldestUnread.isAfter(now.minus(delay()))) {
+            return Decision.NOTHING; // pas encore reste non lu pendant tout le delai
+        }
+        return Decision.SEND;
+    }
+
     private List<Notice> decide(UUID conversationId, Instant now) {
         Conversation c = conversationRepository.findByIdForUpdate(conversationId).orElse(null);
         if (c == null) {
             return List.of();
         }
         List<Notice> notices = new ArrayList<>();
-        Instant threshold = now.minus(THROTTLE);
         Student student = c.getStudent();
 
         // L'equipe a ecrit : l'etudiant.
         Long lastStaff = c.getLastStaffMessageId();
-        if (lastStaff != null && lastStaff > orZero(c.getStudentNotifiedMessageId())) {
-            boolean reachable = student.isActive() && !student.isAnonymized();
-            if (!reachable || lastRead(c, student.getId()) >= lastStaff) {
-                c.setStudentNotifiedMessageId(lastStaff); // rien a signaler : deja lu, ou compte inaccessible
-            } else if (c.getStudentNotifiedAt() == null || !c.getStudentNotifiedAt().isAfter(threshold)) {
-                c.setStudentNotifiedAt(now);
+        switch (decideSide(c, lastStaff, c.getStudentNotifiedMessageId(), c.getStudentNotifiedAt(), student, false, now)) {
+            case HANDLED_WITHOUT_EMAIL -> {
                 c.setStudentNotifiedMessageId(lastStaff);
+                c.setStudentNotifiedAt(null);
+            }
+            case SEND -> {
+                c.setStudentNotifiedMessageId(lastStaff);
+                c.setStudentNotifiedAt(now);
                 notices.add(new Notice(student.getEmail(), student.getLang(), student.getFirstName(),
                         staffSenderName(lastStaff), frontendUrl + "/student/messages", true));
             }
+            case NOTHING -> { }
         }
 
         // L'etudiant a ecrit : son referent.
         Long lastStudent = c.getLastStudentMessageId();
-        if (lastStudent != null && lastStudent > orZero(c.getStaffNotifiedMessageId())) {
-            User referent = student.getAdvisor();
-            boolean reachable = referent != null && referent.isActive() && !referent.isAnonymized();
-            if (!reachable || lastRead(c, referent.getId()) >= lastStudent) {
-                c.setStaffNotifiedMessageId(lastStudent); // sans referent joignable, ou deja lu
-            } else if (c.getStaffNotifiedAt() == null || !c.getStaffNotifiedAt().isAfter(threshold)) {
-                c.setStaffNotifiedAt(now);
+        User referent = student.getAdvisor();
+        switch (decideSide(c, lastStudent, c.getStaffNotifiedMessageId(), c.getStaffNotifiedAt(), referent, true, now)) {
+            case HANDLED_WITHOUT_EMAIL -> {
                 c.setStaffNotifiedMessageId(lastStudent);
+                c.setStaffNotifiedAt(null);
+            }
+            case SEND -> {
+                c.setStaffNotifiedMessageId(lastStudent);
+                c.setStaffNotifiedAt(now);
                 notices.add(new Notice(referent.getEmail(), referent.getLang(), referent.getFirstName(),
                         (student.getFirstName() + " " + student.getLastName()).strip(),
                         frontendUrl + "/supervisor/conversations/" + student.getId(), false));
             }
+            case NOTHING -> { }
         }
         conversationRepository.save(c);
         return notices;

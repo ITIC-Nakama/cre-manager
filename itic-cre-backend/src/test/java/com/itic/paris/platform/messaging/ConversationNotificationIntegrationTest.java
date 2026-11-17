@@ -55,13 +55,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Messagerie, e-mails « Vous avez un nouveau message » : lien direct, jamais le contenu ; l'étudiant est prévenu des
- * messages de l'équipe, le référent de ceux de l'étudiant ; au plus un e-mail toutes les 15 minutes par fil et par
- * destinataire, rien pour un message déjà lu ; un message écrit pendant ces 15 minutes est signalé à leur fin s'il
- * n'est toujours pas lu. Le bouton « Envoyer un message » écrit dans le fil.
+ * Messagerie, e-mails « Vous avez un nouveau message » (PR #96) : lien direct, jamais le contenu ; l'étudiant est
+ * prévenu des messages de l'équipe, le référent de ceux de l'étudiant. Un e-mail ne part que si un message est resté
+ * NON LU pendant le délai (60 minutes par défaut) ; un seul rappel par série non lue, pas de relance tant que le
+ * destinataire n'a pas lu ; un nouveau rappel seulement pour des messages écrits après sa dernière lecture.
+ * Le bouton « Envoyer un message » écrit dans le fil.
  * <p>
- * Les tests sont transactionnels : l'avis, normalement déclenché après validation de la transaction, est appelé
- * directement (avec l'heure voulue).
+ * Les tests sont transactionnels : le contrôle, normalement fait chaque minute, est appelé directement avec l'heure
+ * voulue ; l'ancienneté d'un message est simulée en reculant sa date en base.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -82,6 +83,7 @@ class ConversationNotificationIntegrationTest {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JWTAuthProvider jwtAuthProvider;
     @Autowired private ApplicationEvents applicationEvents;
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @MockitoBean private NotificationEmailService emailService;
     @MockitoBean private JavaMailSender javaMailSender;
@@ -101,91 +103,129 @@ class ConversationNotificationIntegrationTest {
         t0 = Instant.now();
     }
 
+    private static final Duration JUST_BEFORE = Duration.ofMinutes(59);
+    private static final Duration AFTER_DELAY = Duration.ofMinutes(61);
+
     @Test
-    @DisplayName("L'équipe écrit : l'étudiante est prévenue (sa langue, lien direct vers ses messages, nom de l'auteur), pas l'équipe")
-    void staffMessageNotifiesTheStudent() throws Exception {
+    @DisplayName("L'équipe écrit : rien tout de suite ni à 59 min ; non lu après 1 h, l'étudiante est prévenue (sa langue, lien, auteur)")
+    void unreadAfterOneHourNotifiesTheStudent() throws Exception {
         sendTo(student, colleague, "Bonjour Inès, as-tu des nouvelles de l'entreprise ?");
         assertThat(applicationEvents.stream(ConversationMessagePostedEvent.class)).hasSize(1);
+        UUID conversation = conversationId(student);
 
-        assertThat(notificationService.notifyIfDue(conversationId(student), t0)).isEqualTo(1);
+        assertThat(notificationService.notifyIfDue(conversation, t0)).as("pas d'e-mail à l'envoi").isZero();
+        assertThat(scheduler.sendPending(t0.plus(JUST_BEFORE))).as("pas avant 1 h").isZero();
+        assertThat(scheduler.sendPending(t0.plus(AFTER_DELAY))).isEqualTo(1);
         verify(emailService).sendConversationMessageNotification("ines.avis@itic.fr", "fr", "Inès", "Claire Collègue",
                 FRONT + "/student/messages", true);
         verify(emailService, times(1)).sendConversationMessageNotification(anyString(), anyString(), anyString(), any(), anyString(), anyBoolean());
     }
 
     @Test
-    @DisplayName("L'étudiante écrit : son référent est prévenu (sa langue, lien vers la conversation), pas ses collègues")
-    void studentMessageNotifiesTheReferent() throws Exception {
+    @DisplayName("L'étudiante écrit : non lu après 1 h, son référent est prévenu (sa langue, lien vers la conversation), pas ses collègues")
+    void unreadAfterOneHourNotifiesTheReferent() throws Exception {
         send(student, "Bonjour, j'ai une question.");
+        UUID conversation = conversationId(student);
 
-        assertThat(notificationService.notifyIfDue(conversationId(student), t0)).isEqualTo(1);
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(JUST_BEFORE))).isZero();
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(AFTER_DELAY))).isEqualTo(1);
         verify(emailService).sendConversationMessageNotification("referent.avis@itic.fr", "en", "Romain", "Inès Martin",
                 FRONT + "/supervisor/conversations/" + student.getId(), false);
         verify(emailService, never()).sendConversationMessageNotification(eq("collegue.avis@itic.fr"), anyString(), anyString(), any(), anyString(), anyBoolean());
     }
 
     @Test
-    @DisplayName("Anti-avalanche : 3 messages en 2 minutes = 1 e-mail ; ceux restés non lus sont signalés après 15 minutes, une seule fois")
-    void atMostOneEmailEvery15Minutes() throws Exception {
-        UUID conversation;
-        sendTo(student, referent, "Message 1");
-        conversation = conversationId(student);
-        assertThat(notificationService.notifyIfDue(conversation, t0)).isEqualTo(1);
-
-        sendTo(student, referent, "Message 2");
-        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(1)))).isZero();
-        sendTo(student, referent, "Message 3");
-        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(2)))).isZero();
-        assertThat(scheduler.sendPending(t0.plus(Duration.ofMinutes(10)))).as("encore dans les 15 minutes").isZero();
-
-        assertThat(scheduler.sendPending(t0.plus(Duration.ofMinutes(16)))).as("messages 2 et 3 toujours non lus").isEqualTo(1);
-        assertThat(scheduler.sendPending(t0.plus(Duration.ofMinutes(40)))).as("rien de nouveau").isZero();
-        verify(emailService, times(2)).sendConversationMessageNotification(eq("ines.avis@itic.fr"), anyString(), anyString(), any(), anyString(), eq(true));
-    }
-
-    @Test
-    @DisplayName("Message déjà lu avant l'e-mail : aucun avis, et le contrôle de chaque minute ne le reprend plus")
-    void readMessageIsNeverNotified() throws Exception {
+    @DisplayName("Lu avant 1 h : aucun e-mail, et le contrôle de chaque minute ne reprend plus le fil")
+    void readBeforeOneHourIsNeverNotified() throws Exception {
         long id = sendTo(student, referent, "Tu es en ligne ?");
-        perform(post("/conversation/me/read").contentType(MediaType.APPLICATION_JSON).content("{\"lastMessageId\":" + id + "}"), student)
-                .andExpect(status().isNoContent());
-
         UUID conversation = conversationId(student);
-        assertThat(notificationService.notifyIfDue(conversation, t0)).isZero();
-        assertThat(conversationRepository.findWithPendingNotifications(t0.plus(Duration.ofDays(1)))).doesNotContain(conversation);
+        assertThat(scheduler.sendPending(t0.plus(Duration.ofMinutes(30)))).isZero();
+        read(student, id);
+
+        assertThat(scheduler.sendPending(t0.plus(AFTER_DELAY))).isZero();
+        assertThat(scheduler.sendPending(t0.plus(Duration.ofDays(1)))).isZero();
+        assertThat(conversationRepository.findWithPendingNotifications()).doesNotContain(conversation);
         verify(emailService, never()).sendConversationMessageNotification(anyString(), anyString(), anyString(), any(), anyString(), anyBoolean());
     }
 
     @Test
-    @DisplayName("Après lecture, un nouveau message (15 minutes plus tard) donne un nouvel avis")
-    void newMessageAfterReadingIsNotifiedAgain() throws Exception {
-        long first = sendTo(student, referent, "Premier");
-        UUID conversation = conversationId(student);
-        notificationService.notifyIfDue(conversation, t0);
-        perform(post("/conversation/me/read").contentType(MediaType.APPLICATION_JSON).content("{\"lastMessageId\":" + first + "}"), student);
-        clearInvocations(emailService);
+    @DisplayName("Plusieurs messages d'affilée : un seul rappel ; pas de relance tant que l'étudiante n'a pas lu, même pour un message de plus")
+    void severalMessagesGiveASingleReminder() throws Exception {
+        sendTo(student, referent, "Message 1");
+        sendTo(student, colleague, "Message 2");
+        sendTo(student, referent, "Message 3");
+        assertThat(scheduler.sendPending(t0.plus(JUST_BEFORE))).isZero();
+        assertThat(scheduler.sendPending(t0.plus(AFTER_DELAY))).as("un rappel pour les 3").isEqualTo(1);
 
-        sendTo(student, referent, "Deuxième");
-        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(20)))).isEqualTo(1);
+        long fourth = sendTo(student, referent, "Message 4, toujours sans lecture");
+        age(fourth, t0.plus(Duration.ofMinutes(70)));
+        assertThat(scheduler.sendPending(t0.plus(Duration.ofHours(3)))).as("pas de relance sans lecture").isZero();
+        assertThat(scheduler.sendPending(t0.plus(Duration.ofDays(2)))).isZero();
+        verify(emailService, times(1)).sendConversationMessageNotification(eq("ines.avis@itic.fr"), anyString(), anyString(), any(), anyString(), eq(true));
     }
 
     @Test
-    @DisplayName("Étudiant sans référent : aucun e-mail (le fil compte dans le badge de toute l'équipe), marqué traité")
-    void noReferentNoEmail() throws Exception {
+    @DisplayName("Nouveau message après une lecture : nouveau rappel, mais seulement 1 h après ce nouveau message")
+    void newMessageAfterReadingGivesANewReminderAfterTheDelay() throws Exception {
+        long first = sendTo(student, referent, "Premier");
+        UUID conversation = conversationId(student);
+        assertThat(scheduler.sendPending(t0.plus(AFTER_DELAY))).isEqualTo(1);
+        read(student, first);
+        clearInvocations(emailService);
+
+        long second = sendTo(student, referent, "Deuxième, écrit après la lecture");
+        age(second, t0.plus(Duration.ofMinutes(90)));
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(120)))).as("30 min après le 2e : trop tôt").isZero();
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(151)))).isEqualTo(1);
+        verify(emailService, times(1)).sendConversationMessageNotification(eq("ines.avis@itic.fr"), anyString(), anyString(), any(), anyString(), eq(true));
+    }
+
+    @Test
+    @DisplayName("Compte désactivé : aucun e-mail, ni à l'étudiante (message de l'équipe) ni au référent désactivé (message de l'étudiante)")
+    void deactivatedAccountsAreNeverNotified() throws Exception {
+        sendTo(student, referent, "Avant la désactivation");
+        send(student, "Et moi j'écris à mon référent");
+        student.setActive(false);
+        studentRepository.saveAndFlush(student);
+        referent.setActive(false);
+        userRepository.saveAndFlush(referent);
+
+        assertThat(scheduler.sendPending(t0.plus(AFTER_DELAY))).isZero();
+        assertThat(conversationRepository.findWithPendingNotifications()).doesNotContain(conversationId(student));
+        verify(emailService, never()).sendConversationMessageNotification(anyString(), anyString(), anyString(), any(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Sans référent : aucun e-mail, fil traité ; un référent nommé ensuite est prévenu des messages suivants")
+    void noReferentNoEmailThenNewReferentIsNotified() throws Exception {
         Student alone = student("hugo.avis@itic.fr", "Hugo", "Moreau", null, "fr");
         send(alone, "Bonjour ?");
         UUID conversation = conversationId(alone);
-        assertThat(notificationService.notifyIfDue(conversation, t0)).isZero();
-        assertThat(conversationRepository.findWithPendingNotifications(t0.plus(Duration.ofDays(1)))).doesNotContain(conversation);
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(AFTER_DELAY))).isZero();
+        assertThat(conversationRepository.findWithPendingNotifications()).doesNotContain(conversation);
+
+        alone.setAdvisor(referent);
+        studentRepository.saveAndFlush(alone);
+        long later = send(alone, "Il y a quelqu'un ?");
+        age(later, t0.plus(Duration.ofMinutes(100)));
+        assertThat(notificationService.notifyIfDue(conversation, t0.plus(Duration.ofMinutes(161)))).isEqualTo(1);
+        verify(emailService).sendConversationMessageNotification(eq("referent.avis@itic.fr"), anyString(), anyString(), eq("Hugo Moreau"),
+                anyString(), eq(false));
     }
 
     @Test
-    @DisplayName("Compte étudiant désactivé entre-temps : aucun e-mail")
-    void deactivatedStudentIsNotNotified() throws Exception {
-        sendTo(student, referent, "Avant la désactivation");
-        student.setActive(false);
-        studentRepository.saveAndFlush(student);
-        assertThat(notificationService.notifyIfDue(conversationId(student), t0)).isZero();
+    @DisplayName("Délai réglable (APP_MESSAGING_EMAIL_DELAY_MINUTES) : 60 par défaut, 1 minute pour la recette")
+    void delayIsConfigurable() throws Exception {
+        assertThat(notificationService.delay()).isEqualTo(Duration.ofMinutes(60));
+        Object target = org.springframework.test.util.AopTestUtils.getTargetObject(notificationService);
+        org.springframework.test.util.ReflectionTestUtils.setField(target, "delayMinutes", 1L);
+        try {
+            sendTo(student, referent, "Délai court");
+            assertThat(scheduler.sendPending(t0.plus(Duration.ofSeconds(30)))).isZero();
+            assertThat(scheduler.sendPending(t0.plus(Duration.ofSeconds(90)))).isEqualTo(1);
+        } finally {
+            org.springframework.test.util.ReflectionTestUtils.setField(target, "delayMinutes", 60L);
+        }
     }
 
     @Test
@@ -220,7 +260,8 @@ class ConversationNotificationIntegrationTest {
         perform(get("/conversation/me"), english)
                 .andExpect(jsonPath("$.data.messages[0].body").value("Please log in to the platform and update the status of your applications."));
         assertThat(applicationEvents.stream(ConversationMessagePostedEvent.class)).hasSize(2);
-        assertThat(notificationService.notifyIfDue(conversationId(student), t0)).isEqualTo(1);
+        assertThat(notificationService.notifyIfDue(conversationId(student), t0)).as("rien à l'envoi").isZero();
+        assertThat(notificationService.notifyIfDue(conversationId(student), t0.plus(AFTER_DELAY))).isEqualTo(1);
         verify(emailService).sendConversationMessageNotification(eq("ines.avis@itic.fr"), eq("fr"), eq("Inès"), eq("Romain Référent"),
                 anyString(), eq(true));
     }
@@ -229,6 +270,17 @@ class ConversationNotificationIntegrationTest {
 
     private static String any() {
         return org.mockito.ArgumentMatchers.any();
+    }
+
+    /** Simule l'ancienneté d'un message (sa date n'est pas modifiable par l'application). */
+    private void age(long messageId, Instant createdAt) {
+        messageRepository.flush();
+        jdbcTemplate.update("UPDATE conversation_messages SET created_at = ? WHERE id = ?", java.sql.Timestamp.from(createdAt), messageId);
+    }
+
+    private void read(Student s, long lastMessageId) throws Exception {
+        perform(post("/conversation/me/read").contentType(MediaType.APPLICATION_JSON).content("{\"lastMessageId\":" + lastMessageId + "}"), s)
+                .andExpect(status().isNoContent());
     }
 
     private UUID conversationId(Student s) {

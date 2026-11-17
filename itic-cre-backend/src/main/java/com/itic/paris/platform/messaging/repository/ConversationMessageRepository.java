@@ -23,6 +23,13 @@ public interface ConversationMessageRepository extends JpaRepository<Conversatio
             + "WHERE m.conversation.id = :conversationId ORDER BY m.id ASC")
     List<ConversationMessage> findAllInOrder(@Param("conversationId") UUID conversationId);
 
+    /** Date du plus ancien message d'un cote posterieur au message afterId (le plus ancien non lu), null s'il n'y en a pas. */
+    @Query("SELECT MIN(m.createdAt) FROM ConversationMessage m WHERE m.conversation.id = :conversationId "
+            + "AND m.fromStudent = :fromStudent AND m.id > :afterId")
+    java.time.Instant oldestFromSideAfter(@Param("conversationId") UUID conversationId,
+                                          @Param("fromStudent") boolean fromStudent,
+                                          @Param("afterId") long afterId);
+
     /** Messages d'un cote (etudiant ou equipe) posterieurs au message afterId : les non-lus de l'autre cote. */
     @Query("SELECT COUNT(m) FROM ConversationMessage m WHERE m.conversation.id = :conversationId "
             + "AND m.fromStudent = :fromStudent AND m.id > :afterId")
