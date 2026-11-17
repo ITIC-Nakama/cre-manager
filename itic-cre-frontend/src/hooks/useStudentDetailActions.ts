@@ -28,6 +28,8 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
     const [viewingCvStudentId, setViewingCvStudentId] = useState<string | null>(null);
     const [anonymizeTarget, setAnonymizeTarget] = useState<StudentRow | null>(null);
     const [anonymizing, setAnonymizing] = useState(false);
+    // Suppression définitive (admin, lot 9) : la fenêtre est rendue par la page (DeleteAccountDialog).
+    const [deleteTarget, setDeleteTarget] = useState<StudentRow | null>(null);
     const [deactivateTarget, setDeactivateTarget] = useState<StudentRow | null>(null);
     const [deactivateLoading, setDeactivateLoading] = useState(false);
     const [reactivateTarget, setReactivateTarget] = useState<StudentRow | null>(null);
@@ -108,6 +110,7 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
             onToggleActive: (s: StudentRow) => (s.accountActive ? handleDeactivateStudent(s) : handleReactivateStudent(s)),
             onDeclareContract: (s: StudentRow) => setDeclaringContractFor(s),
             onAnonymize: isAdmin ? handleAnonymizeStudent : undefined,
+            onDelete: isAdmin ? (s: StudentRow) => setDeleteTarget(s) : undefined,
             onViewCv: (s: StudentRow) => setViewingCvStudentId(s.id),        },
 
         notifyingStudent,
@@ -130,6 +133,12 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
         anonymizeTarget,
         anonymizing,
         closeAnonymize: () => setAnonymizeTarget(null),
+
+        deleteAccount: deleteTarget ? {
+            id: deleteTarget.id, email: deleteTarget.email, firstName: deleteTarget.firstName,
+            lastName: deleteTarget.lastName, kind: 'student' as const,
+        } : null,
+        closeDeleteAccount: () => setDeleteTarget(null),
         handleConfirmAnonymize,
 
         viewingCvStudentId,

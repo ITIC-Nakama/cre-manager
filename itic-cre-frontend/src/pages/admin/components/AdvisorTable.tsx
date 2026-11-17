@@ -1,3 +1,4 @@
+import { useUserStore } from '../../../store/UserStore';
 import { useTranslation } from 'react-i18next';
 import {
   Loader2, UserCog, Pencil, Trash2, UserCheck,
@@ -39,6 +40,8 @@ export default function AdvisorTable({
   onReactivate,
 }: AdvisorTableProps) {
   const { t } = useTranslation();
+  // Jamais son propre compte (le serveur le refuse aussi).
+  const currentUserId = useUserStore((state) => (state.user ? String(state.user.id) : ''));
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
@@ -147,17 +150,6 @@ export default function AdvisorTable({
                             >
                               <UserX className="h-4 w-4" />
                             </button>
-
-                            {/* Supprimer — conseillers uniquement */}
-                            {!isAdmin && (
-                              <button
-                                onClick={() => onDelete(person)}
-                                className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
-                                title={t('dashboard.conseillers.actions.delete')}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
                           </>
                         ) : (
                           /* Réactiver */
@@ -167,6 +159,18 @@ export default function AdvisorTable({
                             title={t('dashboard.conseillers.actions.reactivate')}
                           >
                             <UserCheck className="h-4 w-4" />
+                          </button>
+                        )}
+
+                        {/* Supprimer définitivement (lot 9) — conseillers et admins, actifs ou désactivés, jamais soi-même */}
+                        {String(person.id) !== currentUserId && (
+                          <button
+                            onClick={() => onDelete(person)}
+                            className="inline-flex p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
+                            title={t('accounts.delete_confirm', 'Supprimer définitivement')}
+                            aria-label={t('accounts.delete_action_label', 'Supprimer définitivement le compte de {{name}}', { name: `${person.firstName} ${person.lastName}` })}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         )}
                       </div>

@@ -69,6 +69,10 @@ public class CompanySpaceSettings {
     @Column(name = "pedagogy_initialized", nullable = false)
     private boolean pedagogyInitialized;
 
+    /** Offres existantes rattachées une fois à leurs formations (V61, lot 9), sans alerte. */
+    @Column(name = "offers_linked_initialized", nullable = false)
+    private boolean offersLinkedInitialized;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }

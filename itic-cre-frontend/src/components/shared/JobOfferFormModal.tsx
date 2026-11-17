@@ -140,8 +140,9 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         if (!asDraft && !trimmedLink && !findApplicationEmail(description)) {
             errors.externalLink = t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.');
         }
-        // Formations ciblées : obligatoires à la publication d'une offre de l'équipe (un brouillon peut attendre).
-        if (!asDraft && isStaffOffer && !allProgramsOn && programIds.length === 0) {
+        // Formations ciblées : obligatoires à la PUBLICATION d'une offre de l'équipe (nouvelle offre ou brouillon). Une offre
+        // déjà publiée avant le lot 8 se réenregistre sans formation (lot 9 : pas de surprise pour l'équipe).
+        if (!asDraft && isStaffOffer && canDraft && !allProgramsOn && programIds.length === 0) {
             errors.programIds = t('formations.picker_required', 'Choisissez au moins une formation, ou « Toutes les formations ».');
         }
         return errors;

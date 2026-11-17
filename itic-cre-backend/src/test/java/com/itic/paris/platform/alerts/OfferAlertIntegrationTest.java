@@ -363,7 +363,8 @@ class OfferAlertIntegrationTest {
     @Test
     @DisplayName("Désinscription en un clic (lien de l'e-mail) : coupe les alertes seulement ; préférence modifiable dans le compte")
     void unsubscribe() throws Exception {
-        perform(get("/me/email-preferences"), lina).andExpect(jsonPath("$.data.instantOffers").value(true));
+        perform(get("/me/email-preferences"), lina).andExpect(jsonPath("$.data.instantOffers").value(true))
+                .andExpect(jsonPath("$.data.instantOffersAvailable").value(true));
         String url = preferences.unsubscribeUrl(lina.getId(), EmailPreferenceService.Topic.INSTANT_OFFERS);
         String token = url.substring(url.indexOf("token=") + 6);
         mockMvc.perform(post("/public/email-preferences/unsubscribe").contentType(MediaType.APPLICATION_JSON)

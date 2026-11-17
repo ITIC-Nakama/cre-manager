@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Messagerie conseiller ↔ étudiant (PROPOSITIONS-JULES, section 1) : un fil unique par étudiant, partagé par toute
  * l'équipe ; l'étudiant écrit à tout moment ; non-lus par personne ; droits ; RGPD (suppression, export, conseiller
- * supprimé « Ancien conseiller ») ; 4000 caractères au plus (et l'API notify passe de 1000 à 4000).
+ * supprimé « Compte supprimé ») ; 4000 caractères au plus (et l'API notify passe de 1000 à 4000).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -306,7 +306,7 @@ class ConversationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Conseiller supprimé : ses messages restent, signés « Ancien conseiller » (écran et export RGPD)")
+    @DisplayName("Conseiller supprimé : ses messages restent, signés « Compte supprimé » (écran et export RGPD)")
     void deletedAdvisorBecomesFormerAdvisor() throws Exception {
         sendTo(student, colleague, "Message d'un conseiller qui va partir");
         flushAndClear();
@@ -323,7 +323,7 @@ class ConversationIntegrationTest {
                 .andExpect(jsonPath("$.data.messages[0].authorId").value(nullValue()))
                 .andExpect(jsonPath("$.data.messages[0].authorFirstName").value(nullValue()))
                 .andExpect(jsonPath("$.data.unreadCount").value(1));
-        perform(get("/gdpr/export"), student).andExpect(jsonPath("$.data.conversation[0].author").value("Ancien conseiller"));
+        perform(get("/gdpr/export"), student).andExpect(jsonPath("$.data.conversation[0].author").value("Compte supprimé"));
     }
 
     @Test

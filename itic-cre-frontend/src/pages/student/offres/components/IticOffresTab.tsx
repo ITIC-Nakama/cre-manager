@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobOfferById } from '../../../../api-s/requests/JobOfferRequest';
@@ -21,7 +21,7 @@ import type { JobOffer } from '../../../../types/models/JobOffer';
 
 const PAGE_SIZE = 9;
 
-export default function IticOffresTab({ myFormation = false }: { myFormation?: boolean }) {
+export default function IticOffresTab({ myFormation = false, onEmptyMine }: { myFormation?: boolean; onEmptyMine?: () => void }) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -82,6 +82,12 @@ export default function IticOffresTab({ myFormation = false }: { myFormation?: b
     const {
         items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
     } = useActiveJobOffersInfinite(params);
+
+    // Lot 9 : « Offres pour ma formation » vide sans aucun filtre → la page bascule sur « Toutes les offres ».
+    const noFilter = !debouncedSearch && !contractTypeFilter && !sectorFilter && !debouncedLocation;
+    useEffect(() => {
+        if (myFormation && noFilter && !isLoading && !isFetching && totalElements === 0) onEmptyMine?.();
+    }, [myFormation, noFilter, isLoading, isFetching, totalElements, onEmptyMine]);
 
     const contractTypeOptions = useMemo(() => [
         { value: '', label: t('dashboard.offres.filter_all_contracts') },

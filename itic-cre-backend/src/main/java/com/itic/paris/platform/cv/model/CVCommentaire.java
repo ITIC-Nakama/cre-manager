@@ -22,7 +22,7 @@ public class CVCommentaire {
     private CV cv;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "advisor_id", nullable = false)
+    @JoinColumn(name = "advisor_id")
     private User advisor;
 
     @Column(nullable = false, columnDefinition = "TEXT")

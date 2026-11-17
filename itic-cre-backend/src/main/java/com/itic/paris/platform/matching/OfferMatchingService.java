@@ -46,9 +46,22 @@ public class OfferMatchingService {
     }
 
     public KeywordScore keywordScore(JobOffer offer, List<String[]> phrases) {
-        List<String> title = words(offer.getTitle());
-        List<String> sector = offer.getSector() != null ? words(offer.getSector().getLabel()) : List.of();
-        List<String> description = words(offer.getDescription() == null ? "" : TAGS.matcher(offer.getDescription()).replaceAll(" "));
+        return keywordScore(OfferWords.of(offer), phrases);
+    }
+
+    /** Mots d'une offre, normalisés UNE fois (lot 9 : rattachement de milliers d'offres à 39 formations). */
+    public record OfferWords(List<String> title, List<String> sector, List<String> description) {
+        public static OfferWords of(JobOffer offer) {
+            return new OfferWords(words(offer.getTitle()),
+                    offer.getSector() != null ? words(offer.getSector().getLabel()) : List.of(),
+                    words(offer.getDescription() == null ? "" : TAGS.matcher(offer.getDescription()).replaceAll(" ")));
+        }
+    }
+
+    public KeywordScore keywordScore(OfferWords w, List<String[]> phrases) {
+        List<String> title = w.title();
+        List<String> sector = w.sector();
+        List<String> description = w.description();
         int score = 0;
         List<String> titleHits = new ArrayList<>();
         List<String> otherHits = new ArrayList<>();

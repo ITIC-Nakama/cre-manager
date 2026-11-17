@@ -10,6 +10,8 @@ export interface EmailPreferences {
   targetedOffers: boolean;
   weeklyDigest: boolean;
   instantOffers: boolean;
+  /** Alertes activées sur le serveur (lot 9) : sinon leur interrupteur n'est pas affiché. */
+  instantOffersAvailable?: boolean;
 }
 
 const KEY = ['me', 'email-preferences'] as const;
@@ -31,7 +33,7 @@ export default function EmailPreferencesCard() {
     onError: () => toast.error(t('student.email_prefs.error', 'La préférence n’a pas pu être enregistrée.')),
   });
 
-  const rows: { key: keyof EmailPreferences; title: string; subtitle: string }[] = [
+  const rows: { key: 'targetedOffers' | 'weeklyDigest' | 'instantOffers'; title: string; subtitle: string }[] = [
     {
       key: 'instantOffers',
       title: t('student.email_prefs.instant_title', 'Alertes « nouvelle offre pour ta formation »'),
@@ -53,7 +55,7 @@ export default function EmailPreferencesCard() {
     <div className="space-y-3">
       <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('student.email_prefs.title', 'E-mails d’offres')}</h2>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
-        {rows.map((row) => {
+        {rows.filter((row) => row.key !== 'instantOffers' || data?.instantOffersAvailable).map((row) => {
           const checked = data ? data[row.key] : true;
           return (
             <label key={row.key} className="flex items-center justify-between gap-4 p-5 cursor-pointer">

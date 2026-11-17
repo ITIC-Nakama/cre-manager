@@ -83,7 +83,7 @@ public class StudentRatingService {
                         .date(r.getCreatedAt())
                         .score(r.getScore())
                         .comment(r.getComment())
-                        .author(toDto(r).formerStaff() ? "Ancien conseiller" : toDto(r).authorName())
+                        .author(toDto(r).formerStaff() ? "Compte supprimé" : toDto(r).authorName())
                         .build())
                 .toList();
     }

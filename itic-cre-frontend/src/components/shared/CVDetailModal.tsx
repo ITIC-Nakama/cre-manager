@@ -306,7 +306,7 @@ export default function CVDetailModal({ cv: initialCv, statuts, onClose, student
                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
                                                     {c.advisor
                                                         ? `${c.advisor.firstName} ${c.advisor.lastName}`
-                                                        : 'Conseiller'}
+                                                        : t('conversation.common.former_staff', 'Compte supprimé')}
                                                 </span>
                                                 <span className="text-sm text-slate-400 ml-auto flex-shrink-0">{formatDateTime(c.createdAt)}</span>
                                                 {(isCommentOwner || isUserAdmin) && (

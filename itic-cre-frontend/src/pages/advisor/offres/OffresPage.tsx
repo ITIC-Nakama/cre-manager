@@ -21,6 +21,7 @@ import CVDetailModal from '../../../components/shared/CVDetailModal';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import ReactivateAccountDialog from '../../../components/shared/ReactivateAccountDialog';
 import TypedConfirmDialog from '../../../components/shared/TypedConfirmDialog';
+import DeleteAccountDialog from '../../../components/shared/DeleteAccountDialog';
 import WipeOffersDialog from '../../../components/shared/WipeOffersDialog';
 import OffresHeader from './components/OffresHeader';
 import OffresFiltersBar from './components/OffresFiltersBar';
@@ -526,6 +527,8 @@ export default function OffresPage() {
                 onConfirm={studentActions.handleConfirmReactivate}
                 onClose={studentActions.closeReactivateConfirm}
             />
+
+            <DeleteAccountDialog account={studentActions.deleteAccount} onClose={studentActions.closeDeleteAccount} />
 
             <TypedConfirmDialog
                 isOpen={!!studentActions.anonymizeTarget}

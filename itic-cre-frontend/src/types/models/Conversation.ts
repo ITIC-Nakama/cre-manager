@@ -16,7 +16,7 @@ export interface ConversationMessage {
   authorFirstName: string | null;
   authorLastName: string | null;
   authorRole: 'STUDENT' | 'ADVISOR' | 'ADMIN' | null;
-  /** Compte de l'équipe supprimé : « Ancien conseiller ». */
+  /** Compte de l'équipe supprimé : « Compte supprimé ». */
   formerStaff: boolean;
 }
 

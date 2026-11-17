@@ -68,7 +68,7 @@ public class ConversationService {
     static final int MAX_PAGE_SIZE = 50;
     private static final int PREVIEW_LENGTH = 140;
     /** Auteur d'un message de l'equipe dont le compte a ete supprime (export RGPD ; l'ecran traduit lui-meme). */
-    static final String FORMER_STAFF_LABEL = "Ancien conseiller";
+    static final String FORMER_STAFF_LABEL = "Compte supprimé";
 
     private final ConversationRepository conversationRepository;
     private final ConversationMessageRepository messageRepository;

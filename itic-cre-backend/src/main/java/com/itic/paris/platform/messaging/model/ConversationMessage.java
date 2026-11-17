@@ -40,7 +40,7 @@ public class ConversationMessage {
     private Conversation conversation;
 
     /**
-     * Auteur ; null si son compte a ete supprime : le message reste, signe « Ancien conseiller ».
+     * Auteur ; null si son compte a ete supprime : le message reste, signe « Compte supprimé ».
      * (Cle etrangere ON DELETE SET NULL, voir V51.)
      */
     @ManyToOne(fetch = FetchType.LAZY)

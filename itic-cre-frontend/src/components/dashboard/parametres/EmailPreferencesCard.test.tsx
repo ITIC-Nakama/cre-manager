@@ -13,9 +13,9 @@ vi.mock('../../../api-s/AxiosApiClient', () => ({ apiClient: api, registerForceL
 beforeEach(() => {
     api.get.mockReset();
     api.put.mockReset();
-    api.get.mockResolvedValue({ data: { data: { targetedOffers: true, weeklyDigest: true, instantOffers: true } } });
+    api.get.mockResolvedValue({ data: { data: { targetedOffers: true, weeklyDigest: true, instantOffers: true, instantOffersAvailable: true } } });
     api.put.mockImplementation((_url: string, body: object) =>
-        Promise.resolve({ data: { data: { targetedOffers: true, weeklyDigest: true, instantOffers: true, ...body } } }));
+        Promise.resolve({ data: { data: { targetedOffers: true, weeklyDigest: true, instantOffers: true, instantOffersAvailable: true, ...body } } }));
 });
 
 const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
@@ -52,5 +52,13 @@ describe('E-mails d’offres de l’étudiant', () => {
         expect(api.put).toHaveBeenCalledWith('/me/email-preferences', { weeklyDigest: false });
         expect((screen.getAllByRole('switch')[2] as HTMLInputElement).checked).toBe(false);
         expect((screen.getAllByRole('switch')[1] as HTMLInputElement).checked).toBe(true);
+    });
+
+    it('alertes coupées sur le serveur : leur interrupteur n’est pas affiché (lot 9)', async () => {
+        api.get.mockResolvedValue({ data: { data: { targetedOffers: true, weeklyDigest: true, instantOffers: true, instantOffersAvailable: false } } });
+        renderCard();
+        await flush();
+        expect(screen.getAllByRole('switch')).toHaveLength(2);
+        expect(screen.queryByText('Alertes « nouvelle offre pour ta formation »')).toBeNull();
     });
 });

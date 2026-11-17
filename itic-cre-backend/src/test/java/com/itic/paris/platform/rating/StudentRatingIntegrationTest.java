@@ -132,7 +132,7 @@ class StudentRatingIntegrationTest {
     }
 
     @Test
-    @DisplayName("RGPD : notes dans l'export de l'étudiant ; supprimées à l'anonymisation ; conseiller supprimé : « Ancien conseiller »")
+    @DisplayName("RGPD : notes dans l'export de l'étudiant ; supprimées à l'anonymisation ; conseiller supprimé : « Compte supprimé »")
     void gdpr() throws Exception {
         rate(nina, 4, "Très bon entretien", leaving);
         entityManager.flush();
@@ -148,7 +148,7 @@ class StudentRatingIntegrationTest {
                 .andExpect(jsonPath("$.data.ratings", hasSize(1)))
                 .andExpect(jsonPath("$.data.ratings[0].score").value(4))
                 .andExpect(jsonPath("$.data.ratings[0].comment").value("Très bon entretien"))
-                .andExpect(jsonPath("$.data.ratings[0].author").value("Ancien conseiller"));
+                .andExpect(jsonPath("$.data.ratings[0].author").value("Compte supprimé"));
 
         perform(patch("/gdpr/students/" + nina.getId() + "/anonymize"), admin).andExpect(status().isOk());
         entityManager.flush();

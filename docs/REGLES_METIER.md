@@ -834,6 +834,55 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - Les 39 liens `itic.short.gy/<slug>` ont été vérifiés le 16/11/2026 : voir [LIENS_COURTS.md](./LIENS_COURTS.md) (28 existent, 11 à créer, 3 slugs déduits confirmés).
 - « Contactez-nous » (Espace entreprise) appelle le **01 43 73 20 40**, le numéro affiché ; le formulaire reste proposé (« Ou écrivez-nous »).
 
+## 23. Suppression définitive d'un compte et réglages de mise en production (V61, lot 9)
+
+### Suppression définitive (admin)
+- `POST /auth/admin/users/{id}/delete-permanently` avec `{ "confirmEmail": … }`, **admin seulement**. Dans le back-office :
+  - fiche étudiant → « Supprimer définitivement » ;
+  - Conseillers / Administrateurs → 🗑.
+- La désactivation et l'anonymisation RGPD restent disponibles. L'ancien bouton « Supprimer le compte » de la fiche étudiant s'appelle désormais **« Anonymiser (RGPD) »**.
+- **Confirmation** : l'adresse e-mail du compte, retapée (majuscules et espaces ignorés), sinon 400 `account-delete-confirmation-mismatch`.
+- **Garde-fous** :
+  - jamais son propre compte (403) ;
+  - jamais le **dernier admin actif** (403 `last-admin-protection`, sous verrou) ;
+  - un admin désactivé peut être supprimé.
+- **Étudiant** : droit à l'effacement. Sont supprimés :
+  - le compte ;
+  - le CV, son fichier et ses commentaires ;
+  - le brouillon et la photo du CV ;
+  - les candidatures et leur historique, les candidatures au jobboard ;
+  - les lectures d'articles et les quiz, l'historique XP, les demandes d'aide ;
+  - la messagerie, les notes de l'équipe, les alertes et e-mails d'offres, les demandes d'entreprises, les codes OTP ;
+  - la photo de profil.
+
+  Les fichiers sont effacés **après** la validation de la transaction.
+- **Conseiller ou admin** : ce qu'il a créé reste, **sans auteur**, affiché « Compte supprimé » :
+  - offres, articles, catégories ;
+  - commentaires de CV (V61 rend leur auteur facultatif) ;
+  - messages, notes ;
+  - demandes d'entreprises traitées.
+
+  Ses étudiants n'ont plus de référent.
+- **Journal d'audit** :
+  - entrée `USER_DELETED` : « Compte supprimé définitivement (RÔLE) », avec l'admin qui supprime et la date ;
+  - dans les entrées existantes, le nom et l'adresse du compte supprimé sont remplacés par « Compte supprimé ».
+- Il n'existe pas de compte « entreprise » : l'Espace entreprise est public, sans compte.
+
+### Réglages par défaut au déploiement
+- Interrupteurs lisibles depuis le `.env` (variables d'environnement ou fichier importé) :
+  - `APP_MAILING_TARGETED_OFFERS_ENABLED` (vrai) ;
+  - `APP_MAILING_WEEKLY_DIGEST_ENABLED` (**faux**) ;
+  - `APP_MESSAGING_NOTIFICATION_SCHEDULER_ENABLED` (vrai) ;
+  - `APP_MAILING_INSTANT_OFFERS_ENABLED` (faux) ;
+  - `APP_COMPANY_SPACE_PRIVATE_BY_DEFAULT` (vrai : l'Espace entreprise est **créé fermé**, l'admin l'ouvre).
+- L'interrupteur « Alertes nouvelle offre » du profil étudiant n'apparaît que si les alertes sont activées (`instantOffersAvailable`).
+- **Rattachement initial** : au premier démarrage, après l'annuaire des formations, les offres publiées et actives sont rattachées à leurs formations (mots-clés, code ROME s'il est connu). C'est fait une seule fois, sans alerte, par paquets de 500 (14 s pour 3 223 offres en recette).
+- Côté étudiant, si « Offres pour ma formation » est vide sans filtre, la page passe sur « Toutes les offres » avec une explication.
+- « Formations ciblées » n'est exigé qu'à la **publication** (nouvelle offre ou brouillon). Une offre déjà publiée se réenregistre sans.
+- Le front ne relance **jamais** une requête en erreur 4xx (réglage global). Il relance au plus 3 fois une erreur réseau ou 5xx.
+- « Étudiants à relancer » : ex aequo départagés par nom puis identifiant (ordre stable).
+- Procédure de déploiement, risques et retour arrière : [MISE_EN_PROD.md](./MISE_EN_PROD.md).
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).
