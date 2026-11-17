@@ -104,7 +104,7 @@ Ce document dit ce qui part en production, ce qui change dès le lendemain, ce q
 - **Statuts de CV** (V55) : le code `VALIDE` est posé sur le statut « Validé ».
 - **Étudiants** : préférences d'e-mail et « Apparaître dans l'Espace entreprise » à vrai pour tous.
 - **Synchro des offres externes** (V58) : 2 réglages à vrai.
-- **Au premier démarrage** (une seule fois) : 39 formations, leurs codes ROME, mots-clés et pages, puis le rattachement des offres en ligne (14 s pour 3 223 offres dans la recette, sans aucune alerte).
+- **Au premier démarrage** (une seule fois) : 39 formations, leurs codes ROME, mots-clés et pages, puis le rattachement des offres en ligne, sans aucune alerte : 14 s pour 3 223 offres dans la recette fictive, **environ 4 à 5 minutes au volume réel de la prod** (recette sur une copie restaurée de la sauvegarde de prod, voir §6.4). L'API répond pendant ce temps.
 
 Tout le reste est inchangé : l'empreinte des 12 tables existantes est identique avant et après les migrations (`scripts/nonreg/data_fingerprint.sql`).
 
@@ -135,7 +135,7 @@ Ces noms sont lus que le `.env` soit chargé par systemd ou importé comme fichi
 | 5 | **Ancien bundle (service worker) contre la nouvelle API** : la cause aggravante de l'incident des CV | L'ancien front de `main` a été passé sur la nouvelle API, écran par écran : aucune erreur nouvelle (41 écrans). Aucune lecture existante n'a perdu ou changé de champ (207 lectures comparées) |
 | 6 | **Interrupteurs sans effet** (variables non lues) | Lignes ajoutées dans `application.properties` ; test qui échoue si un interrupteur n'y figure pas |
 | 7 | **Lenteurs déjà présentes avec beaucoup de données** : tableau de bord admin 8 s, liste « pas sous contrat » 3,7 s (7 000 candidatures) | Mesuré identique ou pire sur `main` (13 s, 3,6 s) : pas une régression. À traiter à part (requêtes de comptage) |
-| 8 | **Durée du premier démarrage** (rattachement des offres) | 14 s pour 3 223 offres, l'API répond pendant ce temps ; le contrôle de santé du déploiement attend 60 s |
+| 8 | **Durée du premier démarrage** (rattachement des offres) | 4 à 5 min au volume réel (copie de prod), mais l'API répond en ~30 s et les connexions restent rapides pendant le rattachement : le contrôle de santé du déploiement (60 s) passe. Pendant ces minutes, « Offres pour ma formation » bascule sur « Toutes les offres » |
 | 9 | **Lien d'un e-mail ouvert avec l'ancien bundle** (désinscription, messagerie) : l'ancien front ne connaît pas ces adresses et renvoie au tableau de bord | Rare (première visite après le déploiement, avant mise à jour du service worker, ≤ 15 min) ; le lien refonctionne au clic suivant. Non corrigé (voir §5) |
 | 10 | **Quota des API d'offres** : 31 codes ROME en plus | Plafond par source déjà en place ; lire le journal de synchro après la première nuit |
 
@@ -212,8 +212,17 @@ Base jetable `itic_cre_nonreg`, schéma de `main` (V50), migrée ensuite par la 
 4. Les 6 bugs du §5 (liste vide, garde 4xx, page blanche, offre non réenregistrable, commentaire d'un auteur supprimé, bouton « Envoyer un message » d'un compte désactivé).
 5. **Interrupteurs d'envoi non lus** depuis un `.env` importé comme fichier de propriétés.
 
+### 6.4 Seconde passe sur une copie restaurée de la prod (17/11)
+Une sauvegarde complète de la prod a été faite par l'utilisateur, **en lecture seule** (`pg_dump`, ni écriture, ni migration, ni redémarrage), copiée hors du dépôt et hors des dossiers synchronisés, puis restaurée dans des bases locales jetables. Aucune de ses données ne figure dans ce dépôt, dans les captures ou dans la PR. Seuls des constats agrégés sont notés ici. Les comptes de connexion de la recette ont reçu des adresses et un mot de passe fictifs, sur la copie seulement.
+- **Restauration** : sans erreur.
+- **Migrations V51 → V61** sur l'historique réel (V1 → V50, avec la `10.1` appliquée hors ordre) : 11 appliquées en ~0,2 s ; empreinte des données existantes **identique** avant et après.
+- **Seeders** : à faire tourner avec `TEST_SEEDERS_ENABLED=false` et `BOOTSTRAP_ADMIN_ENABLED=false`, comme en prod. Avec le `.env` local, le démarrage crée 8 promotions de démonstration et un admin `admin@…` : c'est un effet du `.env` local, pas de la pile.
+- **Rattachement initial des offres** : 4 à 5 min au volume réel (contre 14 s sur le jeu fictif). L'API répond en ~30 s, et les connexions restent rapides pendant le rattachement.
+- **Comparaison `main` ↔ finale** : toutes les différences de lecture sont expliquées : code `VALIDE` (V55), ordre des statistiques de CV, départage des ex aequo, source JSearch ajoutée (coupée), connexions de la recette. 31/31 écritures identiques. Écrans : aucune erreur nouvelle (seul `/entreprise` en 404, fermé par défaut).
+- **Constat nouveau** : plus de la moitié des étudiants actifs sont dans une promotion dont le nom n'est reconnu par aucune formation. Ils voient toutes les offres, comme avant, mais n'ont ni « Offres pour ma formation », ni alertes ou récapitulatif par formation, et n'apparaissent pas dans l'Espace entreprise. À relier à la main avant d'activer ces fonctions (§7.5).
+- `scripts/nonreg/data_fingerprint.sql` corrigé : il plantait sur une version Flyway décimale (`10.1`).
+
 **Pas vérifiable ici** :
-- le comportement sur la vraie base de prod (pas de sauvegarde sur le poste, et interdiction de s'y connecter) ;
 - les quotas réels de France Travail et La Bonne Alternance ;
 - la délivrabilité du SMTP de prod pour 274 e-mails d'un coup ;
 - l'accès Internet au CRE (le domaine pointe vers une adresse interne).
@@ -239,7 +248,7 @@ Base jetable `itic_cre_nonreg`, schéma de `main` (V50), migrée ensuite par la 
 1. Suivre le dernier run de « Continuous Deployment » : tests Maven, Vitest, puis déploiement et contrôle de santé.
 2. Vérifier les migrations sur le serveur :
    - `SELECT version, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 12;` → **61 en tête**, toutes à `t` ;
-   - journal : `journalctl -u itic-backend --since "15 min ago" | grep -E "Successfully applied|Formations :|ERROR"` → « Successfully applied 11 migrations » et « Formations : N offre(s) en ligne rattachée(s) ».
+   - journal : `journalctl -u itic-backend --since "15 min ago" | grep -E "Successfully applied|Formations :|ERROR"` → « Successfully applied 11 migrations » tout de suite, puis « Formations : N offre(s) en ligne rattachée(s) » **quelques minutes plus tard** (4 à 5 min au volume réel) : ne pas conclure à un échec avant.
 
 ### 7.4 Tests de fumée (10 minutes, juste après)
 1. Ouvrir le CRE en navigation privée : la page de connexion s'affiche.
@@ -269,6 +278,7 @@ Chaque variable se change dans le secret `BACKEND_ENV_CONTENT` (puis relance du 
 4. **Alertes instantanées** :
    - **activer** : `APP_MAILING_INSTANT_OFFERS_ENABLED=true` ;
    - **avant** : vérifier l'onglet Formations (rattachements corrects) et couper les formations non voulues ;
+   - **avant aussi** : relier à la main (onglet Formations, promotions choisies à la main) les promotions dont le nom n'est reconnu par aucune formation. Sur la copie de prod, **plus de la moitié des étudiants actifs** n'avaient aucune formation reconnue : ils voient toutes les offres, comme avant, mais ne reçoivent ni alerte ni récapitulatif par formation et n'apparaissent pas dans l'Espace entreprise ;
    - **regarder ensuite** : le « Journal des alertes » (en échec, reportés au soir).
 5. **JSearch** (si une clé est achetée) : `JOBBOARD_JSEARCH_ENABLED=true` et la clé.
 

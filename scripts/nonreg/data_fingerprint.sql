@@ -13,5 +13,5 @@ UNION ALL SELECT 'cv_commentaires', count(*), md5(string_agg(concat_ws('|', id, 
 UNION ALL SELECT 'cv_statuts', count(*), md5(string_agg(concat_ws('|', id, nom, actif::text), ',' ORDER BY id)) FROM cv_statuts
 UNION ALL SELECT 'xp_history', count(*), md5(string_agg(concat_ws('|', id, student_id, points), ',' ORDER BY id)) FROM xp_history
 UNION ALL SELECT 'reclamations', count(*), md5(string_agg(concat_ws('|', id, student_id, status, message), ',' ORDER BY id)) FROM reclamations
-UNION ALL SELECT 'flyway_v1_v50', count(*), md5(string_agg(concat_ws('|', version, coalesce(checksum::text,'')), ',' ORDER BY installed_rank)) FROM flyway_schema_history WHERE version::int <= 50
+UNION ALL SELECT 'flyway_v1_v50', count(*), md5(string_agg(concat_ws('|', version, coalesce(checksum::text,'')), ',' ORDER BY installed_rank)) FROM flyway_schema_history WHERE split_part(version, '.', 1)::int <= 50
 ORDER BY 1;
