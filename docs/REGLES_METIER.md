@@ -760,6 +760,30 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - **« Candidats suggérés »** (liste des offres de l'équipe, bouton ✨) : 20 étudiants **actifs, sans contrat** au plus, de la formation de l'offre, avec score et raisons (vouvoiement). « Envoyer l'offre » ouvre « Envoyer un message » prérempli (titre, entreprise, lien direct), qui écrit dans la conversation de l'étudiant. `GET /jobboard/offers/{id}/suggested-candidates` (équipe).
 - Le **récapitulatif du lundi** (§19) classe les offres de la semaine avec ce même score, par étudiant.
 
+## 21. « Ma fiche formation » (V59, lot 7)
+- Bouton **« Ma fiche formation »** à côté du classement, sur le tableau de bord étudiant. Il ouvre dans un nouvel onglet la page de la formation sur le site pédagogique (https://malekedine.github.io/itic-pedagogie/). La formation de l'étudiant vient de l'annuaire de l'Espace entreprise (promotion et année d'étude). `GET /me/formation`.
+- **Bouton masqué** si la formation n'a pas de page.
+- Adresses **préremplies une fois** (`company_space_programs.pedagogy_url`) d'après le parcours des pages d'index du site : école → niveaux → formations. 29 formations sur 39 ont une page, toutes vérifiées en HTTP 200 le 17/11/2026. Elles sont **modifiables** dans Espace entreprise → Formations (https uniquement ; vide = pas de bouton).
+
+| Formations du CRE | Page (après https://malekedine.github.io/itic-pedagogie/) | HTTP le 17/11/2026 | Correspondance |
+|---|---|---|---|
+| BTS SIO 1A, 2A SISR, 2A SLAM | `techschool/bts/sio.html` | 200 | sûr |
+| BTS CI 1A, 2A | `businessschool/bts/ci.html` | 200 | sûr |
+| BTS MCO 1A, 2A | `businessschool/bts/mco.html` | 200 | sûr |
+| BTS NDRC 1A, 2A | `businessschool/bts/ndrc.html` | 200 | sûr |
+| BTS COM 1A, 2A | `businessschool/bts/communication.html` | 200 | sûr |
+| BTS CG 1A, 2A | `businessschool/bts/cg.html` | 200 | sûr |
+| Bachelor Cybersécurité / Cloud | `techschool/bachelor/ais.html` | 200 | sûr (AIS : réseaux, systèmes, cybersécurité) |
+| Bachelor Développeur Full Stack | `techschool/bachelor/cda.html` | 200 | sûr (CDA : développement web et mobile) |
+| Bachelor CMDE | `businessschool/bachelor/cmde.html` | 200 | sûr |
+| Bachelor RH | `businessschool/bachelor/rh.html` | 200 | sûr |
+| Mastère Cyber M1, M2 | `techschool/mastere/cyber.html` | 200 | sûr |
+| Mastère Fullstack M1, M2 | `techschool/mastere/eisi.html` | 200 | **à confirmer** (EISI : Expert en informatique et SI) |
+| Mastère MSC M1, M2 ; Mastère Communication M1, M2 | `businessschool/mastere/mcm.html` | 200 | **à confirmer** (MCM : Manager commercial et marketing) |
+| Mastère MRH M1, M2 | `businessschool/mastere/mrh.html` | 200 | sûr |
+| Mastère MSFO M1, M2 | `businessschool/mastere/mo.html` | 200 | sûr (Management stratégique et financier des organisations) |
+| BTS TP RH, SAM/GPME 1A et 2A, B/A 1A et 2A, PI 1A et 2A, TP Santé ; Bachelor Business Développeur, FCG | aucune page sur le site | — | bouton masqué |
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

@@ -1,3 +1,4 @@
+import MyFormationButton from '../../../components/student/MyFormationButton';
 import PostalCodeBanner from '../../../components/student/PostalCodeBanner';
 import { useUserStore } from '../../../store/UserStore';
 import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
@@ -195,15 +196,19 @@ export default function StudentDashboard() {
 
         {/* Ranking */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-            <Medal className="h-4 w-4 text-primary" />
-            {t('dashboard.home.ranking.title', {
-              scope: data?.ranking.scopedToPromotion
-                ? t('dashboard.home.ranking.promotion', 'de ta promotion')
-                : t('dashboard.home.ranking.general', 'général'),
-              defaultValue: 'Classement {{scope}}'
-            })}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <Medal className="h-4 w-4 text-primary" />
+              {t('dashboard.home.ranking.title', {
+                scope: data?.ranking.scopedToPromotion
+                  ? t('dashboard.home.ranking.promotion', 'de ta promotion')
+                  : t('dashboard.home.ranking.general', 'général'),
+                defaultValue: 'Classement {{scope}}'
+              })}
+            </h2>
+            {/* Page de la formation sur le site pédagogique (masqué si la formation n'en a pas). */}
+            <MyFormationButton />
+          </div>
           {data && (
             <div className="flex flex-col gap-3">
               <p className="text-sm text-slate-600 dark:text-slate-300">

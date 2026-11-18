@@ -29,6 +29,7 @@ export default function ProgramEditModal({ program, isAdmin, onClose }: { progra
         studyYear: program?.studyYear ?? 0,
         romeCodes: program?.romeCodes ?? '',
         offerKeywords: program?.offerKeywords ?? '',
+        pedagogyUrl: program?.pedagogyUrl ?? '',
         rhythm: program?.rhythm ?? '',
         availability: program?.availability ?? '',
         visible: program?.visible ?? true,
@@ -109,6 +110,12 @@ export default function ProgramEditModal({ program, isAdmin, onClose }: { progra
                         <textarea className={`${fieldClass(false, false)} min-h-20 font-mono text-xs`} value={form.offerKeywords} maxLength={1000}
                             placeholder="developpeur|web|java" onChange={(e) => set('offerKeywords', e.target.value)} />
                         <p className="text-xs text-slate-400">{t('company_admin.form.offer_keywords_hint', 'Cherchés dans l’intitulé (3 points), le secteur (2) et la description (1) des offres. Séparés par « | ».')}</p>
+                    </div>
+                    <div className="sm:col-span-2 space-y-1.5">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('company_admin.form.pedagogy_url', 'Fiche formation (site pédagogique)')}</p>
+                        <input className={fieldClass(false, false)} value={form.pedagogyUrl} maxLength={500} type="url"
+                            placeholder="https://malekedine.github.io/itic-pedagogie/…" onChange={(e) => set('pedagogyUrl', e.target.value)} />
+                        <p className="text-xs text-slate-400">{t('company_admin.form.pedagogy_url_hint', 'Bouton « Ma fiche formation » des étudiants de cette formation. Vide : pas de bouton.')}</p>
                     </div>
                     <Field label={t('company_admin.form.rhythm', 'Rythme (sur les cartes)')}>
                         <input className={fieldClass(false, false)} value={form.rhythm} maxLength={120}

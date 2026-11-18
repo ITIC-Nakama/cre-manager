@@ -88,7 +88,8 @@
       "banner": "Add your postal code: the team can then suggest companies near you.",
       "banner_link": "Add",
       "banner_later": "Later"
-    }
+    },
+    "my_formation": "My programme page"
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
@@ -2745,7 +2746,9 @@
       "delete_message": "Its public page will no longer be available. The CVs stay in the CRE.",
       "rome": "ROME codes (offers)",
       "offer_keywords": "Offer keywords (Monday summary, suggestions)",
-      "offer_keywords_hint": "Searched in the offer title (3 points), sector (2) and description (1). Separated by “|”."
+      "offer_keywords_hint": "Searched in the offer title (3 points), sector (2) and description (1). Separated by “|”.",
+      "pedagogy_url": "Programme page (teaching website)",
+      "pedagogy_url_hint": "“My programme page” button for students of this programme. Empty: no button."
     },
     "preview_title": "Preview: what a company sees",
     "preview_hidden": "(hidden programme)",

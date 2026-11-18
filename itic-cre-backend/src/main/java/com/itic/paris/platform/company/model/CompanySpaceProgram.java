@@ -72,6 +72,10 @@ public class CompanySpaceProgram {
     @Column(name = "offer_keywords", length = 1000)
     private String offerKeywords;
 
+    /** Page de la formation sur le site pédagogique (« Ma fiche formation ») ; null = bouton masqué. V59. */
+    @Column(name = "pedagogy_url", length = 500)
+    private String pedagogyUrl;
+
     @Column(length = 120)
     private String rhythm;
 

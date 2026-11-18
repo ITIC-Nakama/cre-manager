@@ -81,6 +81,20 @@ public class CompanySpaceSettingsService implements ApplicationRunner {
             settingsRepository.save(settings);
             log.info("Espace entreprise : codes ROME et mots-clés d'offres préremplis ({} formations)", filled);
         }
+        if (!settings.isPedagogyInitialized()) {
+            int filled = 0;
+            for (CompanySpaceProgram p : programRepository.findAll()) {
+                String url = PedagogyDefaults.BY_SLUG.get(p.getSlug());
+                if (url != null && p.getPedagogyUrl() == null) {
+                    p.setPedagogyUrl(url);
+                    programRepository.save(p);
+                    filled++;
+                }
+            }
+            settings.setPedagogyInitialized(true);
+            settingsRepository.save(settings);
+            log.info("Espace entreprise : pages du site pédagogique préremplies ({} formations)", filled);
+        }
     }
 
     @Transactional

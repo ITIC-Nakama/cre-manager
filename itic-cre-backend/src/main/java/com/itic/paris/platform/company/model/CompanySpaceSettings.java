@@ -65,6 +65,10 @@ public class CompanySpaceSettings {
     @Column(name = "matching_initialized", nullable = false)
     private boolean matchingInitialized;
 
+    /** Pages du site pédagogique préremplies une fois (V59). */
+    @Column(name = "pedagogy_initialized", nullable = false)
+    private boolean pedagogyInitialized;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }
