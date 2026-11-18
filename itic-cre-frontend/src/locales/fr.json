@@ -66,7 +66,9 @@
       "unsubscribing": "Désinscription…",
       "unsubscribed_text": "Tu ne recevras plus ces e-mails d’offres. Tu peux les réactiver à tout moment dans ton profil.",
       "invalid_text": "Ce lien de désinscription n’est pas valide. Tu peux gérer tes e-mails depuis ton profil.",
-      "go_profile": "Gérer mes e-mails"
+      "go_profile": "Gérer mes e-mails",
+      "weekly_title": "Récapitulatif du lundi",
+      "weekly_subtitle": "Le lundi à 8 h, jusqu’à 10 nouvelles offres de la semaine proches de ta formation (tant que tu n’as pas de contrat)."
     },
     "company_space": {
       "saved": "Préférence enregistrée.",
@@ -2734,7 +2736,10 @@
       "delete": "Retirer",
       "save": "Enregistrer",
       "delete_title": "Retirer cette formation ?",
-      "delete_message": "Sa page publique ne sera plus accessible. Les CV restent dans le CRE."
+      "delete_message": "Sa page publique ne sera plus accessible. Les CV restent dans le CRE.",
+      "rome": "Codes ROME (offres)",
+      "offer_keywords": "Mots-clés des offres (récapitulatif du lundi, suggestions)",
+      "offer_keywords_hint": "Cherchés dans l’intitulé (3 points), le secteur (2) et la description (1) des offres. Séparés par « | »."
     },
     "preview_title": "Aperçu : ce que voit une entreprise",
     "preview_hidden": "(formation masquée)",

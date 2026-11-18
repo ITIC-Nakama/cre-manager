@@ -725,6 +725,16 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - API : `GET/PUT /me/postal-code` (étudiant), `PUT /dashboard/students/{id}/postal-code`, `GET /dashboard/students/map`, `GET /dashboard/students/map/departments/{code}` (équipe, 403 pour un étudiant).
 - **RGPD** : code postal dans l'export (`userProfile.postalCode`), effacé avec le département à l'anonymisation.
 
+## 19. Récapitulatif du lundi et rapprochement offres / formations (V57)
+- **Formation d'un étudiant** = les formations de l'annuaire (Espace entreprise) dont les promotions rattachées contiennent sa promotion, à son année d'étude (`StudentFormationResolver`). Sans formation : pas de récapitulatif.
+- **Codes ROME et mots-clés d'offres par formation** (`company_space_programs.rome_codes`, `offer_keywords`), préremplis une fois pour les 39 formations (17 familles : développement, systèmes et réseaux, cybersécurité, commerce international, vente en magasin, relation client, communication, marketing digital, RH, assistanat, comptabilité, finance, banque-assurance, immobilier, santé, business). Modifiables dans Espace entreprise → Formations ; codes ROME vérifiés (`A1234`, séparés par des virgules).
+- **Score d'une offre** (`OfferMatchingService`, sans IA externe) : chaque mot-clé de la formation trouvé dans l'**intitulé** vaut 3 points, dans le **secteur** 2, dans la **description** 1 (mots entiers, sans accents ni majuscules, balises HTML ignorées, écriture inclusive « Chargé(e) » ramenée à « chargé »). Pertinente à partir de **2 points**.
+- **Récapitulatif du lundi** : chaque **lundi à 8 h (Paris)**, chaque étudiant **actif, sans contrat** (déclaré ou vérifié en cours), **abonné**, reçoit **un e-mail** avec au plus **10 offres** publiées dans les **7 derniers jours** (toutes sources, hors brouillons et offres désactivées), les plus pertinentes d'abord puis les plus récentes, chacune avec son lien direct, et « Voir toutes les offres ». **Aucune offre pertinente : aucun e-mail.**
+- **Pas de double envoi** : verrou `scheduled_mailings` (type `WEEKLY_DIGEST`, semaine ISO `2026-W47`, destinataire), posé avant l'envoi.
+- **Préférences du profil** : « Offres ciblées du soir » et « Récapitulatif du lundi », activées par défaut (`students.email_weekly_digest`). Le lien « Ne plus recevoir ces emails » de chaque e-mail ne coupe **que cet envoi** (jeton signé propre au type d'e-mail), sans connexion.
+- Variables (facultatives) : `APP_MAILING_WEEKLY_DIGEST_ENABLED` (défaut `true`), `APP_MAILING_WEEKLY_DIGEST_CRON` (défaut `0 0 8 * * MON`).
+- **RGPD** : à l'anonymisation, abonnement coupé et lignes `scheduled_mailings` supprimées.
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

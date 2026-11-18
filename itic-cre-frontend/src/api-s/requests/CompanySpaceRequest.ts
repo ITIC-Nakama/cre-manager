@@ -113,6 +113,8 @@ export interface AdminProgram {
     legacyUrl: string | null;
     matchKeywords: string | null;
     studyYear: number | null;
+    romeCodes: string | null;
+    offerKeywords: string | null;
     rhythm: string | null;
     availability: string | null;
     visible: boolean;
@@ -133,6 +135,8 @@ export interface ProgramForm {
     slugConfirmed?: boolean;
     matchKeywords?: string;
     studyYear?: number;
+    romeCodes?: string;
+    offerKeywords?: string;
     rhythm?: string;
     availability?: string;
     visible?: boolean;

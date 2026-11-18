@@ -26,9 +26,9 @@ import java.util.UUID;
 public class EmailPreferenceService {
 
     /** Envois auxquels un etudiant peut se desabonner. */
-    public enum Topic { TARGETED_OFFERS }
+    public enum Topic { TARGETED_OFFERS, WEEKLY_DIGEST }
 
-    public record Preferences(boolean targetedOffers) {
+    public record Preferences(boolean targetedOffers, boolean weeklyDigest) {
     }
 
     private final StudentRepository studentRepository;
@@ -41,18 +41,24 @@ public class EmailPreferenceService {
 
     @Transactional(readOnly = true)
     public Preferences get(UUID studentId) {
-        Student s = find(studentId);
-        return new Preferences(s.isEmailTargetedOffers());
+        return of(find(studentId));
     }
 
     @Transactional
-    public Preferences update(UUID studentId, Boolean targetedOffers) {
+    public Preferences update(UUID studentId, Boolean targetedOffers, Boolean weeklyDigest) {
         Student s = find(studentId);
         if (targetedOffers != null) {
             s.setEmailTargetedOffers(targetedOffers);
         }
+        if (weeklyDigest != null) {
+            s.setEmailWeeklyDigest(weeklyDigest);
+        }
         studentRepository.save(s);
-        return new Preferences(s.isEmailTargetedOffers());
+        return of(s);
+    }
+
+    private static Preferences of(Student s) {
+        return new Preferences(s.isEmailTargetedOffers(), s.isEmailWeeklyDigest());
     }
 
     /** Lien de desinscription a mettre dans l'e-mail (page publique du front, qui appelle unsubscribe). */
@@ -91,6 +97,8 @@ public class EmailPreferenceService {
         Student s = studentRepository.findById(studentId).orElseThrow(EmailPreferenceService::invalid);
         if (topic == Topic.TARGETED_OFFERS) {
             s.setEmailTargetedOffers(false);
+        } else if (topic == Topic.WEEKLY_DIGEST) {
+            s.setEmailWeeklyDigest(false);
         }
         studentRepository.save(s);
         return topic;

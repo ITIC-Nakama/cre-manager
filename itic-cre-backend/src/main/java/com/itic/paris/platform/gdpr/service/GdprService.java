@@ -299,6 +299,7 @@ public class GdprService {
             studentRatingService.deleteAllFor(student);
             // E-mails d'offres : plus d'abonnement, traces d'envoi supprimees.
             student.setEmailTargetedOffers(false);
+            student.setEmailWeeklyDigest(false);
             // Carte des étudiants : code postal et département effacés.
             student.setPostalCode(null);
             student.setDepartment(null);

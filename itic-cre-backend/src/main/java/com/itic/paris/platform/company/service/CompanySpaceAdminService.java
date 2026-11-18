@@ -60,13 +60,15 @@ public class CompanySpaceAdminService {
 
     public record AdminProgram(UUID id, String level, String domain, String label, String displayName, String slug,
                                boolean slugConfirmed, String legacyUrl, String matchKeywords, Integer studyYear,
+                               String romeCodes, String offerKeywords,
                                String rhythm, String availability, boolean visible, int sortOrder,
                                List<PromotionRef> manualPromotions, List<PromotionRef> linkedPromotions,
                                long cvCount, long pageViews30d, long cvViews30d, long requests30d) {
     }
 
     public record ProgramForm(String level, String domain, String label, String slug, Boolean slugConfirmed,
-                              String matchKeywords, Integer studyYear, String rhythm, String availability,
+                              String matchKeywords, Integer studyYear, String romeCodes, String offerKeywords,
+                              String rhythm, String availability,
                               Boolean visible, Integer sortOrder, List<UUID> promotionIds) {
     }
 
@@ -132,7 +134,8 @@ public class CompanySpaceAdminService {
                     .sorted(Comparator.comparing(PromotionRef::name)).toList();
             long[] v = views.getOrDefault(p.getId(), new long[]{0, 0});
             return new AdminProgram(p.getId(), p.getLevel().name(), p.getDomain(), p.getLabel(), p.displayName(), p.getSlug(),
-                    p.isSlugConfirmed(), p.getLegacyUrl(), p.getMatchKeywords(), p.getStudyYear(), p.getRhythm(),
+                    p.isSlugConfirmed(), p.getLegacyUrl(), p.getMatchKeywords(), p.getStudyYear(), p.getRomeCodes(),
+                    p.getOfferKeywords(), p.getRhythm(),
                     p.getAvailability(), p.isVisible(), p.getSortOrder(), manual, linked, counts.getOrDefault(p.getId(), 0L),
                     v[0], v[1], requests.getOrDefault(p.getId(), 0L));
         }).toList();
@@ -198,6 +201,19 @@ public class CompanySpaceAdminService {
                 throw invalidProgram();
             }
             p.setStudyYear(year);
+        }
+        if (creating || f.romeCodes() != null) {
+            String rome = optional(f.romeCodes(), 255);
+            if (rome != null) {
+                rome = rome.toUpperCase().replaceAll("\\s", "");
+                if (!rome.matches("^[A-Z]\\d{4}(,[A-Z]\\d{4})*$")) {
+                    throw invalidProgram();
+                }
+            }
+            p.setRomeCodes(rome);
+        }
+        if (creating || f.offerKeywords() != null) {
+            p.setOfferKeywords(optional(f.offerKeywords(), 1000));
         }
         if (creating || f.rhythm() != null) {
             p.setRhythm(optional(f.rhythm(), 120));

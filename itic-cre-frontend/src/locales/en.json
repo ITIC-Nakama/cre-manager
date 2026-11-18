@@ -66,7 +66,9 @@
       "unsubscribing": "Unsubscribing…",
       "unsubscribed_text": "You will no longer receive these offer emails. You can turn them back on anytime in your profile.",
       "invalid_text": "This unsubscribe link is not valid. You can manage your emails from your profile.",
-      "go_profile": "Manage my emails"
+      "go_profile": "Manage my emails",
+      "weekly_title": "Monday summary",
+      "weekly_subtitle": "On Mondays at 8 am, up to 10 new offers of the week close to your programme (as long as you have no contract)."
     },
     "company_space": {
       "saved": "Preference saved.",
@@ -2734,7 +2736,10 @@
       "delete": "Remove",
       "save": "Save",
       "delete_title": "Remove this programme?",
-      "delete_message": "Its public page will no longer be available. The CVs stay in the CRE."
+      "delete_message": "Its public page will no longer be available. The CVs stay in the CRE.",
+      "rome": "ROME codes (offers)",
+      "offer_keywords": "Offer keywords (Monday summary, suggestions)",
+      "offer_keywords_hint": "Searched in the offer title (3 points), sector (2) and description (1). Separated by “|”."
     },
     "preview_title": "Preview: what a company sees",
     "preview_hidden": "(hidden programme)",

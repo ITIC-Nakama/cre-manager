@@ -64,6 +64,14 @@ public class CompanySpaceProgram {
     @Column(name = "study_year")
     private Integer studyYear;
 
+    /** Codes ROME de la formation (ex. « M1805,M1810 ») : élargissement de la synchronisation des offres (lot 5). */
+    @Column(name = "rome_codes")
+    private String romeCodes;
+
+    /** Mots-clés d'offres (alternatives séparées par « | ») : rapprochement offres / formation (récapitulatif, matching). */
+    @Column(name = "offer_keywords", length = 1000)
+    private String offerKeywords;
+
     @Column(length = 120)
     private String rhythm;
 
