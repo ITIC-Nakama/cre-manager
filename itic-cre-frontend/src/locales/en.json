@@ -79,18 +79,6 @@
       "toggle": "Appear in the Business space",
       "explanation": "Once your CV is approved and as long as you have no contract, partner companies see your first name, last name, programme and CV in the school directory. Never your email or phone: they go through the Business Relations team."
     },
-    "postal_code": {
-      "saved": "Postal code saved.",
-      "error": "Invalid postal code: 5 digits (e.g. 75011).",
-      "title": "Postal code",
-      "department": "Department: {{name}} ({{code}})",
-      "missing": "Not filled in yet",
-      "explanation": "The team only sees your department, to suggest companies near you.",
-      "save": "Save",
-      "banner": "Add your postal code: the team can then suggest companies near you.",
-      "banner_link": "Add",
-      "banner_later": "Later"
-    },
     "my_formation": "My programme page",
     "offers_all": "All offers",
     "offers_mine": "Offers for my programme",
@@ -2959,5 +2947,33 @@
     "delete_student_message": "{{name}}'s account will be deleted, with their CV, files, applications, messages and ratings. This cannot be undone.",
     "delete_success": "{{name}}'s account was permanently deleted.",
     "delete_title": "Permanently delete this account?"
+  },
+  "address": {
+    "title": "Address",
+    "optional": "optional",
+    "line1_label": "Number and street",
+    "line1_placeholder": "12 rue de la Paix",
+    "line2_label": "Address line 2",
+    "line2_placeholder": "Building, floor, apartment…",
+    "postal_code_label": "Postal code",
+    "city_label": "City",
+    "city_placeholder": "Paris",
+    "city_choose": "Choose your city",
+    "privacy_note": "Your address is used for your administrative file (internship agreements, contracts). Only you, your advisor and the ITIC team can see it.",
+    "banner": "Complete your address: it is now required for your file.",
+    "banner_button": "Complete my address",
+    "saved": "Address saved.",
+    "save_error": "Address not saved: check the fields.",
+    "save": "Save",
+    "staff_missing": "No address provided",
+    "errors": {
+      "ADDRESS_LINE1_REQUIRED": "Enter your street number and name.",
+      "ADDRESS_LINE1_TOO_LONG": "120 characters maximum.",
+      "ADDRESS_LINE2_TOO_LONG": "120 characters maximum.",
+      "POSTAL_CODE_REQUIRED": "Enter your postal code.",
+      "POSTAL_CODE_INVALID": "Invalid postal code: 5 digits (e.g. 75011).",
+      "CITY_REQUIRED": "Enter your city.",
+      "CITY_TOO_LONG": "80 characters maximum."
+    }
   }
 }

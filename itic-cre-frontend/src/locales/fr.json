@@ -79,18 +79,6 @@
       "toggle": "Apparaître dans l’Espace entreprise",
       "explanation": "Quand ton CV est validé et tant que tu n’as pas de contrat, les entreprises partenaires voient ton prénom, ton nom, ta formation et ton CV dans l’annuaire de l’école. Ni ton e-mail ni ton téléphone : elles passent par le Pôle Entreprises."
     },
-    "postal_code": {
-      "saved": "Code postal enregistré.",
-      "error": "Code postal non valide : 5 chiffres (ex. 75011).",
-      "title": "Code postal",
-      "department": "Département : {{name}} ({{code}})",
-      "missing": "Pas encore renseigné",
-      "explanation": "L’équipe voit seulement ton département, pour te proposer des entreprises proches de chez toi.",
-      "save": "Enregistrer",
-      "banner": "Indique ton code postal : l’équipe pourra te proposer des entreprises proches de chez toi.",
-      "banner_link": "Ajouter",
-      "banner_later": "Plus tard"
-    },
     "my_formation": "Ma fiche formation",
     "offers_scope_label": "Offres affichées",
     "offers_mine": "Offres pour ma formation",
@@ -2959,5 +2947,33 @@
     "delete_input_label": "Pour confirmer, saisissez l’adresse e-mail du compte",
     "delete_confirm": "Supprimer définitivement",
     "delete_action_label": "Supprimer définitivement le compte de {{name}}"
+  },
+  "address": {
+    "title": "Adresse",
+    "optional": "facultatif",
+    "line1_label": "N° et rue",
+    "line1_placeholder": "12 rue de la Paix",
+    "line2_label": "Complément",
+    "line2_placeholder": "Bâtiment, étage, appartement…",
+    "postal_code_label": "Code postal",
+    "city_label": "Ville",
+    "city_placeholder": "Paris",
+    "city_choose": "Choisis ta ville",
+    "privacy_note": "Ton adresse sert à ton dossier administratif (conventions, contrats). Seuls toi, ton conseiller et l’équipe ITIC la voient.",
+    "banner": "Complète ton adresse : elle est maintenant demandée pour ton dossier.",
+    "banner_button": "Compléter mon adresse",
+    "saved": "Adresse enregistrée.",
+    "save_error": "Adresse non enregistrée : vérifie les champs.",
+    "save": "Enregistrer",
+    "staff_missing": "Adresse non renseignée",
+    "errors": {
+      "ADDRESS_LINE1_REQUIRED": "Indique ton numéro et ta rue.",
+      "ADDRESS_LINE1_TOO_LONG": "120 caractères au maximum.",
+      "ADDRESS_LINE2_TOO_LONG": "120 caractères au maximum.",
+      "POSTAL_CODE_REQUIRED": "Indique ton code postal.",
+      "POSTAL_CODE_INVALID": "Code postal non valide : 5 chiffres (ex. 75011).",
+      "CITY_REQUIRED": "Indique ta ville.",
+      "CITY_TOO_LONG": "80 caractères au maximum."
+    }
   }
 }

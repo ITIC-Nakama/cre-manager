@@ -81,11 +81,29 @@ public class Student extends User {
     @Column(name = "company_space_visible", nullable = false)
     private boolean companySpaceVisible = true;
 
-    /** Code postal (V56), saisi par l'étudiant ou l'équipe ; facultatif. */
+    /** Adresse postale (V62) : n° et rue. Obligatoire à l'inscription, jamais montrée aux entreprises ni au public. */
+    @Column(name = "address_line1", length = 120)
+    private String addressLine1;
+
+    /** Complément d'adresse (V62), facultatif. */
+    @Column(name = "address_line2", length = 120)
+    private String addressLine2;
+
+    /** Ville (V62). */
+    @Column(name = "city", length = 80)
+    private String city;
+
+    /** Code postal (V56), saisi par l'étudiant ou l'équipe ; fait partie de l'adresse depuis V62. */
     @Column(name = "postal_code", length = 5)
     private String postalCode;
 
     /** Département déduit du code postal (« 75 », « 2A », « 974 ») : seul niveau affiché sur la carte. */
     @Column(name = "department", length = 3)
     private String department;
+
+    /** Adresse complète : rue, code postal et ville renseignés (sinon bandeau « Complète ton adresse »). */
+    public boolean hasCompleteAddress() {
+        return addressLine1 != null && !addressLine1.isBlank() && postalCode != null && !postalCode.isBlank()
+                && city != null && !city.isBlank();
+    }
 }

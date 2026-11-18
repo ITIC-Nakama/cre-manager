@@ -80,6 +80,10 @@ public class StudentLocationService {
         Student s = student(studentId);
         String value = postalCode == null ? "" : postalCode.replaceAll("\\s", "");
         if (value.isEmpty()) {
+            // Lot 10 : le code postal fait partie de l'adresse ; l'étudiant ne peut plus l'effacer une fois l'adresse saisie.
+            if (!byStaff && s.getAddressLine1() != null) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.ADDRESS_CANNOT_BE_CLEARED);
+            }
             s.setPostalCode(null);
             s.setDepartment(null);
         } else {

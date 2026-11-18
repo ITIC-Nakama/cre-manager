@@ -313,6 +313,12 @@ public class AuthService {
             profile.put("lastActivity", student.getLastActivity());
             profile.put("promotion", sanitizePromotion(student.getPromotion()));
             profile.put("studyYear", student.getStudyYear());
+            // Adresse (lot 10) : à l'étudiant lui-même seulement ; « addressComplete » pilote le bandeau du tableau de bord.
+            profile.put("addressLine1", student.getAddressLine1());
+            profile.put("addressLine2", student.getAddressLine2());
+            profile.put("postalCode", student.getPostalCode());
+            profile.put("city", student.getCity());
+            profile.put("addressComplete", student.hasCompleteAddress());
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());

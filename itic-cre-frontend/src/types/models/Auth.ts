@@ -21,6 +21,11 @@ export interface RegisterDTO {
     promotionId?: string;
     studyYear?: number;
     privacyAccepted?: boolean;
+    /** Adresse postale (lot 10), obligatoire à l'inscription. */
+    addressLine1: string;
+    addressLine2?: string;
+    postalCode: string;
+    city: string;
 }
 
 export interface OtpSendDTO {

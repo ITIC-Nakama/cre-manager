@@ -1,7 +1,8 @@
 import type { StudentRow } from '../types/models/Dashboard';
 
 export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.csv') {
-    const headers = ['Prénom', 'Nom', 'Email', 'Promotion', 'Année', 'XP', 'Grade', 'Candidatures', 'En retard', 'CV', 'Actif'];
+    const headers = ['Prénom', 'Nom', 'Email', 'Promotion', 'Année', 'XP', 'Grade', 'Candidatures', 'En retard', 'CV', 'Actif',
+        'Adresse', 'Complément', 'Code postal', 'Ville'];
 
     const rows = students.map((s) => [
         s.firstName,
@@ -15,6 +16,10 @@ export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.
         s.staleApplicationCount,
         s.hasCv ? 'Oui' : 'Non',
         s.isActive ? 'Oui' : 'Non',
+        s.addressLine1 ?? '',
+        s.addressLine2 ?? '',
+        s.postalCode ?? '',
+        s.city ?? '',
     ]);
 
     const csv = [headers, ...rows]
