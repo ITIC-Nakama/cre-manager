@@ -24,6 +24,7 @@ import {
     updateSyncInterval,
     updateExternalSourceCriteria,
     updateExcludedEmployers,
+    updateSourcesWidening,
     fetchRomeCodesReference,
     fetchRegionsReference,
     fetchAdzunaCategoriesReference,
@@ -204,6 +205,14 @@ export function useUpdateExternalSourceCriteria() {
     return useMutation({
         mutationFn: ({ source, criteria }: { source: string; criteria: ExternalSourceCriteriaPayload }) =>
             updateExternalSourceCriteria(source, criteria),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
+    });
+}
+
+export function useUpdateSourcesWidening() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (body: { includeFormationRome?: boolean; defaultZoneIleDeFrance?: boolean }) => updateSourcesWidening(body),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobboard-external-stats'] }),
     });
 }

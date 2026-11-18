@@ -266,7 +266,7 @@
         },
         "field_rome_codes": "Codes ROME",
         "field_departments": "Départements",
-        "field_departments_placeholder": "Ex: 75,92,93 — vide = toute la France",
+        "field_departments_placeholder": "Ex: 75,92,93 — vide = Île-de-France (option cochée) ou toute la France",
         "field_keywords": "Mots-clés",
         "field_keywords_placeholder": "Ex: developpeur,marketing digital,commercial — vide = aucune restriction",
         "field_category": "Catégories",
@@ -281,7 +281,7 @@
         "multi_select_count_one": "{{count}} sélectionné",
         "multi_select_count_other": "{{count}} sélectionnés",
         "field_location": "Localisation",
-        "field_location_placeholder": "Ex: Paris, Lyon — vide = toute la France",
+        "field_location_placeholder": "Ex: Paris, Lyon — vide = Île-de-France (option cochée) ou toute la France",
         "excluded_employers_label": "Employeurs exclus (toutes les sources)",
         "excluded_employers_hint": "Réglage unique, appliqué en une seule fois aux trois sources ci-dessous.",
         "excluded_employers_placeholder": "Ex: ISCOD,CFA ITIS — vide = aucune exclusion",
@@ -296,7 +296,13 @@
         "confirm_disable_title": "Désactiver cette source ?",
         "confirm_disable_message_one": "L'offre actuellement importée depuis {{label}} sera définitivement supprimée. La réactivation ne la restaure pas — une nouvelle synchronisation la récupérera à nouveau.",
         "confirm_disable_message_other": "Les {{count}} offres actuellement importées depuis {{label}} seront définitivement supprimées. La réactivation ne les restaure pas — une nouvelle synchronisation les récupérera à nouveau.",
-        "confirm_disable_button": "Désactiver et supprimer"
+        "confirm_disable_button": "Désactiver et supprimer",
+        "widening_label": "Élargissement (toutes les sources)",
+        "widening_rome": "Ajouter les codes ROME des formations ITIC",
+        "widening_rome_hint": "France Travail et La Bonne Alternance cherchent aussi les métiers de toutes les formations de l’Espace entreprise.",
+        "widening_zone": "Île-de-France par défaut",
+        "widening_zone_hint": "Quand aucune zone n’est saisie pour une source : région Île-de-France (départements 75 à 95).",
+        "widening_codes": "Codes ROME des formations :"
       }
     },
     "advisor": {

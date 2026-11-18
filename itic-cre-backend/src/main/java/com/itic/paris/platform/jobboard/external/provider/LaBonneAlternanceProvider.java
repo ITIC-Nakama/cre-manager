@@ -76,14 +76,49 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
         }
 
         var config = currentConfig();
-        List<String> romes = resolveCsvCriteria(config.getRomeCodes());
+        List<String> romes = effectiveRomeCodes(config.getRomeCodes());
         List<String> departments = resolveCsvCriteria(config.getDepartments());
+        if (departments.isEmpty() && defaultZoneIleDeFrance()) {
+            departments = ILE_DE_FRANCE_DEPARTMENTS;
+        }
         List<String> excludedEmployers = currentExcludedEmployers();
 
+        // Aucun code ROME = aucune restriction de filière. Sinon un appel par paquet de ROME_BATCH codes (liste courte
+        // côté API) ; chaque paquet a son propre quota, comme chaque code ROME chez France Travail.
+        List<List<String>> batches = new ArrayList<>();
+        if (romes.isEmpty()) {
+            batches.add(List.of());
+        } else {
+            for (int i = 0; i < romes.size(); i += ROME_BATCH) {
+                batches.add(romes.subList(i, Math.min(romes.size(), i + ROME_BATCH)));
+            }
+        }
+        int maxOffers = currentMaxOffers();
+        List<ExternalJobOfferDTO> offers = new ArrayList<>();
+        Set<String> seenIds = new LinkedHashSet<>();
+        for (List<String> batch : batches) {
+            int added = 0;
+            for (JsonNode job : search(exclusions, batch, departments)) {
+                if (added >= maxOffers) {
+                    break;
+                }
+                ExternalJobOfferDTO dto = mapJob(job);
+                if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers) && seenIds.add(dto.sourceId())) {
+                    offers.add(dto);
+                    added++;
+                }
+            }
+        }
+        return offers;
+    }
+
+    /** Taille d'un paquet de codes ROME par appel. */
+    static final int ROME_BATCH = 10;
+
+    private List<JsonNode> search(String exclusions, List<String> romes, List<String> departments) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
                 .queryParam("caller", "ITIC")
                 .queryParam("partners_to_exclude", exclusions);
-        // Aucun code ROME configuré = aucune restriction de filière (le parametre est optionnel).
         if (!romes.isEmpty()) {
             uriBuilder.queryParam("romes", String.join(",", romes));
         }
@@ -103,23 +138,11 @@ public class LaBonneAlternanceProvider extends AbstractJobProvider {
                 .body(JsonNode.class);
 
         JsonNode jobs = response != null ? response.get("jobs") : null;
-        List<ExternalJobOfferDTO> offers = new ArrayList<>();
-        if (jobs == null || !jobs.isArray()) {
-            return offers;
+        List<JsonNode> out = new ArrayList<>();
+        if (jobs != null && jobs.isArray()) {
+            jobs.forEach(out::add);
         }
-
-        int maxOffers = currentMaxOffers();
-        Set<String> seenIds = new LinkedHashSet<>();
-        for (JsonNode job : jobs) {
-            if (offers.size() >= maxOffers) {
-                break;
-            }
-            ExternalJobOfferDTO dto = mapJob(job);
-            if (dto != null && !isEmployerExcluded(dto.company(), excludedEmployers) && seenIds.add(dto.sourceId())) {
-                offers.add(dto);
-            }
-        }
-        return offers;
+        return out;
     }
 
     private ExternalJobOfferDTO mapJob(JsonNode job) {

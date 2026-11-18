@@ -121,6 +121,9 @@ public class AdzunaProvider extends AbstractJobProvider {
                 : categories;
         // "departments" est reutilise comme localisation libre (ex: "Paris"), format attendu par "where".
         String location = config.getDepartments() != null ? config.getDepartments().trim() : null;
+        if ((location == null || location.isBlank()) && defaultZoneIleDeFrance()) {
+            location = "Ile-de-France";
+        }
         List<String> excludedEmployers = currentExcludedEmployers();
 
         int maxOffers = currentMaxOffers();

@@ -266,7 +266,7 @@
         },
         "field_rome_codes": "ROME codes",
         "field_departments": "Departments",
-        "field_departments_placeholder": "E.g. 75,92,93 — empty = all of France",
+        "field_departments_placeholder": "E.g. 75,92,93 — empty = Île-de-France (option on) or all of France",
         "field_keywords": "Keywords",
         "field_keywords_placeholder": "E.g. developer,digital marketing,sales — empty = no restriction",
         "field_category": "Categories",
@@ -281,7 +281,7 @@
         "multi_select_count_one": "{{count}} selected",
         "multi_select_count_other": "{{count}} selected",
         "field_location": "Location",
-        "field_location_placeholder": "E.g. Paris, London — empty = whole country",
+        "field_location_placeholder": "E.g. Paris, Lyon — empty = Île-de-France (option on) or whole country",
         "excluded_employers_label": "Excluded employers (all sources)",
         "excluded_employers_hint": "Single setting, applied to all three sources below at once.",
         "excluded_employers_placeholder": "E.g. ISCOD,CFA ITIS — empty = no exclusion",
@@ -296,7 +296,13 @@
         "confirm_disable_title": "Disable this source?",
         "confirm_disable_message_one": "The offer currently imported from {{label}} will be permanently deleted. Re-enabling won't restore it — the next sync will fetch it again.",
         "confirm_disable_message_other": "All {{count}} offers currently imported from {{label}} will be permanently deleted. Re-enabling won't restore them — the next sync will fetch them again.",
-        "confirm_disable_button": "Disable and delete"
+        "confirm_disable_button": "Disable and delete",
+        "widening_label": "Widening (all sources)",
+        "widening_rome": "Add the ROME codes of ITIC programmes",
+        "widening_rome_hint": "France Travail and La Bonne Alternance also search the jobs of every Business space programme.",
+        "widening_zone": "Île-de-France by default",
+        "widening_zone_hint": "When no area is set for a source: Île-de-France region (departments 75 to 95).",
+        "widening_codes": "Programme ROME codes:"
       }
     },
     "advisor": {

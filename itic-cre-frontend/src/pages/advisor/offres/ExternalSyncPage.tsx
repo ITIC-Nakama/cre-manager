@@ -12,6 +12,7 @@ import {
     useUpdateSyncInterval,
     useUpdateExternalSourceCriteria,
     useUpdateExcludedEmployers,
+    useUpdateSourcesWidening,
     useRomeCodesReference,
     useRegionsReference,
     useAdzunaCategoriesReference,
@@ -52,6 +53,7 @@ export default function ExternalSyncPage() {
     const updateSyncIntervalMutation = useUpdateSyncInterval();
     const syncIntervalDays = stats?.syncIntervalDays ?? 1;
     const excludedEmployersMutation = useUpdateExcludedEmployers();
+    const wideningMutation = useUpdateSourcesWidening();
 
     const [forms, setForms] = useState<Record<string, CriteriaForm>>({});
     const [disableTarget, setDisableTarget] = useState<ExternalSourceStat | null>(null);
@@ -320,6 +322,35 @@ export default function ExternalSyncPage() {
                                 {t('dashboard.admin.jobboard_external.save_criteria', 'Enregistrer')}
                             </button>
                         </div>
+                    </div>
+
+                    {/* Élargissement (lot 5) : codes ROME des formations ITIC et zone par défaut, pour toutes les sources. */}
+                    <div className="flex flex-col gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#15171F] border border-slate-100 dark:border-slate-800">
+                        <p className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            {t('dashboard.admin.jobboard_external.widening_label', 'Élargissement (toutes les sources)')}
+                        </p>
+                        {([
+                            ['includeFormationRome', t('dashboard.admin.jobboard_external.widening_rome', 'Ajouter les codes ROME des formations ITIC'),
+                                t('dashboard.admin.jobboard_external.widening_rome_hint', 'France Travail et La Bonne Alternance cherchent aussi les métiers de toutes les formations de l’Espace entreprise.')],
+                            ['defaultZoneIleDeFrance', t('dashboard.admin.jobboard_external.widening_zone', 'Île-de-France par défaut'),
+                                t('dashboard.admin.jobboard_external.widening_zone_hint', 'Quand aucune zone n’est saisie pour une source : région Île-de-France (départements 75 à 95).')],
+                        ] as const).map(([key, label, hint]) => (
+                            <label key={key} className="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" role="switch" className="mt-0.5 h-4 w-4 accent-[#E2762F] cursor-pointer"
+                                    checked={stats?.[key] !== false} disabled={!stats || wideningMutation.isPending}
+                                    onChange={(e) => wideningMutation.mutate({ [key]: e.target.checked })} />
+                                <span>
+                                    <span className="block text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
+                                    <span className="block text-xs text-slate-400">{hint}</span>
+                                </span>
+                            </label>
+                        ))}
+                        {stats?.formationRomeCodes && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {t('dashboard.admin.jobboard_external.widening_codes', 'Codes ROME des formations :')}{' '}
+                                <span className="font-mono">{stats.formationRomeCodes.split(',').join(', ')}</span>
+                            </p>
+                        )}
                     </div>
 
                     {/* Onglets — une source à la fois, pleine largeur */}

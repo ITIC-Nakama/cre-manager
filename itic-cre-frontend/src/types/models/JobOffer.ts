@@ -159,6 +159,12 @@ export interface ExternalJobboardStats {
     syncIntervalDays: number;
     /** Liste noire globale d'employeurs exclus (CSV), appliquée aux trois sources en une seule fois. */
     excludedEmployers: string | null;
+    /** Codes ROME des formations ITIC ajoutés aux critères (France Travail, La Bonne Alternance). */
+    includeFormationRome?: boolean;
+    /** Île-de-France par défaut quand aucune zone n'est saisie pour une source. */
+    defaultZoneIleDeFrance?: boolean;
+    /** Codes ROME des formations ITIC (Espace entreprise → Formations). */
+    formationRomeCodes?: string | null;
     lastSync: ExternalSyncRun | null;
     sources: ExternalSourceStat[];
 }
