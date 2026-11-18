@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { FileText, ShieldAlert, FileSignature, Star } from 'lucide-react';
+import { FileText, ShieldAlert, FileSignature, Star, UserCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentRow } from '../../../../types/models/Dashboard';
 import TruncatedText from '../../../../components/shared/TruncatedText';
@@ -12,6 +12,8 @@ const col = createColumnHelper<StudentRow>();
 
 interface UseStudentColumnsOptions {
     isAdmin: boolean;
+    /** Compte désactivé : bouton « Réactiver le compte » dans la ligne (conseillers et admins). */
+    onReactivate?: (student: StudentRow) => void;
 }
 
 function IndeterminateCheckbox({
@@ -37,7 +39,7 @@ function IndeterminateCheckbox({
     );
 }
 
-export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
+export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOptions) {
     const { t } = useTranslation();
 
     return useMemo(() => [
@@ -100,16 +102,6 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                         <ShieldAlert className="h-2.5 w-2.5" />
                                         {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
-                                    </span>
-                                )}
-                                {!!row.original.starRating && (
-                                    <span
-                                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40"
-                                        title={t('dashboard.etudiants.table.star_rating_tooltip', { count: row.original.starRating, defaultValue: '{{count}} étoile(s)' })}
-                                    >
-                                        {Array.from({ length: row.original.starRating }).map((_, i) => (
-                                            <Star key={i} className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
-                                        ))}
                                     </span>
                                 )}
                             </div>
@@ -177,17 +169,41 @@ export function useStudentColumns({ isAdmin }: UseStudentColumnsOptions) {
                 </div>
             ),
         }),
+        col.accessor((row) => row.latestRating ?? null, {
+            id: 'latestRating',
+            header: t('dashboard.etudiants.table.rating', 'Note'),
+            cell: ({ getValue }) => {
+                const value = getValue();
+                return value ? (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-xs font-semibold text-amber-800 dark:text-amber-300"
+                        title={t('dashboard.etudiants.rating.private', 'Jamais visible par l’étudiant')}>
+                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                        {value}/5
+                    </span>
+                ) : <span className="text-xs text-slate-300 dark:text-slate-600">—</span>;
+            },
+        }),
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
             cell: ({ getValue, row }) => (
-                <div className="flex items-center">
+                <div className="flex flex-wrap items-center gap-1.5">
                     <StudentActivityBadge
                         accountActive={row.original.accountActive}
                         isActive={!!getValue()}
                         lastActivity={row.original.lastActivity}
                     />
+                    {onReactivate && !row.original.accountActive && !isAnonymizedStudent(row.original) && (
+                        <button
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); onReactivate(row.original); }}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                        >
+                            <UserCheck className="h-3 w-3" />
+                            {t('dashboard.etudiants.actions.reactivate_account')}
+                        </button>
+                    )}
                 </div>
             ),
         }),
-    ], [t, isAdmin]);
+    ], [t, isAdmin, onReactivate]);
 }

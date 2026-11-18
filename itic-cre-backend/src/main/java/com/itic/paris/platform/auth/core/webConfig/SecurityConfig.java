@@ -41,7 +41,8 @@ public class SecurityConfig {
             "/auth/otp/validate",
             "/auth/reset-password",
             "/auth/logout",
-            "/public/alumni"
+            "/public/alumni",
+            "/public/email-preferences/unsubscribe"
     );
 
     private static final Set<String> PUBLIC_DOC_PREFIXES = Set.of(

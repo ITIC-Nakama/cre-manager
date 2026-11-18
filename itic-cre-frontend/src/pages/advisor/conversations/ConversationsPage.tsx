@@ -261,6 +261,8 @@ function StaffThread({ studentId }: { studentId: string }) {
 
       <MessageComposer
         placeholder={t('conversation.staff.placeholder', { name: student.firstName, defaultValue: 'Écrire à {{name}}…' })}
+        draftKey={`conversation:${student.id}`}
+        audience="staff"
         sending={send.isPending}
         disabledReason={disabledReason}
         onSend={(body) => send.mutateAsync(body).catch((err) => {

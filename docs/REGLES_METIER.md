@@ -105,12 +105,17 @@ Trois états distincts, à ne pas confondre (backend `StudentRow` : `accountActi
 - **Dashboard** (`GET /dashboard/overview`, `GET /dashboard/students/needing-attention`) : un `ADVISOR` est toujours scopé à son propre id. Un `ADMIN` peut passer un `advisorId` optionnel pour voir un portefeuille précis (toggle "Vue globale / Mon portefeuille" côté interface), ou l'omettre pour la vue globale (comportement par défaut).
 - **Étudiants / Candidatures / CV Validation** : un `ADMIN` dispose d'une checkbox "Mes étudiants uniquement" (même mécanisme que pour un `ADVISOR`) en plus du picker complet des conseillers ; le picker de filtre exclut l'admin courant (couvert par la checkbox), mais le picker d'**affectation** (bulk-assign) l'inclut toujours, en tête de liste, sous le libellé "Moi".
 
-### Note manuelle conseiller/admin (`Student.starRating`)
-- Note libre de **0 à 3 étoiles**, saisie manuellement par un conseiller ou admin sur la fiche étudiant (`StudentDetailModal`) — délibérément **pas de calcul automatique** ni de référentiel de critères structuré, pour éviter les problématiques RGPD/équité d'un score dérivé du comportement de l'étudiant.
-- **Jamais visible ni modifiable côté étudiant** — champ absent de toute réponse API accessible à un rôle `STUDENT`.
-- `null` = jamais noté, distinct d'une note explicite de **0** (un conseiller peut délibérément noter 0 étoile).
-- `PATCH /dashboard/students/{studentId}/star-rating` (`ADVISOR`/`ADMIN`, ouvert à tout conseiller/admin comme les autres actions de ce contrôleur) — `starRating: null` efface la note.
-- Filtrable dans la liste des étudiants (`starred=true/false` sur `GET /dashboard/students` et `/dashboard/students/all`) : `true` = a une note (0 à 3), `false` = jamais noté.
+### Note de l'équipe sur la fiche étudiant (V53, `student_ratings`)
+- Note de **1 à 5** avec un **commentaire facultatif** (1000 caractères au plus), saisie par un conseiller ou un admin sur la fiche étudiant (bloc « Note de l'équipe »). Délibérément **pas de calcul automatique** ni de référentiel de critères : c'est une appréciation humaine.
+- **Historisée** : chaque note est une ligne (`student_ratings` : auteur, date, note, commentaire) ; rien n'est écrasé. La fiche montre la dernière et l'historique (« N note(s) plus ancienne(s) »). Auteur supprimé : la note reste, signée « Ancien conseiller ».
+- `students.latest_rating` garde la dernière note (colonne triable « Note » de la liste Étudiants, filtre « note minimale » : `minRating=2..5` sur `GET /dashboard/students`). `starred=true/false` signifie désormais « noté / jamais noté ».
+- `GET` et `POST /dashboard/students/{studentId}/ratings` (`ADVISOR`/`ADMIN`, tout conseiller ou admin). Note hors 1–5 ou commentaire trop long : 400 `student-rating-invalid`.
+- **Jamais visible ni modifiable côté étudiant** : absente de toute réponse accessible au rôle `STUDENT`.
+- **Reprise des anciennes étoiles** (0 à 3, `Student.starRating`) : chaque étudiant noté reçoit une note `étoiles + 2` (0 → 2/5, 3 → 5/5), avec le commentaire « Reprise de l'ancienne note : N étoile(s) sur 3 ». L'ancien `PATCH …/star-rating` reste accepté et alimente aussi `latest_rating`.
+- **RGPD** : notes incluses dans l'export (`ratings`), supprimées avec le compte (anonymisation).
+
+### Réactiver un compte étudiant (conseiller ou admin)
+- Un conseiller (même non référent) ou un admin réactive un étudiant désactivé **depuis sa fiche et depuis la liste Étudiants** (bouton sur la ligne, avec confirmation), comme depuis « Validation des CVs ». Même chemin serveur dans les trois cas : e-mail « compte réactivé » à l'étudiant, entrée `USER_REACTIVATED` au journal d'audit. Un conseiller ne réactive jamais un compte conseiller ou admin.
 
 ### Promotions
 - Nom **unique**.
@@ -391,6 +396,11 @@ ci-dessous).
 
 ---
 
+### Brouillons d'offres et promotions ciblées (V54)
+- **Brouillon** (`job_offers.draft`) : dans la fenêtre d'offre, l'équipe choisit « Enregistrer comme brouillon » ou « Publier ». Un brouillon n'exige **ni lien ni adresse de candidature** (vérifiés seulement à la publication : 400 `job-offer-no-apply-channel`), n'est **jamais montré aux étudiants** (liste, fiche : 404, candidature refusée) et n'apparaît que dans la liste de l'équipe, avec le badge « Brouillon » et le filtre « Brouillons » (`draft=true` sur `GET /jobboard/offers`).
+- `POST /jobboard/offers/{id}/publish` publie un brouillon (date de publication `staff_published_at`, journal d'audit). Une offre déjà publiée ne redevient pas brouillon. Les offres existantes ont reçu `staff_published_at = created_at`.
+- **Promotions ciblées** (`job_offer_target_promotions`) : choix multiple de promotions sur une offre de l'équipe. **Jamais affiché aux étudiants** (absent de la réponse côté étudiant). Sert à l'e-mail du soir (section 15).
+
 ## 4. Gamification — XP & Grades
 
 ### Actions XP génériques (table `gamification_config`, éditables sans toucher au code)
@@ -458,7 +468,7 @@ ci-dessous).
   - La puce grise « Comptes désactivés · N » (N = leurs CV, tous statuts confondus) affiche uniquement ces CV, avec le badge « Compte désactivé ». Côté API : `accountActive=false` sur `GET /cv` et `GET /cv/stats` ; sans ce paramètre, seuls les comptes actifs sont renvoyés. La réponse indique `student.accountActive`.
   - La fiche étudiant (`GET /cv/student/{id}`) affiche toujours le CV, compte actif ou non.
 - **CV des étudiants sous contrat** : même logique que les comptes désactivés. Le CV d'un étudiant « sous contrat » n'a plus besoin d'être relu : il sort de la liste par défaut de « Validation des CVs », des puces par statut, du badge de la sidebar, de la tuile « CVs à examiner » (et de son sous-titre « N CVs déposés ») et du graphique des CV par statut du tableau de bord.
-  - « Sous contrat » = **la même règle que le tableau de bord** : dernière déclaration au statut `compteCommeContrat` (« Offre reçue »), **vérifiée** par un conseiller, date de fin vide ou pas encore passée (`StudentSpecification.underContractPredicate`, `ApplicationRepository.CONFIRMED_ACTIVE_CONTRACT`, réutilisés par `CVSpecification` et `CVRepository.STUDENT_UNDER_CONTRACT`). Une déclaration **pas encore vérifiée** ne compte pas : le CV reste à relire.
+  - « Sous contrat », pour les CV = un contrat **déclaré ou vérifié** (statut `compteCommeContrat`, « Offre reçue »), date de fin vide ou pas encore passée (`StudentSpecification.contractDeclaredOrVerifiedPredicate`, `CVRepository.STUDENT_UNDER_CONTRACT`, réutilisés par `CVSpecification`). **Depuis le 16/11/2026, une déclaration pas encore vérifiée suffit** : un étudiant qui annonce son contrat sort aussitôt de « CV à corriger » et « CV validés » (demande de Jules) ; si la déclaration est refusée ou invalidée, le CV revient. Le tableau de bord garde sa règle « vérifiée » pour ses compteurs de contrats.
   - Rien n'est stocké ni modifié : la règle est recalculée à chaque requête. Le CV **revient de lui-même**, avec son statut, quand la date de fin est passée (fin du contrat, ou **rupture** saisie par un conseiller en avançant la date de fin via « dates du contrat »), ou quand la déclaration est **invalidée**. Un contrat qui se termine aujourd'hui compte encore jusqu'au soir.
   - La puce verte « Sous contrat · N » affiche uniquement ces CV, avec le badge « Sous contrat ». Le statut du CV y est **grisé et suivi de « en pause »** (ex. « À corriger · en pause ») : rien à faire tant que le contrat court. Côté API : `underContract=true` sur `GET /cv` et `GET /cv/stats`. Une seule puce active à la fois (un statut, « Comptes désactivés » ou « Sous contrat »). Un compte désactivé sous contrat n'apparaît que dans « Comptes désactivés ».
   - La fiche étudiant affiche toujours le CV.
@@ -675,6 +685,21 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
   - fil redemandé toutes les 12 secondes, un seul « lu » par nouveau message ; aucun message : invitation à écrire, rien n'est créé ;
   - **tutoiement**, comme dans « Mon CV » (l'e-mail d'avis garde le vouvoiement de tous les e-mails de la plateforme) ;
   - le bouton d'aide flottant (« Demandes d'aide ») est masqué sur cette page : il recouvrait la zone de saisie sur mobile, et l'étudiant y parle déjà à l'équipe.
+
+## 15. E-mail « offres ciblées du soir » (V54)
+- Chaque soir à **18 h (heure de Paris)**, chaque étudiant **actif, sans contrat en cours** (déclaré ou vérifié, comme pour les CV) et membre d'une promotion ciblée reçoit **un seul e-mail** regroupant les offres ciblées **publiées dans la journée** (non brouillon, actives). Aucune offre ciblée ce jour-là : aucun e-mail.
+- Mise en page des e-mails du CRE, vouvoiement ; chaque offre renvoie à sa fiche (`/student/offres?offre=<id>`, ouverte directement après connexion).
+- **Pas de double envoi** : une ligne `scheduled_mailings` (type, jour, destinataire) est posée dans sa propre transaction **avant** l'envoi ; deux serveurs ou deux passages le même soir n'envoient qu'une fois.
+- **Préférence** : « Offres ciblées du soir » dans le profil de l'étudiant (activée par défaut, `students.email_targeted_offers`) et lien « Ne plus recevoir ces e-mails » en bas de l'e-mail, utilisable **sans connexion** (`/email/desinscription?token=…`, jeton signé HMAC propre à l'étudiant et au type d'e-mail ; `POST /public/email-preferences/unsubscribe`). Lien modifié ou faux : 400 `unsubscribe-link-invalid`.
+- Variables (facultatives) : `APP_MAILING_TARGETED_OFFERS_ENABLED` (défaut `true`), `APP_MAILING_TARGETED_OFFERS_CRON` (défaut `0 0 18 * * *`).
+- **RGPD** : préférence incluse dans le profil ; à l'anonymisation, abonnement coupé et lignes `scheduled_mailings` supprimées.
+
+## 16. Brouillons de formulaire dans le navigateur
+- Les longs formulaires (article, quiz, offre, commentaire de CV, message, « Demande d'aide », envoi d'un message à un étudiant, candidature) **s'enregistrent tout seuls** dans le navigateur, 0,8 s après la dernière frappe (`localStorage`, clé `cre-draft:<utilisateur>:<formulaire>`, propre à chaque personne). Rien n'est envoyé au serveur.
+- À la réouverture : « Reprendre votre brouillon du … ? » (« ton » côté étudiant) avec « Reprendre » ou « Ignorer ».
+- **Fermer un formulaire modifié** demande confirmation (« Fermer sans envoyer ? ») ; fermer l'onglet affiche l'avertissement du navigateur. La « Demande d'aide » ne se ferme plus sur un clic à côté.
+- Brouillon **effacé à l'envoi** et **à la déconnexion** (tous les brouillons de l'appareil). Un formulaire revenu à ses valeurs de départ n'a pas de brouillon.
+- Une seule brique réutilisable : `useFormDraft`, `DraftRestoreBanner`, `useCloseGuard`, `clearAllFormDrafts`.
 
 ## Notes de fiabilité de ce document
 

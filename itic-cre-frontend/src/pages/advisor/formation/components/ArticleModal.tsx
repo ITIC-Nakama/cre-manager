@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useFormDraft } from '../../../../hooks/useFormDraft';
+import { useCloseGuard } from '../../../../hooks/useCloseGuard';
+import DraftRestoreBanner from '../../../../components/shared/DraftRestoreBanner';
 import { useTranslation } from 'react-i18next';
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -35,6 +38,18 @@ export default function ArticleModal({
   const [ordre, setOrdre] = useState(1);
   const [actif, setActif] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Valeurs de départ (article vide ou chargé) : le brouillon du navigateur est comparé à elles.
+  type ArticleValues = { titre: string; contenu: string; categorieId: string; ordre: number; actif: boolean };
+  const [baseline, setBaseline] = useState<ArticleValues | null>(null);
+  const values: ArticleValues = { titre, contenu, categorieId, ordre, actif };
+  const draft = useFormDraft(`article:${mode === 'edit' ? articleId : 'nouveau'}`, values, baseline ?? values,
+    isOpen && !!baseline && !loading);
+  const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
+  const restoreDraft = () => {
+    const v = draft.restore();
+    if (!v) return;
+    setTitre(v.titre); setContenu(v.contenu); setCategorieId(v.categorieId); setOrdre(v.ordre); setActif(v.actif);
+  };
 
   const nextOrdreForCategory = (catId: string) => {
     const inCategory = articles.filter(a => a.categoryId === catId);
@@ -51,7 +66,9 @@ export default function ArticleModal({
       setActif(false);
       const defaultCategoryId = categories.length > 0 ? categories[0].id : '';
       setCategorieId(defaultCategoryId);
-      setOrdre(defaultCategoryId ? nextOrdreForCategory(defaultCategoryId) : 1);
+      const defaultOrdre = defaultCategoryId ? nextOrdreForCategory(defaultCategoryId) : 1;
+      setOrdre(defaultOrdre);
+      setBaseline({ titre: '', contenu: '', categorieId: defaultCategoryId, ordre: defaultOrdre, actif: false });
     } else if (mode === 'edit' && articleId) {
       const loadArticle = async () => {
         setLoading(true);
@@ -62,6 +79,7 @@ export default function ArticleModal({
           setCategorieId(art.categoryId);
           setOrdre(art.ordre);
           setActif(art.actif ?? true);
+          setBaseline({ titre: art.titre, contenu: art.contenu, categorieId: art.categoryId, ordre: art.ordre, actif: art.actif ?? true });
         } catch (err) {
           console.error(err);
           toast.error(t('dashboard.formation.toast_article_load_error'));
@@ -109,6 +127,7 @@ export default function ArticleModal({
       toast.error(t('dashboard.formation.toast_select_category'));
       return;
     }
+    draft.clear();
     onSave({ titre, contenu, categorieId, ordre, actif });
   };
 
@@ -121,7 +140,7 @@ export default function ArticleModal({
             {mode === 'create' ? t('dashboard.formation.modal_create_article') : t('dashboard.formation.modal_edit_article')}
           </h3>
           <button 
-            onClick={onClose}
+            onClick={requestClose}
             disabled={saving}
             className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -136,6 +155,9 @@ export default function ArticleModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 md:p-8 gap-6 min-h-0 overflow-y-auto">
+            {draft.pending && (
+              <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="staff" onRestore={restoreDraft} onDiscard={draft.discard} />
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">{t('dashboard.formation.label_title_article')} <span className="text-rose-500">*</span></label>
@@ -206,7 +228,7 @@ export default function ArticleModal({
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={requestClose}
                   disabled={saving}
                   className="px-5 py-2.5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -225,6 +247,7 @@ export default function ArticleModal({
           </form>
         )}
       </div>
+      {closeDialog}
     </div>
   );
 }

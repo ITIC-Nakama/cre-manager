@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useFormDraft } from '../../../../hooks/useFormDraft';
+import { useCloseGuard } from '../../../../hooks/useCloseGuard';
+import DraftRestoreBanner from '../../../../components/shared/DraftRestoreBanner';
 import { useTranslation } from 'react-i18next';
 import { X, Plus, Trash2, ArrowLeft, Save, Loader2, HelpCircle, Check, Settings } from 'lucide-react';
 import { toast } from 'sonner';
@@ -29,6 +32,15 @@ export default function QuizModal({
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [scoreMinimum, setScoreMinimum] = useState(80);
   const [questions, setQuestions] = useState<Question[]>([]);
+  // Brouillon du quiz (navigateur), comparé au quiz chargé (ou au quiz par défaut).
+  const [baseline, setBaseline] = useState<{ scoreMinimum: number; questions: Question[] } | null>(null);
+  const quizValues = { scoreMinimum, questions };
+  const draft = useFormDraft(`quiz:${articleId}`, quizValues, baseline ?? quizValues, isOpen && !!baseline && !loading);
+  const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
+  const restoreDraft = () => {
+    const v = draft.restore();
+    if (v) { setScoreMinimum(v.scoreMinimum); setQuestions(v.questions); }
+  };
 
   useEffect(() => {
     if (!isOpen || !articleId) return;
@@ -49,10 +61,11 @@ export default function QuizModal({
           setQuiz(q);
           setScoreMinimum(q.scoreMinimum ?? 80);
           setQuestions(q.questions || []);
+          setBaseline({ scoreMinimum: q.scoreMinimum ?? 80, questions: q.questions || [] });
         } else {
           setQuiz(null);
           setScoreMinimum(80);
-          setQuestions([
+          const defaultQuestions: Question[] = [
             {
               texte: t('dashboard.formation.default_first_question'),
               ordre: 1,
@@ -61,7 +74,9 @@ export default function QuizModal({
                 { texte: t('dashboard.formation.default_option_b'), estCorrecte: false }
               ]
             }
-          ]);
+          ];
+          setQuestions(defaultQuestions);
+          setBaseline({ scoreMinimum: 80, questions: defaultQuestions });
         }
       } catch (err) {
         console.error(err);
@@ -214,6 +229,7 @@ export default function QuizModal({
       }))
     };
 
+    draft.clear();
     onSave(payload, quiz?.id);
   };
 
@@ -223,7 +239,7 @@ export default function QuizModal({
       <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row gap-3 sm:items-center justify-between z-10 shadow-sm">
         <div className="flex items-center gap-3 min-w-0">
           <button
-            onClick={onClose}
+            onClick={requestClose}
             disabled={saving}
             className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-50 shrink-0"
           >
@@ -262,6 +278,11 @@ export default function QuizModal({
           </button>
         </div>
       </div>
+      {draft.pending && (
+        <div className="px-4 sm:px-6 pt-4 max-w-4xl w-full mx-auto">
+          <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="staff" onRestore={restoreDraft} onDiscard={draft.discard} />
+        </div>
+      )}
 
       {loading ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -455,6 +476,7 @@ export default function QuizModal({
           </button>
         </div>
       )}
+      {closeDialog}
     </div>
   );
 }

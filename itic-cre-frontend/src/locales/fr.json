@@ -54,6 +54,19 @@
     "skilltree": {
       "back_to_tree_tooltip": "Retourner à l'arbre de connaissances",
       "tree_link": "Arbre"
+    },
+    "email_prefs": {
+      "title": "E-mails d’offres",
+      "saved": "Préférence enregistrée.",
+      "error": "La préférence n’a pas pu être enregistrée.",
+      "targeted_title": "Offres ciblées du soir",
+      "targeted_subtitle": "À 18 h, les offres publiées dans la journée pour ta promotion (tant que tu n’as pas de contrat).",
+      "unsubscribed_title": "C’est noté",
+      "invalid_title": "Lien non valide",
+      "unsubscribing": "Désinscription…",
+      "unsubscribed_text": "Tu ne recevras plus ces e-mails d’offres. Tu peux les réactiver à tout moment dans ton profil.",
+      "invalid_text": "Ce lien de désinscription n’est pas valide. Tu peux gérer tes e-mails depuis ton profil.",
+      "go_profile": "Gérer mes e-mails"
     }
   },
   "pwa": {
@@ -377,8 +390,8 @@
       "filter_contract_all": "Tous",
       "filter_starred_label": "Note",
       "filter_starred_all": "Tous",
-      "filter_starred_yes": "Étoilés",
-      "filter_starred_no": "Non étoilés",
+      "filter_starred_yes": "Notés",
+      "filter_starred_no": "Non notés",
       "filter_study_year": "Année d'étude",
       "filter_study_year_all": "Toutes les années",
       "promotion_search_placeholder": "Rechercher une promotion…",
@@ -406,7 +419,8 @@
         "never_connected": "Jamais connecté",
         "account_disabled": "Compte désactivé",
         "empty": "Aucun étudiant ne correspond à vos critères.",
-        "last_activity": "Dernière connexion"
+        "last_activity": "Dernière connexion",
+        "rating": "Note"
       },
       "detail": {
         "total_applications": "Total candidatures",
@@ -473,6 +487,24 @@
         "remove_success_one": "Conseiller retiré pour {{count}} étudiant !",
         "remove_success_other": "Conseiller retiré pour {{count}} étudiants !",
         "remove_error": "Erreur lors du retrait groupé."
+      },
+      "filter_rating_all": "Toutes les notes",
+      "filter_rating_none": "Non noté",
+      "filter_rating_any": "Noté (1/5 et plus)",
+      "filter_rating_min": "{{count}}/5 et plus",
+      "rating": {
+        "title": "Note de l’équipe",
+        "private": "Jamais visible par l’étudiant",
+        "pick": "Note de 1 à 5",
+        "value": "{{count}} sur 5",
+        "comment_placeholder": "Commentaire (facultatif) : motivation, entretien, savoir-être…",
+        "save": "Enregistrer la note",
+        "saved": "Note enregistrée.",
+        "error": "La note n’a pas pu être enregistrée.",
+        "none": "Pas encore noté.",
+        "history": "Historique des notes",
+        "less": "Moins",
+        "more": "{{count}} note(s) plus ancienne(s)"
       }
     },
     "students": {
@@ -878,7 +910,12 @@
         "save_error": "Échec de l'enregistrement de l'offre.",
         "no_channel_error": "Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.",
         "channel_link": "Les étudiants postuleront via ce lien.",
-        "channel_email": "Les étudiants postuleront par e-mail à {{email}}."
+        "channel_email": "Les étudiants postuleront par e-mail à {{email}}.",
+        "is_draft": "Brouillon : cette offre n’est pas visible des étudiants tant qu’elle n’est pas publiée.",
+        "target_label": "Promotions ciblées",
+        "target_hint": "Jamais affiché aux étudiants. Le soir de la publication (18 h), les étudiants de ces promotions sans contrat reçoivent l’offre par e-mail.",
+        "save_draft": "Enregistrer comme brouillon",
+        "publish": "Publier"
       },
       "detail_modal": {
         "title": "Détails de l'offre",
@@ -920,7 +957,10 @@
         "withdrawn_xp_revoked": "Candidature retirée — {{xp}} XP repris.",
         "withdraw_error": "Impossible de retirer la candidature."
       },
-      "subtitle": "Consultez et gérez l'ensemble des offres d'emploi et d'alternance."
+      "subtitle": "Consultez et gérez l'ensemble des offres d'emploi et d'alternance.",
+      "filter_drafts": "Brouillons",
+      "draft_badge": "Brouillon",
+      "draft_hint": "Brouillon : invisible des étudiants tant qu’il n’est pas publié."
     },
     "notify_modal": {
       "message_label": "Message personnalisé",
@@ -957,8 +997,8 @@
       "col_status": "Statut",
       "col_quiz": "Quiz d'évaluation",
       "col_actions": "Actions",
-      "status_active": "Actif",
-      "status_inactive": "Inactif",
+      "status_active": "Publié",
+      "status_inactive": "Brouillon",
       "quiz_configured": "Configuré",
       "quiz_none": "Aucun Quiz",
       "btn_quiz": "Quiz",
@@ -2544,5 +2584,17 @@
       "send_error": "Ton message n’a pas pu être envoyé, réessaie.",
       "staff_author": "{{name}} · équipe CRE"
     }
+  },
+  "drafts": {
+    "restore_student": "Reprendre ton brouillon du {{when}} ?",
+    "restore_staff": "Reprendre votre brouillon du {{when}} ?",
+    "restore": "Reprendre",
+    "discard": "Ignorer",
+    "restore_comment": "Reprendre le commentaire non enregistré",
+    "close_title": "Fermer sans envoyer ?",
+    "close_message_student": "Ton texte n’est pas envoyé. Il reste enregistré comme brouillon sur cet appareil : tu pourras le reprendre.",
+    "close_message_staff": "Votre texte n’est pas envoyé. Il reste enregistré comme brouillon sur cet appareil : vous pourrez le reprendre.",
+    "close_confirm": "Fermer",
+    "close_cancel": "Continuer"
   }
 }

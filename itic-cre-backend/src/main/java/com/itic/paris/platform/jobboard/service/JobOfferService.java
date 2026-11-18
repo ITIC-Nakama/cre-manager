@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.itic.paris.platform.jobboard.specification.JobOfferSpecification ;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,13 +46,16 @@ public class JobOfferService {
     private final JobApplicationRepository jobApplicationRepository;
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
+    private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
         Sector sector = resolveSector(request.getSectorId());
 
-        String emailCandidature = requireApplyChannel(request);
+        boolean draft = Boolean.TRUE.equals(request.getDraft());
+        // Brouillon : le moyen de postuler n'est controle qu'a la publication.
+        String emailCandidature = draft ? ApplicationEmailExtractor.extract(request.getDescription()) : requireApplyChannel(request);
         User createdBy = getCurrentUser();
 
         JobOffer jobOffer = new JobOffer();
@@ -65,6 +69,9 @@ public class JobOfferService {
         jobOffer.setEmailCandidature(emailCandidature);
         jobOffer.setActive(true);
         jobOffer.setCreatedBy(createdBy);
+        jobOffer.setDraft(draft);
+        jobOffer.setStaffPublishedAt(draft ? null : Instant.now());
+        jobOffer.setTargetPromotions(resolvePromotions(request.getTargetPromotionIds()));
 
         JobOffer saved = jobOfferRepository.save(jobOffer);
         auditLogService.log(AuditAction.JOB_OFFER_CREATED, createdBy, "JOB_OFFER", saved.getId(),
@@ -85,6 +92,51 @@ public class JobOfferService {
         return emailCandidature;
     }
 
+    /** Promotions ciblees : identifiants inconnus refuses (404). */
+    private java.util.Set<com.itic.paris.platform.auth.model.Promotion> resolvePromotions(List<UUID> ids) {
+        java.util.Set<com.itic.paris.platform.auth.model.Promotion> promotions = new java.util.HashSet<>();
+        if (ids == null) {
+            return promotions;
+        }
+        for (UUID id : new java.util.LinkedHashSet<>(ids)) {
+            promotions.add(promotionRepository.findById(id)
+                    .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.PROMOTION_NOT_FOUND)));
+        }
+        return promotions;
+    }
+
+    /**
+     * Publier un brouillon : le moyen de postuler (lien ou adresse e-mail dans la description) est controle maintenant.
+     * Une offre deja publiee reste publiee (sans effet).
+     */
+    public JobOfferDTO publish(UUID id) {
+        JobOffer jobOffer = jobOfferRepository.findById(id)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
+        if (jobOffer.isDraft()) {
+            String email = ApplicationEmailExtractor.extract(jobOffer.getDescription());
+            boolean hasLink = jobOffer.getExternalLink() != null && !jobOffer.getExternalLink().isBlank();
+            if (!hasLink && email == null) {
+                throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_NO_APPLY_CHANNEL);
+            }
+            jobOffer.setEmailCandidature(email);
+            jobOffer.setDraft(false);
+            jobOffer.setStaffPublishedAt(Instant.now());
+            jobOfferRepository.save(jobOffer);
+            auditLogService.log(AuditAction.JOB_OFFER_UPDATED, getCurrentUser(), "JOB_OFFER", jobOffer.getId(),
+                    "Publication du brouillon : " + jobOffer.getTitle() + " — " + jobOffer.getCompany());
+        }
+        return mapToDTO(jobOffer);
+    }
+
+    private static boolean isStaff() {
+        try {
+            String role = com.itic.paris.platform.auth.core.security.SecurityContextHelper.currentUserRole();
+            return "ADVISOR".equals(role) || "ADMIN".equals(role);
+        } catch (AppException e) {
+            return false;
+        }
+    }
+
     private Sector resolveSector(UUID sectorId) {
         if (sectorId == null) {
             return null;
@@ -95,6 +147,8 @@ public class JobOfferService {
 
     public JobOfferDTO getById(UUID id) {
         return jobOfferRepository.findById(id)
+                // Un brouillon n'existe pas pour un etudiant.
+                .filter(offer -> !offer.isDraft() || isStaff())
                 .map(this::mapToDTO)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
     }
@@ -136,7 +190,18 @@ public class JobOfferService {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.CONTRACT_TYPE_NOT_FOUND));
         Sector sector = resolveSector(request.getSectorId());
-        String emailCandidature = requireApplyChannel(request);
+        // Brouillon modifie et garde en brouillon : moyen de postuler pas encore exige. Publication (draft=false) d'un
+        // brouillon, ou offre deja publiee : exige, comme avant.
+        boolean publishing = jobOffer.isDraft() && Boolean.FALSE.equals(request.getDraft());
+        boolean staysDraft = jobOffer.isDraft() && !publishing;
+        String emailCandidature = staysDraft ? ApplicationEmailExtractor.extract(request.getDescription()) : requireApplyChannel(request);
+        if (publishing) {
+            jobOffer.setDraft(false);
+            jobOffer.setStaffPublishedAt(Instant.now());
+        }
+        if (request.getTargetPromotionIds() != null) {
+            jobOffer.setTargetPromotions(resolvePromotions(request.getTargetPromotionIds()));
+        }
 
         jobOffer.setTitle(request.getTitle());
         jobOffer.setCompany(request.getCompany());
@@ -205,8 +270,17 @@ public class JobOfferService {
      */
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
                                           String location, String postedBy, Boolean noApplyChannel, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, sectorId, source, active, location, postedBy, noApplyChannel, null, pageable);
+    }
+
+    /** Idem, avec le filtre « Brouillons » (draft=true : brouillons seulement ; false : publiees seulement). */
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
+                                          String location, String postedBy, Boolean noApplyChannel, Boolean draft, Pageable pageable) {
         Specification<JobOffer> spec = JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active,
                 location, normalizePostedBy(postedBy));
+        if (draft != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("draft"), draft));
+        }
         if (Boolean.TRUE.equals(noApplyChannel)) {
             spec = spec.and(JobOfferSpecification.withoutApplyChannel());
         }
@@ -302,7 +376,14 @@ public class JobOfferService {
                 applicationCount,
                 jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getFirstName() : null,
                 jobOffer.getCreatedBy() != null ? jobOffer.getCreatedBy().getLastName() : null,
-                jobOffer.getEmailCandidature()
+                jobOffer.getEmailCandidature(),
+                jobOffer.isDraft(),
+                jobOffer.getStaffPublishedAt(),
+                // Promotions ciblees : jamais renvoyees a un etudiant.
+                isStaff() ? jobOffer.getTargetPromotions().stream()
+                        .map(p -> new JobOfferDTO.TargetPromotion(p.getId(), p.getName()))
+                        .sorted(java.util.Comparator.comparing(JobOfferDTO.TargetPromotion::name))
+                        .toList() : null
         );
     }
 

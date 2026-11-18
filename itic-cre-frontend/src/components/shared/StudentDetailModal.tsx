@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
 import { isAnonymizedStudent } from '../../utils/studentUtils';
 import { usePromotions, useAssignStudentToPromotion, useRemoveStudentFromPromotion } from '../../hooks/usePromotions';
-import { useUpdateStudentStarRating } from '../../hooks/useDashboard';
+import StudentRatingSection, { RatingStars } from './StudentRatingSection';
 import { formatPromotionLabel } from '../../utils/promotionUtils';
 import CustomSelect from '../basics/CustomSelect';
 import UserAvatar from './UserAvatar';
@@ -38,8 +38,6 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
     const removeMutation = useRemoveStudentFromPromotion();
-    const updateStarRatingMutation = useUpdateStudentStarRating();
-    const [localStarRating, setLocalStarRating] = useState<number | null>(student.starRating);
 
     const [isEditingPromo, setIsEditingPromo] = useState(false);
     const [selectedPromoId, setSelectedPromoId] = useState(student.promotion?.id ?? '');
@@ -100,18 +98,6 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
         }
     };
 
-    const handleSetStarRating = async (value: number) => {
-        const next = localStarRating === value ? null : value;
-        const previous = localStarRating;
-        setLocalStarRating(next);
-        try {
-            await updateStarRatingMutation.mutateAsync({ studentId: student.id, starRating: next });
-        } catch {
-            setLocalStarRating(previous);
-            toast.error(t('dashboard.etudiants.detail.toast_star_rating_error', 'Erreur lors de la mise à jour de la note.'));
-        }
-    };
-
     return (
         <div
             className={`fixed inset-0 z-50 ${covered ? 'hidden' : 'flex'} items-center justify-center p-4 bg-black/60`}
@@ -140,27 +126,14 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     {student.phoneNumber}
                                 </p>
                             )}
-                            {/* Note manuelle conseiller/admin — jamais visible cote etudiant. Un
-                              * clic sur l'etoile deja active l'efface (retour a "jamais note"). */}
-                            <div className="flex items-center gap-0.5 mt-1" title={t('dashboard.etudiants.detail.star_rating_hint', "Votre appréciation de cet étudiant — jamais visible par lui")}>
-                                {[1, 2, 3].map((value) => (
-                                    <button
-                                        key={value}
-                                        type="button"
-                                        onClick={() => handleSetStarRating(value)}
-                                        disabled={updateStarRatingMutation.isPending}
-                                        className="p-0.5 cursor-pointer disabled:opacity-50"
-                                    >
-                                        <Star
-                                            className={`h-4 w-4 ${
-                                                localStarRating !== null && value <= localStarRating
-                                                    ? 'fill-amber-400 text-amber-400'
-                                                    : 'text-slate-300 dark:text-slate-600'
-                                            }`}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
+                            {/* Dernière note de l'équipe (1 à 5) — jamais visible côté étudiant ; détail et historique plus bas. */}
+                            {student.latestRating ? (
+                                <p className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400"
+                                    title={t('dashboard.etudiants.rating.private', 'Jamais visible par l’étudiant')}>
+                                    <RatingStars score={student.latestRating} />
+                                    <span className="font-semibold">{student.latestRating}/5</span>
+                                </p>
+                            ) : null}
                         </div>
                     </div>
                     <button
@@ -173,6 +146,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
 
                 {/* Body */}
                 <div className="p-5 space-y-4">
+                    <StudentRatingSection studentId={student.id} />
                     {/* Status badges row */}
                     <div className="flex flex-wrap gap-2">
                         <StudentActivityBadge

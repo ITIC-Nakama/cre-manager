@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useNotifyStudent, useDeactivateStudent, useReactivateStudent, useAnonymizeStudent } from './useDashboard';
@@ -64,7 +64,7 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
     };
 
     // Réactivation : confirmation d'abord (ReactivateAccountDialog), comme pour la désactivation.
-    const handleReactivateStudent = (student: StudentRow) => setReactivateTarget(student);
+    const handleReactivateStudent = useCallback((student: StudentRow) => setReactivateTarget(student), []);
 
     const handleConfirmReactivate = async () => {
         if (!reactivateTarget) return;
@@ -100,6 +100,8 @@ export function useStudentDetailActions({ isAdmin, onAnonymizeSuccess }: Options
     };
 
     return {
+        // Liste des étudiants : bouton « Réactiver le compte » sur la ligne d'un compte désactivé (même confirmation).
+        handleReactivateStudent,
         // Props prêtes à passer directement à <StudentDetailModal>
         studentDetailProps: {
             onNotify: (s: StudentRow) => setNotifyingStudent(s),

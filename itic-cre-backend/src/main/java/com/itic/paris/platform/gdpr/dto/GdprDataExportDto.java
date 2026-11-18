@@ -26,6 +26,8 @@ public class GdprDataExportDto {
     private List<ReclamationData> reclamations;
     /** Messagerie : le fil de l'etudiant avec l'equipe CRE, dans l'ordre. */
     private List<ConversationMessageData> conversation;
+    /** Notes de l'equipe (1 a 5, commentaire), de la plus recente a la plus ancienne. */
+    private List<RatingData> ratings;
 
     @Data
     @Builder
@@ -143,6 +145,17 @@ public class GdprDataExportDto {
         private String message;
         private String status;
         private Instant dateCreation;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RatingData {
+        private Instant date;
+        private int score;
+        private String comment;
+        private String author;
     }
 
     @Data

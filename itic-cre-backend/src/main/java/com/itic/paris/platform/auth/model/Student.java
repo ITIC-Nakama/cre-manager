@@ -60,4 +60,12 @@ public class Student extends User {
     // null = jamais note (distinct de 0, une note explicite).
     @Column(name = "star_rating")
     private Integer starRating;
+
+    /** Derniere note de l'equipe (1 a 5, table student_ratings), null si jamais note. Remplace star_rating (V53). */
+    @Column(name = "latest_rating")
+    private Integer latestRating;
+
+    /** Abonnement a l'e-mail du soir des offres ciblees (V54), active par defaut ; lien de desinscription dans l'e-mail. */
+    @Column(name = "email_targeted_offers", nullable = false)
+    private boolean emailTargetedOffers = true;
 }

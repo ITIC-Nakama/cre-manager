@@ -47,6 +47,7 @@ const SORT_FIELD_BY_COLUMN: Record<string, string> = {
     xpTotal: 'xpTotal',
     hasCv: 'hasCv',
     isActive: 'lastActivity',
+    latestRating: 'latestRating',
 };
 
 function toSortParam(sorting: SortingState): string | undefined {
@@ -111,7 +112,7 @@ export default function EtudiantsPage() {
     const studentActions = useStudentDetailActions({ isAdmin, onAnonymizeSuccess: closeStudentDetail });
     const { data: advisors = [] } = useAllAdvisors();
 
-    const columns = useStudentColumns({ isAdmin });
+    const columns = useStudentColumns({ isAdmin, onReactivate: studentActions.handleReactivateStudent });
 
     const filterOptions = useMemo(() => [
         { value: 'all', label: t('dashboard.etudiants.filter_all') },
@@ -169,9 +170,10 @@ export default function EtudiantsPage() {
     ], [t]);
 
     const starredFilterOptions = useMemo(() => [
-        { value: 'all', label: t('dashboard.etudiants.filter_starred_all', 'Tous') },
-        { value: 'starred', label: t('dashboard.etudiants.filter_starred_yes', 'Étoilés') },
-        { value: 'unstarred', label: t('dashboard.etudiants.filter_starred_no', 'Non étoilés') },
+        { value: 'all', label: t('dashboard.etudiants.filter_rating_all', 'Toutes les notes') },
+        { value: 'unstarred', label: t('dashboard.etudiants.filter_rating_none', 'Non noté') },
+        { value: 'starred', label: t('dashboard.etudiants.filter_rating_any', 'Noté (1/5 et plus)') },
+        ...(['2', '3', '4', '5'] as const).map((v) => ({ value: v, label: t('dashboard.etudiants.filter_rating_min', { count: Number(v), defaultValue: '{{count}}/5 et plus' }) })),
     ], [t]);
 
     const params = useMemo(() => ({
@@ -187,6 +189,8 @@ export default function EtudiantsPage() {
         underContract: contractFilter === 'under_contract' ? true : contractFilter === 'not_under_contract' ? false : undefined,
         needsContractVerification: contractFilter === 'needs_verification' ? true : undefined,
         starred: starredFilter === 'starred' ? true : starredFilter === 'unstarred' ? false : undefined,
+        // Note minimale (dernière note de l'équipe).
+        minRating: ['2', '3', '4', '5'].includes(starredFilter) ? Number(starredFilter) : undefined,
         includeAnonymized: isAdmin ? includeAnonymized : false,
         sort: toSortParam(sorting),
     }), [debouncedSearch, filterStatus, promotionFilter, studyYearFilter, advisorFilter, contractFilter, starredFilter, isAdmin, includeAnonymized, sorting]);

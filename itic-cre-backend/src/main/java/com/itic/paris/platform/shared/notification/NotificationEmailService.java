@@ -159,6 +159,21 @@ public class NotificationEmailService {
         sendHtml(to, subject, html);
     }
 
+    /**
+     * E-mail du soir des offres ciblees : les offres publiees dans la journee pour la promotion de l'etudiant, chacune
+     * avec son lien, et le lien de desinscription.
+     */
+    @Async
+    public void sendTargetedOffers(String to, String lang, String firstName,
+                                   java.util.List<com.itic.paris.platform.mailing.service.TargetedOfferMailingService.OfferLine> offers,
+                                   String allOffersUrl, String unsubscribeUrl) {
+        String html = emailTemplateService.renderTargetedOffersEmail(lang, firstName, offers, allOffersUrl, unsubscribeUrl);
+        String subject = "en".equals(lang)
+                ? (offers.size() > 1 ? offers.size() + " new offers for your class" : "A new offer for your class")
+                : (offers.size() > 1 ? offers.size() + " nouvelles offres pour votre promotion" : "Une nouvelle offre pour votre promotion");
+        sendHtml(to, subject, html);
+    }
+
     @Async
     public void sendAccountCredentials(String email, String firstName, String lang,
                                         String temporaryPassword, boolean isNewAccount) {

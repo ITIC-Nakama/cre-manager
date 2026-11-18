@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Loader2, Briefcase, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { X, Loader2, Briefcase, Plus, Send, Save, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { findApplicationEmail } from '../../utils/applyChannel';
 import { toast } from 'sonner';
@@ -8,6 +8,10 @@ import { useContractTypes } from '../../hooks/useApplications';
 import { useSectors, useCreateSector } from '../../hooks/useJobOffers';
 import type { JobOffer } from '../../types/models/JobOffer';
 import type { JobOfferPayload } from '../../types/models/JobOffer';
+import { usePromotions } from '../../hooks/usePromotions';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useCloseGuard } from '../../hooks/useCloseGuard';
+import DraftRestoreBanner from './DraftRestoreBanner';
 
 interface Props {
     offer?: JobOffer | null;
@@ -46,7 +50,31 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
     const [contractTypeId, setContractTypeId] = useState(offer?.contractType.id ?? '');
     const [sectorId, setSectorId] = useState(offer?.sector?.id ?? '');
     const [externalLink, setExternalLink] = useState(offer?.externalLink ?? '');
-    const [saving, setSaving] = useState(false);
+    const [targetPromotionIds, setTargetPromotionIds] = useState<string[]>(offer?.targetPromotions?.map((p) => p.id) ?? []);
+    const { data: promotions } = usePromotions();
+    // Offre de l'équipe, nouvelle ou brouillon : « Enregistrer comme brouillon » et « Publier ». Offre publiée : « Enregistrer ».
+    const canDraft = !offer || !!offer.draft;
+    const isStaffOffer = !offer || offer.source === 'MANUAL';
+    const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
+
+    // Brouillon dans le navigateur (formulaire long) : repris à la réouverture, effacé à l'enregistrement.
+    const values = { title, company, description, location, contractTypeId, sectorId, externalLink, targetPromotionIds };
+    const initial = useMemo(() => ({
+        title: offer?.title ?? '', company: offer?.company ?? '', description: offer?.description ?? '',
+        location: offer?.location ?? '', contractTypeId: offer?.contractType.id ?? '', sectorId: offer?.sector?.id ?? '',
+        externalLink: offer?.externalLink ?? '', targetPromotionIds: offer?.targetPromotions?.map((p) => p.id) ?? [],
+    }), [offer]);
+    const draft = useFormDraft(`offre:${offer?.id ?? 'nouvelle'}`, values, initial, !isReadOnly);
+    const restoreDraft = () => {
+        const v = draft.restore();
+        if (!v) return;
+        setTitle(v.title); setCompany(v.company); setDescription(v.description); setLocation(v.location);
+        setContractTypeId(v.contractTypeId); setSectorId(v.sectorId); setExternalLink(v.externalLink);
+        setTargetPromotionIds(v.targetPromotionIds);
+    };
+    const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, onClose, 'staff');
+    const togglePromotion = (id: string) =>
+        setTargetPromotionIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     // Dès que le lien ou la description change, l'erreur affichée sous le lien (dont « aucun moyen de
@@ -79,7 +107,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         }
     };
 
-    const validate = (): Record<string, string> => {
+    const validate = (asDraft: boolean): Record<string, string> => {
         const errors: Record<string, string> = {};
         if (title.trim().length < LIMITS.title.min || title.trim().length > LIMITS.title.max) {
             errors.title = t('dashboard.offres.form.length_error', LIMITS.title);
@@ -97,23 +125,24 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
         if (trimmedLink && !isValidHttpUrl(trimmedLink)) {
             errors.externalLink = t('dashboard.offres.form.invalid_link_error');
         }
-        // Bloquant : sans lien ni adresse e-mail dans la description, l'etudiant ne peut pas postuler.
-        if (!trimmedLink && !findApplicationEmail(description)) {
+        // Bloquant à la publication seulement : sans lien ni adresse e-mail dans la description, l'etudiant ne peut pas
+        // postuler. Un brouillon peut s'en passer.
+        if (!asDraft && !trimmedLink && !findApplicationEmail(description)) {
             errors.externalLink = t('dashboard.offres.form.no_channel_error', 'Aucun moyen de postuler : ajoutez un lien vers l’offre, ou une adresse e-mail dans la description.');
         }
         return errors;
     };
 
-    const handleSave = async () => {
+    const handleSave = async (asDraft: boolean) => {
         if (isReadOnly || !onSave) return;
-        const errors = validate();
+        const errors = validate(asDraft);
         setFieldErrors(errors);
         setGeneralError(null);
         if (Object.keys(errors).length > 0) {
             return;
         }
 
-        setSaving(true);
+        setSaving(asDraft ? 'draft' : 'publish');
         try {
             await onSave({
                 title: title.trim(),
@@ -123,7 +152,10 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                 contractTypeId,
                 sectorId: sectorId || undefined,
                 externalLink: externalLink.trim() || undefined,
+                draft: canDraft ? asDraft : undefined,
+                targetPromotionIds: isStaffOffer ? targetPromotionIds : undefined,
             });
+            draft.clear();
             onClose();
         } catch (err: any) {
             const serverFieldErrors = err?.response?.data?.data;
@@ -135,7 +167,7 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                 setGeneralError(t('dashboard.offres.form.save_error'));
             }
         } finally {
-            setSaving(false);
+            setSaving(null);
         }
     };
 
@@ -154,7 +186,8 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                         </p>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={requestClose}
+                        aria-label={t('dashboard.offres.form.close', 'Fermer')}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                     >
                         <X className="h-4 w-4" />
@@ -163,6 +196,14 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
 
                 {/* Body */}
                 <div className="p-5 space-y-4">
+                    {draft.pending && (
+                        <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="staff" onRestore={restoreDraft} onDiscard={draft.discard} />
+                    )}
+                    {offer?.draft && (
+                        <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded-xl px-3 py-2">
+                            {t('dashboard.offres.form.is_draft', 'Brouillon : cette offre n’est pas visible des étudiants tant qu’elle n’est pas publiée.')}
+                        </p>
+                    )}
                     {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
                             {generalError}
@@ -355,29 +396,65 @@ export default function JobOfferFormModal({ offer, onClose, onSave, isReadOnly =
                             );
                         })()}
                     </div>
+
+                    {isStaffOffer && (
+                        <fieldset className="space-y-2">
+                            <legend className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                <Users className="h-3.5 w-3.5" />
+                                {t('dashboard.offres.form.target_label', 'Promotions ciblées')}
+                            </legend>
+                            <p className="text-xs text-slate-400">
+                                {t('dashboard.offres.form.target_hint', 'Jamais affiché aux étudiants. Le soir de la publication (18 h), les étudiants de ces promotions sans contrat reçoivent l’offre par e-mail.')}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {(promotions ?? []).map((p) => {
+                                    const on = targetPromotionIds.includes(p.id);
+                                    return (
+                                        <button key={p.id} type="button" disabled={isReadOnly} aria-pressed={on} onClick={() => togglePromotion(p.id)}
+                                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer disabled:cursor-default ${on
+                                                ? 'bg-indigo-600 border-indigo-600 text-white'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400'}`}>
+                                            {p.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </fieldset>
+                    )}
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-2 px-5 pb-5">
                     <button
-                        onClick={onClose}
-                        disabled={saving}
+                        onClick={requestClose}
+                        disabled={!!saving}
                         className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                     >
                         {isReadOnly ? t('dashboard.offres.form.close', 'Fermer') : t('dashboard.offres.form.cancel')}
                     </button>
+                    {!isReadOnly && canDraft && (
+                        <button
+                            onClick={() => handleSave(true)}
+                            disabled={!!saving}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60"
+                        >
+                            {saving === 'draft' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            {t('dashboard.offres.form.save_draft', 'Enregistrer comme brouillon')}
+                        </button>
+                    )}
                     {!isReadOnly && (
                         <button
-                            onClick={handleSave}
-                            disabled={saving}
+                            onClick={() => handleSave(false)}
+                            disabled={!!saving}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60"
                         >
-                            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {t('dashboard.offres.form.save')}
+                            {saving === 'publish' ? <Loader2 className="h-4 w-4 animate-spin" /> : canDraft ? <Send className="h-4 w-4" /> : null}
+                            {canDraft ? t('dashboard.offres.form.publish', 'Publier') : t('dashboard.offres.form.save')}
                         </button>
                     )}
                 </div>
             </div>
+            {closeDialog}
         </div>
     );
 }

@@ -127,12 +127,13 @@ public class DashboardController {
             @RequestParam(required = false) Boolean underContract,
             @RequestParam(required = false) Boolean needsContractVerification,
             @RequestParam(required = false) Boolean starred,
+            @RequestParam(required = false) Integer minRating,
             @PageableDefault(size = 20) Pageable pageable) {
         StudentFilterCriteria criteria = StudentFilterCriteria.builder()
                 .promotionId(promotionId).studyYear(studyYear).studyYearMissing(studyYearMissing)
                 .excludePromotionId(excludePromotionId).advisorId(advisorId).search(search).isActive(isActive)
                 .accountActive(accountActive).hasCv(hasCv).hasStale(hasStale).includeAnonymized(includeAnonymized).underContract(underContract)
-                .needsContractVerification(needsContractVerification).starred(starred)
+                .needsContractVerification(needsContractVerification).starred(starred).minRating(minRating)
                 .build();
         return ResponseEntity.ok(studentReportingService.getStudentList(criteria, pageable));
     }

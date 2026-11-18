@@ -37,6 +37,12 @@ export interface JobOffer {
     createdByLastName: string | null;
     /** Adresse e-mail de candidature trouvée dans la description (bouton « Postuler » par e-mail), null sinon. */
     emailCandidature: string | null;
+    /** Brouillon : visible de l'équipe seulement (V54). */
+    draft?: boolean;
+    /** Publication par l'équipe (null pour un brouillon). */
+    staffPublishedAt?: string | null;
+    /** Promotions ciblées (e-mail du soir) : renvoyées à l'équipe seulement, jamais à un étudiant. */
+    targetPromotions?: { id: string; name: string }[] | null;
 }
 
 export interface JobOfferPage {
@@ -78,6 +84,8 @@ export interface JobOfferListParams {
     postedBy?: string;
     /** Liste staff : uniquement les offres sans lien ni adresse e-mail de candidature. */
     noApplyChannel?: boolean;
+    /** Liste staff : true = brouillons seulement (filtre « Brouillons »). */
+    draft?: boolean;
     sort?: string;
 }
 
@@ -96,6 +104,10 @@ export interface JobOfferPayload {
     contractTypeId: string;
     sectorId?: string;
     externalLink?: string;
+    /** true : « Enregistrer comme brouillon » ; false : « Publier » (un brouillon). */
+    draft?: boolean;
+    /** Promotions ciblées : leurs étudiants reçoivent l'offre dans l'e-mail du soir. */
+    targetPromotionIds?: string[];
 }
 
 export interface ExternalSyncRun {

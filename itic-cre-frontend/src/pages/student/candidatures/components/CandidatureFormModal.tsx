@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useFormDraft } from '../../../../hooks/useFormDraft';
+import { useCloseGuard } from '../../../../hooks/useCloseGuard';
+import DraftRestoreBanner from '../../../../components/shared/DraftRestoreBanner';
 import { X, Loader2, Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
@@ -40,6 +43,20 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
     const scrollRef = useRef<HTMLFormElement>(null);
     useLockBodyScroll(scrollRef, true);
     const { isClosing, handleClose } = useModalClose(onClose);
+    const draftValues = { entreprise, poste, typeContratId, lienOffre, contact, notes, startDate, endDate };
+    const draftInitial = useMemo(() => ({
+        entreprise: candidature?.entreprise ?? '', poste: candidature?.poste ?? '', typeContratId: candidature?.typeContrat?.id ?? '',
+        lienOffre: candidature?.lienOffre ?? '', contact: candidature?.contact ?? '', notes: candidature?.notes ?? '',
+        startDate: candidature?.startDate ?? '', endDate: candidature?.endDate ?? '',
+    }), [candidature]);
+    const draft = useFormDraft(`candidature:${candidature ? `${candidature.entreprise}|${candidature.poste}` : 'nouvelle'}`, draftValues, draftInitial);
+    const { requestClose, dialog: closeDialog } = useCloseGuard(draft.dirty, handleClose, 'student');
+    const restoreDraft = () => {
+        const v = draft.restore();
+        if (!v) return;
+        setEntreprise(v.entreprise); setPoste(v.poste); setTypeContratId(v.typeContratId); setLienOffre(v.lienOffre);
+        setContact(v.contact); setNotes(v.notes); setStartDate(v.startDate); setEndDate(v.endDate);
+    };
 
     const contractTypeOptions = [
         { value: '', label: t('dashboard.candidatures.student.form.no_contract_type') },
@@ -78,6 +95,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                 startDate: startDate || undefined,
                 endDate: endDate || undefined,
             });
+            draft.clear();
         } catch (err: unknown) {
             const serverFieldErrors = (err as { response?: { data?: { data?: unknown } } })?.response?.data?.data;
             if (serverFieldErrors && typeof serverFieldErrors === 'object' && !Array.isArray(serverFieldErrors)) {
@@ -100,7 +118,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                         </p>
                     </div>
                     <button
-                        onClick={handleClose}
+                        onClick={requestClose}
                         disabled={saving}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
                     >
@@ -109,6 +127,9 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                 </div>
 
                 <form ref={scrollRef} onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1 min-w-0">
+                    {draft.pending && (
+                        <DraftRestoreBanner savedAt={draft.pending.savedAt} audience="student" onRestore={restoreDraft} onDiscard={draft.discard} />
+                    )}
                     {generalError && (
                         <p className="text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 rounded-xl px-3 py-2">
                             {generalError}
@@ -240,7 +261,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     <div className="flex items-center justify-end gap-2 pt-2">
                         <button
                             type="button"
-                            onClick={handleClose}
+                            onClick={requestClose}
                             disabled={saving}
                             className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                         >
@@ -257,6 +278,7 @@ export default function CandidatureFormModal({ candidature, saving, onClose, onS
                     </div>
                 </form>
             </div>
+            {closeDialog}
         </div>
     );
 }

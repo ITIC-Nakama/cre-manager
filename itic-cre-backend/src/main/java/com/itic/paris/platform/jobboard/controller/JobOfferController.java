@@ -84,9 +84,17 @@ public class JobOfferController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String postedBy,
             @RequestParam(required = false) Boolean noApplyChannel,
+            @RequestParam(required = false) Boolean draft,
             @PageableDefault(size = 20, sort = {"priorityContract", "effectiveDate"}, direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(jobOfferService.getAllOffers(search, contractTypeId, sectorId, source, active, location,
-                postedBy, noApplyChannel, pageable));
+                postedBy, noApplyChannel, draft, pageable));
+    }
+
+    @PostMapping("/" + ID + "/publish")
+    @PreAuthorize("hasRole('ADVISOR') or hasRole('ADMIN')")
+    @Operation(summary = "Publier un brouillon (le lien ou l'adresse e-mail pour postuler est exigé à ce moment-là)")
+    public ResponseEntity<JobOfferDTO> publish(@PathVariable UUID id) {
+        return ResponseEntity.ok(jobOfferService.publish(id));
     }
 
     @GetMapping("/authors")

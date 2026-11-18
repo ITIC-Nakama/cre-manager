@@ -24,6 +24,8 @@ public class JobOfferSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("active")));
+            // Brouillons : jamais montres aux etudiants.
+            predicates.add(cb.isFalse(root.get("draft")));
             predicates.add(sourcePredicate(root, cb, source));
             addContractTypePredicate(predicates, root, cb, contractTypeId);
             addSectorPredicate(predicates, root, cb, sectorId);

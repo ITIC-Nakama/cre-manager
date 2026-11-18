@@ -54,6 +54,19 @@
     "skilltree": {
       "back_to_tree_tooltip": "Return to knowledge tree",
       "tree_link": "Tree"
+    },
+    "email_prefs": {
+      "title": "Offer emails",
+      "saved": "Preference saved.",
+      "error": "The preference could not be saved.",
+      "targeted_title": "Evening targeted offers",
+      "targeted_subtitle": "At 6 pm, the offers published that day for your class (as long as you have no contract).",
+      "unsubscribed_title": "Done",
+      "invalid_title": "Invalid link",
+      "unsubscribing": "Unsubscribing…",
+      "unsubscribed_text": "You will no longer receive these offer emails. You can turn them back on anytime in your profile.",
+      "invalid_text": "This unsubscribe link is not valid. You can manage your emails from your profile.",
+      "go_profile": "Manage my emails"
     }
   },
   "pwa": {
@@ -377,8 +390,8 @@
       "filter_contract_all": "All",
       "filter_starred_label": "Rating",
       "filter_starred_all": "All",
-      "filter_starred_yes": "Starred",
-      "filter_starred_no": "Unstarred",
+      "filter_starred_yes": "Rated",
+      "filter_starred_no": "Not rated",
       "filter_study_year": "Study year",
       "filter_study_year_all": "All years",
       "promotion_search_placeholder": "Search a cohort…",
@@ -406,7 +419,8 @@
         "never_connected": "Never signed in",
         "account_disabled": "Account disabled",
         "empty": "No students match your criteria.",
-        "last_activity": "Last active"
+        "last_activity": "Last active",
+        "rating": "Rating"
       },
       "detail": {
         "total_applications": "Total applications",
@@ -473,6 +487,24 @@
         "remove_success_one": "Advisor removed for {{count}} student!",
         "remove_success_other": "Advisor removed for {{count}} students!",
         "remove_error": "Error during bulk removal."
+      },
+      "filter_rating_all": "All ratings",
+      "filter_rating_none": "Not rated",
+      "filter_rating_any": "Rated (1/5 and up)",
+      "filter_rating_min": "{{count}}/5 and up",
+      "rating": {
+        "title": "Team rating",
+        "private": "Never visible to the student",
+        "pick": "Rating from 1 to 5",
+        "value": "{{count}} out of 5",
+        "comment_placeholder": "Comment (optional): motivation, interview, soft skills…",
+        "save": "Save rating",
+        "saved": "Rating saved.",
+        "error": "The rating could not be saved.",
+        "none": "Not rated yet.",
+        "history": "Rating history",
+        "less": "Less",
+        "more": "{{count}} older rating(s)"
       }
     },
     "students": {
@@ -878,7 +910,12 @@
         "save_error": "Failed to save the offer.",
         "no_channel_error": "No way to apply: add a link to the offer, or an email address in the description.",
         "channel_link": "Students will apply through this link.",
-        "channel_email": "Students will apply by email to {{email}}."
+        "channel_email": "Students will apply by email to {{email}}.",
+        "is_draft": "Draft: this offer is hidden from students until it is published.",
+        "target_label": "Targeted classes",
+        "target_hint": "Never shown to students. On the evening of publication (6 pm), students of these classes without a contract receive the offer by email.",
+        "save_draft": "Save as draft",
+        "publish": "Publish"
       },
       "detail_modal": {
         "title": "Job Offer Details",
@@ -920,7 +957,10 @@
         "withdrawn_xp_revoked": "Application withdrawn — {{xp}} XP taken back.",
         "withdraw_error": "Unable to withdraw the application."
       },
-      "subtitle": "View and manage job offers."
+      "subtitle": "View and manage job offers.",
+      "filter_drafts": "Drafts",
+      "draft_badge": "Draft",
+      "draft_hint": "Draft: hidden from students until it is published."
     },
     "notify_modal": {
       "message_label": "Custom message",
@@ -957,8 +997,8 @@
       "col_status": "Status",
       "col_quiz": "Evaluation Quiz",
       "col_actions": "Actions",
-      "status_active": "Active",
-      "status_inactive": "Inactive",
+      "status_active": "Published",
+      "status_inactive": "Draft",
       "quiz_configured": "Configured",
       "quiz_none": "No Quiz",
       "btn_quiz": "Quiz",
@@ -2544,5 +2584,17 @@
       "send_error": "Your message could not be sent, please try again.",
       "staff_author": "{{name}} · career team"
     }
+  },
+  "drafts": {
+    "restore_student": "Resume your draft from {{when}}?",
+    "restore_staff": "Resume your draft from {{when}}?",
+    "restore": "Resume",
+    "discard": "Discard",
+    "restore_comment": "Resume the unsaved comment",
+    "close_title": "Close without sending?",
+    "close_message_student": "Your text is not sent. It stays saved as a draft on this device: you can resume it.",
+    "close_message_staff": "Your text is not sent. It stays saved as a draft on this device: you can resume it.",
+    "close_confirm": "Close",
+    "close_cancel": "Keep editing"
   }
 }

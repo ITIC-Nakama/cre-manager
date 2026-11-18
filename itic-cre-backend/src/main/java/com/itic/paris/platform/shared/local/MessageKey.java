@@ -218,6 +218,12 @@ public enum MessageKey {
     RECLAMATION_ALREADY_PENDING("reclamation-already-pending",
             "Vous avez déjà une réclamation en cours. Merci d'attendre qu'elle soit traitée avant d'en envoyer une nouvelle.",
             "You already have an ongoing report. Please wait until it's handled before sending a new one."),
+    UNSUBSCRIBE_LINK_INVALID("unsubscribe-link-invalid",
+            "Ce lien de désinscription n'est pas valide.",
+            "This unsubscribe link is not valid."),
+    STUDENT_RATING_INVALID("student-rating-invalid",
+            "La note doit être comprise entre 1 et 5, avec un commentaire de 1000 caractères au plus.",
+            "The rating must be between 1 and 5, with a comment of at most 1,000 characters."),
     // Messagerie conseiller <-> etudiant
     CONVERSATION_STUDENT_INACTIVE("conversation-student-inactive",
             "Ce compte étudiant est désactivé : il ne peut plus recevoir de message.",

@@ -34,6 +34,11 @@ export function fetchOfferAuthors(): Promise<OfferAuthor[]> {
 }
 
 // Etudiant — offres actives uniquement
+/** Une offre (étudiant : jamais un brouillon). Lien direct des e-mails d'offres : /student/offres?offre=<id>. */
+export function fetchJobOfferById(id: string): Promise<JobOffer> {
+    return apiClient.get(`/jobboard/offers/${id}`).then((response) => unwrap<JobOffer>(response));
+}
+
 export function fetchActiveJobOffers(params: JobOfferListParams = {}): Promise<JobOfferPage> {
     return apiClient.get('/jobboard/offers', { params }).then((response) => unwrap<JobOfferPage>(response));
 }

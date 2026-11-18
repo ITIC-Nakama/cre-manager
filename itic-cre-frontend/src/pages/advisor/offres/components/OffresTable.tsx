@@ -65,7 +65,13 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                     <div className="min-w-0">
                         <span className="block font-semibold text-slate-900 dark:text-white line-clamp-2" title={row.original.title}>{row.original.title}</span>
                         <TruncatedText text={row.original.company} className="text-xs text-slate-400" />
-                        {getApplyChannel(row.original) === 'none' && (
+                        {row.original.draft && (
+                            <span className="mt-1 mr-1 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                title={t('dashboard.offres.draft_hint', 'Brouillon : invisible des étudiants tant qu’il n’est pas publié.')}>
+                                {t('dashboard.offres.draft_badge', 'Brouillon')}
+                            </span>
+                        )}
+                        {getApplyChannel(row.original) === 'none' && !row.original.draft && (
                             <span
                                 className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-900/50"
                                 title={t('dashboard.offres.no_channel_hint', 'Ni lien ni adresse e-mail : les étudiants ne savent pas comment postuler.')}
