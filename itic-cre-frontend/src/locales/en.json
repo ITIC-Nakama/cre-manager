@@ -328,7 +328,7 @@
         "showing_latest": "Latest {{count}} of {{total}}",
         "empty": "No logs recorded."
       },
-      "toast_reminder_sent": "Reminder sent successfully!",
+      "toast_reminder_sent": "Message sent in {{name}}’s conversation",
       "toast_reminder_error": "Error sending reminder.",
       "quick_publish_offer": "Publish job offer",
       "quick_view_apps": "View applications",
@@ -924,11 +924,11 @@
       "message_label": "Custom message",
       "message_optional": "(optional)",
       "message_placeholder": "Please update your applications and upload your CV…",
-      "message_hint": "If empty, a default message will be used.",
+      "message_hint": "The message is added to the student’s conversation; they are notified by email (without the text). If empty, a default reminder is sent.",
       "cancel": "Cancel",
       "send": "Send message",
-      "success": "Message sent to {{name}}",
-      "error": "Unable to send email to {{email}}"
+      "success": "Message sent in {{name}}’s conversation",
+      "error": "The message could not be sent to {{email}}"
     },
     "formation": {
       "title": "Content & Quiz Management",

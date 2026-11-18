@@ -587,10 +587,10 @@ Chaque limite spécifique doit rester ≤ `MAX_FILE_SIZE`.
 | `account-credentials.html` | Création d'un compte `ADVISOR`/`ADMIN` par un admin (mot de passe temporaire) |
 | `cv-notification.html` (variante statut) | Un conseiller change le statut d'un CV |
 | `cv-notification.html` (variante commentaire) | Un conseiller ajoute un commentaire sur un CV |
-| `student-reminder.html` | Un conseiller envoie un rappel libre via `POST /dashboard/students/{id}/notify` |
+| `conversation-new-message.html` | Messagerie : « Vous avez un nouveau message » (fr/en), à l'étudiant (message de l'équipe, y compris « Envoyer un message ») ou au référent (message de l'étudiant) ; lien direct, jamais le contenu. Remplace `student-reminder.html` (supprimé le 14/11/2026), qui contenait le texte du message |
 | `contract-declaration-invalidated.html` | Un conseiller/admin invalide une déclaration "sous contrat" (`POST /dashboard/applications/{id}/invalidate-contract`) — seul évènement de la section §2 "Suivi sous contrat" à notifier l'étudiant ; la validation (`validate-contract`) n'envoie rien, la déclaration passe juste au vert dans son suivi. Bilingue (`lang` de l'étudiant, comme `advisor-assigned.html`). |
 
-- **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée uniquement pour le lien du bouton "Accéder à mon espace" dans `student-reminder.html` (`{FRONTEND_URL}/student/dashboard`). En production, doit pointer vers le domaine réel du frontend.
+- **`FRONTEND_URL`** (par défaut : `http://localhost:5173`) : URL de base du frontend, utilisée pour les liens des e-mails, dont « Lire le message » de `conversation-new-message.html` (`{FRONTEND_URL}/student/messages`, `{FRONTEND_URL}/supervisor/conversations/{id}`). En production, doit pointer vers le domaine réel du frontend.
 - **`APP_BRAND_NAME`** (par défaut : `ITIC CRE`) : nom affiché dans l'en-tête/pied de tous les templates.
 - **Thème forcé en dark mode** : tous les templates déclarent `<meta name="color-scheme" content="dark">` / `<meta name="supported-color-schemes" content="dark">` et dupliquent chaque couleur de fond via l'attribut HTML `bgcolor` en plus du CSS inline, pour empêcher les clients mail mobiles (Gmail, Outlook, Apple Mail) d'inverser ou de repasser l'email en clair.
 
@@ -654,7 +654,14 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
   - à l'anonymisation (automatique ou à la demande), le fil est supprimé : messages et lectures ;
   - les messages sont inclus dans l'export RGPD (`conversation` : date, côté, auteur, texte) ;
   - si un compte de l'équipe est supprimé, ses messages restent, signés « Ancien conseiller » (clé étrangère `ON DELETE SET NULL`). Même chose pour un compte anonymisé.
-- **API « Envoyer un message »** (`POST /dashboard/students/{id}/notify`) : 4000 caractères au plus, comme la fenêtre (1000 jusqu'au 14/11/2026 : un message long échouait).
+- **« Envoyer un message »** (`POST /dashboard/students/{id}/notify`, fiche étudiant, liste, tableau de bord) : le message est **écrit dans le fil** de l'étudiant (vide : relance par défaut, dans sa langue), qui est prévenu comme pour tout message ; 4000 caractères au plus (1000 jusqu'au 14/11/2026 : un message long échouait). L'ancien e-mail « Rappel de votre conseiller », qui contenait le texte, n'existe plus.
+- **E-mails « Vous avez un nouveau message »** (migration V52) :
+  - l'équipe écrit : l'**étudiant** est prévenu ; l'étudiant écrit : son **référent** est prévenu (sans référent, ou référent désactivé : personne ; le fil compte alors dans le badge de toute l'équipe) ;
+  - contenu : qui a écrit et un **lien direct** (`/student/messages`, `/supervisor/conversations/{id}`), **jamais le texte du message** ; dans la langue du destinataire (fr/en) ;
+  - **anti-avalanche** : au plus **un e-mail toutes les 15 minutes par fil et par destinataire**, et seulement pour des messages qu'il n'a ni lus ni déjà vus signalés. Un message déjà lu au moment de l'envoi ne donne aucun e-mail ;
+  - un message écrit pendant ces 15 minutes et toujours non lu à leur fin est signalé à ce moment-là (contrôle chaque minute, `app.messaging.notification-scheduler.enabled`) : aucun message ne reste sans avis ;
+  - le fil est verrouillé pendant la décision : deux messages simultanés ne donnent qu'un e-mail ;
+  - compte étudiant désactivé ou anonymisé : aucun e-mail.
 
 ## Notes de fiabilité de ce document
 

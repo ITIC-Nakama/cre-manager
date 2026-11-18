@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html th:lang="${lang}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="color-scheme" content="light dark"/>
     <meta name="supported-color-schemes" content="light dark"/>
-    <title>Rappel de votre conseiller</title>
+    <title th:text="${brandName}">ITIC Paris CRE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
     <style>
         @media (prefers-color-scheme: dark) {
             .bg-page { background-color: #020203 !important; }
             .bg-frame { background-color: #0d0f16 !important; }
             .bg-body { background-color: #15171f !important; }
-            .bg-notice { background-color: #1e2130 !important; }
             .text-primary { color: #ffffff !important; }
             .text-secondary { color: #9aa0a6 !important; }
         }
     </style>
 </head>
+<!-- Avis de nouveau message (messagerie) : jamais le contenu du message, seulement un lien direct vers la conversation. -->
 <body class="bg-page" style="margin:0;padding:0;background-color:#eef0f3;font-family:'Roboto',Arial,sans-serif;" bgcolor="#eef0f3">
     <table width="100%" cellpadding="0" cellspacing="0" class="bg-page" style="background-color:#eef0f3;padding:40px 0;" bgcolor="#eef0f3">
         <tr>
@@ -36,7 +36,8 @@
                                 </tr>
                             </table>
                             <h1 class="text-primary" style="margin:0;font-size:22px;font-weight:700;color:#111827;">
-                                Message de votre conseiller
+                                <span th:if="${lang == 'en'}">You have a new message</span>
+                                <span th:if="${lang != 'en'}">Vous avez un nouveau message</span>
                             </h1>
                         </td>
                     </tr>
@@ -46,39 +47,41 @@
                         <td class="bg-body" style="background-color:#ffffff;padding:36px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;" bgcolor="#ffffff">
 
                             <p class="text-primary" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#111827;">
-                                Bonjour <strong style="color:#3B71FF;" th:text="${firstName}">Étudiant</strong>,
+                                <span th:if="${lang == 'en'}">Hello</span>
+                                <span th:if="${lang != 'en'}">Bonjour</span>
+                                <strong style="color:#3B71FF;" th:text="${firstName}">Inès</strong>,
                             </p>
 
-                            <p class="text-secondary" style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#6b7280;">
-                                Votre conseiller
-                                <strong class="text-primary" style="color:#111827;" th:text="${advisorName}">Conseiller</strong>
-                                vous a envoyé un message :
+                            <!-- A l'etudiant : un membre de l'equipe CRE lui a ecrit. -->
+                            <p th:if="${toStudent}" class="text-secondary" style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#6b7280;">
+                                <span th:if="${lang == 'en'}">
+                                    <strong th:if="${senderName != null}" th:text="${senderName}">Romain Dupont</strong><span th:if="${senderName != null}"> from the career team</span><span th:if="${senderName == null}">The career team</span>
+                                    sent you a message on <span th:text="${brandName}">ITIC Paris CRE</span>. Open your messages to read it and reply.
+                                </span>
+                                <span th:if="${lang != 'en'}">
+                                    <strong th:if="${senderName != null}" th:text="${senderName}">Romain Dupont</strong><span th:if="${senderName != null}">, de l'équipe CRE,</span><span th:if="${senderName == null}">L'équipe CRE</span>
+                                    vous a écrit sur <span th:text="${brandName}">ITIC Paris CRE</span>. Ouvrez votre messagerie pour le lire et répondre.
+                                </span>
                             </p>
 
-                            <!-- Message du conseiller -->
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                                   class="bg-frame" style="background-color:#f7f8fa;border-radius:10px;border:1px solid #e5e7eb;border-left:4px solid #4D84FF;margin:0 0 28px 0;" bgcolor="#f7f8fa">
-                                <tr>
-                                    <td style="padding:20px 24px;">
-                                        <p th:text="${message}" class="text-primary"
-                                           style="margin:0;font-size:14px;color:#111827;line-height:1.8;font-style:italic;">
-                                            Message du conseiller
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <p class="text-secondary" style="margin:0 0 28px 0;font-size:14px;color:#6b7280;line-height:1.6;">
-                                Connectez-vous à votre espace étudiant pour mettre à jour vos candidatures et suivre votre progression.
+                            <!-- Au referent : l'etudiant lui a ecrit. -->
+                            <p th:if="${!toStudent}" class="text-secondary" style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#6b7280;">
+                                <span th:if="${lang == 'en'}">
+                                    <strong th:text="${senderName}">Inès Martin</strong>, one of your students, sent a message to the career team. Open the conversation to read it and reply.
+                                </span>
+                                <span th:if="${lang != 'en'}">
+                                    <strong th:text="${senderName}">Inès Martin</strong>, que vous suivez, a écrit à l'équipe CRE. Ouvrez la conversation pour lire son message et lui répondre.
+                                </span>
                             </p>
 
-                            <!-- CTA Button — couleur pleine, comme les boutons de la plateforme -->
+                            <!-- CTA Button -->
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td style="background-color:#3B71FF;border-radius:11px;" bgcolor="#3B71FF">
-                                        <a th:href="${frontendUrl} + '/student/dashboard'" target="_blank"
+                                        <a th:href="${link}" target="_blank"
                                            style="display:inline-block;padding:14px 32px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
-                                            Accéder à mon espace →
+                                            <span th:if="${lang == 'en'}">Read the message →</span>
+                                            <span th:if="${lang != 'en'}">Lire le message →</span>
                                         </a>
                                     </td>
                                 </tr>
@@ -94,8 +97,8 @@
                                 <span th:text="${brandName}">ITIC Paris CRE</span>
                             </p>
                             <p class="text-secondary" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;">
-                                Cet email a été envoyé automatiquement par <span th:text="${brandName}">ITIC Paris CRE</span>.
-                                Ne pas répondre à ce message.
+                                <span th:if="${lang == 'en'}">This email was sent automatically by <span th:text="${brandName}">ITIC Paris CRE</span>. Do not reply to this email: reply in the conversation.</span>
+                                <span th:if="${lang != 'en'}">Cet email a été envoyé automatiquement par <span th:text="${brandName}">ITIC Paris CRE</span>. Ne répondez pas à cet email : répondez dans la conversation.</span>
                             </p>
                         </td>
                     </tr>

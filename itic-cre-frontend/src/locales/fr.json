@@ -328,7 +328,7 @@
         "showing_latest": "{{count}} dernières sur {{total}}",
         "empty": "Aucun log enregistré."
       },
-      "toast_reminder_sent": "Relance envoyée avec succès !",
+      "toast_reminder_sent": "Message envoyé dans la conversation de {{name}}",
       "toast_reminder_error": "Erreur lors de l'envoi de la relance.",
       "quick_publish_offer": "Publier une offre",
       "quick_view_apps": "Voir les candidatures",
@@ -924,11 +924,11 @@
       "message_label": "Message personnalisé",
       "message_optional": "(optionnel)",
       "message_placeholder": "Merci de mettre à jour vos candidatures et de déposer votre CV…",
-      "message_hint": "Si vide, un message par défaut sera utilisé.",
+      "message_hint": "Le message est ajouté à la conversation de l’étudiant, qui est prévenu par e-mail (sans le texte). Si vide, une relance par défaut est envoyée.",
       "cancel": "Annuler",
       "send": "Envoyer le message",
-      "success": "Message envoyé à {{name}}",
-      "error": "Impossible d'envoyer l'email à {{email}}"
+      "success": "Message envoyé dans la conversation de {{name}}",
+      "error": "Le message n’a pas pu être envoyé à {{email}}"
     },
     "formation": {
       "title": "Gestion du Contenu & Quiz",

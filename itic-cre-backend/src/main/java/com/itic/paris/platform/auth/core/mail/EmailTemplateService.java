@@ -122,14 +122,19 @@ public class EmailTemplateService {
         return templateEngine.process("email/reclamation-refused", context);
     }
 
-    public String renderStudentReminderEmail(String firstName, String advisorName, String message) {
+    /**
+     * Messagerie : avis de nouveau message, sans le contenu. senderName : qui a ecrit (null : « l'equipe CRE ») ;
+     * link : lien direct vers la conversation.
+     */
+    public String renderConversationMessageEmail(String lang, String firstName, String senderName, String link, boolean toStudent) {
         Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
         context.setVariable("firstName", firstName != null ? firstName.trim() : "");
-        context.setVariable("advisorName", advisorName != null ? advisorName.trim() : "Votre conseiller");
-        context.setVariable("message", message);
+        context.setVariable("senderName", senderName != null && !senderName.isBlank() ? senderName.trim() : null);
+        context.setVariable("link", link);
+        context.setVariable("toStudent", toStudent);
         context.setVariable("brandName", brandName);
-        context.setVariable("frontendUrl", frontendUrl);
-        return templateEngine.process("email/student-reminder", context);
+        return templateEngine.process("email/conversation-new-message", context);
     }
 
     public String renderContractDeclarationInvalidatedEmail(String lang, String firstName, String entreprise, String poste) {
