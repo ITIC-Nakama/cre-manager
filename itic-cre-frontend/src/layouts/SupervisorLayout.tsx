@@ -7,13 +7,12 @@ import Sidebar from '../components/head/Sidebar';
 import {
   LayoutDashboard, Users, Briefcase, Building2, FileCheck,
   BookOpenCheck, Trophy, UserCog, GraduationCap,
-  ScrollText, User, Settings, MessageCircleWarning, Contact, MessagesSquare, Store, Map as MapIcon
+  ScrollText, User, Settings, Contact, MessagesSquare, Store, Map as MapIcon
 } from 'lucide-react';
 import { useNewCompanyRequestCount } from '../pages/advisor/espace-entreprise/useNewCompanyRequestCount';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
-import { usePendingReclamationsCount } from '../hooks/useReclamations';
 import { useConversationUnreadCounts } from '../hooks/useConversations';
 import { useCvPendingCount, useContractPendingCount } from '../hooks/useDashboard';
 
@@ -22,7 +21,6 @@ export default function SupervisorLayout() {
   const { user } = useUserStore();
   const mainRef = useRef<HTMLElement>(null);
   useResetScrollOnNavigate(mainRef);
-  const { data: pendingReclamationsCount } = usePendingReclamationsCount();
   // Messagerie : fils non lus de mes étudiants et des étudiants sans référent (une requête par minute).
   const { data: conversationCounts } = useConversationUnreadCounts();
   const { data: cvPendingCount } = useCvPendingCount();
@@ -40,7 +38,6 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.offres'),             icon: Building2,       to: '/supervisor/offres' },
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
     { label: t('dashboard.sidebar.conversations', 'Conversations'), icon: MessagesSquare, to: '/supervisor/conversations', badge: conversationCounts?.badge },
-    { label: t('dashboard.sidebar.reclamations', 'Demandes d’aide'), icon: MessageCircleWarning, to: '/supervisor/reclamations', badge: pendingReclamationsCount },
     { label: t('dashboard.sidebar.alumni', 'Alumni'),   icon: Contact,         to: '/supervisor/alumni' },
     { label: t('dashboard.sidebar.company_space', 'Espace entreprise'), icon: Store, to: '/supervisor/espace-entreprise', badge: newCompanyRequests },
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },

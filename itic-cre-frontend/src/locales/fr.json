@@ -152,7 +152,6 @@
       "cv_validation": "Validation CV",
       "contenu": "Contenu & Quiz",
       "gamification": "Gamification",
-      "reclamations": "Demandes d'aide",
       "conversations": "Conversations",
       "messages": "Messages",
       "conseillers": "Relations Entreprises",
@@ -1172,36 +1171,6 @@
       "toast_question_too_long": "La question est trop longue.",
       "toast_question_option_too_long": "Une option de réponse est trop longue."
     },
-    "reclamations": {
-      "floating_button": "Contacter l'équipe",
-      "title": "Contacter l'équipe",
-      "tab_new": "Nouveau message",
-      "tab_history": "Mes messages",
-      "form": {
-        "intro_p1": "Cet espace vous permet d'échanger directement avec votre CRE et de nous contacter en cas de question, de difficulté ou de situation particulière rencontrée au sein de votre entreprise.",
-        "intro_p2": "N'hésitez pas à nous écrire, nous sommes là pour vous accompagner et vous aider tout au long de votre parcours.",
-        "intro_p3": "Votre message sera transmis à l'équipe concernée, qui pourra revenir vers vous directement.",
-        "message_label": "Expliquez votre problème ou votre message",
-        "message_placeholder": "Écrivez votre message ici...",
-        "message_too_short": "Décrivez un peu plus votre problème.",
-        "phone_label": "Votre numéro de téléphone",
-        "phone_hint": "Pour que votre conseiller puisse vous rappeler.",
-        "phone_required": "Merci de renseigner votre numéro de téléphone.",
-        "submit": "Envoyer",
-        "success": "Votre message a été envoyé, vous serez recontacté bientôt.",
-        "error": "Une erreur est survenue, réessayez.",
-        "no_advisor_title": "Pas encore de conseiller",
-        "no_advisor_description": "Vous n'avez pas encore de conseiller assigné. Merci de patienter, un conseiller vous sera bientôt attribué."
-      },
-      "history": {
-        "empty": "Vous n'avez envoyé aucun message.",
-        "status_resolved": "Résolu",
-        "status_pending": "En attente",
-        "status_refused": "Refusé",
-        "withdraw": "Retirer",
-        "withdraw_error": "Impossible de retirer ce message, réessayez."
-      }
-    },
     "alumni": {
       "title": "Alumni",
       "subtitle": "{{count}} fiche(s)",
@@ -1240,29 +1209,6 @@
         "delete_button": "Supprimer définitivement",
         "toast_deleted": "{{count}} fiche(s) supprimée(s)."
       }
-    },
-    "reclamations_advisor": {
-      "title": "Demandes d'aide",
-      "subtitle": "{{count}} demande(s)",
-      "filter_pending": "En attente",
-      "filter_resolved": "Résolus",
-      "filter_refused": "Refusés",
-      "filter_all": "Tous",
-      "empty": "Aucune demande.",
-      "status_resolved": "Résolu",
-      "status_pending": "En attente",
-      "status_refused": "Refusé",
-      "resolve_button": "Marquer résolu",
-      "refuse_button": "Refuser",
-      "reopen_button": "Rouvrir",
-      "toast_resolved": "Demande marquée comme résolue.",
-      "toast_refused": "Demande refusée.",
-      "toast_reopened": "Demande rouverte.",
-      "toast_error": "Une erreur est survenue, réessayez.",
-      "mine_only": "Mon portefeuille uniquement",
-      "my_pending_count": "{{count}} demande(s) à traiter dans mon portefeuille",
-      "outside_pending_count": "{{count}} demande(s) à traiter hors de mon portefeuille",
-      "outside_pending_count_hint": "Demandes en attente d'étudiants qui ne sont pas dans mon portefeuille — décochez la case pour les voir dans la liste."
     },
     "connaissances": {
       "tree": {

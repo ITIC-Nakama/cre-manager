@@ -152,7 +152,6 @@
       "cv_validation": "CV Validation",
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
-      "reclamations": "Help requests",
       "conversations": "Conversations",
       "messages": "Messages",
       "conseillers": "Corporate Relations",
@@ -1172,36 +1171,6 @@
       "toast_question_too_long": "Question is too long.",
       "toast_question_option_too_long": "An answer option is too long."
     },
-    "reclamations": {
-      "floating_button": "Contact the team",
-      "title": "Contact the team",
-      "tab_new": "New message",
-      "tab_history": "My messages",
-      "form": {
-        "intro_p1": "This space lets you talk directly with your CRE and reach out to us with any question, difficulty, or particular situation you're facing at your company.",
-        "intro_p2": "Don't hesitate to write to us — we're here to support you throughout your journey.",
-        "intro_p3": "Your message will be forwarded to the relevant team, who can get back to you directly.",
-        "message_label": "Explain your problem or your message",
-        "message_placeholder": "Write your message here...",
-        "message_too_short": "Please describe your problem in a bit more detail.",
-        "phone_label": "Your phone number",
-        "phone_hint": "So your advisor can call you back.",
-        "phone_required": "Please provide your phone number.",
-        "submit": "Send",
-        "success": "Your message has been sent, you'll be contacted soon.",
-        "error": "Something went wrong, please try again.",
-        "no_advisor_title": "No advisor yet",
-        "no_advisor_description": "You don't have an assigned advisor yet. Please wait, one will be assigned to you shortly."
-      },
-      "history": {
-        "empty": "You haven't sent any messages.",
-        "status_resolved": "Resolved",
-        "status_pending": "Pending",
-        "status_refused": "Refused",
-        "withdraw": "Withdraw",
-        "withdraw_error": "Couldn't withdraw this message, please try again."
-      }
-    },
     "alumni": {
       "title": "Alumni",
       "subtitle": "{{count}} record(s)",
@@ -1240,29 +1209,6 @@
         "delete_button": "Delete permanently",
         "toast_deleted": "{{count}} record(s) deleted."
       }
-    },
-    "reclamations_advisor": {
-      "title": "Help requests",
-      "subtitle": "{{count}} request(s)",
-      "filter_pending": "Pending",
-      "filter_resolved": "Resolved",
-      "filter_refused": "Refused",
-      "filter_all": "All",
-      "empty": "No requests.",
-      "status_resolved": "Resolved",
-      "status_pending": "Pending",
-      "status_refused": "Refused",
-      "resolve_button": "Mark resolved",
-      "refuse_button": "Refuse",
-      "reopen_button": "Reopen",
-      "toast_resolved": "Request marked as resolved.",
-      "toast_refused": "Request refused.",
-      "toast_reopened": "Request reopened.",
-      "toast_error": "Something went wrong, please try again.",
-      "mine_only": "My portfolio only",
-      "my_pending_count": "{{count}} request(s) to handle in my portfolio",
-      "outside_pending_count": "{{count}} request(s) to handle outside my portfolio",
-      "outside_pending_count_hint": "Pending requests from students who are not in my portfolio — uncheck the box to see them in the list."
     },
     "connaissances": {
       "tree": {
