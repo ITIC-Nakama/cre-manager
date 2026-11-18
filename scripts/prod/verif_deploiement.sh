@@ -2,7 +2,7 @@
 # lot 10 : Flyway attendu à 63 (V62 adresse, V63 types de contrat), 2 migrations appliquées le jour même.
 # À lancer depuis Git Bash :  ssh root@10.190.0.16 'bash -s' < scripts/prod/verif_deploiement.sh
 # Aucune écriture, aucun redémarrage. Seuls des versions, des nombres et des lignes de démarrage s'affichent.
-DB=$(grep -h "^DB_NAME=" $(systemctl show itic-backend.service -p EnvironmentFiles --value | grep -oE "/[^ ]+") 2>/dev/null | tail -1 | cut -d= -f2 | tr -d "\"\r")
+DB=$(grep -h "^DB_NAME=" $(systemctl show itic-backend.service -p EnvironmentFiles --value | grep -oE "/[^ ]+") /dev/null 2>/dev/null | tail -1 | cut -d= -f2 | tr -d "\"\r")
 DB=${DB:-itic_cre}
 echo "== Service"
 systemctl show itic-backend.service -p ActiveState -p SubState -p ActiveEnterTimestamp -p NRestarts

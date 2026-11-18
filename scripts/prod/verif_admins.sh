@@ -11,6 +11,7 @@
 # Uniquement des SELECT (transaction en lecture seule) et des grep : aucune écriture, aucun redémarrage, aucun fichier créé.
 set -u
 ENV_FILES=$(systemctl show itic-backend.service -p EnvironmentFiles --value 2>/dev/null | grep -oE '/[^ ]+')
+ENV_FILES=${ENV_FILES:-/dev/null}   # aucun fichier trouvé : grep lit /dev/null, jamais la suite du script
 DB=$(grep -h '^DB_NAME=' $ENV_FILES 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '"\r')
 DB=${DB:-itic_cre}
 

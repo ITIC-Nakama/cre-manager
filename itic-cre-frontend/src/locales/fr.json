@@ -2924,7 +2924,8 @@
       "POSTAL_CODE_INVALID": "Code postal non valide : 5 chiffres (ex. 75011).",
       "CITY_REQUIRED": "Indique ta ville.",
       "CITY_TOO_LONG": "80 caractères au maximum."
-    }
+    },
+    "city_other": "Autre ville…"
   },
   "not_available": {
     "title": "Page non disponible",

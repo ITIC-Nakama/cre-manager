@@ -7,6 +7,8 @@ import { lookupCities, type AddressErrors } from '../../utils/address';
 
 type Field = keyof AddressForm;
 
+const OTHER_CITY = '__other__';
+
 interface Props {
     value: AddressForm;
     onChange: (next: AddressForm) => void;
@@ -24,6 +26,8 @@ interface Props {
 export default function AddressFields({ value, onChange, errors, onBlurField, disabled, idPrefix = 'address' }: Props) {
     const { t } = useTranslation();
     const [cities, setCities] = useState<string[]>([]);
+    // « Autre ville… » : saisie libre même quand l'API propose plusieurs communes (commune absente, orthographe).
+    const [freeCity, setFreeCity] = useState(false);
     // Ville proposée automatiquement : remplacée si le code postal change, jamais si l'étudiant l'a tapée lui-même.
     const autoCity = useRef<string | null>(null);
     const valueRef = useRef(value);
@@ -32,6 +36,7 @@ export default function AddressFields({ value, onChange, errors, onBlurField, di
     useEffect(() => {
         const code = value.postalCode.trim();
         setCities([]);
+        setFreeCity(false);
         if (!/^\d{5}$/.test(code)) return;
         let cancelled = false;
         lookupCities(code).then((found) => {
@@ -42,6 +47,10 @@ export default function AddressFields({ value, onChange, errors, onBlurField, di
             if (found.length === 1 && untouched) {
                 autoCity.current = found[0];
                 onChange({ ...current, city: found[0] });
+            } else if (found.length > 1 && current.city && current.city === autoCity.current && !found.includes(current.city)) {
+                // Ville proposée pour l'ancien code postal : effacée, la liste de choix s'affiche.
+                autoCity.current = null;
+                onChange({ ...current, city: '' });
             }
         });
         return () => { cancelled = true; };
@@ -108,12 +117,15 @@ export default function AddressFields({ value, onChange, errors, onBlurField, di
             </div>
             <div className="space-y-2 sm:col-span-4">
                 {label(t('address.city_label', 'Ville'), true, `${idPrefix}-city`)}
-                {cities.length > 1 ? (
+                {cities.length > 1 && !freeCity && (!value.city.trim() || cities.includes(value.city)) ? (
                     <select id={`${idPrefix}-city`} disabled={disabled} className={fieldClass(!!errors.city, false)} {...aria('city')}
                         value={cities.includes(value.city) ? value.city : ''}
-                        onChange={(e) => set('city', e.target.value)} onBlur={() => onBlurField?.('city')}>
+                        onChange={(e) => {
+                            if (e.target.value === OTHER_CITY) { setFreeCity(true); set('city', ''); } else set('city', e.target.value);
+                        }} onBlur={() => onBlurField?.('city')}>
                         <option value="">{t('address.city_choose', 'Choisis ta ville')}</option>
                         {cities.map((c) => <option key={c} value={c}>{c}</option>)}
+                        <option value={OTHER_CITY}>{t('address.city_other', 'Autre ville…')}</option>
                     </select>
                 ) : (
                     <input id={`${idPrefix}-city`} autoComplete="address-level2" maxLength={80} disabled={disabled}

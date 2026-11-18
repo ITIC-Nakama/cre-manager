@@ -1,5 +1,6 @@
 package com.itic.paris.platform.auth.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -82,14 +83,17 @@ public class Student extends User {
     private boolean companySpaceVisible = true;
 
     /** Adresse postale (V62) : n° et rue. Obligatoire à l'inscription, jamais montrée aux entreprises ni au public. */
+    @JsonIgnore
     @Column(name = "address_line1", length = 120)
     private String addressLine1;
 
     /** Complément d'adresse (V62), facultatif. */
+    @JsonIgnore
     @Column(name = "address_line2", length = 120)
     private String addressLine2;
 
     /** Ville (V62). */
+    @JsonIgnore
     @Column(name = "city", length = 80)
     private String city;
 

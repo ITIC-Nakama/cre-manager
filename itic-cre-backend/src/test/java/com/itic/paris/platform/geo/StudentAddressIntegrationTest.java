@@ -135,7 +135,7 @@ class StudentAddressIntegrationTest {
     void accountsWithoutAddressStillWork() throws Exception {
         assertThat(nina.hasCompleteAddress()).isFalse();
         perform(get("/auth/users/me"), nina).andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.addressComplete").value(false));
+                .andExpect(jsonPath("$.data.addressLine1").doesNotExist());
         perform(get("/me/address"), nina).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.complete").value(false))
                 .andExpect(jsonPath("$.data.addressLine1").doesNotExist());
@@ -154,14 +154,19 @@ class StudentAddressIntegrationTest {
         putAddress(nina, "{\"addressLine1\":\"5 avenue Fictive\",\"addressLine2\":\"Bât. B\",\"postalCode\":\"75011\",\"city\":\"Paris\"}")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.complete").value(true))
                 .andExpect(jsonPath("$.data.addressLine2").value("Bât. B"));
-        perform(get("/auth/users/me"), nina).andExpect(jsonPath("$.data.addressComplete").value(true))
-                .andExpect(jsonPath("$.data.city").value("Paris"));
+        // Le profil (gardé dans le navigateur) ne porte jamais l'adresse : elle se lit par /me/address.
+        perform(get("/auth/users/me"), nina).andExpect(jsonPath("$.data.addressLine1").doesNotExist())
+                .andExpect(jsonPath("$.data.city").doesNotExist()).andExpect(jsonPath("$.data.postalCode").doesNotExist());
+        perform(get("/me/address"), nina).andExpect(jsonPath("$.data.city").value("Paris"));
 
         putAddress(nina, "{\"addressLine1\":\"\",\"postalCode\":\"\",\"city\":\"\"}").andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.data.addressLine1").value("ADDRESS_LINE1_REQUIRED"));
         putAddress(nina, "{\"addressLine1\":\"5 avenue Fictive\",\"postalCode\":\"7501\",\"city\":\"Paris\"}")
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.data.postalCode").value("POSTAL_CODE_INVALID"));
         perform(put("/me/postal-code").contentType(MediaType.APPLICATION_JSON).content("{\"postalCode\":\"\"}"), nina)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.messageKey").value("address-cannot-be-cleared"));
+        perform(put("/dashboard/students/" + nina.getId() + "/postal-code").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"postalCode\":\"\"}"), advisor)
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.messageKey").value("address-cannot-be-cleared"));
 
         Student saved = studentRepository.findById(nina.getId()).orElseThrow();

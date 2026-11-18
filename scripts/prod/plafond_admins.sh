@@ -36,7 +36,7 @@ COPY="$ENVF.avant-plafond-$(date +%Y%m%d-%H%M%S)"
 cp -p "$ENVF" "$COPY"
 echo "1. Copie : $COPY"
 if grep -q '^ADMIN_MAX_ACTIVE=' "$ENVF"; then
-  sed -i 's/^ADMIN_MAX_ACTIVE=.*/ADMIN_MAX_ACTIVE=4/' "$ENVF"
+  sed -i --follow-symlinks 's/^ADMIN_MAX_ACTIVE=.*/ADMIN_MAX_ACTIVE=4/' "$ENVF"
 else
   printf '\nADMIN_MAX_ACTIVE=4\n' >> "$ENVF"
 fi

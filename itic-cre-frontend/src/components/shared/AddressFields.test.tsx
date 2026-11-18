@@ -12,6 +12,7 @@ import AddressBanner from '../student/AddressBanner';
 import RegisterPage from '../../pages/auth/RegisterPage';
 import { useAddressForm } from '../../hooks/useAddressForm';
 import { EMPTY_ADDRESS, lookupCities, serverAddressErrors, validateAddress } from '../../utils/address';
+import { csvCell } from '../../utils/csvExport';
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn(), patch: vi.fn() }));
 vi.mock('../../api-s/AxiosApiClient', () => ({ apiClient: api, registerForceLogoutHandler: () => {}, resetSessionState: () => {} }));
@@ -99,9 +100,29 @@ describe('aide au code postal (geo.api.gouv.fr simulée)', () => {
         await flush();
         const select = screen.getByLabelText(/Ville/) as HTMLSelectElement;
         expect(select.tagName).toBe('SELECT');
-        expect(Array.from(select.options).map((o) => o.textContent)).toEqual(['Choisis ta ville', 'Gennevilliers', 'Villeneuve-la-Garenne']);
+        expect(Array.from(select.options).map((o) => o.textContent))
+            .toEqual(['Choisis ta ville', 'Gennevilliers', 'Villeneuve-la-Garenne', 'Autre ville…']);
         fireEvent.change(select, { target: { value: 'Gennevilliers' } });
         expect((screen.getByLabelText(/Ville/) as HTMLSelectElement).value).toBe('Gennevilliers');
+        // Commune absente de la liste : « Autre ville… » rouvre la saisie libre.
+        fireEvent.change(screen.getByLabelText(/Ville/), { target: { value: '__other__' } });
+        const free = screen.getByLabelText(/Ville/) as HTMLInputElement;
+        expect(free.tagName).toBe('INPUT');
+        fireEvent.change(free, { target: { value: 'Villeneuve' } });
+        expect((screen.getByLabelText(/Ville/) as HTMLInputElement).value).toBe('Villeneuve');
+    });
+
+    it('ville proposée puis code postal changé pour plusieurs communes : la ville proposée s’efface, la liste s’affiche', async () => {
+        fetchMock.mockImplementation((url: string) => cities(url.includes('93200') ? ['Saint-Denis'] : ['Gennevilliers', 'Villeneuve-la-Garenne']));
+        render(<Harness />);
+        fireEvent.change(screen.getByLabelText(/Code postal/), { target: { value: '93200' } });
+        await flush();
+        expect((screen.getByLabelText(/Ville/) as HTMLInputElement).value).toBe('Saint-Denis');
+        fireEvent.change(screen.getByLabelText(/Code postal/), { target: { value: '92230' } });
+        await flush();
+        const select = screen.getByLabelText(/Ville/) as HTMLSelectElement;
+        expect(select.tagName).toBe('SELECT');
+        expect(select.value).toBe('');
     });
 
     it('API muette ou bloquée : aucune erreur affichée, la ville se tape à la main', async () => {
@@ -152,5 +173,14 @@ describe('inscription', () => {
         expect(screen.getByText('Indique ton code postal.')).toBeTruthy();
         expect(screen.getByText('Indique ta ville.')).toBeTruthy();
         expect(api.post).not.toHaveBeenCalled();
+    });
+});
+
+describe('export CSV de l’équipe', () => {
+    it('une adresse saisie comme une formule Excel est neutralisée (apostrophe), le reste inchangé', () => {
+        expect(csvCell('=HYPERLINK("http://x")')).toBe(`"'=HYPERLINK(""http://x"")"`);
+        for (const start of ['+', '-', '@']) expect(csvCell(`${start}1`)).toBe(`"'${start}1"`);
+        expect(csvCell('12 rue de la Paix')).toBe('"12 rue de la Paix"');
+        expect(csvCell(null)).toBe('""');
     });
 });
