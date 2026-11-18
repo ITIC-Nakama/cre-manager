@@ -125,6 +125,7 @@
       "gamification": "Gamification",
       "reclamations": "Help requests",
       "conversations": "Conversations",
+      "messages": "Messages",
       "conseillers": "Corporate Relations",
       "conseillers_directory": "Advisors",
       "promotions": "Cohorts",
@@ -2529,6 +2530,19 @@
       "empty_thread": "No message with {{name}} yet. Write to them: {{name}} will be notified by email.",
       "placeholder": "Write to {{name}}…",
       "open_conversation": "Conversation"
+    },
+    "student": {
+      "title": "Messages",
+      "subtitle": "Write to the career team whenever you want: a question, some news, a doubt.",
+      "thread_label": "Your conversation with the career team",
+      "team": "Career team",
+      "referent": "Your advisor: {{name}}, notified of every message",
+      "no_referent": "You don’t have an advisor yet: the whole career team reads your messages.",
+      "load_error": "Your messages could not be loaded. Try again in a moment.",
+      "empty": "No message yet. Ask the career team your question: your advisor is notified by email and replies here.",
+      "placeholder": "Write your message…",
+      "send_error": "Your message could not be sent, please try again.",
+      "staff_author": "{{name}} · career team"
     }
   }
 }

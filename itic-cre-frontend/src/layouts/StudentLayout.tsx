@@ -1,23 +1,30 @@
 import { useRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Role } from '../types/models/Auth';
 import RequireAuthMiddleware from '../middleware/RequireAuthMiddleware';
 import Sidebar from '../components/head/Sidebar';
-import { LayoutDashboard, Briefcase, Building2, Compass, FileText, User, Users } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Building2, Compass, FileText, MessagesSquare, User, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
 import LevelUpWatcher from '../components/gamification/LevelUpWatcher';
 import HelpFloatingButton from '../components/reclamation/HelpFloatingButton';
+import { useMyConversationUnreadCount } from '../hooks/useConversations';
 
 export default function StudentLayout() {
   const { t } = useTranslation();
   const mainRef = useRef<HTMLElement>(null);
   useResetScrollOnNavigate(mainRef);
+  const { pathname } = useLocation();
+  // Messagerie : messages de l'équipe non lus (une requête par minute).
+  const { data: unreadMessages } = useMyConversationUnreadCount();
+  // Sur « Messages », l'étudiant parle déjà à l'équipe : le bouton d'aide flottant masquerait la zone de saisie.
+  const onMessages = pathname.startsWith('/student/messages');
 
   const navItems = [
     { label: t('dashboard.sidebar.accueil'),       icon: LayoutDashboard, to: '/student/dashboard' },
     { label: t('dashboard.sidebar.candidatures'),  icon: Briefcase,       to: '/student/candidatures' },
     { label: t('dashboard.sidebar.offres'),        icon: Building2,       to: '/student/offres' },
+    { label: t('dashboard.sidebar.messages', 'Messages'), icon: MessagesSquare, to: '/student/messages', badge: unreadMessages },
     { label: t('dashboard.sidebar.conseillers_directory', 'Conseillers'), icon: Users, to: '/student/conseillers' },
     { label: t('dashboard.sidebar.formation'),     icon: Compass,         to: '/student/connaissances' },
     { label: t('dashboard.sidebar.cv'),            icon: FileText,        to: '/student/cv' },
@@ -27,7 +34,7 @@ export default function StudentLayout() {
   return (
     <RequireAuthMiddleware allowedRoles={[Role.STUDENT]} redirectTo="/supervisor/dashboard">
       <LevelUpWatcher />
-      <HelpFloatingButton />
+      {!onMessages && <HelpFloatingButton />}
       <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#020203]">
         <Sidebar navItems={navItems} />
         <main ref={mainRef} className="flex-1 overflow-y-auto h-full lg:pl-0 pt-14 lg:pt-0">

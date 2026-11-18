@@ -669,6 +669,12 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
   - accès depuis la fiche étudiant (bouton « Conversation ») ; sur mobile, la liste puis le fil (`/supervisor/conversations/{studentId}`) ;
   - rafraîchissement par interrogation, sans temps réel : compteurs et liste toutes les 60 secondes, fil ouvert toutes les 12 secondes, suspendu quand l'onglet est caché ; un seul « lu » par nouveau message, le fil n'est pas redemandé ensuite (aucune boucle de requêtes) ;
   - vouvoiement, comme le reste de l'espace conseiller.
+- **Page « Messages » de l'étudiant** (`/student/messages`, 16/11/2026) :
+  - entrée de menu « Messages » avec le nombre de messages de l'équipe non lus (interrogé toutes les 60 secondes) ;
+  - le fil avec l'équipe CRE : lire, écrire à tout moment, répondre (Ctrl + Entrée) ; messages de l'équipe signés « Prénom Nom · équipe CRE » (« Ancien conseiller » pour un compte supprimé) ; le conseiller référent est indiqué (sinon « toute l'équipe CRE lit tes messages ») ;
+  - fil redemandé toutes les 12 secondes, un seul « lu » par nouveau message ; aucun message : invitation à écrire, rien n'est créé ;
+  - **tutoiement**, comme dans « Mon CV » (l'e-mail d'avis garde le vouvoiement de tous les e-mails de la plateforme) ;
+  - le bouton d'aide flottant (« Demandes d'aide ») est masqué sur cette page : il recouvrait la zone de saisie sur mobile, et l'étudiant y parle déjà à l'équipe.
 
 ## Notes de fiabilité de ce document
 
