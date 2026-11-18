@@ -888,7 +888,7 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - « Étudiants à relancer » : ex aequo départagés par nom puis identifiant (ordre stable).
 - Procédure de déploiement, risques et retour arrière : [MISE_EN_PROD.md](./MISE_EN_PROD.md).
 
-## 24. Lot 10 : adresse, fin des « Demandes d'aide », Espace entreprise masqué, types de contrat, plafond à 4 (V62, V63)
+## 24. Lot 10 : adresse, fin des « Demandes d'aide », Espace entreprise masqué, types de contrat, plafond à 4 (V62 à V64)
 
 ### Adresse postale de l'étudiant (V62)
 - **Pourquoi** : dossier administratif (conventions de stage, contrats d'alternance).
@@ -905,7 +905,16 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - La messagerie (§14) remplace les demandes d'aide (réclamations). `POST /reclamations` répond **410 Gone** (`reclamations-retired`) ; les données restent en base (table `reclamations`, historique, liste de l'équipe `GET /dashboard/reclamations`).
 - Plus aucun e-mail : écouteurs, événements et modèles supprimés. Aucune tâche planifiée n'existait.
 - Front : entrée de menu et compteur retirés (plus de requête de comptage), bouton flottant « Contacter l'équipe » retiré côté étudiant ; `/supervisor/reclamations` → `/supervisor/conversations`, `/student/reclamations` → `/student/messages`.
-- Avant la mise en ligne : `scripts/prod/verif_admins.sh` compte les demandes encore en attente, avec leur date.
+- **Reprise dans la messagerie (V64, migration Java `db.migration.V64__reclamations_vers_messagerie`)**. Chaque demande **en attente** devient un message dans le fil de l'étudiant :
+  - **contenu** : envoyé par l'étudiant, daté de la demande, texte « Ancienne demande d'aide du JJ/MM/AAAA : » suivi du message d'origine ;
+  - **demande** : passe au statut `TRANSFERRED`, avec `transferred_at` et `transferred_message_id` ;
+  - **ce qui ne bouge pas** : rien n'est supprimé ; les demandes résolues ou refusées restent telles quelles ; une demande transférée ne se rouvre ni ne se clôt (410) ;
+  - **rejouée** : ne fait rien (seules les demandes `PENDING` jamais transférées sont reprises).
+  - **Fil** : un seul par étudiant, partagé par toute l'équipe, sans lien avec un conseiller particulier. Un étudiant sans fil en reçoit un. Un étudiant **sans référent** apparaît dans « Mes étudiants » de tous les conseillers et chez les admins (portée « référent ou sans référent »). Aucun admin n'est rattaché d'office : ce serait lui assigner l'étudiant.
+  - **Non lu, sans e-mail** : le fil apparaît « non lu » pour l'équipe (badge de Conversations), mais la reprise marque le message comme déjà signalé (`staff_notified_message_id`). Elle ne déclenche donc **aucun rappel « message non lu »**, ni au déploiement ni plus tard. Si un vrai message de l'étudiant attendait déjà son rappel, ce rappel unique part comme prévu ; la reprise n'en ajoute pas.
+  - **Ordre** : les messages sont triés par identifiant, donc le message repris apparaît en fin de fil, avec sa date d'origine.
+  - **Contrainte** : sur une base créée un jour par Hibernate, `reclamations_status_check` limitait les statuts à trois. V64 la remplace par la même contrainte avec `TRANSFERRED`. La prod n'avait pas cette contrainte ; elle l'a désormais, avec les quatre statuts.
+- `scripts/prod/verif_admins.sh` affiche les demandes par statut et celles encore en attente : après V64, 0 en attente.
 
 ### Espace entreprise masqué (interrupteur)
 - `app.company-space.enabled=${APP_COMPANY_SPACE_ENABLED:false}`, exposé au front par `GET /public/config` (sans connexion, lecture seule : `{ companySpaceEnabled }`).

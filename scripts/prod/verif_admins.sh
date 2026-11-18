@@ -6,7 +6,8 @@
 # Affiche dans le terminal, et nulle part ailleurs :
 #   1. la ligne ADMIN_MAX_ACTIVE du fichier d'environnement du service (grep de CETTE ligne seulement, rien d'autre du .env) ;
 #   2. les comptes admin : e-mail, actif, date de création, dernière connexion (journal d'audit) ;
-#   3. les demandes d'aide encore en attente, avec leur date (à traiter par la messagerie avant la mise en ligne) ;
+#   3. les demandes d'aide par statut et celles en attente avec leur date : avant le lot 10, elles seront reprises
+#      dans la messagerie par V64 ; après, « en attente » doit être à 0 et « TRANSFERRED » égal à l'ancien nombre ;
 #   4. la politique de sécurité du contenu (CSP) de Nginx, s'il en pose une (aide au code postal : geo.api.gouv.fr).
 # Uniquement des SELECT (transaction en lecture seule) et des grep : aucune écriture, aucun redémarrage, aucun fichier créé.
 set -u
@@ -38,7 +39,8 @@ q "SELECT u.email,
 q "SELECT 'actifs : ' || count(*) FILTER (WHERE u.active) || ' sur ' || count(*)
    FROM users u JOIN roles r ON r.id = u.role_id WHERE r.name = 'ADMIN'" | sed 's/^/   /'
 
-echo "== 3. Demandes d'aide encore en attente (à reprendre dans la messagerie)"
+echo "== 3. Demandes d'aide (V64 reprend celles en attente dans la messagerie, sans e-mail de rappel)"
+q "SELECT 'par statut : ' || coalesce(string_agg(status || '=' || n, ' '), 'aucune') FROM (SELECT status, count(*) n FROM reclamations GROUP BY status ORDER BY status) x" | sed 's/^/   /'
 q "SELECT 'en attente : ' || count(*) FROM reclamations WHERE status = 'PENDING'" | sed 's/^/   /'
 q "SELECT to_char(date_creation AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD HH24:MI') || '  (' || status || ')'
    FROM reclamations WHERE status = 'PENDING' ORDER BY date_creation" | sed 's/^/   /'

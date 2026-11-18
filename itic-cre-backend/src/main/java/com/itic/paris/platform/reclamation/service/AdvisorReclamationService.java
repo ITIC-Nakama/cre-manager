@@ -66,6 +66,10 @@ public class AdvisorReclamationService {
         User actor = currentActor();
         Reclamation reclamation = reclamationRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.RECLAMATION_NOT_FOUND));
+        // Lot 10 (V64) : une demande transférée vit dans la messagerie ; elle ne se rouvre ni ne se clôt ici.
+        if (reclamation.getStatus() == ReclamationStatus.TRANSFERRED) {
+            throw new AppException(HttpStatus.GONE, MessageKey.RECLAMATIONS_RETIRED);
+        }
 
         if (UserMapper.roleOf(actor) != RoleEnum.ADMIN) {
             User assignedAdvisor = reclamation.getStudent().getAdvisor();
