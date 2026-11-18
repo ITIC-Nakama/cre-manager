@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * Photo du CV : choix du fichier (JPEG ou PNG, 5 Mo maximum), recadrage au format des modèles, envoi.
+ * Photo du CV : choix du fichier (JPEG, PNG ou WebP, 5 Mo maximum), recadrage au format des modèles, envoi.
  * Cette photo ne sert qu'au CV : la photo de profil du compte ne change jamais ici.
  */
 export default function CvPhotoProvider({ initial, onChanged, children }: Props) {
@@ -50,7 +50,7 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
     event.target.value = '';
     if (!chosen) return;
     if (!(CV_PHOTO.types as readonly string[]).includes(chosen.type)) {
-      toast.error(t('studentCvBuilder.photo.invalidType', 'Seules les photos JPEG ou PNG sont acceptées.'));
+      toast.error(t('studentCvBuilder.photo.invalidType', 'Seules les photos JPEG, PNG ou WebP sont acceptées.'));
       return;
     }
     if (chosen.size > CV_PHOTO.maxBytes) {
@@ -93,7 +93,7 @@ export default function CvPhotoProvider({ initial, onChanged, children }: Props)
   return (
     <CvPhotoContext.Provider value={value}>
       {children}
-      <input ref={inputRef} type="file" name="cv-photo" accept="image/jpeg,image/png" className="hidden"
+      <input ref={inputRef} type="file" name="cv-photo" accept={CV_PHOTO.types.join(',')} className="hidden"
         tabIndex={-1} aria-hidden="true" onChange={onFile} />
       <PhotoCropDialog file={file} ratio={ratio} saving={upload.isPending} onCancel={() => setFile(null)}
         onSave={(zone) => void save(zone)} />

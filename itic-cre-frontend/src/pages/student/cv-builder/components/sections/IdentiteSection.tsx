@@ -86,7 +86,7 @@ function PhotoField() {
     ? t('studentCvBuilder.photo.hintCv', 'Photo choisie pour ton CV seulement : ta photo de profil ne change pas.')
     : info.source === 'PROFILE'
       ? t('studentCvBuilder.photo.hintProfile', 'C’est la photo de ton compte. « Changer la photo » en met une autre sur ton CV seulement.')
-      : t('studentCvBuilder.photo.hintNone', 'Facultatif : sans photo, l’emplacement reste vide sur ton CV. JPEG ou PNG, 5 Mo maximum.');
+      : t('studentCvBuilder.photo.hintNone', 'Facultatif : sans photo, l’emplacement reste vide sur ton CV. JPEG, PNG ou WebP, 5 Mo maximum.');
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800">

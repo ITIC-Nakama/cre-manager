@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Crop, Loader2, Minus, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { useLockBodyScroll } from '../../../../../hooks/useLockBodyScroll';
 import {
   clampCrop, initialCrop, MAX_ZOOM, MIN_ZOOM, sourceRect, zoomAroundCenter, type CropGeometry, type CropState,
 } from './cropMath';
+import { uprightPhotoUrl } from './photoOrientation';
 
 /** Largeur du cadre à l'écran ; sa hauteur suit le format de la photo du modèle choisi. */
 const FRAME_WIDTH = 240;
@@ -19,7 +20,7 @@ interface Props {
   ratio: { width: number; height: number };
   saving: boolean;
   onCancel: () => void;
-  /** Zone choisie, en fractions de la photo d'origine (orientée comme le navigateur l'affiche). */
+  /** Zone choisie, en fractions de la photo d'origine remise droite (orientation EXIF appliquée, comme le serveur). */
   onSave: (zone: CvPhotoZone) => void;
 }
 
@@ -31,10 +32,26 @@ interface Props {
 export default function PhotoCropDialog({ file, ratio, saving, onCancel, onSave }: Props) {
   const FRAME_HEIGHT = Math.round((FRAME_WIDTH * ratio.height) / ratio.width);
   const { t } = useTranslation();
-  const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
-  useEffect(() => () => {
-    if (url) URL.revokeObjectURL(url);
-  }, [url]);
+  // Photo affichée droite, comme le serveur l'enregistre (un WebP de téléphone est redressé ici : voir photoOrientation).
+  const [loaded, setLoaded] = useState<{ file: File; url: string } | null>(null);
+  useEffect(() => {
+    if (!file) return;
+    let cancelled = false;
+    let created: string | null = null;
+    void uprightPhotoUrl(file).then((next) => {
+      if (cancelled) {
+        URL.revokeObjectURL(next);
+        return;
+      }
+      created = next;
+      setLoaded({ file, url: next });
+    });
+    return () => {
+      cancelled = true;
+      if (created) URL.revokeObjectURL(created);
+    };
+  }, [file]);
+  const url = loaded && loaded.file === file ? loaded.url : null;
 
   const panelRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -62,7 +79,7 @@ export default function PhotoCropDialog({ file, ratio, saving, onCancel, onSave 
     return () => window.removeEventListener('keydown', onKey);
   }, [file, saving, onCancel]);
 
-  if (!file || !url) return null;
+  if (!file) return null;
 
   const onImageLoad = () => {
     const image = imageRef.current;
@@ -155,12 +172,14 @@ export default function PhotoCropDialog({ file, ratio, saving, onCancel, onSave 
             onKeyDown={onFrameKey}
             className="relative overflow-hidden rounded-md bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-300 dark:ring-slate-700 cursor-grab active:cursor-grabbing touch-none select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3f74ff]"
             style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}>
-            <img ref={imageRef} src={url} alt="" draggable={false} onLoad={onImageLoad}
-              onError={() => setError(t('studentCvBuilder.photo.unreadable', 'Cette photo est illisible : essaie avec une autre (JPEG ou PNG).'))}
-              className="absolute pointer-events-none"
-              style={geometry ? {
-                left: crop.x, top: crop.y, width: geometry.imageWidth * scale, height: geometry.imageHeight * scale, maxWidth: 'none',
-              } : { opacity: 0 }} />
+            {url && (
+              <img ref={imageRef} src={url} alt="" draggable={false} onLoad={onImageLoad}
+                onError={() => setError(t('studentCvBuilder.photo.unreadable', 'Cette photo est illisible : essaie avec une autre (JPEG, PNG ou WebP).'))}
+                className="absolute pointer-events-none"
+                style={geometry ? {
+                  left: crop.x, top: crop.y, width: geometry.imageWidth * scale, height: geometry.imageHeight * scale, maxWidth: 'none',
+                } : { opacity: 0 }} />
+            )}
             {!geometry && !error && (
               <Loader2 className="absolute inset-0 m-auto h-5 w-5 animate-spin motion-reduce:animate-none text-slate-400" />
             )}

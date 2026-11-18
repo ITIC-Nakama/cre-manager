@@ -167,7 +167,7 @@ public enum MessageKey {
     CV_BUILDER_DRAFT_NOT_FOUND("cv-builder-draft-not-found", "Cet étudiant n'a pas de brouillon dans l'assistant de CV", "This student has no draft in the CV builder"),
     CV_BUILDER_NOTHING_CHANGED("cv-builder-nothing-changed", "Ton CV n'a pas changé depuis le dernier envoi à ton conseiller", "Your CV has not changed since you last sent it to your advisor"),
     CV_BUILDER_PDF_FAILED("cv-builder-pdf-failed", "La génération du PDF a échoué, réessaie dans un instant", "PDF generation failed, please try again in a moment"),
-    CV_PHOTO_INVALID_TYPE("cv-photo-invalid-type", "Seules les photos JPEG ou PNG sont acceptées", "Only JPEG or PNG photos are accepted"),
+    CV_PHOTO_INVALID_TYPE("cv-photo-invalid-type", "Seules les photos JPEG, PNG ou WebP sont acceptées", "Only JPEG, PNG or WebP photos are accepted"),
     CV_PHOTO_TOO_LARGE("cv-photo-too-large", "La photo dépasse 5 Mo", "The photo exceeds 5 MB"),
     CV_PHOTO_INVALID_CROP("cv-photo-invalid-crop", "Le recadrage de la photo n'est pas valide, recommence", "The photo crop is not valid, please try again"),
     CV_PHOTO_UNREADABLE("cv-photo-unreadable", "Cette photo est illisible ou trop grande : essaie avec une autre", "This photo cannot be read or is too large: try another one"),

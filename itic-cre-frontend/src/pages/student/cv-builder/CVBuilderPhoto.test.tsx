@@ -1,6 +1,6 @@
 /**
  * Photo du CV dans l'assistant (demande ITIC du 13/11/2026) : photo de profil par défaut (case cochée), « Ajouter une
- * photo » sans photo, « Changer la photo » (JPEG ou PNG, 5 Mo maximum, puis recadrage), « Revenir à ma photo de
+ * photo » sans photo, « Changer la photo » (JPEG, PNG ou WebP, 5 Mo maximum, puis recadrage), « Revenir à ma photo de
  * profil ». Les noms des modèles portent « (optimisé ATS) ».
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -102,12 +102,12 @@ describe('Photo du CV', () => {
     expect(api.get.mock.calls.some(([url]) => url === '/cv/builder/me/photo')).toBe(false);
   });
 
-  it('choisir un fichier : GIF ou plus de 5 Mo refusés ; un JPEG ouvre le recadrage', async () => {
+  it('choisir un fichier : GIF ou plus de 5 Mo refusés ; un JPEG ou un WebP ouvre le recadrage', async () => {
     serve(draft({ source: 'NONE', profilePhotoAvailable: false, key: null }, false));
     await renderBuilder();
 
     fireEvent.change(photoInput(), { target: { files: [new File(['gif'], 'photo.gif', { type: 'image/gif' })] } });
-    expect(toast.error).toHaveBeenLastCalledWith('Seules les photos JPEG ou PNG sont acceptées.');
+    expect(toast.error).toHaveBeenLastCalledWith('Seules les photos JPEG, PNG ou WebP sont acceptées.');
     expect(screen.queryByRole('dialog')).toBeNull();
 
     const big = new File(['x'], 'grosse.jpg', { type: 'image/jpeg' });
@@ -116,11 +116,14 @@ describe('Photo du CV', () => {
     expect(toast.error).toHaveBeenLastCalledWith('La photo dépasse 5 Mo : choisis-en une plus légère.');
     expect(screen.queryByRole('dialog')).toBeNull();
 
-    fireEvent.change(photoInput(), { target: { files: [new File(['jpeg'], 'moi.jpg', { type: 'image/jpeg' })] } });
-    const dialog = await screen.findByRole('dialog', { name: 'Recadre ta photo' });
-    expect(within(dialog).getByRole('button', { name: 'Enregistrer la photo' })).toBeTruthy();
-    fireEvent.click(within(dialog).getAllByRole('button', { name: 'Annuler' })[0]);
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(photoInput().getAttribute('accept')).toBe('image/jpeg,image/png,image/webp');
+    for (const file of [new File(['jpeg'], 'moi.jpg', { type: 'image/jpeg' }), new File(['webp'], 'IMG_2026.webp', { type: 'image/webp' })]) {
+      fireEvent.change(photoInput(), { target: { files: [file] } });
+      const dialog = await screen.findByRole('dialog', { name: 'Recadre ta photo' });
+      expect(within(dialog).getByRole('button', { name: 'Enregistrer la photo' })).toBeTruthy();
+      fireEvent.click(within(dialog).getAllByRole('button', { name: 'Annuler' })[0]);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    }
   });
 
   it('photo propre au CV : « Revenir à ma photo de profil » la retire et l’aperçu est recalculé', async () => {

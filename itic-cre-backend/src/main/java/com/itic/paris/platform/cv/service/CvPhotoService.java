@@ -141,7 +141,7 @@ public class CvPhotoService {
     }
 
     /**
-     * Enregistre une photo propre au CV : l'original assaini (CvPhotoImages : vrai type JPEG ou PNG, dimensions,
+     * Enregistre une photo propre au CV : l'original assaini (CvPhotoImages : vrai type JPEG, PNG ou WebP, dimensions,
      * orientation, sans EXIF) et la zone choisie au recadrage (null : toute l'image). Remplace la precedente photo du
      * CV ; la photo de profil n'est pas touchee.
      */
@@ -153,7 +153,7 @@ public class CvPhotoService {
         if (file.getSize() > MAX_BYTES) {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.CV_PHOTO_TOO_LARGE);
         }
-        byte[] original = CvPhotoImages.normalizeOriginal(file.getBytes(), false);
+        byte[] original = CvPhotoImages.normalizeOriginal(file.getBytes());
 
         // Prefixe {studentId}- obligatoire : FileAccessFilter s'en sert pour reconnaitre le proprietaire (stockage local).
         String path = FOLDER + student.getId() + "-" + System.currentTimeMillis() + ".jpg";
@@ -210,7 +210,7 @@ public class CvPhotoService {
 
     /**
      * Original assaini du fichier stocke, ou null s'il est absent ou inutilisable. Memes regles qu'un envoi : vrai
-     * type (JPEG, PNG, et WebP pour une photo de profil, converti), 5 Mo au plus, dimensions, sans EXIF.
+     * type (JPEG, PNG ou WebP, converti en JPEG), 5 Mo au plus, dimensions, orientation, sans EXIF.
      * Une erreur de stockage n'est pas mise en cache (nouvel essai au prochain apercu) ; un fichier inutilisable l'est.
      */
     private byte[] original(String path) {
@@ -230,7 +230,7 @@ public class CvPhotoService {
         }
         byte[] normalized;
         try {
-            normalized = raw.length > MAX_BYTES ? null : CvPhotoImages.normalizeOriginal(raw, true);
+            normalized = raw.length > MAX_BYTES ? null : CvPhotoImages.normalizeOriginal(raw);
         } catch (AppException e) {
             normalized = null;
         }
