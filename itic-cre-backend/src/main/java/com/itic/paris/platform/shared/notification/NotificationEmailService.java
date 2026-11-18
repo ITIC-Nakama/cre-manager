@@ -174,6 +174,18 @@ public class NotificationEmailService {
         sendHtml(to, subject, html);
     }
 
+    /** Demande d'une entreprise depuis l'Espace entreprise, envoyée à l'adresse choisie dans le back-office. */
+    @Async
+    public void sendCompanySpaceRequest(String to, String company, String contactName, String email, String phone,
+                                        String message, String studentName, String programName) {
+        String html = emailTemplateService.renderCompanySpaceRequestEmail(company, contactName, email, phone, message,
+                studentName, programName);
+        String subject = studentName != null
+                ? "Espace entreprise : " + company + " s'intéresse au profil de " + studentName
+                : "Espace entreprise : demande de contact de " + company;
+        sendHtml(to, subject, html);
+    }
+
     @Async
     public void sendAccountCredentials(String email, String firstName, String lang,
                                         String temporaryPassword, boolean isNewAccount) {

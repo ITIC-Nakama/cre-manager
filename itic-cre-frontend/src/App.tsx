@@ -1,7 +1,7 @@
 import './App.css'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import OfflineBanner from './components/common/OfflineBanner'
 import StudentLayout from './layouts/StudentLayout'
@@ -21,7 +21,19 @@ import StudentCVPage from './pages/student/cv/StudentCVPage'
 // Pages chargées à la demande : leurs dépendances lourdes (éditeur Tiptap/ProseMirror, assistant de CV) restent
 // hors du bundle principal, qui doit tenir sous la limite de précache de la PWA (workbox, 2 Mo).
 const ContenuPage = lazy(() => import('./pages/advisor/formation/ContenuPage'))
+// Espace entreprise (public) et son back-office : chargés à la demande.
+const CompanyLayout = lazy(() => import('./pages/public/entreprise/CompanyLayout'))
+const CompanyHomePage = lazy(() => import('./pages/public/entreprise/CompanyHomePage'))
+const CompanyDirectoryPage = lazy(() => import('./pages/public/entreprise/CompanyDirectoryPage'))
+const CompanyProgramPage = lazy(() => import('./pages/public/entreprise/CompanyProgramPage'))
+const CompanySpacePage = lazy(() => import('./pages/advisor/espace-entreprise/CompanySpacePage'))
 const SkillTreePage = lazy(() => import('./pages/student/connaissances/SkillTreePage'))
+
+/** « Installer l'application » ne concerne pas les entreprises de l'Espace entreprise. */
+function PwaBannerOutsideCompanySpace() {
+  const { pathname } = useLocation()
+  return pathname.startsWith('/entreprise') ? null : <PwaInstallBanner />
+}
 
 function LazyPage({ children }: { children: ReactNode }) {
   return (
@@ -110,6 +122,12 @@ function App() {
         <Route path="/alumni" element={<AlumniFormPage />} />
         {/* Lien « Ne plus recevoir ces e-mails » des e-mails d'offres (sans connexion) */}
         <Route path="/email/desinscription" element={<UnsubscribePage />} />
+        {/* Espace entreprise : annuaire public des CV (sans connexion, jamais indexé) */}
+        <Route element={<LazyPage><CompanyLayout /></LazyPage>}>
+          <Route path="/entreprise" element={<CompanyHomePage />} />
+          <Route path="/entreprise/candidats" element={<CompanyDirectoryPage />} />
+          <Route path="/entreprise/candidats/:slug" element={<CompanyProgramPage />} />
+        </Route>
 
         {/* Root dashboard redirection */}
         <Route path="/dashboard" element={<DashboardRedirect />} />
@@ -148,6 +166,7 @@ function App() {
           <Route path="/supervisor/conversations" element={<ConversationsPage />} />
           <Route path="/supervisor/conversations/:studentId" element={<ConversationsPage />} />
           <Route path="/supervisor/alumni"        element={<AlumniPage />} />
+          <Route path="/supervisor/espace-entreprise" element={<LazyPage><CompanySpacePage /></LazyPage>} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}
@@ -167,7 +186,7 @@ function App() {
       
       <Toaster richColors position="top-right" />
       <CookieBanner />
-      <PwaInstallBanner />
+      <PwaBannerOutsideCompanySpace />
     </BrowserRouter>
   )
 }

@@ -42,7 +42,8 @@ public class SecurityConfig {
             "/auth/reset-password",
             "/auth/logout",
             "/public/alumni",
-            "/public/email-preferences/unsubscribe"
+            "/public/email-preferences/unsubscribe",
+            "/public/entreprise/demandes"
     );
 
     private static final Set<String> PUBLIC_DOC_PREFIXES = Set.of(
@@ -101,6 +102,9 @@ public class SecurityConfig {
         if (path.startsWith("/files/public/")) {
             return true;
         }
+        if (HttpMethod.GET.matches(request.getMethod()) && path.startsWith("/public/entreprise/")) {
+            return true;
+        }
         if (path.startsWith("/actuator/health") || path.startsWith("/actuator/info")) {
             return true;
         }
@@ -145,6 +149,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/roles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/promotions", "/promotions/**").permitAll()
+                        // Espace entreprise : annuaire, pages des formations et CV par lien signé, sans connexion.
+                        .requestMatchers(HttpMethod.GET, "/public/entreprise/**").permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout.disable());
 

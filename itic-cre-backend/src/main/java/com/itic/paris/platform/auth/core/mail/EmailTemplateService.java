@@ -151,6 +151,22 @@ public class EmailTemplateService {
         return templateEngine.process("email/targeted-offers", context);
     }
 
+    public String renderCompanySpaceRequestEmail(String company, String contactName, String email, String phone,
+                                                 String message, String studentName, String programName) {
+        Context context = new Context();
+        context.setVariable("lang", "fr");
+        context.setVariable("company", company);
+        context.setVariable("contactName", contactName);
+        context.setVariable("email", email);
+        context.setVariable("phone", phone);
+        context.setVariable("message", message);
+        context.setVariable("studentName", studentName);
+        context.setVariable("programName", programName);
+        context.setVariable("requestsUrl", frontendUrl + "/supervisor/espace-entreprise?onglet=demandes");
+        context.setVariable("brandName", brandName);
+        return templateEngine.process("email/company-space-request", context);
+    }
+
     public String renderContractDeclarationInvalidatedEmail(String lang, String firstName, String entreprise, String poste) {
         Context context = new Context();
         context.setVariable("lang", normalizeLang(lang));

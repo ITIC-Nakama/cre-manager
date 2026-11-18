@@ -41,6 +41,9 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
     @Query("SELECT COUNT(s) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     long countByActiveTrue();
 
+    /** Étudiants qui ont choisi de ne pas apparaître dans l'Espace entreprise. */
+    long countByCompanySpaceVisibleFalse();
+
     @Query("SELECT COALESCE(AVG(s.xpTotal), 0) FROM Student s WHERE s.active = true AND s.email NOT LIKE '%@rgpd.deleted'")
     double averageXp();
 

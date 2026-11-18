@@ -68,4 +68,8 @@ public class Student extends User {
     /** Abonnement a l'e-mail du soir des offres ciblees (V54), active par defaut ; lien de desinscription dans l'e-mail. */
     @Column(name = "email_targeted_offers", nullable = false)
     private boolean emailTargetedOffers = true;
+
+    /** Apparaître dans l'Espace entreprise (V55), oui par défaut ; l'étudiant peut le couper dans son profil. */
+    @Column(name = "company_space_visible", nullable = false)
+    private boolean companySpaceVisible = true;
 }
