@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2 } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2, MessagesSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { StudentRow } from '../../types/models/Dashboard';
@@ -32,6 +33,7 @@ function formatDateTime(iso: string | null) {
 
 export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv }: Props) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const covered = useModalLayer();
     const { data: promotions } = usePromotions();
     const assignMutation = useAssignStudentToPromotion();
@@ -388,6 +390,15 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                         <span>{t('dashboard.etudiants.actions.declare_contract', 'Déclarer un contrat')}</span>
                                     </button>
                                 )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => { onClose(); navigate(`/supervisor/conversations/${student.id}`); }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors cursor-pointer"
+                                >
+                                    <MessagesSquare className="h-3.5 w-3.5" />
+                                    <span>{t('conversation.staff.open_conversation', 'Conversation')}</span>
+                                </button>
 
                                 {onNotify && (
                                     <button

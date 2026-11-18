@@ -574,3 +574,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   from { width: 100%; }
   to   { width: 0%; }
 }
+
+/* Messagerie (page Conversations) : la page occupe la hauteur de l'écran, moins les marges de la mise en page
+   (barre du haut sur mobile) ; la liste et le fil défilent chacun de leur côté. */
+[data-conversations-page] { --conversations-offset: 5.25rem; }
+@media (min-width: 1024px) { [data-conversations-page] { --conversations-offset: 4.5rem; } }

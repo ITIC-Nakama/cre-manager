@@ -123,7 +123,8 @@
       "cv_validation": "CV Validation",
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
-      "reclamations": "Messages",
+      "reclamations": "Help requests",
+      "conversations": "Conversations",
       "conseillers": "Corporate Relations",
       "conseillers_directory": "Advisors",
       "promotions": "Cohorts",
@@ -1165,27 +1166,27 @@
       }
     },
     "reclamations_advisor": {
-      "title": "Student Messages",
-      "subtitle": "{{count}} message(s)",
+      "title": "Help requests",
+      "subtitle": "{{count}} request(s)",
       "filter_pending": "Pending",
       "filter_resolved": "Resolved",
       "filter_refused": "Refused",
       "filter_all": "All",
-      "empty": "No messages.",
+      "empty": "No requests.",
       "status_resolved": "Resolved",
       "status_pending": "Pending",
       "status_refused": "Refused",
       "resolve_button": "Mark resolved",
       "refuse_button": "Refuse",
       "reopen_button": "Reopen",
-      "toast_resolved": "Message marked as resolved.",
-      "toast_refused": "Message refused.",
-      "toast_reopened": "Message reopened.",
+      "toast_resolved": "Request marked as resolved.",
+      "toast_refused": "Request refused.",
+      "toast_reopened": "Request reopened.",
       "toast_error": "Something went wrong, please try again.",
       "mine_only": "My portfolio only",
-      "my_pending_count": "{{count}} message(s) to handle in my portfolio",
-      "outside_pending_count": "{{count}} message(s) to handle outside my portfolio",
-      "outside_pending_count_hint": "Pending messages from students who are not in my portfolio — uncheck the box to see them in the list."
+      "my_pending_count": "{{count}} request(s) to handle in my portfolio",
+      "outside_pending_count": "{{count}} request(s) to handle outside my portfolio",
+      "outside_pending_count_hint": "Pending requests from students who are not in my portfolio — uncheck the box to see them in the list."
     },
     "connaissances": {
       "tree": {
@@ -2486,6 +2487,48 @@
       "zoomOut": "Zoom out",
       "cancel": "Cancel",
       "save": "Save photo"
+    }
+  },
+  "conversation": {
+    "common": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "messages": "Messages",
+      "former_staff": "Former advisor",
+      "load_more": "Show earlier messages",
+      "new_messages": "New messages",
+      "send": "Send",
+      "send_hint": "Send (Ctrl + Enter)",
+      "send_error": "The message could not be sent, please try again."
+    },
+    "staff": {
+      "title": "Conversations",
+      "subtitle": "One thread per student, shared by the whole career team.",
+      "list_label": "Conversation list",
+      "thread_label": "Conversation",
+      "pick": "Choose a conversation, or open one from a student’s file.",
+      "search": "Search a student (name, email)…",
+      "filters": "Filters",
+      "filter_mine": "My students",
+      "filter_all": "All",
+      "filter_unread": "Unread",
+      "empty": "No conversation yet. Open a student’s file to write to them.",
+      "empty_search": "No conversation matches this search.",
+      "empty_unread": "No unread message.",
+      "unread_aria": "{{count}} unread",
+      "my_student": "My student",
+      "referent": "Referent: {{name}}",
+      "no_referent": "No referent",
+      "inactive_short": "account deactivated",
+      "not_found": "This student cannot be found.",
+      "back": "All conversations",
+      "anonymized": "Anonymized account: no more messages.",
+      "inactive": "Deactivated account: the student can no longer log in, you can no longer write to them.",
+      "open_file": "View file",
+      "read_by_student": "Read",
+      "empty_thread": "No message with {{name}} yet. Write to them: {{name}} will be notified by email.",
+      "placeholder": "Write to {{name}}…",
+      "open_conversation": "Conversation"
     }
   }
 }
