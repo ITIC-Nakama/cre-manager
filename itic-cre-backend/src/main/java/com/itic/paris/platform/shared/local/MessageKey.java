@@ -218,6 +218,14 @@ public enum MessageKey {
     RECLAMATION_ALREADY_PENDING("reclamation-already-pending",
             "Vous avez déjà une réclamation en cours. Merci d'attendre qu'elle soit traitée avant d'en envoyer une nouvelle.",
             "You already have an ongoing report. Please wait until it's handled before sending a new one."),
+    // Messagerie conseiller <-> etudiant
+    CONVERSATION_STUDENT_INACTIVE("conversation-student-inactive",
+            "Ce compte étudiant est désactivé : il ne peut plus recevoir de message.",
+            "This student account is deactivated: it can no longer receive messages."),
+    CONVERSATION_MESSAGE_EMPTY("conversation-message-empty", "Le message est vide.", "The message is empty."),
+    CONVERSATION_MESSAGE_TOO_LONG("conversation-message-too-long",
+            "Le message dépasse 4000 caractères.",
+            "The message is longer than 4,000 characters."),
     // Alumni
     ALUMNI_CONTACT_NOT_FOUND("alumni-contact-not-found", "Fiche alumni introuvable", "Alumni record not found"),
     ALUMNI_EXIT_YEAR_INVALID("alumni-exit-year-invalid",

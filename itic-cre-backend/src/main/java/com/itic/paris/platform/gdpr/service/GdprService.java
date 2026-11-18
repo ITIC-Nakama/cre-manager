@@ -20,6 +20,7 @@ import com.itic.paris.platform.cv.service.CvPhotoService;
 import com.itic.paris.platform.gamification.repository.XPHistoryRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.jobboard.repository.JobApplicationRepository;
+import com.itic.paris.platform.messaging.service.ConversationService;
 import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
 import com.itic.paris.platform.shared.storage.ICloudStorage;
@@ -48,6 +49,7 @@ public class GdprService {
     private final CvDraftRepository cvDraftRepository;
     private final CvPhotoService cvPhotoService;
     private final ReclamationRepository reclamationRepository;
+    private final ConversationService conversationService;
     private final ApplicationRepository applicationRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final QuizValidationRepository quizValidationRepository;
@@ -84,6 +86,7 @@ public class GdprService {
         List<GdprDataExportDto.ArticleReadData> articlesRead = List.of();
         List<GdprDataExportDto.XpHistoryData> xpHistory = List.of();
         List<GdprDataExportDto.ReclamationData> reclamations = List.of();
+        List<GdprDataExportDto.ConversationMessageData> conversation = List.of();
 
         if (user instanceof Student student) {
             userProfile.setPromotion(student.getPromotion() != null ? student.getPromotion().getName() : null);
@@ -174,6 +177,9 @@ public class GdprService {
                     .status(r.getStatus().name())
                     .dateCreation(r.getDateCreation())
                     .build()).collect(Collectors.toList());
+
+            // Messagerie : le fil avec l'equipe CRE
+            conversation = conversationService.exportFor(student.getId());
         }
 
         return GdprDataExportDto.builder()
@@ -186,6 +192,7 @@ public class GdprService {
                 .articlesRead(articlesRead)
                 .xpHistory(xpHistory)
                 .reclamations(reclamations)
+                .conversation(conversation)
                 .build();
     }
 
@@ -273,6 +280,9 @@ public class GdprService {
 
             reclamationRepository.deleteAll(
                     reclamationRepository.findByStudentId(student.getId(), Pageable.unpaged()).getContent());
+
+            // Messagerie : le fil de l'etudiant (messages et lectures) est supprime.
+            conversationService.deleteAllFor(student.getId());
         }
 
         userRepository.save(user);

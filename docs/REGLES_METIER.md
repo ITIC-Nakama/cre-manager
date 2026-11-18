@@ -626,6 +626,36 @@ Formulaire **sans connexion** (`/alumni` côté frontend, `POST /public/alumni` 
 
 ---
 
+## 14. Messagerie conseiller ↔ étudiant (V51, 14/11/2026)
+
+Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées retenues. Avant, « Envoyer un message » envoyait un simple e-mail, enregistré nulle part, auquel l'étudiant ne pouvait pas répondre.
+
+- **Un fil unique par étudiant, partagé par toute l'équipe CRE** (conseillers et admins). Tout membre de l'équipe lit et écrit dans le fil de n'importe quel étudiant, et l'historique ne se perd pas quand le référent change. Tables `conversations`, `conversation_messages` et `conversation_reads` (migration V51).
+- **L'étudiant écrit à tout moment**, pas seulement pour répondre, même s'il n'a pas de référent.
+- Le fil est **créé au premier message** ; le lire ne crée rien (aucune écriture sur une lecture).
+- **Message** : 4000 caractères au plus (400 `conversation-message-too-long`) ; vide refusé (400 `conversation-message-empty`) ; espaces de début et de fin retirés, fins de ligne unifiées.
+- **Compte étudiant désactivé ou anonymisé** : l'équipe lit toujours l'historique, mais n'y écrit plus (409 `conversation-student-inactive`).
+- **Non-lus, par personne** (« lu jusqu'au message n », jamais en arrière, jamais au-delà du dernier message) :
+  - pour l'étudiant, les messages de l'équipe ;
+  - pour un membre de l'équipe, les messages de l'étudiant. Un conseiller qui lit le fil ne le marque pas comme lu pour ses collègues.
+- **Compteurs de l'équipe** (`GET /dashboard/conversations/unread-counts`), en nombre de fils non lus :
+  - `badge` (menu) : mes étudiants **et les étudiants sans référent**, pour qu'un message d'un étudiant sans référent ne passe pas inaperçu ;
+  - `mine` : filtre « Mes étudiants » ;
+  - `all` : filtre « Tous ».
+- **Liste des fils** (`GET /dashboard/conversations`) : du plus récent au plus ancien, 20 par page (50 au plus).
+  - Filtres `scope=MINE|ALL` et `unread=true`.
+  - Recherche `q` sur le prénom, le nom et l'e-mail de l'étudiant, sans tenir compte des accents ni des majuscules ; chaque mot doit apparaître.
+  - Chaque ligne indique le référent, un aperçu du dernier message (140 caractères) et le nombre de messages de l'étudiant non lus.
+- **Fil** (`GET /conversation/me` pour l'étudiant, `GET /dashboard/conversations/students/{id}` pour l'équipe) : les 50 derniers messages par défaut (`limit`, 500 au plus) et `hasMore`. L'équipe voit aussi jusqu'où l'étudiant a lu.
+- **Écrire** : `POST /conversation/me/messages` (étudiant), `POST /dashboard/conversations/students/{id}/messages` (équipe). **Marquer comme lu** : `POST …/read` avec le dernier message affiché.
+- **Droits** : `/conversation/me/**` réservé aux étudiants, `/dashboard/conversations/**` aux conseillers et admins.
+- **RGPD** :
+  - conservation illimitée tant que l'étudiant est actif ;
+  - à l'anonymisation (automatique ou à la demande), le fil est supprimé : messages et lectures ;
+  - les messages sont inclus dans l'export RGPD (`conversation` : date, côté, auteur, texte) ;
+  - si un compte de l'équipe est supprimé, ses messages restent, signés « Ancien conseiller » (clé étrangère `ON DELETE SET NULL`). Même chose pour un compte anonymisé.
+- **API « Envoyer un message »** (`POST /dashboard/students/{id}/notify`) : 4000 caractères au plus, comme la fenêtre (1000 jusqu'au 14/11/2026 : un message long échouait).
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).

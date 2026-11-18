@@ -7,7 +7,8 @@ import lombok.Data;
 @Data
 public class SendReminderRequest {
 
-    @Size(max = 1000)
+    // 4000 comme la fenetre « Envoyer un message » (1000 jusqu'au 14/11/2026 : un message long echouait).
+    @Size(max = 4000)
     @Schema(
             description = "Message personnalisé à inclure dans l'email. "
                     + "Si absent ou vide, un message de relance par défaut est utilisé.",
