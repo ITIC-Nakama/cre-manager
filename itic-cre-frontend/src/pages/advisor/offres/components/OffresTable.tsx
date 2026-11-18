@@ -7,7 +7,7 @@ import {
     type SortingState,
 } from '@tanstack/react-table';
 import {
-    AlertTriangle, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Users,
+    AlertTriangle, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Sparkles, Users,
     ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -38,12 +38,14 @@ interface Props {
     onLoadMore: () => void;
     onView: (offer: JobOffer) => void;
     onEdit: (offer: JobOffer) => void;
+    /** « Candidats suggérés » (score de rapprochement). */
+    onSuggest?: (offer: JobOffer) => void;
     onViewApplicants: (offer: JobOffer) => void;
     sorting: SortingState;
     onSortingChange: (sorting: SortingState) => void;
 }
 
-export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, onViewApplicants, sorting, onSortingChange }: Props) {
+export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, onSuggest, onViewApplicants, sorting, onSortingChange }: Props) {
     const { t } = useTranslation();
 
     const columns = useMemo(() => [
@@ -256,6 +258,16 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </button>
+                                            {onSuggest && !row.original.draft && (
+                                                <button
+                                                    onClick={() => onSuggest(row.original)}
+                                                    className="inline-flex p-1 rounded-lg text-[#3f74ff] hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all cursor-pointer"
+                                                    title={t('matching.suggested_title', 'Candidats suggérés')}
+                                                    aria-label={t('matching.suggested_title', 'Candidats suggérés')}
+                                                >
+                                                    <Sparkles className="h-4 w-4" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => onEdit(row.original)}
                                                 className="inline-flex p-1 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"

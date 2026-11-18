@@ -2825,5 +2825,29 @@
     "col_contract": "Contrat",
     "contract_yes": "Oui",
     "contract_no": "Non"
+  },
+  "matching": {
+    "reason": {
+      "formation_student": "proche de ta formation ({{list}})",
+      "formation_staff": "proche de sa formation ({{list}})",
+      "contract": "en {{label}}",
+      "level": "niveau {{level}} demandé",
+      "near_student": "près de chez toi ({{name}})",
+      "near_staff": "dans son département ({{name}})",
+      "idf": "en Île-de-France",
+      "remote": "télétravail possible",
+      "cv_student": "ton CV mentionne {{list}}",
+      "cv_staff": "son CV mentionne {{list}}"
+    },
+    "recommended_title": "Recommandées pour toi",
+    "why": "Pourquoi :",
+    "suggested_title": "Candidats suggérés",
+    "close": "Fermer",
+    "suggested_none": "Aucun étudiant sans contrat ne correspond à cette offre (formation, mots-clés).",
+    "score_title": "Score de rapprochement",
+    "department": "dép. {{code}}",
+    "send_offer": "Envoyer l’offre",
+    "send_message": "Bonjour {{firstName}}, cette offre pourrait t’intéresser : « {{title}} » chez {{company}}. Tu peux la consulter ici : {{link}}",
+    "sent": "Message envoyé dans la conversation de l’étudiant."
   }
 }
