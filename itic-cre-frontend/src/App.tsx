@@ -24,6 +24,7 @@ import StudentCVPage from './pages/student/cv/StudentCVPage'
 const ContenuPage = lazy(() => import('./pages/advisor/formation/ContenuPage'))
 // Espace entreprise (public) et son back-office : chargés à la demande.
 const CompanyLayout = lazy(() => import('./pages/public/entreprise/CompanyLayout'))
+const CompanySpaceGate = lazy(() => import('./pages/public/entreprise/CompanySpaceGate'))
 const CompanyHomePage = lazy(() => import('./pages/public/entreprise/CompanyHomePage'))
 const CompanyDirectoryPage = lazy(() => import('./pages/public/entreprise/CompanyDirectoryPage'))
 const CompanyProgramPage = lazy(() => import('./pages/public/entreprise/CompanyProgramPage'))
@@ -123,8 +124,8 @@ function App() {
         <Route path="/alumni" element={<AlumniFormPage />} />
         {/* Lien « Ne plus recevoir ces e-mails » des e-mails d'offres (sans connexion) */}
         <Route path="/email/desinscription" element={<UnsubscribePage />} />
-        {/* Espace entreprise : annuaire public des CV (sans connexion, jamais indexé) */}
-        <Route element={<LazyPage><CompanyLayout /></LazyPage>}>
+        {/* Espace entreprise : annuaire public des CV (sans connexion, jamais indexé). Masqué (lot 10) : « Page non disponible ». */}
+        <Route element={<LazyPage><CompanySpaceGate><CompanyLayout /></CompanySpaceGate></LazyPage>}>
           <Route path="/entreprise" element={<CompanyHomePage />} />
           <Route path="/entreprise/candidats" element={<CompanyDirectoryPage />} />
           <Route path="/entreprise/candidats/:slug" element={<CompanyProgramPage />} />

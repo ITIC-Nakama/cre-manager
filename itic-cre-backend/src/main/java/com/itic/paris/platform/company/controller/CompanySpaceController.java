@@ -10,6 +10,7 @@ import com.itic.paris.platform.company.service.CompanySpaceAdminService.RequestP
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.SettingsForm;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.Stats;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.StudentPreference;
+import com.itic.paris.platform.company.service.CompanySpaceFeature;
 import com.itic.paris.platform.company.service.CompanySpaceService;
 import com.itic.paris.platform.company.service.CompanySpaceService.ProgramPage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,7 @@ public class CompanySpaceController {
 
     private final CompanySpaceAdminService adminService;
     private final CompanySpaceService companySpaceService;
+    private final CompanySpaceFeature feature;
 
     public record HandledRequest(boolean handled) {
     }
@@ -53,6 +55,8 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Formations de l'annuaire : promotions rattachées, nombre de CV, statistiques sur 30 jours")
     public ResponseEntity<List<AdminProgram>> programs() {
+        // Liste des formations : sert aussi aux filtres par formation, à la carte et aux offres (toute l'équipe),
+        // quel que soit l'interrupteur de l'Espace entreprise (lot 10).
         return ResponseEntity.ok(adminService.programs());
     }
 
@@ -60,6 +64,7 @@ public class CompanySpaceController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter une formation (admin)")
     public ResponseEntity<Void> create(@RequestBody ProgramForm form) {
+        feature.requireBackOfficeAccess();
         adminService.createProgram(form);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -68,6 +73,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Modifier une formation (champs absents : inchangés ; promotionIds vide = rattachement par mots-clés)")
     public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ProgramForm form) {
+        feature.requireBackOfficeAccess();
         adminService.updateProgram(id, form);
         return ResponseEntity.noContent().build();
     }
@@ -76,6 +82,7 @@ public class CompanySpaceController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Retirer une formation (admin)")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        feature.requireBackOfficeAccess();
         adminService.deleteProgram(id);
         return ResponseEntity.noContent().build();
     }
@@ -84,6 +91,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Aperçu de la page publique d'une formation (même masquée ; aucune statistique comptée)")
     public ResponseEntity<ProgramPage> preview(@PathVariable UUID id) {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(companySpaceService.preview(id));
     }
 
@@ -93,6 +101,7 @@ public class CompanySpaceController {
     public ResponseEntity<RequestPage> requests(@RequestParam(defaultValue = "NEW") String status,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "20") int size) {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.requests(status, page, size));
     }
 
@@ -100,6 +109,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Nombre de demandes nouvelles (badge du menu)")
     public ResponseEntity<Map<String, Long>> newCount() {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(Map.of("count", adminService.newRequestCount()));
     }
 
@@ -107,6 +117,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Marquer une demande comme traitée (ou nouvelle)")
     public ResponseEntity<AdminRequest> handle(@PathVariable UUID id, @RequestBody HandledRequest body) {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.setHandled(id, body.handled()));
     }
 
@@ -114,6 +125,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Statistiques simples, sans aucune donnée sur les visiteurs")
     public ResponseEntity<Stats> stats() {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.stats());
     }
 
@@ -121,6 +133,7 @@ public class CompanySpaceController {
     @PreAuthorize(STAFF)
     @Operation(summary = "Textes et accès (la clé sert au bouton « Copier le lien »)")
     public ResponseEntity<AdminSettings> settings() {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.settings());
     }
 
@@ -128,6 +141,7 @@ public class CompanySpaceController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier les textes, l'adresse prévenue et l'accès par lien privé (admin)")
     public ResponseEntity<AdminSettings> updateSettings(@RequestBody SettingsForm form) {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.updateSettings(form));
     }
 
@@ -135,6 +149,7 @@ public class CompanySpaceController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Nouvelle clé de lien privé : les anciens liens ne marchent plus (admin)")
     public ResponseEntity<AdminSettings> regenerateKey() {
+        feature.requireBackOfficeAccess();
         return ResponseEntity.ok(adminService.regenerateKey());
     }
 

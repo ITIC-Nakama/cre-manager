@@ -2690,7 +2690,10 @@
       "offer_keywords": "Mots-clés des offres (récapitulatif du lundi, suggestions)",
       "offer_keywords_hint": "Cherchés dans l’intitulé (3 points), le secteur (2) et la description (1) des offres. Séparés par « | ».",
       "pedagogy_url": "Fiche formation (site pédagogique)",
-      "pedagogy_url_hint": "Bouton « Ma fiche formation » des étudiants de cette formation. Vide : pas de bouton."
+      "pedagogy_url_hint": "Bouton « Ma fiche formation » des étudiants de cette formation. Vide : pas de bouton.",
+      "domain_choose": "Choisir un domaine",
+      "domain_other": "Autre…",
+      "domain_new": "Nouveau domaine"
     },
     "preview_title": "Aperçu : ce que voit une entreprise",
     "preview_hidden": "(formation masquée)",
@@ -2743,7 +2746,8 @@
       "col_requests": "Demandes",
       "none": "Aucune visite sur les 30 derniers jours.",
       "privacy": "Compteurs par jour et par formation uniquement : ni adresse IP, ni navigateur, ni cookie de mesure."
-    }
+    },
+    "hidden_banner": "Espace entreprise masqué : cette page n’apparaît dans aucun menu."
   },
   "carte": {
     "department_label": "{{name}} ({{code}}) : {{count}} étudiant(s)",
@@ -2921,5 +2925,10 @@
       "CITY_REQUIRED": "Indique ta ville.",
       "CITY_TOO_LONG": "80 caractères au maximum."
     }
+  },
+  "not_available": {
+    "title": "Page non disponible",
+    "text": "Cette page n’est pas accessible pour le moment.",
+    "home": "Aller à la page de connexion"
   }
 }

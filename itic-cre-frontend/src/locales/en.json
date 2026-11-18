@@ -2690,7 +2690,10 @@
       "offer_keywords": "Offer keywords (Monday summary, suggestions)",
       "offer_keywords_hint": "Searched in the offer title (3 points), sector (2) and description (1). Separated by “|”.",
       "pedagogy_url": "Programme page (teaching website)",
-      "pedagogy_url_hint": "“My programme page” button for students of this programme. Empty: no button."
+      "pedagogy_url_hint": "“My programme page” button for students of this programme. Empty: no button.",
+      "domain_choose": "Choose a field",
+      "domain_other": "Other…",
+      "domain_new": "New field"
     },
     "preview_title": "Preview: what a company sees",
     "preview_hidden": "(hidden programme)",
@@ -2743,7 +2746,8 @@
       "col_requests": "Requests",
       "none": "No visits in the last 30 days.",
       "privacy": "Counters per day and per programme only: no IP address, no browser, no tracking cookie."
-    }
+    },
+    "hidden_banner": "Company space hidden: this page is not shown in any menu."
   },
   "carte": {
     "department_label": "{{name}} ({{code}}): {{count}} student(s)",
@@ -2921,5 +2925,10 @@
       "CITY_REQUIRED": "Enter your city.",
       "CITY_TOO_LONG": "80 characters maximum."
     }
+  },
+  "not_available": {
+    "title": "Page not available",
+    "text": "This page is not available at the moment.",
+    "home": "Go to the login page"
   }
 }

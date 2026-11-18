@@ -13,6 +13,7 @@ import EmailPreferencesCard from '../../components/dashboard/parametres/EmailPre
 import CompanySpaceCard from '../../components/dashboard/parametres/CompanySpaceCard';
 import AddressCard from '../../components/dashboard/parametres/AddressCard';
 import AddressBanner from '../../components/student/AddressBanner';
+import { usePublicConfig } from '../../hooks/usePublicConfig';
 import AppConfigCard from '../../components/dashboard/parametres/AppConfigCard';
 import ParametresSubmenu, { type ParametresTab } from '../../components/dashboard/parametres/ParametresSubmenu';
 import { useUpdatePassword } from '../../hooks/useAuth';
@@ -29,6 +30,7 @@ export default function ParametresPage() {
   const [activeTab, setActiveTab] = useState<ParametresTab>('profile');
 
   const isAdmin = user?.role === Role.ADMIN;
+  const { companySpaceEnabled } = usePublicConfig();
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -120,7 +122,8 @@ export default function ParametresPage() {
           <PreferencesCard />
           {user?.role === Role.STUDENT && <EmailPreferencesCard />}
           {user?.role === Role.STUDENT && <AddressCard />}
-          {user?.role === Role.STUDENT && <CompanySpaceCard />}
+          {/* Espace entreprise masqué (lot 10) : le choix « Apparaître dans l'Espace entreprise » n'a pas lieu d'être. */}
+          {user?.role === Role.STUDENT && companySpaceEnabled && <CompanySpaceCard />}
 
           <SecurityCard onChangePassword={() => setModalOpen(true)} />
 

@@ -10,6 +10,7 @@ import {
   ScrollText, User, Settings, Contact, MessagesSquare, Store, Map as MapIcon
 } from 'lucide-react';
 import { useNewCompanyRequestCount } from '../pages/advisor/espace-entreprise/useNewCompanyRequestCount';
+import { usePublicConfig } from '../hooks/usePublicConfig';
 import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../components/head/Sidebar';
 import { useResetScrollOnNavigate } from '../hooks/useResetScrollOnNavigate';
@@ -25,8 +26,9 @@ export default function SupervisorLayout() {
   const { data: conversationCounts } = useConversationUnreadCounts();
   const { data: cvPendingCount } = useCvPendingCount();
   const { data: contractPendingCount } = useContractPendingCount();
-  // Espace entreprise : demandes d'entreprises nouvelles (une requête par minute).
-  const { data: newCompanyRequests } = useNewCompanyRequestCount();
+  // Espace entreprise : masqué par défaut (lot 10) ; affiché, badge des demandes nouvelles (une requête par minute).
+  const { companySpaceEnabled } = usePublicConfig();
+  const { data: newCompanyRequests } = useNewCompanyRequestCount(companySpaceEnabled);
 
   const isAdmin = user?.role === Role.ADMIN;
 
@@ -39,7 +41,9 @@ export default function SupervisorLayout() {
     { label: t('dashboard.sidebar.cv_validation'),      icon: FileCheck,       to: '/supervisor/cv', badge: cvPendingCount },
     { label: t('dashboard.sidebar.conversations', 'Conversations'), icon: MessagesSquare, to: '/supervisor/conversations', badge: conversationCounts?.badge },
     { label: t('dashboard.sidebar.alumni', 'Alumni'),   icon: Contact,         to: '/supervisor/alumni' },
-    { label: t('dashboard.sidebar.company_space', 'Espace entreprise'), icon: Store, to: '/supervisor/espace-entreprise', badge: newCompanyRequests },
+    ...(companySpaceEnabled
+      ? [{ label: t('dashboard.sidebar.company_space', 'Espace entreprise'), icon: Store, to: '/supervisor/espace-entreprise', badge: newCompanyRequests }]
+      : []),
     { label: t('dashboard.sidebar.contenu'),            icon: BookOpenCheck,   to: '/supervisor/contenu' },
     { label: t('dashboard.sidebar.gamification'),       icon: Trophy,          to: '/supervisor/gamification' },
   ];
