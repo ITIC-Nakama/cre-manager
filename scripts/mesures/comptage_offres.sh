@@ -106,7 +106,7 @@ def dedup_key(company, title, location):
 
 # ─── HTTP : jamais d'URL ni de clé dans la sortie, appels comptés et plafonnés ──────────────────
 CALLS = {"FRANCE_TRAVAIL": 0, "BONNE_ALTERNANCE": 0, "ADZUNA": 0, "JSEARCH": 0}
-CAP = {"FRANCE_TRAVAIL": 230, "BONNE_ALTERNANCE": 45, "ADZUNA": 85, "JSEARCH": 3}
+CAP = {"FRANCE_TRAVAIL": 360, "BONNE_ALTERNANCE": 45, "ADZUNA": 85, "JSEARCH": 3}
 PAUSE = {"FRANCE_TRAVAIL": 0.15, "BONNE_ALTERNANCE": 0.4, "ADZUNA": 2.6, "JSEARCH": 1.0}
 ERRORS = {k: 0 for k in CALLS}
 
@@ -148,7 +148,8 @@ def mock_http(source, url, data):
         n = 100 + 7 * len("".join(q.get("codeROME", ["x"]))) + (50 if "region" not in q else 0)
         rng = q.get("range", ["0-0"])[0]
         size = 0 if rng == "0-0" else 150
-        res = [{"intitule": "Alternant(e) développeur %d" % (i % 40), "entreprise": {"nom": "Ent %d" % (i % 30)},
+        res = [{"id": "%s%d" % (rng, i), "natureContrat": "Contrat apprentissage" if i % 3 else "Contrat travail", "alternance": bool(i % 3),
+                "intitule": ("Alternant(e) développeur %d" if i % 2 else "Développeur %d") % (i % 40), "entreprise": {"nom": "Ent %d" % (i % 30)},
                 "lieuTravail": {"libelle": "75 - PARIS 1%d" % (i % 9)}} for i in range(size)]
         return 206, {"content-range": "offres %s/%d" % (rng, n)}, {"resultats": res}
     if source == "BONNE_ALTERNANCE":
@@ -331,6 +332,50 @@ def ft():
         sample += [dedup_key((o.get("entreprise") or {}).get("nom"), o.get("intitule"), (o.get("lieuTravail") or {}).get("libelle"))
                    for o in rows]
     res["sample"] = [k for k in sample if k]
+
+    # [2b] Pour la PR #97 : parmi les offres France Travail DÉJÀ en base, lesquelles sont en réalité des contrats
+    # d'apprentissage / de professionnalisation (recherches E2/FS, critères actuels), et combien n'ont pas le libellé
+    # « Alternance » aujourd'hui (elles passeraient en alternance). Croisement en mémoire, rien n'est écrit.
+    out("\n[2b] France Travail — offres déjà en base qui sont des contrats d'apprentissage / de professionnalisation")
+    db_ft = {r[0]: r[1] for r in sql("SELECT o.source_id, c.label FROM job_offers o JOIN contract_types c ON c.id = o.contract_type_id "
+                                     "WHERE o.is_active AND o.source = 'FRANCE_TRAVAIL' AND o.source_id IS NOT NULL")}
+    api_alt, natures, flag_alt, available = {}, {}, 0, 0
+    for rome in (c["romes"] or [None]):
+        for b in FT_BUCKETS[:2]:
+            for start in (0, 150, 300):
+                try:
+                    n, rows = total(rome, b, c["regions"], "%d-%d" % (start, start + 149))
+                except CapReached:
+                    n, rows = None, []
+                if start == 0 and n:
+                    available += n
+                for o in rows or []:
+                    if o.get("id") is None:
+                        continue
+                    api_alt["ft:" + str(o["id"])] = o
+                if n is None or not rows or len(rows) < 150 or start + 150 >= n:
+                    break
+    for o in api_alt.values():
+        nat = str(o.get("natureContrat") or "(absent)")[:40]
+        natures[nat] = natures.get(nat, 0) + 1
+    flag_alt = sum(1 for o in api_alt.values() if o.get("alternance") is True)
+    alt_words = ("alternance", "alternant", "apprenti", "professionnalisation")
+    no_word = sum(1 for o in api_alt.values() if not any(w in (o.get("intitule") or "").lower() for w in alt_words))
+    in_db = [sid for sid in api_alt if sid in db_ft]
+    switch = [sid for sid in in_db if not db_ft[sid].lower().startswith("alternance")]
+    by_label = {}
+    for sid in switch:
+        by_label[db_ft[sid]] = by_label.get(db_ft[sid], 0) + 1
+    out("    offres E2/FS disponibles (critères actuels) : %d ; récupérées pour la mesure : %d (3 pages au plus par recherche)"
+        % (available, len(api_alt)))
+    out("    valeurs du champ natureContrat dans ces offres : " + " ; ".join("%s = %d" % kv for kv in sorted(natures.items(), key=lambda kv: -kv[1])))
+    out("    champ « alternance » à vrai : %d / %d ; intitulé SANS mot d'alternance : %d / %d (mal classées à l'import aujourd'hui)"
+        % (flag_alt, len(api_alt), no_word, len(api_alt)))
+    out("    offres France Travail actives en base : %d ; retrouvées dans ces recherches E2/FS : %d ; dont libellées autrement"
+        " qu'« Alternance » : %d → elles PASSERAIENT EN ALTERNANCE avec la PR #97" % (len(db_ft), len(in_db), len(switch)))
+    if by_label:
+        out("      libellé actuel de ces offres : " + " ; ".join("%s = %d" % kv for kv in sorted(by_label.items(), key=lambda kv: -kv[1])))
+    res["switch"] = len(switch)
     return res
 
 # ─── 3. La Bonne Alternance ────────────────────────────────────────────────────────────────────
@@ -535,6 +580,8 @@ for s in ("FRANCE_TRAVAIL", "BONNE_ALTERNANCE", "ADZUNA"):
              pair(p91["importable"], p91["importable_alt"]), pair(after, after_alt), CALLS[s]))
 out(H % ("JSEARCH", "coupé", str((R["JSEARCH"] or {}).get("first_pages", "pas de clé")), "-", "-", CALLS["JSEARCH"]))
 out("Estimé importable par synchro après dédoublonnage (hors offres ITIC) : %d au total, dont %d en alternance" % (est_total, est_alt))
+if R.get("FRANCE_TRAVAIL") and "switch" in R["FRANCE_TRAVAIL"]:
+    out("France Travail : %d offre(s) déjà en base passeraient en « Alternance » avec la PR #97 (voir [2b])" % R["FRANCE_TRAVAIL"]["switch"])
 out("(« alternance » côté API = recherches E2/FS pour France Travail, tout LBA, mots d'alternance pour Adzuna ; côté CRE = libellé déduit de l'intitulé)")
 for s in CALLS:
     if CALLS[s] >= CAP[s]:
