@@ -55,9 +55,9 @@ public class Conversation {
     @Column(name = "last_staff_message_id")
     private Long lastStaffMessageId;
 
-    // ─── E-mails de notification (V52) : au plus un toutes les 15 minutes par destinataire ─────────
+    // ─── E-mails de notification (V52) : un rappel par série non lue, après le délai (60 min par défaut) ─────────
 
-    /** Dernier e-mail envoye a l'etudiant pour ce fil. */
+    /** Dernier rappel REELLEMENT envoye a l'etudiant (null si la derniere serie a ete traitee sans e-mail). */
     @Column(name = "student_notified_at")
     private Instant studentNotifiedAt;
 
@@ -65,7 +65,7 @@ public class Conversation {
     @Column(name = "student_notified_message_id")
     private Long studentNotifiedMessageId;
 
-    /** Dernier e-mail envoye au referent pour ce fil. */
+    /** Dernier rappel REELLEMENT envoye au referent (null si la derniere serie a ete traitee sans e-mail). */
     @Column(name = "staff_notified_at")
     private Instant staffNotifiedAt;
 

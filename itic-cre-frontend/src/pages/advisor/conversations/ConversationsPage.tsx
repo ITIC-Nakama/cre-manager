@@ -254,7 +254,7 @@ function StaffThread({ studentId }: { studentId: string }) {
         onLoadMore={() => setLimit((l) => l + CONVERSATION_PAGE)}
         empty={
           <p className="max-w-sm text-center text-sm text-slate-500 dark:text-slate-400">
-            {t('conversation.staff.empty_thread', { name: student.firstName, defaultValue: 'Aucun message avec {{name}} pour l’instant. Écrivez-lui : {{name}} sera prévenu(e) par e-mail.' })}
+            {t('conversation.staff.empty_thread', { name: student.firstName, defaultValue: 'Aucun message avec {{name}} pour l’instant. Écrivez-lui : {{name}} sera prévenu(e) par e-mail si le message reste non lu.' })}
           </p>
         }
       />

@@ -54,7 +54,7 @@ class ConfigSwitchesTest {
     }
 
     @Test
-    @DisplayName("Défauts : récapitulatif du lundi et alertes coupés, e-mail du soir et rappels de messagerie actifs, Espace entreprise fermé")
+    @DisplayName("Défauts : récapitulatif du lundi et alertes coupés, e-mail du soir et rappels de messagerie actifs (après 60 min), Espace entreprise fermé")
     void defaults() throws Exception {
         String props = Files.readString(MAIN_PROPERTIES, StandardCharsets.UTF_8);
         Map<String, String> expected = Map.of(
@@ -62,6 +62,7 @@ class ConfigSwitchesTest {
                 "app.mailing.instant-offers.enabled", "false",
                 "app.mailing.targeted-offers.enabled", "true",
                 "app.messaging.notification-scheduler.enabled", "true",
+                "app.messaging.email-delay-minutes", "60",
                 "app.company-space.private-by-default", "true");
         expected.forEach((key, value) -> assertThat(props).as(key)
                 .containsPattern("(?m)^" + Pattern.quote(key) + "=\\$\\{[A-Z_]+:" + value + "}"));

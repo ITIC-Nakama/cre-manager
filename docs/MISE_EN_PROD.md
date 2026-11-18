@@ -1,4 +1,4 @@
-# Mise en production de la pile #71 → #95
+# Mise en production de la pile #71 → #96
 
 *Rédigé le 17/11/2026 (lot 9). La production est aujourd'hui sur `main` = `7ed25ef` (PR #81).*
 
@@ -6,7 +6,7 @@ Ce document dit ce qui part en production, ce qui change dès le lendemain, ce q
 
 ## En bref
 
-- **15 PR** (#71, #82 à #95), **11 migrations** (V51 à V61) : messagerie, notes des étudiants, brouillons d'offres, Espace entreprise, cartes, récapitulatif du lundi, sources d'offres, matching, fiche formation, alertes et vue par formation, suppression définitive des comptes.
+- **16 PR** (#71, #82 à #96), **11 migrations** (V51 à V61) : messagerie, notes des étudiants, brouillons d'offres, Espace entreprise, cartes, récapitulatif du lundi, sources d'offres, matching, fiche formation, alertes et vue par formation, suppression définitive des comptes.
 - **Dès le lendemain, sans rien activer**, deux sortes d'e-mails peuvent partir :
   - l'e-mail du soir (18 h), seulement si l'équipe coche des « Promotions ciblées » sur une offre ;
   - les avis « Vous avez un nouveau message » de la messagerie.
@@ -41,6 +41,7 @@ Ce document dit ce qui part en production, ce qui change dès le lendemain, ce q
 | **#93** fiche formation | Bouton « Ma fiche formation » (si la formation a une page) | Champ « Fiche formation » | — | V59 | — | vider l'adresse de la formation |
 | **#94** alertes et formations | « Offres pour ma formation » par défaut sur la page Offres (repli automatique sur « Toutes les offres » si vide) | Formations ciblées à la publication, onglet Formations, filtres et tri par formation, carte des offres, 🔔 aperçu des destinataires | « Contactez-nous » appelle le 01 43 73 20 40 | V60 | `APP_MAILING_INSTANT_OFFERS_*` (coupé) | variable ; interrupteur par formation |
 | **#95** lot 9 | — | Suppression définitive d'un compte (admin) ; « Anonymiser (RGPD) » renommé | — | V61 (auteur de commentaire facultatif, drapeau de rattachement) | voir §3 | retour arrière |
+| **#96** rappel de messagerie après 1 h | L'e-mail « Vous avez un nouveau message » ne part que si le message est resté non lu 1 h ; un seul rappel par série non lue | Même règle pour le référent | — | — | `APP_MESSAGING_EMAIL_DELAY_MINUTES` (60) | variable, ou retour arrière |
 
 ## 2. Ce qui change pour les utilisateurs existants dès le déploiement (sans activer aucune variable)
 
@@ -51,7 +52,7 @@ Ce document dit ce qui part en production, ce qui change dès le lendemain, ce q
 | E-mail | Quand | À qui | Combien le premier jour |
 |---|---|---|---|
 | **E-mail du soir** « offres pour votre promotion » | 18 h, chaque jour | étudiants actifs, sans contrat, d'une promotion cochée dans « Promotions ciblées » d'une offre publiée le jour même | **0** tant que personne ne coche de promotion. Recette : une offre ciblée a envoyé 20 e-mails (une promotion) |
-| **« Vous avez un nouveau message »** | dès qu'un message est écrit (au plus 1 toutes les 15 min par fil) | l'étudiant (si l'équipe écrit) ou son référent (si l'étudiant écrit) | dépend de l'usage. Le bouton existant « Envoyer un message » écrit désormais dans la conversation et envoie cet avis |
+| **« Vous avez un nouveau message »** | **si un message est resté non lu 1 h** (un seul rappel par série non lue, pas de relance avant lecture ; #96) | l'étudiant (si l'équipe écrit) ou son référent (si l'étudiant écrit) | dépend de l'usage. Le bouton existant « Envoyer un message » écrit désormais dans la conversation et envoie cet avis |
 | Compte réactivé | quand un compte est réactivé | l'étudiant | inchangé (déjà en prod) |
 
 **Ne part pas** :
@@ -121,6 +122,8 @@ Tout le reste est inchangé : l'empreinte des 12 tables existantes est identique
 Pour **couper** ce qui est allumé par défaut :
 - `APP_MAILING_TARGETED_OFFERS_ENABLED=false` (e-mail du soir) ;
 - `APP_MESSAGING_NOTIFICATION_SCHEDULER_ENABLED=false` (rappels de messagerie).
+
+Pour **régler** le délai des rappels de messagerie : `APP_MESSAGING_EMAIL_DELAY_MINUTES` (minutes, **60** par défaut, #96).
 
 Ces noms sont lus que le `.env` soit chargé par systemd ou importé comme fichier de propriétés (lot 9, test `ConfigSwitchesTest`). Avant, ils n'étaient lus que dans le premier cas.
 
@@ -239,10 +242,10 @@ Une sauvegarde complète de la prod a été faite par l'utilisateur, **en lectur
 ### 7.2 Fusion des PR (10 min)
 - Fusionner dans l'ordre, en **merge commit** (pas de squash) :
 
-  #71 → #82 → #83 → #84 → #85 → #86 → #87 → #88 → #89 → #90 → #91 → #92 → #93 → #94 → #95
+  #71 → #82 → #83 → #84 → #85 → #86 → #87 → #88 → #89 → #90 → #91 → #92 → #93 → #94 → #95 → #96
 
   Après chaque fusion, la PR suivante reste fusionnable : elle est empilée.
-- **Enchaîner les 15 fusions sans attendre** : `cd.yml` annule le déploiement en cours quand un nouveau push arrive (`cancel-in-progress`), donc **seul le dernier déploiement va au bout**, avec toute la pile. Les fusions doivent tenir dans les ~5 minutes que durent la compilation et les tests du pipeline.
+- **Enchaîner les 16 fusions sans attendre** : `cd.yml` annule le déploiement en cours quand un nouveau push arrive (`cancel-in-progress`), donc **seul le dernier déploiement va au bout**, avec toute la pile. Les fusions doivent tenir dans les ~5 minutes que durent la compilation et les tests du pipeline.
 
 ### 7.3 Déploiement et migrations (10 min)
 1. Suivre le dernier run de « Continuous Deployment » : tests Maven, Vitest, puis déploiement et contrôle de santé.
@@ -293,7 +296,7 @@ Pour un e-mail en trop, couper d'abord la variable : c'est plus rapide qu'un ret
 1. **Code** :
    - le pipeline restaure déjà le jar précédent si le contrôle de santé échoue ;
    - sinon, sur le serveur : remettre le jar sauvegardé (`/home/github-runner/itic-cre-backups/app-<date>.jar.bak`) et le front (`frontend-previous`), puis `sudo systemctl restart itic-backend nginx` ;
-   - côté GitHub : faire un « Revert » de la fusion de #95 … #71. **Ne jamais force-pusher `main`.**
+   - côté GitHub : faire un « Revert » de la fusion de #96 … #71. **Ne jamais force-pusher `main`.**
 2. **Base, sans restauration** (cas normal) : passer `scripts/rollback/avant_retour_arriere.sql` **avant** de redémarrer l'ancien jar. Il remet le statut « Validé » lisible, met hors ligne les brouillons d'offres et recopie les notes en étoiles. Les tables ajoutées restent : l'ancien code les ignore (testé : l'ancien code démarre sur une base V61, « 63 migrations validées »).
 3. **Restauration complète** (seulement si des données sont abîmées) : `pg_restore` de la sauvegarde du 7.1. On perd tout ce qui a été saisi depuis le déploiement.
 

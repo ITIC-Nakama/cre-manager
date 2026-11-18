@@ -25,15 +25,13 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     Optional<Conversation> findByIdForUpdate(@Param("id") UUID id);
 
     /**
-     * Fils ayant un message pas encore traite (ni signale, ni lu, ni sans destinataire) d'un cote dont le dernier
-     * e-mail date d'avant threshold (ou qui n'en a jamais eu).
+     * Fils ayant, d'un cote, un message pas encore couvert par un rappel (ni lu, ni sans destinataire) : le service
+     * decide ensuite si le plus ancien non lu a atteint le delai et si un rappel precedent attend encore d'etre lu.
      */
     @Query("SELECT c.id FROM Conversation c WHERE "
-            + "(c.lastStaffMessageId > COALESCE(c.studentNotifiedMessageId, 0) "
-            + "  AND (c.studentNotifiedAt IS NULL OR c.studentNotifiedAt <= :threshold)) "
-            + "OR (c.lastStudentMessageId > COALESCE(c.staffNotifiedMessageId, 0) "
-            + "  AND (c.staffNotifiedAt IS NULL OR c.staffNotifiedAt <= :threshold))")
-    List<UUID> findWithPendingNotifications(@Param("threshold") Instant threshold);
+            + "c.lastStaffMessageId > COALESCE(c.studentNotifiedMessageId, 0) "
+            + "OR c.lastStudentMessageId > COALESCE(c.staffNotifiedMessageId, 0)")
+    List<UUID> findWithPendingNotifications();
 
     /** Suppression directe en base (RGPD), apres celle des messages et des lectures. */
     @Modifying

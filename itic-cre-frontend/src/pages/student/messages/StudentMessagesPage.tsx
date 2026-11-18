@@ -50,7 +50,7 @@ export default function StudentMessagesPage() {
               {referent
                 ? t('conversation.student.referent', {
                   name: `${referent.firstName} ${referent.lastName}`,
-                  defaultValue: 'Ton conseiller : {{name}}, prévenu(e) à chaque message',
+                  defaultValue: 'Ton conseiller : {{name}}, prévenu(e) par e-mail si ton message reste non lu',
                 })
                 : t('conversation.student.no_referent', 'Tu n’as pas encore de conseiller : toute l’équipe CRE lit tes messages.')}
             </p>
@@ -76,7 +76,7 @@ export default function StudentMessagesPage() {
               <div className="max-w-sm text-center flex flex-col items-center gap-2">
                 <MessagesSquare className="h-10 w-10 text-slate-300 dark:text-slate-700" />
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {t('conversation.student.empty', 'Pas encore de message. Pose ta question à l’équipe CRE : ton conseiller est prévenu par e-mail et te répond ici.')}
+                  {t('conversation.student.empty', 'Pas encore de message. Pose ta question à l’équipe CRE : ton conseiller est prévenu par e-mail s’il ne l’a pas lu, et te répond ici.')}
                 </p>
               </div>
             }
