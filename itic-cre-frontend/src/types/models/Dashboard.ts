@@ -63,6 +63,9 @@ export interface StudentRow {
   starRating: number | null;
   /** Dernière note de l'équipe (1 à 5), null si jamais noté. */
   latestRating?: number | null;
+  /** Code postal et département (carte des étudiants). */
+  postalCode?: string | null;
+  department?: string | null;
 }
 
 export interface StudentPage {

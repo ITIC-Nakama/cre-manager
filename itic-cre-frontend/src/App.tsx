@@ -27,6 +27,7 @@ const CompanyHomePage = lazy(() => import('./pages/public/entreprise/CompanyHome
 const CompanyDirectoryPage = lazy(() => import('./pages/public/entreprise/CompanyDirectoryPage'))
 const CompanyProgramPage = lazy(() => import('./pages/public/entreprise/CompanyProgramPage'))
 const CompanySpacePage = lazy(() => import('./pages/advisor/espace-entreprise/CompanySpacePage'))
+const CartePage = lazy(() => import('./pages/advisor/carte/CartePage'))
 const SkillTreePage = lazy(() => import('./pages/student/connaissances/SkillTreePage'))
 
 /** « Installer l'application » ne concerne pas les entreprises de l'Espace entreprise. */
@@ -167,6 +168,7 @@ function App() {
           <Route path="/supervisor/conversations/:studentId" element={<ConversationsPage />} />
           <Route path="/supervisor/alumni"        element={<AlumniPage />} />
           <Route path="/supervisor/espace-entreprise" element={<LazyPage><CompanySpacePage /></LazyPage>} />
+          <Route path="/supervisor/carte" element={<LazyPage><CartePage /></LazyPage>} />
           <Route path="/supervisor/parametres"    element={<ParametresPage />} />
 
           {/* Admin-only — advisors are redirected to their dashboard */}

@@ -173,6 +173,8 @@ public class StudentReportingService {
             row.put("isAnonymized", student.isAnonymized());
             row.put("starRating", student.getStarRating());
             row.put("latestRating", student.getLatestRating());
+            row.put("postalCode", student.getPostalCode());
+            row.put("department", student.getDepartment());
             return row;
         }).toList();
     }
@@ -249,6 +251,8 @@ public class StudentReportingService {
         detail.put("isAnonymized", student.isAnonymized());
         detail.put("starRating", student.getStarRating());
         detail.put("latestRating", student.getLatestRating());
+        detail.put("postalCode", student.getPostalCode());
+        detail.put("department", student.getDepartment());
         detail.put("phoneNumber", student.getPhoneNumber());
         detail.put("emailVerified", student.isEmailVerified());
         detail.put("promotion", student.getPromotion() != null

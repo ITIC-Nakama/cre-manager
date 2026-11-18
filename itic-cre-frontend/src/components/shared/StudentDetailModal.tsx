@@ -1,3 +1,4 @@
+import StudentPostalCodeField from './StudentPostalCodeField';
 import { useState, useMemo } from 'react';
 import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2, MessagesSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -126,6 +127,8 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     {student.phoneNumber}
                                 </p>
                             )}
+                            {/* Code postal (carte des étudiants) : modifiable par l'équipe. */}
+                            <StudentPostalCodeField studentId={student.id} postalCode={student.postalCode} department={student.department} />
                             {/* Dernière note de l'équipe (1 à 5) — jamais visible côté étudiant ; détail et historique plus bas. */}
                             {student.latestRating ? (
                                 <p className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400"

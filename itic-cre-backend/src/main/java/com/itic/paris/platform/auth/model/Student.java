@@ -72,4 +72,12 @@ public class Student extends User {
     /** Apparaître dans l'Espace entreprise (V55), oui par défaut ; l'étudiant peut le couper dans son profil. */
     @Column(name = "company_space_visible", nullable = false)
     private boolean companySpaceVisible = true;
+
+    /** Code postal (V56), saisi par l'étudiant ou l'équipe ; facultatif. */
+    @Column(name = "postal_code", length = 5)
+    private String postalCode;
+
+    /** Département déduit du code postal (« 75 », « 2A », « 974 ») : seul niveau affiché sur la carte. */
+    @Column(name = "department", length = 3)
+    private String department;
 }

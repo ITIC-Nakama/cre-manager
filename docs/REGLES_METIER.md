@@ -716,6 +716,15 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - **Accès par lien privé** (admin, désactivé par défaut) : sans la clé (`?cle=…`), toute route publique répond 404 et la page affiche « Page indisponible ». Nouvelle clé : les anciens liens cessent de fonctionner.
 - **RGPD** : choix de l'étudiant et demandes le concernant dans son export (entreprise, date, formation, statut ; pas les coordonnées de l'entreprise) ; à l'anonymisation, retiré de l'annuaire et demandes supprimées. Coordonnées des entreprises **supprimées un an après la demande** (chaque nuit à 3 h 30).
 
+## 18. Carte des étudiants (V56)
+- **Code postal** (`students.postal_code`, facultatif) : saisi par l'étudiant dans son profil (« Code postal », tutoiement) ou par l'équipe sur la fiche étudiant (journal d'audit, action `OTHER`). 5 chiffres d'un département français, espaces ignorés ; vide = effacé ; sinon 400 `postal-code-invalid`.
+- **Département déduit** (`students.department`) : 2 premiers chiffres ; Corse 200xx–201xx = **2A**, 202xx–206xx = **2B** ; outre-mer = 3 chiffres (971 à 976). Codes hors département (Monaco 98, 975…) refusés.
+- **Bandeau discret** sur le tableau de bord étudiant tant que le code postal manque ; « Plus tard » le masque sur cet appareil.
+- **Carte de l'équipe** (`/supervisor/carte`, conseillers et admins) : étudiants **actifs** par département. Île-de-France en carte SVG (contours intégrés au code, aucune tuile ni clé externe ; source IGN Admin Express via france-geojson, Licence ouverte), autres départements en liste. Un clic ouvre la liste du département : nom, formation (annuaire de l'Espace entreprise), promotion, contrat oui / non. **Seul le département est affiché** : jamais le code postal complet sur la carte ni dans la liste.
+- **Filtres** : formation (formations de l'Espace entreprise : promotions rattachées et année d'étude), promotion, avec / sans contrat (contrat déclaré ou vérifié en cours, même règle que les CV). Le résumé indique aussi le nombre d'étudiants sans code postal.
+- API : `GET/PUT /me/postal-code` (étudiant), `PUT /dashboard/students/{id}/postal-code`, `GET /dashboard/students/map`, `GET /dashboard/students/map/departments/{code}` (équipe, 403 pour un étudiant).
+- **RGPD** : code postal dans l'export (`userProfile.postalCode`), effacé avec le département à l'anonymisation.
+
 ## Notes de fiabilité de ce document
 
 - Ce document a été construit en lisant le code source directement (pas le cahier des charges initial, qui contient des écarts connus — ex: grades "Bronze→Platine" jamais implémentés, statuts CRM légèrement différents de la première spec).
