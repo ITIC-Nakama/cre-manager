@@ -113,8 +113,8 @@ class JobSourcesWideningIntegrationTest {
         int[] second = syncService.persistOffers(bonneAlternance, List.of(
                 dto("LBA-1", "ACME CONSEIL", "Chargé(e) de recrutement en alternance", "Paris"),
                 dto("LBA-2", "Acme Conseil", "Chargé de recrutement en alternance", "Lyon")), keys);
-        assertThat(first).containsExactly(1, 0, 0);
-        assertThat(second).containsExactly(1, 0, 1);
+        assertThat(first).containsExactly(1, 0, 0, 0);
+        assertThat(second).containsExactly(1, 0, 1, 0);
         assertThat(jobOfferRepository.existsBySourceId("LBA-1")).isFalse();
         assertThat(jobOfferRepository.existsBySourceId("LBA-2")).isTrue();
 
@@ -132,7 +132,7 @@ class JobSourcesWideningIntegrationTest {
             if (key != null) fromDatabase.add(key);
         }
         int[] third = syncService.persistOffers(franceTravail, List.of(dto("FT-2", "BETA RH", "Assistant RH alternance", "75 - Paris")), fromDatabase);
-        assertThat(third).containsExactly(0, 0, 1);
+        assertThat(third).containsExactly(0, 0, 1, 0);
     }
 
     @Test

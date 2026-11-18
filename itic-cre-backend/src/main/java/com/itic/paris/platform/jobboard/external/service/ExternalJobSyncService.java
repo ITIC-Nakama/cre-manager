@@ -222,9 +222,10 @@ public class ExternalJobSyncService {
                     int[] counts = persistOffers(provider, offers, knownKeys);
                     inserted += counts[0];
                     skipped += counts[1] + counts[2];
-                    details.put(source, Map.of("inserted", counts[0], "skipped", counts[1], "duplicates", counts[2]));
-                    log.info("[JOBOARD SYNC] {} : {} insérées, {} ignorées, {} doublons d'une autre source",
-                            source, counts[0], counts[1], counts[2]);
+                    details.put(source, Map.of("inserted", counts[0], "skipped", counts[1], "duplicates", counts[2],
+                            "requalified", counts[3]));
+                    log.info("[JOBOARD SYNC] {} : {} insérées, {} ignorées, {} doublons d'une autre source, {} déjà connues passées en alternance",
+                            source, counts[0], counts[1], counts[2], counts[3]);
                 } catch (Exception e) {
                     // Un provider en erreur n'arrête pas la sync des autres
                     syncLog.setStatus(SyncLog.STATUS_PARTIAL);
@@ -274,10 +275,18 @@ public class ExternalJobSyncService {
         int inserted = 0;
         int skipped = 0;
         int duplicates = 0;
+        int requalified = 0;
         List<com.itic.paris.platform.company.model.CompanySpaceProgram> programs = programRepository.findAll();
 
         for (ExternalJobOfferDTO dto : offers) {
-            if (dto.sourceId() == null || jobOfferRepository.existsBySourceId(dto.sourceId())) {
+            if (dto.sourceId() == null) {
+                skipped++;
+                continue;
+            }
+            if (jobOfferRepository.existsBySourceId(dto.sourceId())) {
+                if (provider.requalifiesKnownOffers() && requalifyAsAlternance(provider, dto)) {
+                    requalified++;
+                }
                 skipped++;
                 continue;
             }
@@ -316,7 +325,28 @@ public class ExternalJobSyncService {
                 log.debug("[JOBOARD SYNC] Offre {} ignorée: {}", dto.sourceId(), e.getMessage());
             }
         }
-        return new int[]{inserted, skipped, duplicates};
+        return new int[]{inserted, skipped, duplicates, requalified};
+    }
+
+    /**
+     * Offre déjà connue que la source classe maintenant en alternance (ex. France Travail : natureContrat apprentissage)
+     * mais enregistrée autrement : elle passe en « Alternance ». Seul ce passage est fait (jamais l'inverse, aucun autre
+     * champ modifié, aucune alerte) : c'est la correction des offres importées avant la PR #97, à la synchro suivante.
+     */
+    private boolean requalifyAsAlternance(AbstractJobProvider provider, ExternalJobOfferDTO dto) {
+        ContractType target = provider.resolveContractType(dto.contractTypeLabel());
+        if (target == null || target.getLabel() == null
+                || !target.getLabel().toLowerCase(java.util.Locale.ROOT).contains("alternance")) {
+            return false;
+        }
+        return jobOfferRepository.findBySourceId(dto.sourceId())
+                .filter(o -> o.getContractType() == null || !target.getId().equals(o.getContractType().getId()))
+                .map(o -> {
+                    o.setContractType(target);
+                    jobOfferRepository.save(o);
+                    return true;
+                })
+                .orElse(false);
     }
 
     /**

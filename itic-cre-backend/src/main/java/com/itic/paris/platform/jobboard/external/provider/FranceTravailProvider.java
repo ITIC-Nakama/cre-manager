@@ -39,10 +39,16 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
     public static final String SOURCE = "FRANCE_TRAVAIL";
 
-    private static final String TOKEN_URL =
+    static final String DEFAULT_TOKEN_URL =
             "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=%2Fpartenaire";
-    private static final String SEARCH_URL =
+    static final String DEFAULT_SEARCH_URL =
             "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search";
+
+    /** Adresses de l'API (réglables pour la recette locale contre un faux serveur ; défaut : l'API réelle). */
+    @Value("${jobboard.francetravail.token-url:" + DEFAULT_TOKEN_URL + "}")
+    private String tokenUrl = DEFAULT_TOKEN_URL;
+    @Value("${jobboard.francetravail.search-url:" + DEFAULT_SEARCH_URL + "}")
+    private String searchUrl = DEFAULT_SEARCH_URL;
 
     /**
      * Buckets de recherche, chacun avec son propre quota garanti. CDI/CDD filtrent via
@@ -93,6 +99,47 @@ public class FranceTravailProvider extends AbstractJobProvider {
     @Override
     public String getLabel() {
         return "France Travail";
+    }
+
+    /**
+     * Type de contrat d'une offre France Travail (PR #97).
+     * <ol>
+     *   <li>la NATURE du contrat ({@code natureContrat} : « Contrat apprentissage », « Cont. professionnalisation »,
+     *       ou les codes E2 / FS) : apprentissage et professionnalisation donnent « Alternance », quel que soit l'intitulé ;</li>
+     *   <li>en secours, l'intitulé : « stage » / « stagiaire » donne « Stage », un mot d'alternance donne « Alternance » ;</li>
+     *   <li>sinon la DURÉE ({@code typeContratLibelle} : CDI, CDD, intérim…).</li>
+     * </ol>
+     * Avant, seul l'intitulé comptait : une offre d'apprentissage sans « alternance » dans son titre était enregistrée en CDD.
+     */
+    public static String contractTypeLabel(String natureContrat, String title, String typeContratLibelle) {
+        if (isAlternanceNature(natureContrat)) {
+            return "Alternance";
+        }
+        String lowerTitle = title == null ? "" : title.toLowerCase(Locale.ROOT);
+        if (lowerTitle.contains("stage") || lowerTitle.contains("stagiaire")) {
+            return "Stage";
+        }
+        if (lowerTitle.contains("alternance") || lowerTitle.contains("alternant") || lowerTitle.contains("apprenti")
+                || lowerTitle.contains("professionnalisation")) {
+            return "Alternance";
+        }
+        return typeContratLibelle;
+    }
+
+    /** Apprentissage (E2) ou professionnalisation (FS), en code ou en libellé (accents et casse ignorés). */
+    static boolean isAlternanceNature(String natureContrat) {
+        if (natureContrat == null || natureContrat.isBlank()) {
+            return false;
+        }
+        String n = java.text.Normalizer.normalize(natureContrat, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT).trim();
+        return n.equals("e2") || n.equals("fs") || n.contains("apprentissage") || n.contains("professionnalisation");
+    }
+
+    /** Les offres déjà connues sont requalifiées à la synchro suivante si l'API les classe en alternance (PR #97). */
+    @Override
+    public boolean requalifiesKnownOffers() {
+        return true;
     }
 
     @Override
@@ -261,7 +308,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
             JsonNode response = restClient.post()
                     // URI.create : évite le double-encodage de %2F par le template RestClient
-                    .uri(URI.create(TOKEN_URL))
+                    .uri(URI.create(tokenUrl))
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(body)
                     .retrieve()
@@ -276,7 +323,7 @@ public class FranceTravailProvider extends AbstractJobProvider {
 
     private JsonNode search(String accessToken, String rome, String natureContrat, String typeContrat,
                              String motsCles, List<String> regions, int rangeStart) {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(SEARCH_URL)
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(searchUrl)
                 .queryParam("range", rangeStart + "-" + (rangeStart + PAGE_SIZE - 1));
         if (rome != null) {
             uriBuilder.queryParam("codeROME", rome);
@@ -302,7 +349,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
         return response != null ? response.get("resultats") : null;
     }
 
-    private ExternalJobOfferDTO mapOffer(JsonNode offre) {
+    /** Offre de l'API → DTO (public pour les tests, comme JSearchProvider.mapJob). */
+    public ExternalJobOfferDTO mapOffer(JsonNode offre) {
         // L'API renvoie "id" ; on garde "numeros_offre" en fallback
         String rawId = textOrNull(offre.get("id"));
         if (rawId == null) {
@@ -321,17 +369,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
         JsonNode origine = offre.get("origineOffre");
         String externalLink = origine != null ? textOrNull(origine.get("urlOrigine")) : null;
 
-        // typeContratLibelle decrit la DUREE (CDI/CDD), pas la NATURE : un stage ou une alternance
-        // peut ressortir sous n'importe lequel. On verifie donc le titre en premier.
-        String contractTypeLabel;
-        String lowerTitle = title.toLowerCase(Locale.ROOT);
-        if (lowerTitle.contains("stage") || lowerTitle.contains("stagiaire")) {
-            contractTypeLabel = "Stage";
-        } else if (lowerTitle.contains("alternance") || lowerTitle.contains("alternant") || lowerTitle.contains("apprenti") || lowerTitle.contains("professionnalisation")) {
-            contractTypeLabel = "Alternance";
-        } else {
-            contractTypeLabel = textOrNull(offre.get("typeContratLibelle"));
-        }
+        String contractTypeLabel = contractTypeLabel(textOrNull(offre.get("natureContrat")), title,
+                textOrNull(offre.get("typeContratLibelle")));
 
         // dateActualisation (derniere mise a jour) + fenêtre d'expiration configurable comme date
         // d'expiration. dateCreation est la vraie date de publication de l'offre, distincte.

@@ -171,6 +171,14 @@ public abstract class AbstractJobProvider implements ExternalJobProvider {
      * Retombe sur le type "Inconnu" (jamais deviné en CDI) quand le libellé ne correspond
      * à aucune catégorie reconnue, ou qu'aucun libellé n'est fourni par la source.
      */
+    /**
+     * Une offre déjà en base (même identifiant de source) peut-elle passer en « Alternance » à la synchro suivante,
+     * quand la source la classe désormais ainsi ? Non par défaut ; oui pour France Travail (PR #97).
+     */
+    public boolean requalifiesKnownOffers() {
+        return false;
+    }
+
     public ContractType resolveContractType(String contractTypeLabel) {
         List<ContractType> types = contractTypeRepository.findAll().stream()
                 .filter(t -> Boolean.TRUE.equals(t.getActive()))
