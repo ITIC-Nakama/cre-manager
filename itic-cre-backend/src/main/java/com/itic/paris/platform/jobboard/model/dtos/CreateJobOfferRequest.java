@@ -41,6 +41,12 @@ public class CreateJobOfferRequest {
     /** Promotions ciblees : e-mail du soir aux etudiants de ces promotions (jamais affiche aux etudiants). */
     private java.util.List<UUID> targetPromotionIds;
 
+    /** Formations ciblées (annuaire de l'Espace entreprise) : alerte instantanée aux étudiants de ces formations (lot 8). */
+    private java.util.List<UUID> programIds;
+
+    /** « Toutes les formations » : remplace programIds par toutes les formations de l'annuaire. */
+    private Boolean allPrograms;
+
     @URL(message = "externalLink must be a valid http(s) URL")
     @Size(max = 2048)
     private String externalLink;

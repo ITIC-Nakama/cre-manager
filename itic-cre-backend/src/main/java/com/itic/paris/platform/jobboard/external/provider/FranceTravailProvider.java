@@ -364,7 +364,8 @@ public class FranceTravailProvider extends AbstractJobProvider {
                 truncate(externalLink, 2048),
                 truncate(logoUrl, 2048),
                 expiresAt,
-                publishedAt
+                publishedAt,
+                textOrNull(offre.get("romeCode"))
         );
     }
 }

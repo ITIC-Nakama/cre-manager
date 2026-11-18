@@ -2,6 +2,7 @@ import { Loader2, Search, SlidersHorizontal, GraduationCap, ShieldAlert, Calenda
 import { useTranslation } from 'react-i18next';
 import CustomSelect from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
+import FormationFilter from '../../../../components/offers/FormationFilter';
 
 export type FilterStatus = 'all' | 'active' | 'inactive' | 'disabled' | 'stale' | 'has-cv' | 'no-cv';
 export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | 'needs_verification';
@@ -42,6 +43,9 @@ interface EtudiantsFiltersProps {
     onContractFilterChange: (value: ContractFilter) => void;
     onStarredFilterChange: (value: StarredFilter) => void;
     onIncludeAnonymizedChange: (value: boolean) => void;
+    /** Formations (lot 8) : identifiants séparés par des virgules. */
+    formationFilter: string;
+    onFormationChange: (csv: string) => void;
     onReset: () => void;
 }
 
@@ -75,6 +79,8 @@ export default function EtudiantsFilters({
     onStarredFilterChange,
     onIncludeAnonymizedChange,
     onReset,
+    formationFilter,
+    onFormationChange,
 }: EtudiantsFiltersProps) {
     const { t } = useTranslation();
 
@@ -119,6 +125,8 @@ export default function EtudiantsFilters({
                 icon={<Star className="h-4 w-4 text-slate-400" />}
                 className="min-w-40"
             />
+
+            <FormationFilter value={formationFilter} onChange={onFormationChange} className="w-full sm:w-64" />
 
             {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de
               * surcharger la barre avec 6+ controles affiches en permanence. */}

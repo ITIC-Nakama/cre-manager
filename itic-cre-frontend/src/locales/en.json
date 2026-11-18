@@ -68,7 +68,9 @@
       "invalid_text": "This unsubscribe link is not valid. You can manage your emails from your profile.",
       "go_profile": "Manage my emails",
       "weekly_title": "Monday summary",
-      "weekly_subtitle": "On Mondays at 8 am, up to 10 new offers of the week close to your programme (as long as you have no contract)."
+      "weekly_subtitle": "On Mondays at 8 am, up to 10 new offers of the week close to your programme (as long as you have no contract).",
+      "instant_subtitle": "As soon as an offer for your programme is published (grouped over a few minutes, at most 5 emails a day), as long as you have no contract.",
+      "instant_title": "“New offer for your programme” alerts"
     },
     "company_space": {
       "saved": "Preference saved.",
@@ -89,7 +91,10 @@
       "banner_link": "Add",
       "banner_later": "Later"
     },
-    "my_formation": "My programme page"
+    "my_formation": "My programme page",
+    "offers_all": "All offers",
+    "offers_mine": "Offers for my programme",
+    "offers_scope_label": "Offers shown"
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
@@ -169,7 +174,8 @@
       "parametres": "Settings",
       "logout": "Logout",
       "company_space": "Business space",
-      "map": "Student map"
+      "map": "Student map",
+      "maps": "Maps"
     },
     "home": {
       "title": "Dashboard",
@@ -2689,7 +2695,8 @@
     "unavailable_title": "Page unavailable",
     "unavailable_text": "This link is not valid or has been replaced. Please contact the ITIC Paris Business Relations team.",
     "phone": "Phone: {{phone}}",
-    "contact_us": "Contact us"
+    "contact_us": "Contact us",
+    "contact_form": "Or write to us"
   },
   "company_admin": {
     "tabs": {
@@ -2827,7 +2834,27 @@
     "col_promotion": "Class",
     "col_contract": "Contract",
     "contract_yes": "Yes",
-    "contract_no": "No"
+    "contract_no": "No",
+    "all_contract_types": "All contracts",
+    "filter_contract_type": "Contract type",
+    "filter_source": "Source",
+    "offers_count": "{{count}} offer(s)",
+    "offers_department_counts": "{{count}} offer(s), {{companies}} company(ies)",
+    "offers_department_label": "{{name}} ({{code}}): {{count}} offer(s)",
+    "offers_none": "No offer with these filters.",
+    "offers_others_none": "No offer outside Île-de-France.",
+    "offers_subtitle": "Live offers and hiring companies by department (based on the offer location). No exact address is shown.",
+    "offers_summary": "{{located}} located offer(s), {{idf}} in Île-de-France · {{companies}} company(ies) · {{missing}} without location",
+    "source_adzuna": "Adzuna",
+    "source_all": "All sources",
+    "source_bonne_alternance": "La Bonne Alternance",
+    "source_external": "External offers (all)",
+    "source_france_travail": "France Travail",
+    "source_jsearch": "JSearch",
+    "source_manual": "ITIC PARIS exclusive",
+    "tab_offers": "Companies and offers",
+    "tab_students": "Students",
+    "title_maps": "Maps"
   },
   "matching": {
     "reason": {
@@ -2852,5 +2879,74 @@
     "send_offer": "Send the offer",
     "send_message": "Hello {{firstName}}, this offer might interest you: “{{title}}” at {{company}}. You can see it here: {{link}}",
     "sent": "Message sent in the student's conversation."
+  },
+  "alerts": {
+    "close": "Close",
+    "journal_date": "Date",
+    "journal_empty": "No alert sent yet.",
+    "journal_evening": "Moved to the evening email",
+    "journal_failed": "Failed",
+    "journal_formation": "Programme",
+    "journal_grouped": "Grouped",
+    "journal_next": "Next",
+    "journal_offer": "Offer",
+    "journal_pending": "Pending",
+    "journal_prev": "Previous",
+    "journal_recipients": "Recipients",
+    "journal_sent": "Sent",
+    "journal_title": "Alert log",
+    "preview_already": "Already notified",
+    "preview_count": "{{count}} student(s) will receive the alert (active, no contract, subscribed).",
+    "preview_disabled": "Instant alerts are disabled on this server: no email will be sent.",
+    "preview_disabled_formations": "Alerts turned off for: {{list}}",
+    "preview_title": "Alert recipients"
+  },
+  "formations": {
+    "already_linked": "Already linked",
+    "attach": "Link",
+    "attach_label": "Link an offer",
+    "attach_none": "No offer found.",
+    "attach_placeholder": "Title or company…",
+    "col_actions": "Actions",
+    "col_active_offers": "Active offers",
+    "col_alerts": "Alerts",
+    "col_contracts": "Under contract",
+    "col_formation": "Programme",
+    "col_last_alert": "Last alert",
+    "col_new_offers": "New (7 days)",
+    "col_students": "Active students",
+    "column": "Programme(s)",
+    "column_student": "Programme",
+    "detach": "Unlink",
+    "filter_all": "All programmes",
+    "filter_close": "Close",
+    "filter_count": "{{count}} programmes",
+    "filter_none": "No programme",
+    "filter_search": "Search a programme…",
+    "level_bachelor": "Bachelor",
+    "level_mastere": "Master",
+    "link_auto": "deduced at import",
+    "link_manual": "chosen by the team",
+    "linked_none": "No linked offer.",
+    "linked_title": "Linked offers ({{count}})",
+    "manage_hint": "Linking an offer notifies the programme's students by email; unlinking sends nothing.",
+    "manage_offers": "Link or unlink offers",
+    "picker_all": "All programmes",
+    "picker_hint": "Students of these programmes without a contract get an email alert as soon as the offer is published.",
+    "picker_label": "Target programmes",
+    "picker_required": "Choose at least one programme, or “All programmes”.",
+    "settings_off": "Instant alerts are disabled on this server (APP_MAILING_INSTANT_OFFERS_ENABLED): the settings below will apply once they are enabled.",
+    "settings_on": "Instant alerts enabled: grouped within {{window}} min, at most {{cap}} alert emails per student per day (beyond that: the evening email).",
+    "show_offers": "See the programme's offers",
+    "sort_formation": "Sort: programme",
+    "sort_name": "Sort: name",
+    "tab_formations": "Programmes",
+    "tab_offers": "Offers",
+    "toast_alerts_off": "Alerts turned off for {{name}}.",
+    "toast_alerts_on": "Alerts enabled for {{name}}.",
+    "toast_attached": "Offer linked: the programme's students will be notified.",
+    "toast_detached": "Offer unlinked from the programme.",
+    "toast_error": "Action failed. Please try again.",
+    "toggle_label": "Alerts for {{name}}"
   }
 }

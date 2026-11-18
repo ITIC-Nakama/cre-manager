@@ -38,6 +38,18 @@ public class StudentFormationResolver {
         return out;
     }
 
+    /** Formations choisies dans un filtre → promotions et années d'étude correspondantes (aucune = aucun étudiant). */
+    public List<FormationScope> scopes(java.util.Collection<UUID> programIds) {
+        java.util.Set<UUID> wanted = new java.util.HashSet<>(programIds);
+        List<Promotion> promotions = promotionRepository.findAll();
+        List<FormationScope> out = new ArrayList<>();
+        for (CompanySpaceProgram p : programRepository.findAllById(wanted)) {
+            java.util.Set<UUID> ids = companySpaceService.resolvePromotionIds(p, promotions);
+            if (!ids.isEmpty()) out.add(new FormationScope(ids, p.getStudyYear()));
+        }
+        return out;
+    }
+
     public static List<CompanySpaceProgram> programsFor(Map<UUID, List<CompanySpaceProgram>> snapshot, UUID promotionId, Integer studyYear) {
         if (promotionId == null) return List.of();
         return snapshot.getOrDefault(promotionId, List.of()).stream()

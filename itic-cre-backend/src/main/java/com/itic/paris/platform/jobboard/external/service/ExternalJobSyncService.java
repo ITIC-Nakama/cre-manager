@@ -59,6 +59,9 @@ public class ExternalJobSyncService {
     private final JobboardSyncSettingsRepository syncSettingsRepository;
     private final AppConfigurationService appConfigurationService;
     private final ObjectMapper objectMapper;
+    private final com.itic.paris.platform.alerts.service.OfferProgramService offerProgramService;
+    private final com.itic.paris.platform.alerts.service.OfferAlertService offerAlertService;
+    private final com.itic.paris.platform.company.repository.CompanySpaceProgramRepository programRepository;
 
     private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
 
@@ -271,6 +274,7 @@ public class ExternalJobSyncService {
         int inserted = 0;
         int skipped = 0;
         int duplicates = 0;
+        List<com.itic.paris.platform.company.model.CompanySpaceProgram> programs = programRepository.findAll();
 
         for (ExternalJobOfferDTO dto : offers) {
             if (dto.sourceId() == null || jobOfferRepository.existsBySourceId(dto.sourceId())) {
@@ -305,6 +309,7 @@ public class ExternalJobSyncService {
                 if (identity != null) {
                     knownKeys.add(identity);
                 }
+                linkAndAlert(offer, programs);
             } catch (Exception e) {
                 // Doublon concurrent (contrainte unique source_id) ou validation : on ignore
                 skipped++;
@@ -312,6 +317,19 @@ public class ExternalJobSyncService {
             }
         }
         return new int[]{inserted, skipped, duplicates};
+    }
+
+    /**
+     * Offre importée (insérée, donc jamais un doublon) : formations déduites (code ROME + mots-clés) et alerte instantanée
+     * mise en file. Une erreur ici ne fait jamais échouer l'import.
+     */
+    private void linkAndAlert(JobOffer offer, List<com.itic.paris.platform.company.model.CompanySpaceProgram> programs) {
+        try {
+            java.util.Set<java.util.UUID> linked = offerProgramService.autoLink(offer, programs);
+            offerAlertService.enqueue(offer, linked);
+        } catch (Exception e) {
+            log.warn("[JOBOARD SYNC] Formations / alerte de l'offre {} : {}", offer.getSourceId(), e.getMessage());
+        }
     }
 
     /**
@@ -332,6 +350,7 @@ public class ExternalJobSyncService {
         offer.setCompanyLogoUrl(dto.companyLogoUrl());
         offer.setExpiresAt(dto.expiresAt());
         offer.setPublishedAt(dto.publishedAt());
+        offer.setRomeCode(dto.romeCode());
         offer.setActive(true);
         return offer;
     }

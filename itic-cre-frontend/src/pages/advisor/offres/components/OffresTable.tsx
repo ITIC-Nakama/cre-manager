@@ -7,7 +7,7 @@ import {
     type SortingState,
 } from '@tanstack/react-table';
 import {
-    AlertTriangle, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Sparkles, Users,
+    AlertTriangle, BellRing, Briefcase, Building2, ExternalLink, Eye, Loader2, Pencil, Sparkles, Users,
     ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -40,12 +40,14 @@ interface Props {
     onEdit: (offer: JobOffer) => void;
     /** « Candidats suggérés » (score de rapprochement). */
     onSuggest?: (offer: JobOffer) => void;
+    /** « Destinataires de l'alerte » : aperçu, sans envoi (lot 8). */
+    onPreviewAlert?: (offer: JobOffer) => void;
     onViewApplicants: (offer: JobOffer) => void;
     sorting: SortingState;
     onSortingChange: (sorting: SortingState) => void;
 }
 
-export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, onSuggest, onViewApplicants, sorting, onSortingChange }: Props) {
+export default function OffresTable({ offers, isLoading, hasNextPage, isFetchingNextPage, onLoadMore, onView, onEdit, onSuggest, onPreviewAlert, onViewApplicants, sorting, onSortingChange }: Props) {
     const { t } = useTranslation();
 
     const columns = useMemo(() => [
@@ -104,6 +106,29 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
             cell: ({ getValue }) => (
                 <TruncatedText text={getValue()} className="max-w-[120px] text-slate-600 dark:text-slate-400 text-sm" />
             ),
+        }),
+        col.accessor((row) => (row.programs ?? []).map((p) => p.name).join(', '), {
+            id: 'formations',
+            header: t('formations.column', 'Formation(s)'),
+            cell: ({ row }) => {
+                const list = row.original.programs ?? [];
+                if (list.length === 0) return <span className="text-slate-300 dark:text-slate-600">—</span>;
+                const shown = list.slice(0, 2);
+                return (
+                    <div className="flex flex-wrap gap-1 max-w-[200px]" title={list.map((p) => p.name).join(', ')}>
+                        {shown.map((p) => (
+                            <span key={p.id} className="inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
+                                {p.name}
+                            </span>
+                        ))}
+                        {list.length > 2 && (
+                            <span className="inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                +{list.length - 2}
+                            </span>
+                        )}
+                    </div>
+                );
+            },
         }),
         col.accessor((row) => row.sector?.label ?? '', {
             id: 'sector',
@@ -266,6 +291,16 @@ export default function OffresTable({ offers, isLoading, hasNextPage, isFetching
                                                     aria-label={t('matching.suggested_title', 'Candidats suggérés')}
                                                 >
                                                     <Sparkles className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            {onPreviewAlert && !row.original.draft && (row.original.programs?.length ?? 0) > 0 && (
+                                                <button
+                                                    onClick={() => onPreviewAlert(row.original)}
+                                                    className="inline-flex p-1 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all cursor-pointer"
+                                                    title={t('alerts.preview_title', 'Destinataires de l’alerte')}
+                                                    aria-label={t('alerts.preview_title', 'Destinataires de l’alerte')}
+                                                >
+                                                    <BellRing className="h-4 w-4" />
                                                 </button>
                                             )}
                                             <button

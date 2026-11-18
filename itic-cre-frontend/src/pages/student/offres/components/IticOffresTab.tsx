@@ -21,7 +21,7 @@ import type { JobOffer } from '../../../../types/models/JobOffer';
 
 const PAGE_SIZE = 9;
 
-export default function IticOffresTab() {
+export default function IticOffresTab({ myFormation = false }: { myFormation?: boolean }) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -76,7 +76,8 @@ export default function IticOffresTab() {
         contractTypeId: contractTypeFilter || undefined,
         sectorId: sectorFilter || undefined,
         location: debouncedLocation || undefined,
-    }), [debouncedSearch, contractTypeFilter, sectorFilter, debouncedLocation]);
+        myFormation: myFormation || undefined,
+    }), [debouncedSearch, contractTypeFilter, sectorFilter, debouncedLocation, myFormation]);
 
     const {
         items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,

@@ -47,6 +47,10 @@ public class JobOfferService {
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
     private final com.itic.paris.platform.auth.repository.PromotionRepository promotionRepository;
+    private final com.itic.paris.platform.alerts.service.OfferProgramService offerProgramService;
+    private final com.itic.paris.platform.alerts.service.OfferAlertService offerAlertService;
+    private final com.itic.paris.platform.matching.StudentFormationResolver formationResolver;
+    private final com.itic.paris.platform.auth.repository.StudentRepository studentRepository;
 
     public JobOfferDTO create(CreateJobOfferRequest request) {
         ContractType contractType = contractTypeRepository.findById(request.getContractTypeId())
@@ -76,6 +80,8 @@ public class JobOfferService {
         JobOffer saved = jobOfferRepository.save(jobOffer);
         auditLogService.log(AuditAction.JOB_OFFER_CREATED, createdBy, "JOB_OFFER", saved.getId(),
                 saved.getTitle() + " — " + saved.getCompany());
+        java.util.Set<UUID> added = offerProgramService.setManualPrograms(saved.getId(), requestedPrograms(request));
+        offerAlertService.enqueue(saved, added);
         return mapToDTO(saved);
     }
 
@@ -90,6 +96,14 @@ public class JobOfferService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.JOB_OFFER_NO_APPLY_CHANNEL);
         }
         return emailCandidature;
+    }
+
+    /** Formations du formulaire : « Toutes les formations », ou la liste choisie (vide = aucune). */
+    private java.util.List<UUID> requestedPrograms(CreateJobOfferRequest request) {
+        if (Boolean.TRUE.equals(request.getAllPrograms())) {
+            return offerProgramService.allProgramIds();
+        }
+        return request.getProgramIds() == null ? java.util.List.of() : request.getProgramIds();
     }
 
     /** Promotions ciblees : identifiants inconnus refuses (404). */
@@ -124,6 +138,8 @@ public class JobOfferService {
             jobOfferRepository.save(jobOffer);
             auditLogService.log(AuditAction.JOB_OFFER_UPDATED, getCurrentUser(), "JOB_OFFER", jobOffer.getId(),
                     "Publication du brouillon : " + jobOffer.getTitle() + " — " + jobOffer.getCompany());
+            // Publication : les étudiants de toutes les formations déjà rattachées sont prévenus.
+            offerAlertService.enqueue(jobOffer, linkedPrograms(jobOffer.getId()));
         }
         return mapToDTO(jobOffer);
     }
@@ -166,9 +182,57 @@ public class JobOfferService {
     }
 
     public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, UUID sectorId, String source, String location, Pageable pageable) {
-        return jobOfferRepository.findAll(
-                        JobOfferSpecification.activeWithFilters(search, contractTypeId, sectorId, source, location), pageable)
-                .map(this::mapToDTO);
+        return getActiveOffers(search, contractTypeId, sectorId, source, location, null, false, pageable);
+    }
+
+    /**
+     * Liste des étudiants (et de l'équipe), avec le filtre par formation (lot 8) : programIds, ou « Offres pour ma
+     * formation » (myFormation=true : formations de l'étudiant connecté ; aucune formation = aucune offre).
+     */
+    public Page<JobOfferDTO> getActiveOffers(String search, UUID contractTypeId, UUID sectorId, String source, String location,
+                                             java.util.Collection<UUID> programIds, boolean myFormation, Pageable pageable) {
+        Specification<JobOffer> spec = JobOfferSpecification.activeWithFilters(search, contractTypeId, sectorId, source, location);
+        java.util.Collection<UUID> programs = programIds;
+        if (myFormation) {
+            programs = myPrograms();
+        }
+        if (programs != null && (myFormation || !programs.isEmpty())) {
+            spec = spec.and(JobOfferSpecification.withPrograms(programs.isEmpty() ? java.util.List.of(new UUID(0, 0)) : programs));
+        }
+        return mapPage(jobOfferRepository.findAll(spec, pageable));
+    }
+
+    /** Formations de l'étudiant connecté (promotion et année d'étude). */
+    private java.util.List<UUID> myPrograms() {
+        UUID me = com.itic.paris.platform.auth.core.security.SecurityContextHelper.currentUserId();
+        return studentRepository.findById(me)
+                .filter(s -> s.getPromotion() != null)
+                .map(s -> com.itic.paris.platform.matching.StudentFormationResolver.programsFor(formationResolver.snapshot(),
+                        s.getPromotion().getId(), s.getStudyYear()).stream().map(p -> p.getId()).toList())
+                .orElse(java.util.List.of());
+    }
+
+    private java.util.Set<UUID> linkedPrograms(UUID offerId) {
+        return offerProgramService.programsOf(java.util.List.of(offerId)).getOrDefault(offerId, java.util.List.of())
+                .stream().map(com.itic.paris.platform.alerts.service.OfferProgramService.ProgramRef::id)
+                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+    }
+
+    /** Rattacher une offre à une formation à la main (onglet Formations) : alerte aux étudiants de la formation ajoutée. */
+    public JobOfferDTO attachProgram(UUID offerId, UUID programId) {
+        JobOffer offer = jobOfferRepository.findById(offerId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
+        if (offerProgramService.attach(offerId, programId)) {
+            offerAlertService.enqueue(offer, java.util.List.of(programId));
+        }
+        return mapToDTO(offer);
+    }
+
+    public JobOfferDTO detachProgram(UUID offerId, UUID programId) {
+        JobOffer offer = jobOfferRepository.findById(offerId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.JOB_OFFER_NOT_FOUND));
+        offerProgramService.detach(offerId, programId);
+        return mapToDTO(offer);
     }
 
     public Page<JobOfferDTO> searchByCompany(String company, Pageable pageable) {
@@ -215,6 +279,14 @@ public class JobOfferService {
         JobOffer updated = jobOfferRepository.save(jobOffer);
         auditLogService.log(AuditAction.JOB_OFFER_UPDATED, getCurrentUser(), "JOB_OFFER", updated.getId(),
                 updated.getTitle() + " — " + updated.getCompany());
+        // Formations : une offre modifiée ne redéclenche pas d'alerte, sauf pour une formation AJOUTÉE (ses étudiants
+        // seulement). À la publication d'un brouillon, toutes ses formations.
+        if (request.getProgramIds() != null || Boolean.TRUE.equals(request.getAllPrograms())) {
+            java.util.Set<UUID> added = offerProgramService.setManualPrograms(updated.getId(), requestedPrograms(request));
+            offerAlertService.enqueue(updated, publishing ? linkedPrograms(updated.getId()) : added);
+        } else if (publishing) {
+            offerAlertService.enqueue(updated, linkedPrograms(updated.getId()));
+        }
         return mapToDTO(updated);
     }
 
@@ -276,8 +348,18 @@ public class JobOfferService {
     /** Idem, avec le filtre « Brouillons » (draft=true : brouillons seulement ; false : publiees seulement). */
     public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
                                           String location, String postedBy, Boolean noApplyChannel, Boolean draft, Pageable pageable) {
+        return getAllOffers(search, contractTypeId, sectorId, source, active, location, postedBy, noApplyChannel, draft, null, pageable);
+    }
+
+    /** Idem, avec le filtre multi-formations (lot 8). */
+    public Page<JobOfferDTO> getAllOffers(String search, UUID contractTypeId, UUID sectorId, String source, Boolean active,
+                                          String location, String postedBy, Boolean noApplyChannel, Boolean draft,
+                                          java.util.Collection<UUID> programIds, Pageable pageable) {
         Specification<JobOffer> spec = JobOfferSpecification.withAllFilters(search, contractTypeId, sectorId, source, active,
                 location, normalizePostedBy(postedBy));
+        if (programIds != null && !programIds.isEmpty()) {
+            spec = spec.and(JobOfferSpecification.withPrograms(programIds));
+        }
         if (draft != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("draft"), draft));
         }
@@ -285,7 +367,7 @@ public class JobOfferService {
             spec = spec.and(JobOfferSpecification.withoutApplyChannel());
         }
         Page<JobOffer> page = jobOfferRepository.findAll(spec, StablePageable.withTieBreakers(pageable, OFFER_TIE_BREAKERS));
-        return page.map(this::mapToDTO);
+        return mapPage(page);
     }
 
     /** Auteurs possibles du filtre « Déposée par » : conseillers/admins ayant déposé au moins une offre. */
@@ -354,7 +436,19 @@ public class JobOfferService {
                 "Purge (" + scope + ") — " + deletedOffers + " offre(s), " + deletedApplications + " candidature(s) jobboard");
     }
 
+    /** Page d'offres : les formations de toute la page sont chargées en une requête. */
+    private Page<JobOfferDTO> mapPage(Page<JobOffer> page) {
+        java.util.Map<UUID, java.util.List<com.itic.paris.platform.alerts.service.OfferProgramService.ProgramRef>> programs =
+                offerProgramService.programsOf(page.getContent().stream().map(JobOffer::getId).toList());
+        return page.map(o -> mapToDTO(o, programs.getOrDefault(o.getId(), java.util.List.of())));
+    }
+
     private JobOfferDTO mapToDTO(JobOffer jobOffer) {
+        return mapToDTO(jobOffer, offerProgramService.programsOf(java.util.List.of(jobOffer.getId()))
+                .getOrDefault(jobOffer.getId(), java.util.List.of()));
+    }
+
+    private JobOfferDTO mapToDTO(JobOffer jobOffer, java.util.List<com.itic.paris.platform.alerts.service.OfferProgramService.ProgramRef> programs) {
         int applicationCount = (int) jobApplicationRepository.countByJobOfferId(jobOffer.getId());
 
         return new JobOfferDTO(
@@ -383,7 +477,8 @@ public class JobOfferService {
                 isStaff() ? jobOffer.getTargetPromotions().stream()
                         .map(p -> new JobOfferDTO.TargetPromotion(p.getId(), p.getName()))
                         .sorted(java.util.Comparator.comparing(JobOfferDTO.TargetPromotion::name))
-                        .toList() : null
+                        .toList() : null,
+                programs
         );
     }
 

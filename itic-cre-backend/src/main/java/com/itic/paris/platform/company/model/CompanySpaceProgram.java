@@ -85,6 +85,10 @@ public class CompanySpaceProgram {
     @Column(nullable = false)
     private boolean visible = true;
 
+    /** Alertes instantanées « nouvelle offre pour ta formation » (V60), activées par défaut. */
+    @Column(name = "alerts_enabled", nullable = false)
+    private boolean alertsEnabled = true;
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 

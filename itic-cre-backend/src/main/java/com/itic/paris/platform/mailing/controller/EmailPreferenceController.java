@@ -23,7 +23,7 @@ public class EmailPreferenceController {
 
     private final EmailPreferenceService service;
 
-    public record UpdateRequest(Boolean targetedOffers, Boolean weeklyDigest) {
+    public record UpdateRequest(Boolean targetedOffers, Boolean weeklyDigest, Boolean instantOffers) {
     }
 
     public record UnsubscribeRequest(String token) {
@@ -40,7 +40,7 @@ public class EmailPreferenceController {
     @PreAuthorize("hasRole('STUDENT')")
     @Operation(summary = "Modifier mes abonnements (champs absents : inchangés)")
     public ResponseEntity<Preferences> update(@RequestBody UpdateRequest request) {
-        return ResponseEntity.ok(service.update(SecurityContextHelper.currentUserId(), request.targetedOffers(), request.weeklyDigest()));
+        return ResponseEntity.ok(service.update(SecurityContextHelper.currentUserId(), request.targetedOffers(), request.weeklyDigest(), request.instantOffers()));
     }
 
     @PostMapping("/public/email-preferences/unsubscribe")

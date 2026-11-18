@@ -40,6 +40,8 @@ public class TargetedOfferMailingService {
     private final MailingLockService lock;
     private final EmailPreferenceService preferences;
     private final NotificationEmailService emailService;
+    private final com.itic.paris.platform.alerts.service.OfferAlertService offerAlertService;
+    private final com.itic.paris.platform.auth.repository.StudentRepository studentRepository;
 
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
@@ -48,14 +50,19 @@ public class TargetedOfferMailingService {
     public record OfferLine(String title, String company, String location, String contractType, String link) {
     }
 
-    /** Envoie les e-mails du jour day (offres publiees ce jour-la jusqu'a now) ; renvoie le nombre d'e-mails envoyes. */
-    @Transactional(readOnly = true)
+    /**
+     * Envoie les e-mails du jour day (offres publiees ce jour-la jusqu'a now) ; renvoie le nombre d'e-mails envoyes.
+     * Lot 8 : s'y ajoutent les alertes instantanées reportées (plafond du jour atteint), et une offre déjà reçue en
+     * alerte instantanée n'y est jamais répétée.
+     */
+    @Transactional
     public int sendForDay(LocalDate day, Instant now) {
         Instant from = day.atStartOfDay(PARIS).toInstant();
         Instant end = day.plusDays(1).atStartOfDay(PARIS).toInstant();
         Instant to = now.isBefore(end) ? now : end;
         List<JobOffer> offers = queries.findTargetedPublishedBetween(from, to);
-        if (offers.isEmpty()) {
+        Map<UUID, List<com.itic.paris.platform.alerts.model.OfferAlert>> deferred = offerAlertService.deferredByStudent();
+        if (offers.isEmpty() && deferred.isEmpty()) {
             return 0;
         }
 
@@ -67,22 +74,53 @@ public class TargetedOfferMailingService {
             }
         }
         int sent = 0;
-        for (Student student : queries.findTargetedOfferRecipients(offersByPromotion.keySet())) {
-            List<JobOffer> mine = offersByPromotion.getOrDefault(student.getPromotion().getId(), List.of()).stream()
-                    .distinct()
-                    .sorted(Comparator.comparing(JobOffer::getStaffPublishedAt).reversed())
+        List<Student> targeted = offersByPromotion.isEmpty() ? List.of()
+                : queries.findTargetedOfferRecipients(offersByPromotion.keySet());
+        Set<UUID> targetedIds = targeted.stream().map(Student::getId).collect(Collectors.toSet());
+        // Alertes reportées : étudiants encore actifs et abonnés aux alertes (ceux qui ne reçoivent pas d'offre ciblée aussi).
+        List<Student> recipients = new ArrayList<>(targeted);
+        studentRepository.findAllById(deferred.keySet()).stream()
+                .filter(s -> !targetedIds.contains(s.getId()) && s.isActive() && s.isEmailInstantOffers())
+                .forEach(recipients::add);
+        Map<UUID, Set<UUID>> alreadySent = offerAlertService.alreadySent(
+                recipients.stream().map(Student::getId).toList());
+
+        for (Student student : recipients) {
+            Set<UUID> seen = alreadySent.getOrDefault(student.getId(), Set.of());
+            List<JobOffer> mine = new ArrayList<>();
+            if (student.getPromotion() != null) {
+                offersByPromotion.getOrDefault(student.getPromotion().getId(), List.of()).stream()
+                        .filter(o -> !seen.contains(o.getId()))
+                        .forEach(mine::add);
+            }
+            List<com.itic.paris.platform.alerts.model.OfferAlert> late = deferred.getOrDefault(student.getId(), List.of());
+            Set<UUID> lateIds = late.stream().map(com.itic.paris.platform.alerts.model.OfferAlert::getOfferId)
+                    .collect(Collectors.toSet());
+            offerAlertService.liveOffers(lateIds).forEach(mine::add);
+            mine = mine.stream().distinct()
+                    .sorted(Comparator.comparing(TargetedOfferMailingService::publishedAt).reversed())
                     .toList();
             if (mine.isEmpty() || !lock.tryAcquire(KIND, day.toString(), student.getId())) {
                 continue;
             }
             List<OfferLine> lines = mine.stream().map(this::line).collect(Collectors.toList());
+            EmailPreferenceService.Topic topic = targetedIds.contains(student.getId())
+                    ? EmailPreferenceService.Topic.TARGETED_OFFERS : EmailPreferenceService.Topic.INSTANT_OFFERS;
             emailService.sendTargetedOffers(student.getEmail(), student.getLang(), student.getFirstName(), lines,
-                    frontendUrl + "/student/offres",
-                    preferences.unsubscribeUrl(student.getId(), EmailPreferenceService.Topic.TARGETED_OFFERS));
+                    frontendUrl + "/student/offres", preferences.unsubscribeUrl(student.getId(), topic));
+            if (!late.isEmpty()) {
+                offerAlertService.markEvening(late);
+            }
             sent++;
         }
-        log.info("Offres ciblees du {} : {} offre(s), {} e-mail(s)", day, offers.size(), sent);
+        log.info("Offres ciblees du {} : {} offre(s), {} alerte(s) reportee(s), {} e-mail(s)", day, offers.size(),
+                deferred.values().stream().mapToInt(List::size).sum(), sent);
         return sent;
+    }
+
+    private static Instant publishedAt(JobOffer o) {
+        if (o.getStaffPublishedAt() != null) return o.getStaffPublishedAt();
+        return o.getCreatedAt() != null ? o.getCreatedAt() : Instant.EPOCH;
     }
 
     private OfferLine line(JobOffer o) {

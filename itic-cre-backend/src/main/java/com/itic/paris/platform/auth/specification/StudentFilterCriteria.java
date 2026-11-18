@@ -31,4 +31,6 @@ public class StudentFilterCriteria {
     private final Boolean starred;
     /** Derniere note au moins egale (1 a 5). */
     private final Integer minRating;
+    /** Filtre « Formation(s) » (lot 8) : null = pas de filtre ; liste vide = formations sans promotion (aucun étudiant). */
+    private final java.util.List<com.itic.paris.platform.matching.FormationScope> formations;
 }

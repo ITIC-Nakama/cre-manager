@@ -48,6 +48,7 @@ function toStudentFilterQuery(params: StudentListParams): Record<string, unknown
     if (params.needsContractVerification !== undefined) query.needsContractVerification = params.needsContractVerification;
     if (params.starred !== undefined)     query.starred = params.starred;
     if (params.minRating !== undefined)   query.minRating = params.minRating;
+    if (params.programIds)                query.programIds = params.programIds;
     return query;
 }
 

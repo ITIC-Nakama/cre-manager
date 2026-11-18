@@ -16,6 +16,14 @@ public record ExternalJobOfferDTO(
         String externalLink,
         String companyLogoUrl,
         Instant expiresAt,
-        Instant publishedAt
+        Instant publishedAt,
+        /** Code ROME de l'offre si la source le donne (France Travail), sinon null. */
+        String romeCode
 ) {
+    public ExternalJobOfferDTO(String sourceId, String title, String company, String description, String location,
+                               String contractTypeLabel, String externalLink, String companyLogoUrl, Instant expiresAt,
+                               Instant publishedAt) {
+        this(sourceId, title, company, description, location, contractTypeLabel, externalLink, companyLogoUrl, expiresAt,
+                publishedAt, null);
+    }
 }

@@ -68,7 +68,9 @@
       "invalid_text": "Ce lien de désinscription n’est pas valide. Tu peux gérer tes e-mails depuis ton profil.",
       "go_profile": "Gérer mes e-mails",
       "weekly_title": "Récapitulatif du lundi",
-      "weekly_subtitle": "Le lundi à 8 h, jusqu’à 10 nouvelles offres de la semaine proches de ta formation (tant que tu n’as pas de contrat)."
+      "weekly_subtitle": "Le lundi à 8 h, jusqu’à 10 nouvelles offres de la semaine proches de ta formation (tant que tu n’as pas de contrat).",
+      "instant_title": "Alertes « nouvelle offre pour ta formation »",
+      "instant_subtitle": "Dès qu’une offre de ta formation est publiée (regroupées sur quelques minutes, 5 e-mails par jour au plus), tant que tu n’as pas de contrat."
     },
     "company_space": {
       "saved": "Préférence enregistrée.",
@@ -89,7 +91,10 @@
       "banner_link": "Ajouter",
       "banner_later": "Plus tard"
     },
-    "my_formation": "Ma fiche formation"
+    "my_formation": "Ma fiche formation",
+    "offers_scope_label": "Offres affichées",
+    "offers_mine": "Offres pour ma formation",
+    "offers_all": "Toutes les offres"
   },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
@@ -169,7 +174,8 @@
       "parametres": "Paramètres",
       "logout": "Déconnexion",
       "company_space": "Espace entreprise",
-      "map": "Carte des étudiants"
+      "map": "Carte des étudiants",
+      "maps": "Cartes"
     },
     "home": {
       "title": "Tableau de bord",
@@ -2689,7 +2695,8 @@
     "unavailable_title": "Page indisponible",
     "unavailable_text": "Ce lien n’est pas valide ou a été remplacé. Contactez le Pôle Entreprises d’ITIC Paris.",
     "phone": "Tél. : {{phone}}",
-    "contact_us": "Contactez-nous"
+    "contact_us": "Contactez-nous",
+    "contact_form": "Ou écrivez-nous"
   },
   "company_admin": {
     "tabs": {
@@ -2827,7 +2834,27 @@
     "col_promotion": "Promotion",
     "col_contract": "Contrat",
     "contract_yes": "Oui",
-    "contract_no": "Non"
+    "contract_no": "Non",
+    "tab_students": "Étudiants",
+    "tab_offers": "Entreprises et offres",
+    "title_maps": "Cartes",
+    "offers_department_label": "{{name}} ({{code}}) : {{count}} offre(s)",
+    "source_all": "Toutes les sources",
+    "source_manual": "Exclusivité ITIC PARIS",
+    "source_external": "Offres externes (toutes)",
+    "source_france_travail": "France Travail",
+    "source_bonne_alternance": "La Bonne Alternance",
+    "source_adzuna": "Adzuna",
+    "source_jsearch": "JSearch",
+    "offers_subtitle": "Offres en ligne et entreprises qui recrutent, par département (d’après la localisation de l’offre). Aucune adresse exacte n’est affichée.",
+    "filter_contract_type": "Type de contrat",
+    "all_contract_types": "Tous les contrats",
+    "filter_source": "Source",
+    "offers_summary": "{{located}} offre(s) localisée(s), dont {{idf}} en Île-de-France · {{companies}} entreprise(s) · {{missing}} sans localisation",
+    "offers_others_none": "Aucune offre hors Île-de-France.",
+    "offers_department_counts": "{{count}} offre(s), {{companies}} entreprise(s)",
+    "offers_none": "Aucune offre avec ces filtres.",
+    "offers_count": "{{count}} offre(s)"
   },
   "matching": {
     "reason": {
@@ -2852,5 +2879,74 @@
     "send_offer": "Envoyer l’offre",
     "send_message": "Bonjour {{firstName}}, cette offre pourrait t’intéresser : « {{title}} » chez {{company}}. Tu peux la consulter ici : {{link}}",
     "sent": "Message envoyé dans la conversation de l’étudiant."
+  },
+  "formations": {
+    "filter_all": "Toutes les formations",
+    "filter_search": "Rechercher une formation…",
+    "filter_none": "Aucune formation",
+    "filter_close": "Fermer",
+    "filter_count": "{{count}} formations",
+    "level_bachelor": "Bachelor",
+    "level_mastere": "Mastère",
+    "picker_label": "Formations ciblées",
+    "picker_hint": "Les étudiants de ces formations, sans contrat, reçoivent une alerte par e-mail dès la publication.",
+    "picker_all": "Toutes les formations",
+    "picker_required": "Choisissez au moins une formation, ou « Toutes les formations ».",
+    "tab_offers": "Offres",
+    "tab_formations": "Formations",
+    "column": "Formation(s)",
+    "toast_alerts_on": "Alertes activées pour {{name}}.",
+    "toast_alerts_off": "Alertes coupées pour {{name}}.",
+    "toast_error": "Action impossible. Réessayez.",
+    "settings_on": "Alertes instantanées activées : envoi groupé sous {{window}} min, {{cap}} e-mails d’alerte par étudiant et par jour au plus (au-delà : l’e-mail du soir).",
+    "settings_off": "Alertes instantanées désactivées sur ce serveur (APP_MAILING_INSTANT_OFFERS_ENABLED) : les réglages ci-dessous seront appliqués dès leur activation.",
+    "col_formation": "Formation",
+    "col_active_offers": "Offres actives",
+    "col_new_offers": "Nouvelles (7 j)",
+    "col_students": "Étudiants actifs",
+    "col_contracts": "Sous contrat",
+    "col_alerts": "Alertes",
+    "col_last_alert": "Dernière alerte",
+    "col_actions": "Actions",
+    "toggle_label": "Alertes pour {{name}}",
+    "show_offers": "Voir les offres de la formation",
+    "manage_offers": "Rattacher ou détacher des offres",
+    "toast_attached": "Offre rattachée : les étudiants de la formation seront prévenus.",
+    "toast_detached": "Offre détachée de la formation.",
+    "manage_hint": "Rattacher une offre prévient les étudiants de la formation par e-mail ; détacher n’envoie rien.",
+    "attach_label": "Rattacher une offre",
+    "attach_placeholder": "Intitulé ou entreprise…",
+    "attach_none": "Aucune offre trouvée.",
+    "already_linked": "Déjà rattachée",
+    "attach": "Rattacher",
+    "linked_title": "Offres rattachées ({{count}})",
+    "linked_none": "Aucune offre rattachée.",
+    "link_manual": "choisie par l’équipe",
+    "link_auto": "déduite à l’import",
+    "detach": "Détacher",
+    "column_student": "Formation",
+    "sort_name": "Tri : nom",
+    "sort_formation": "Tri : formation"
+  },
+  "alerts": {
+    "preview_title": "Destinataires de l’alerte",
+    "close": "Fermer",
+    "preview_count": "{{count}} étudiant(s) recevront l’alerte (actifs, sans contrat, abonnés).",
+    "preview_disabled": "Les alertes instantanées sont désactivées sur ce serveur : aucun e-mail ne partira.",
+    "preview_disabled_formations": "Alertes coupées pour : {{list}}",
+    "preview_already": "Déjà prévenu",
+    "journal_title": "Journal des alertes",
+    "journal_empty": "Aucune alerte envoyée pour l’instant.",
+    "journal_offer": "Offre",
+    "journal_formation": "Formation",
+    "journal_recipients": "Destinataires",
+    "journal_sent": "Envoyés",
+    "journal_failed": "En échec",
+    "journal_grouped": "Regroupés",
+    "journal_evening": "Reportés au soir",
+    "journal_pending": "En attente",
+    "journal_date": "Date",
+    "journal_prev": "Précédent",
+    "journal_next": "Suivant"
   }
 }

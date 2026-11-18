@@ -71,4 +71,7 @@ public class JobOfferDTO {
 
     public record TargetPromotion(UUID id, String name) {
     }
+
+    /** Formations rattachées (lot 8) : choisies par l'équipe (manual) ou déduites à l'import. */
+    private java.util.List<com.itic.paris.platform.alerts.service.OfferProgramService.ProgramRef> programs;
 }

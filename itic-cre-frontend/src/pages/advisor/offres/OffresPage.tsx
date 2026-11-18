@@ -25,6 +25,8 @@ import WipeOffersDialog from '../../../components/shared/WipeOffersDialog';
 import OffresHeader from './components/OffresHeader';
 import OffresFiltersBar from './components/OffresFiltersBar';
 import OffresTable from './components/OffresTable';
+import FormationsTab from './components/FormationsTab';
+import AlertRecipientsModal from '../../../components/offers/AlertRecipientsModal';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { JobOffer } from '../../../types/models/JobOffer';
@@ -59,6 +61,8 @@ const SORT_FIELD_BY_COLUMN: Record<string, string> = {
     applicationCount: 'applicationCount',
     active: 'active',
     createdAt: 'createdAt',
+    // Tri par formation (lot 8) : ordre de l'annuaire de la première formation rattachée (sans formation : en dernier).
+    formations: 'formationSort',
 };
 
 function toSortParam(sorting: SortingState): string | undefined {
@@ -94,6 +98,10 @@ export default function OffresPage() {
     const [postedByFilter, setPostedByFilter] = useState(() => initialParam('postedBy'));
     // '' = toutes les offres, 'none' = sans lien ni adresse e-mail de candidature
     const [applyChannelFilter, setApplyChannelFilter] = useState(() => (initialParam('applyChannel') === 'none' ? 'none' : ''));
+    // Lot 8 : filtre multi-formations (?formations=id1,id2) et onglet « Formations » (?vue=formations).
+    const [formationFilter, setFormationFilter] = useState(() => initialParam('formations'));
+    const view = searchParams.get('vue') === 'formations' ? 'formations' : 'offres';
+    const [alertOffer, setAlertOffer] = useState<JobOffer | null>(null);
     const [formOpen, setFormOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<JobOffer | null>(null);
     const [viewingOffer, setViewingOffer] = useState<JobOffer | null>(null);
@@ -126,11 +134,12 @@ export default function OffresPage() {
             active: activeFilter === DEFAULT_ACTIVE ? '' : (activeFilter || 'all'),
             postedBy: postedByFilter,
             applyChannel: applyChannelFilter,
+            formations: formationFilter,
         });
         if (next !== new URLSearchParams(window.location.search).toString()) {
             setSearchParams(new URLSearchParams(next), { replace: true });
         }
-    }, [debouncedSearch, debouncedLocation, contractTypeFilter, isInternalSource, sectorFilter, sourceFilter, activeFilter, postedByFilter, applyChannelFilter, setSearchParams]);
+    }, [debouncedSearch, debouncedLocation, contractTypeFilter, isInternalSource, sectorFilter, sourceFilter, activeFilter, postedByFilter, applyChannelFilter, formationFilter, setSearchParams]);
     // Par defaut : offres les plus demandees en premier
     const [sorting, setSorting] = useState<SortingState>([{ id: 'applicationCount', desc: true }]);
 
@@ -146,8 +155,9 @@ export default function OffresPage() {
         location: debouncedLocation || undefined,
         postedBy: postedByFilter || undefined,
         noApplyChannel: applyChannelFilter === 'none' ? true : undefined,
+        programIds: formationFilter || undefined,
         sort: toSortParam(sorting),
-    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, postedByFilter, applyChannelFilter, sorting]);
+    }), [debouncedSearch, contractTypeFilter, isInternalSource, sectorFilter, activeFilter, sourceFilter, debouncedLocation, postedByFilter, applyChannelFilter, formationFilter, sorting]);
     const { items: offers, totalElements, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } = useAllJobOffersInfinite(params);
 
     const { data: contractTypes } = useContractTypes();
@@ -285,6 +295,24 @@ export default function OffresPage() {
 
     const activeFilterCount = [locationFilter, contractTypeFilter, isInternalSource ? sectorFilter : '', activeFilter !== 'true' ? activeFilter || 'all' : '', applyChannelFilter].filter(Boolean).length;
 
+    const setView = (next: 'offres' | 'formations') => {
+        const p = new URLSearchParams(window.location.search);
+        if (next === 'formations') p.set('vue', 'formations');
+        else p.delete('vue');
+        setSearchParams(p, { replace: true });
+    };
+
+    /** Clic sur une formation (onglet Formations) : liste des offres de cette formation, mêmes filtres. */
+    const showFormationOffers = (programId: string) => {
+        setFormationFilter(programId);
+        setSourceFilter(DEFAULT_SOURCE);
+        const p = new URLSearchParams(window.location.search);
+        p.delete('vue');
+        p.set('formations', programId);
+        p.delete('source');
+        setSearchParams(p, { replace: true });
+    };
+
     const handleResetFilters = () => {
         setLocationFilter('');
         setDebouncedLocation('');
@@ -356,7 +384,18 @@ export default function OffresPage() {
                     onCreateClick={() => { setEditingOffer(null); setIsReadOnly(false); setFormOpen(true); }}
                 />
 
-                <OffresFiltersBar
+                <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800" role="tablist">
+                    {(['offres', 'formations'] as const).map((key) => (
+                        <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)}
+                            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap cursor-pointer ${view === key
+                                ? 'border-[#3f74ff] text-[#3f74ff]'
+                                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}>
+                            {key === 'offres' ? t('formations.tab_offers', 'Offres') : t('formations.tab_formations', 'Formations')}
+                        </button>
+                    ))}
+                </div>
+
+                {view === 'offres' && <OffresFiltersBar
                     search={search}
                     onSearchChange={handleSearch}
                     onClearSearch={handleClearSearch}
@@ -383,14 +422,18 @@ export default function OffresPage() {
                     applyChannelFilter={applyChannelFilter}
                     applyChannelOptions={applyChannelOptions}
                     onApplyChannelChange={setApplyChannelFilter}
+                    formationFilter={formationFilter}
+                    onFormationChange={setFormationFilter}
                     activeFilterCount={activeFilterCount}
                     onReset={handleResetFilters}
                     isFetching={isFetching}
                     isLoading={isLoading}
-                />
+                />}
             </div>
 
-            <OffresTable
+            {view === 'formations' && <FormationsTab onShowOffers={showFormationOffers} />}
+
+            {view === 'offres' && <OffresTable
                 offers={offers}
                 isLoading={isLoading}
                 sorting={sorting}
@@ -401,8 +444,11 @@ export default function OffresPage() {
                 onView={setViewingOffer}
                 onEdit={(offer) => { setEditingOffer(offer); setIsReadOnly(false); setFormOpen(true); }}
                 onSuggest={setSuggestOffer}
+                onPreviewAlert={setAlertOffer}
                 onViewApplicants={setApplicantsOffer}
-            />
+            />}
+
+            {alertOffer && <AlertRecipientsModal offer={alertOffer} onClose={() => setAlertOffer(null)} />}
 
             {suggestOffer && <SuggestedCandidatesModal offer={suggestOffer} onClose={() => setSuggestOffer(null)} />}
 

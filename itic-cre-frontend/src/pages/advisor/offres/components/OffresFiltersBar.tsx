@@ -2,6 +2,7 @@ import { FileSignature, Globe, Layers, Loader2, MapPin, Search, Send, SlidersHor
 import { useTranslation } from 'react-i18next';
 import CustomSelect, { type SelectOption } from '../../../../components/basics/CustomSelect';
 import FiltersPopover from '../../../../components/basics/FiltersPopover';
+import FormationFilter from '../../../../components/offers/FormationFilter';
 
 interface Props {
     search: string;
@@ -30,6 +31,9 @@ interface Props {
     applyChannelFilter: string;
     applyChannelOptions: SelectOption[];
     onApplyChannelChange: (value: string) => void;
+    /** Formations (lot 8) : identifiants séparés par des virgules. */
+    formationFilter: string;
+    onFormationChange: (csv: string) => void;
     activeFilterCount: number;
     onReset: () => void;
     isFetching: boolean;
@@ -45,6 +49,7 @@ export default function OffresFiltersBar({
     isInternalSource, sectorFilter, sectorOptions, onSectorChange,
     activeFilter, activeFilterOptions, onActiveFilterChange,
     applyChannelFilter, applyChannelOptions, onApplyChannelChange,
+    formationFilter, onFormationChange,
     activeFilterCount, onReset, isFetching, isLoading,
 }: Props) {
     const { t } = useTranslation();
@@ -100,6 +105,7 @@ export default function OffresFiltersBar({
                 <UserCheck className="h-4 w-4" />
                 {t('dashboard.offres.posted_by_filter.mine', 'Mes offres')}
             </button>
+            <FormationFilter value={formationFilter} onChange={onFormationChange} className="w-full sm:w-64" />
             <FiltersPopover activeCount={activeFilterCount} onReset={onReset}>
                 <div className="py-3 first:pt-3 last:pb-3">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">

@@ -27,4 +27,6 @@ public class ApplicationFilterCriteria {
     private final Boolean starred;
     /** true = candidature creee par un conseiller/admin ; false = creee par l'etudiant lui-meme. */
     private final Boolean createdByAdvisor;
+    /** Filtre « Formation(s) » (lot 8) : null = pas de filtre ; liste vide = formations sans promotion (aucun étudiant). */
+    private final java.util.List<com.itic.paris.platform.matching.FormationScope> formations;
 }
