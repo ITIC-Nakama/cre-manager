@@ -28,10 +28,14 @@ public class EmailPreferenceService {
     /** Envois auxquels un etudiant peut se desabonner. */
     public enum Topic { TARGETED_OFFERS, WEEKLY_DIGEST, INSTANT_OFFERS }
 
-    public record Preferences(boolean targetedOffers, boolean weeklyDigest, boolean instantOffers) {
+    /** instantOffersAvailable (lot 9) : alertes activées sur le serveur ; sinon le profil n'affiche pas leur interrupteur. */
+    public record Preferences(boolean targetedOffers, boolean weeklyDigest, boolean instantOffers, boolean instantOffersAvailable) {
     }
 
     private final StudentRepository studentRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${app.mailing.instant-offers.enabled:false}")
+    private boolean instantOffersAvailable;
 
     @Value("${security.jwt.token.secret-key}")
     private String secret;
@@ -65,8 +69,8 @@ public class EmailPreferenceService {
         return of(s);
     }
 
-    private static Preferences of(Student s) {
-        return new Preferences(s.isEmailTargetedOffers(), s.isEmailWeeklyDigest(), s.isEmailInstantOffers());
+    private Preferences of(Student s) {
+        return new Preferences(s.isEmailTargetedOffers(), s.isEmailWeeklyDigest(), s.isEmailInstantOffers(), instantOffersAvailable);
     }
 
     /** Lien de desinscription a mettre dans l'e-mail (page publique du front, qui appelle unsubscribe). */

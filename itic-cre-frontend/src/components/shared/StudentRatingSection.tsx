@@ -102,7 +102,7 @@ export default function StudentRatingSection({ studentId }: { studentId: string 
                 <RatingStars score={r.score} />
                 <span className="font-semibold text-slate-700 dark:text-slate-200">{r.score}/5</span>
                 <span className="text-slate-400">
-                  {r.formerStaff ? t('conversation.common.former_staff', 'Ancien conseiller') : r.authorName} · {formatDate(r.createdAt)}
+                  {r.formerStaff ? t('conversation.common.former_staff', 'Compte supprimé') : r.authorName} · {formatDate(r.createdAt)}
                 </span>
               </div>
               {r.comment && <p className="mt-0.5 text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{r.comment}</p>}

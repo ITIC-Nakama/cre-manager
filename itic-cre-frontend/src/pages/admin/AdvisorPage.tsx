@@ -6,12 +6,13 @@ import { Plus, Search, Loader2, Shield, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
-  useAdvisorsInfinite, useAdminsInfinite, useCreateAdvisor, useUpdateAdvisor, useDeleteAdvisor,
+  useAdvisorsInfinite, useAdminsInfinite, useCreateAdvisor, useUpdateAdvisor,
   useDeactivateUser, useReactivateAdvisor, useAdminGovernance,
 } from '../../hooks/useAdvisors';
 import type { Advisor } from '../../types/models/Advisor';
 
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import DeleteAccountDialog, { type AccountToDelete } from '../../components/shared/DeleteAccountDialog';
 import StaffModal from './components/StaffModal';
 import ResetPasswordModal from './components/ResetPasswordModal';
 import AdvisorTabs, { type Tab } from './components/AdvisorTabs';
@@ -53,10 +54,10 @@ export default function AdvisorPage() {
     sort: toSortParam(sort),
   }), [debouncedSearch, sort]);
 
-  // 1. Requête distincte pour les Conseillers
+  // 1. RequÃªte distincte pour les Conseillers
   const advisorQuery = useAdvisorsInfinite(params);
 
-  // 2. Requête distincte pour les Administrateurs
+  // 2. RequÃªte distincte pour les Administrateurs
   const adminQuery = useAdminsInfinite(params);
 
   const isAdminsTab = activeTab === 'admins';
@@ -73,14 +74,14 @@ export default function AdvisorPage() {
   const advisorTotalCount = advisorQuery.totalElements;
   const adminTotalCount = adminQuery.totalElements;
 
-  // Plafond d'admins actifs : valeur de la configuration serveur (ADMIN_MAX_ACTIVE), jamais écrite dans le front.
+  // Plafond d'admins actifs : valeur de la configuration serveur (ADMIN_MAX_ACTIVE), jamais Ã©crite dans le front.
   const { data: governance, refetch: refetchGovernance } = useAdminGovernance();
   const [capDialogOpen, setCapDialogOpen] = useState(false);
   const capMessage = governance
     ? t('dashboard.conseillers.errors.admin_cap_reached', { max: governance.maxActiveAdmins })
     : t('dashboard.conseillers.errors.admin_cap_reached_generic');
 
-  /** Refus immédiat quand le plafond est atteint (le serveur refuse de toute façon, ADMIN_CAP_REACHED). */
+  /** Refus immÃ©diat quand le plafond est atteint (le serveur refuse de toute faÃ§on, ADMIN_CAP_REACHED). */
   const refuseIfCapReached = (): boolean => {
     if (!governance?.capReached) return false;
     setCapDialogOpen(true);
@@ -89,7 +90,6 @@ export default function AdvisorPage() {
 
   const createMutation = useCreateAdvisor();
   const updateMutation = useUpdateAdvisor();
-  const deleteMutation = useDeleteAdvisor();
   const deactivateMutation = useDeactivateUser();
   const reactivateMutation = useReactivateAdvisor();
 
@@ -193,7 +193,7 @@ export default function AdvisorPage() {
       if (e?.response?.data?.messageKey === 'email-already-in-use') {
         toast.error(t('dashboard.conseillers.toast_email_exists'));
       } else if (e?.response?.data?.messageKey === 'admin-cap-reached') {
-        // Plafond atteint entre-temps (autre admin, autre onglet) : même fenêtre que le refus immédiat.
+        // Plafond atteint entre-temps (autre admin, autre onglet) : mÃªme fenÃªtre que le refus immÃ©diat.
         setModal({ isOpen: false, mode: 'create' });
         await refetchGovernance();
         setCapDialogOpen(true);
@@ -219,7 +219,7 @@ export default function AdvisorPage() {
     }
   };
 
-  /** DÉSACTIVER (soft) — pour conseillers ET admins */
+  /** DÃ‰SACTIVER (soft) â€” pour conseillers ET admins */
   const handleDeactivate = (user: Advisor) => {
     const isAdmin = user.role?.name === 'ADMIN';
     const title = isAdmin
@@ -244,24 +244,11 @@ export default function AdvisorPage() {
     );
   };
 
-  /** SUPPRIMER (hard/fallback) — conseillers uniquement */
-  const handleDelete = (advisor: Advisor) => {
-    openConfirm(
-      t('dashboard.conseillers.confirm_delete_title'),
-      t('dashboard.conseillers.confirm_delete', { name: `${advisor.firstName} ${advisor.lastName}` }),
-      async () => {
-        try {
-          const result = await deleteMutation.mutateAsync(advisor.id);
-          toast.success(result.deleted
-            ? t('dashboard.conseillers.toast_deleted')
-            : t('dashboard.conseillers.toast_deactivated'));
-        } catch (err) {
-          toast.error(getRoleErrorMessage(err));
-        }
-      },
-      { confirmLabel: t('dashboard.conseillers.actions.delete'), danger: true }
-    );
-  };
+  /** SUPPRIMER DÃ‰FINITIVEMENT (lot 9) â€” conseillers et admins : il faut retaper l'adresse e-mail du compte. */
+  const [deleteTarget, setDeleteTarget] = useState<AccountToDelete | null>(null);
+  const handleDelete = (advisor: Advisor) => setDeleteTarget({
+    id: String(advisor.id), email: advisor.email, firstName: advisor.firstName, lastName: advisor.lastName, kind: 'staff',
+  });
 
   const handleReactivate = async (user: Advisor) => {
     if (user.role?.name === 'ADMIN' && refuseIfCapReached()) return;
@@ -275,7 +262,7 @@ export default function AdvisorPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn text-slate-800 dark:text-slate-100">
-      {/* ── Header + Tabs/Filtres (sticky ensemble) ── */}
+      {/* â”€â”€ Header + Tabs/Filtres (sticky ensemble) â”€â”€ */}
       <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -301,7 +288,7 @@ export default function AdvisorPage() {
           </button>
         </div>
 
-        {/* ── Tabs Admin / Conseiller ── */}
+        {/* â”€â”€ Tabs Admin / Conseiller â”€â”€ */}
         <AdvisorTabs
           activeTab={activeTab}
           advisorTotalCount={advisorTotalCount}
@@ -309,7 +296,7 @@ export default function AdvisorPage() {
           onSwitchTab={setActiveTab}
         />
 
-        {/* ── Info banner for admins tab ── */}
+        {/* â”€â”€ Info banner for admins tab â”€â”€ */}
         {isAdminsTab && governance && (
           <div className="flex items-start gap-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 px-4 py-3 text-sm text-purple-800 dark:text-purple-300">
             <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -320,7 +307,7 @@ export default function AdvisorPage() {
           </div>
         )}
 
-        {/* ── Search ── */}
+        {/* â”€â”€ Search â”€â”€ */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-48 max-w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -346,7 +333,7 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* â”€â”€ Table â”€â”€ */}
       <AdvisorTable
         currentList={currentList}
         isLoading={isLoading}
@@ -363,7 +350,7 @@ export default function AdvisorPage() {
         onReactivate={handleReactivate}
       />
 
-      {/* ── Modals ── */}
+      {/* â”€â”€ Modals â”€â”€ */}
       <StaffModal
         isOpen={modal.isOpen}
         mode={modal.mode}
@@ -391,6 +378,8 @@ export default function AdvisorPage() {
         onConfirm={() => setCapDialogOpen(false)}
         onClose={() => setCapDialogOpen(false)}
       />
+
+      <DeleteAccountDialog account={deleteTarget} onClose={() => setDeleteTarget(null)} />
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}

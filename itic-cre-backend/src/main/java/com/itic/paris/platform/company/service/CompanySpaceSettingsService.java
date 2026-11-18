@@ -36,6 +36,11 @@ public class CompanySpaceSettingsService implements ApplicationRunner {
 
     private final CompanySpaceSettingsRepository settingsRepository;
     private final CompanySpaceProgramRepository programRepository;
+    private final com.itic.paris.platform.alerts.service.OfferProgramBackfill offerProgramBackfill;
+
+    /** Lot 9 : fermé (lien privé) à sa création, pour qu'aucun CV ne soit public avant la décision de l'équipe. */
+    @org.springframework.beans.factory.annotation.Value("${app.company-space.private-by-default:true}")
+    private boolean privateByDefault;
 
     @Override
     @Transactional
@@ -95,6 +100,12 @@ public class CompanySpaceSettingsService implements ApplicationRunner {
             settingsRepository.save(settings);
             log.info("Espace entreprise : pages du site pédagogique préremplies ({} formations)", filled);
         }
+        // Lot 9 : offres déjà en ligne rattachées une fois à leurs formations (sans alerte), après l'annuaire.
+        if (!settings.isOffersLinkedInitialized()) {
+            offerProgramBackfill.backfill();
+            settings.setOffersLinkedInitialized(true);
+            settingsRepository.save(settings);
+        }
     }
 
     @Transactional
@@ -107,6 +118,7 @@ public class CompanySpaceSettingsService implements ApplicationRunner {
             s.setContactText(CompanySpaceDefaults.DEFAULT_CONTACT_TEXT);
             s.setAddress(CompanySpaceDefaults.DEFAULT_ADDRESS);
             s.setPhone(CompanySpaceDefaults.DEFAULT_PHONE);
+            s.setPrivateAccess(privateByDefault);
             s.setPromotionIntro(CompanySpaceDefaults.DEFAULT_PROMOTION_INTRO);
             s.setWarningText(CompanySpaceDefaults.DEFAULT_WARNING);
             s.setAccessKey(newKey());

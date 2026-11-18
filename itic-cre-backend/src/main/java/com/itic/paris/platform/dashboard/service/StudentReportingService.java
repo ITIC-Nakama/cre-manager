@@ -246,7 +246,10 @@ public class StudentReportingService {
                         Map<String, Object> cm = new LinkedHashMap<>();
                         cm.put("id", comment.getId());
                         cm.put("contenu", comment.getContenu());
-                        cm.put("advisorName", comment.getAdvisor().getFirstName() + " " + comment.getAdvisor().getLastName());
+                        // Auteur supprimé (lot 9) : le commentaire reste, signé « Compte supprimé ».
+                        cm.put("advisorName", comment.getAdvisor() == null
+                                ? com.itic.paris.platform.auth.service.AccountDeletionService.DELETED_LABEL
+                                : comment.getAdvisor().getFirstName() + " " + comment.getAdvisor().getLastName());
                         cm.put("createdAt", comment.getCreatedAt());
                         return cm;
                     }).toList());

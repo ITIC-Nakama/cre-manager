@@ -47,6 +47,11 @@ export function deleteAdvisor(id: string): Promise<DeleteOrDeactivateResult> {
   return apiClient.delete(`/auth/users/${id}`).then((r) => unwrap<DeleteOrDeactivateResult>(r));
 }
 
+/** Suppression définitive d'un compte (admin, lot 9) : confirmation par l'adresse e-mail du compte. */
+export function deleteAccountPermanently(id: string, confirmEmail: string): Promise<void> {
+  return apiClient.post(`/auth/admin/users/${id}/delete-permanently`, { confirmEmail }).then(() => undefined);
+}
+
 /** Désactivation logique pure — pour conseillers et admins */
 export function deactivateUser(id: string): Promise<Advisor> {
   return apiClient.patch(`/auth/users/${id}/deactivate`).then((r) => unwrap<Advisor>(r));

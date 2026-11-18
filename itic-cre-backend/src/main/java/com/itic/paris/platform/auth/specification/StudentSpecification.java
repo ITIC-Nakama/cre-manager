@@ -425,7 +425,9 @@ public class StudentSpecification {
 
             Expression<Integer> staleScore = cb.<Integer>selectCase().when(hasStale, 2).otherwise(0);
             Expression<Integer> noCvScore = cb.<Integer>selectCase().when(noCv, 1).otherwise(0);
-            query.orderBy(cb.desc(cb.sum(staleScore, noCvScore)));
+            // Lot 9 : départage stable des ex aequo (nom, puis identifiant). Sans lui, le « top 5 » changeait d'un appel ou
+            // d'une version à l'autre (ordre libre de PostgreSQL), constaté en comparant main et la branche finale.
+            query.orderBy(cb.desc(cb.sum(staleScore, noCvScore)), cb.asc(root.get("lastName")), cb.asc(root.get("id")));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

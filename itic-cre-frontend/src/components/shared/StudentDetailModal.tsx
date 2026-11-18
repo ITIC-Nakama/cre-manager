@@ -21,6 +21,8 @@ interface Props {
     onToggleActive?: (student: StudentRow) => void;
     onDeclareContract?: (student: StudentRow) => void;
     onAnonymize?: (student: StudentRow) => void;
+    /** Admin : suppression définitive du compte (lot 9). */
+    onDelete?: (student: StudentRow) => void;
     onViewCv?: (student: StudentRow) => void;
 }
 
@@ -32,7 +34,7 @@ function formatDateTime(iso: string | null) {
     });
 }
 
-export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onViewCv }: Props) {
+export default function StudentDetailModal({ student, onClose, onNotify, onToggleActive, onDeclareContract, onAnonymize, onDelete, onViewCv }: Props) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const covered = useModalLayer();
@@ -343,7 +345,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 </div>
                             );
                         }
-                        if (!onNotify && !onToggleActive && !onDeclareContract && !onAnonymize && !onViewCv) return null;
+                        if (!onNotify && !onToggleActive && !onDeclareContract && !onAnonymize && !onDelete && !onViewCv) return null;
                         return (
                             <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                                 {onViewCv && student.hasCv && (
@@ -377,7 +379,8 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     <span>{t('conversation.staff.open_conversation', 'Conversation')}</span>
                                 </button>
 
-                                {onNotify && (
+                                {/* Compte désactivé : l'écriture est refusée (409), le bouton n'est pas proposé (lot 9). */}
+                                {onNotify && student.accountActive !== false && (
                                     <button
                                         type="button"
                                         onClick={() => { onClose(); onNotify(student); }}
@@ -418,6 +421,17 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                         <span>{t('dashboard.etudiants.actions.anonymize')}</span>
+                                    </button>
+                                )}
+
+                                {onDelete && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { onClose(); onDelete(student); }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span>{t('accounts.delete_confirm', 'Supprimer définitivement')}</span>
                                     </button>
                                 )}
                             </div>

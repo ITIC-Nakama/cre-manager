@@ -94,7 +94,8 @@
     "my_formation": "Ma fiche formation",
     "offers_scope_label": "Offres affichées",
     "offers_mine": "Offres pour ma formation",
-    "offers_all": "Toutes les offres"
+    "offers_all": "Toutes les offres",
+    "offers_mine_empty": "Pas encore d’offre rattachée à ta formation : toutes les offres sont affichées."
   },
   "pwa": {
     "update_available": "Une nouvelle version de l'application est disponible !",
@@ -484,7 +485,7 @@
         "reactivate": "Réactiver",
         "reactivate_account": "Réactiver le compte",
         "reactivate_account_of": "Réactiver le compte de {{name}}",
-        "anonymize": "Supprimer le compte",
+        "anonymize": "Anonymiser (RGPD)",
         "declare_contract": "Déclarer un contrat",
         "view_wip": "Dossier de {{name}} — en cours de développement",
         "export_success_one": "{{count}} étudiant exporté.",
@@ -2581,7 +2582,7 @@
       "today": "Aujourd’hui",
       "yesterday": "Hier",
       "messages": "Messages",
-      "former_staff": "Ancien conseiller",
+      "former_staff": "Compte supprimé",
       "load_more": "Afficher les messages précédents",
       "new_messages": "Nouveaux messages",
       "send": "Envoyer",
@@ -2948,5 +2949,15 @@
     "journal_date": "Date",
     "journal_prev": "Précédent",
     "journal_next": "Suivant"
+  },
+  "accounts": {
+    "delete_success": "Compte de {{name}} supprimé définitivement.",
+    "delete_error": "La suppression a échoué.",
+    "delete_title": "Supprimer définitivement ce compte ?",
+    "delete_student_message": "Le compte de {{name}} sera supprimé, avec son CV, ses fichiers, ses candidatures, ses messages et ses notes. C’est irréversible.",
+    "delete_staff_message": "Le compte de {{name}} sera supprimé. Les offres, commentaires, notes et messages qu’il a créés restent, signés « Compte supprimé ». C’est irréversible.",
+    "delete_input_label": "Pour confirmer, saisissez l’adresse e-mail du compte",
+    "delete_confirm": "Supprimer définitivement",
+    "delete_action_label": "Supprimer définitivement le compte de {{name}}"
   }
 }

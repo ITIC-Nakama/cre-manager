@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import RecommendedOffers from '../../../components/matching/RecommendedOffers';
@@ -23,8 +23,13 @@ export default function OffresPage() {
         queryKey: ['me', 'formation'],
         queryFn: () => apiClient.get('/me/formation').then((r) => unwrap<{ formation: string | null; pedagogyUrl: string | null }>(r)),
         staleTime: 30 * 60_000,
+        // Lot 9 : en cas d'erreur, la liste s'affiche tout de suite (toutes les offres) au lieu d'attendre les nouveaux essais.
+        retry: false,
     });
     const [showAll, setShowAll] = useState(false);
+    // Aucune offre rattachée à sa formation (au début, ou formation rare) : on montre tout, avec une explication.
+    const [emptyMine, setEmptyMine] = useState(false);
+    const onEmptyMine = useCallback(() => { setShowAll(true); setEmptyMine(true); }, []);
     const hasFormation = !!myFormation?.formation;
     const onlyMine = hasFormation && !showAll;
     // Une recommandation ouvre la fiche de l'offre (lien direct ?offre=, géré par l'onglet ITIC quelle que soit la source).
@@ -90,12 +95,17 @@ export default function OffresPage() {
                         {t('student.offers_all', 'Toutes les offres')}
                     </button>
                     {onlyMine && <span className="text-xs text-slate-400">{myFormation?.formation}</span>}
+                    {!onlyMine && emptyMine && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400" data-testid="empty-mine-note">
+                            {t('student.offers_mine_empty', 'Pas encore d’offre rattachée à ta formation : toutes les offres sont affichées.')}
+                        </span>
+                    )}
                 </div>
             )}
 
             {/* Liste chargée une fois la formation connue : une seule requête, déjà filtrée sur « ma formation ». */}
             {formationPending ? null
-                : activeTab === 'itic' ? <IticOffresTab myFormation={onlyMine} /> : <ExternalOffresTab myFormation={onlyMine} />}
+                : activeTab === 'itic' ? <IticOffresTab myFormation={onlyMine} onEmptyMine={onEmptyMine} /> : <ExternalOffresTab myFormation={onlyMine} onEmptyMine={onEmptyMine} />}
         </div>
     );
 }

@@ -124,6 +124,7 @@ public class OfferProgramService {
     /** Formations déduites d'une offre (sans rien enregistrer). */
     public List<CompanySpaceProgram> deduce(JobOffer offer, List<CompanySpaceProgram> programs) {
         String rome = offer.getRomeCode() == null ? null : offer.getRomeCode().trim().toUpperCase(Locale.ROOT);
+        OfferMatchingService.OfferWords words = OfferMatchingService.OfferWords.of(offer);
         List<CompanySpaceProgram> out = new ArrayList<>();
         for (CompanySpaceProgram p : programs) {
             if (!p.isVisible() || p.getOfferKeywords() == null) continue;
@@ -131,8 +132,25 @@ public class OfferProgramService {
                     && Arrays.stream(p.getRomeCodes().split(",")).map(String::trim).noneMatch(rome::equalsIgnoreCase)) {
                 continue;
             }
-            if (keywords.keywordScore(offer, OfferMatchingService.phrases(List.of(p))).score() >= OfferMatchingService.RELEVANT) {
+            if (keywords.keywordScore(words, OfferMatchingService.phrases(List.of(p))).score() >= OfferMatchingService.RELEVANT) {
                 out.add(p);
+            }
+        }
+        return out;
+    }
+
+    /** Rattachement automatique en masse (lot 9) : liens à créer, sans requête par offre. */
+    public List<OfferProgramLink> newAutoLinks(JobOffer offer, List<CompanySpaceProgram> programs, Set<OfferProgramLink.Key> existing) {
+        List<OfferProgramLink> out = new ArrayList<>();
+        Instant now = Instant.now();
+        for (CompanySpaceProgram p : deduce(offer, programs)) {
+            OfferProgramLink.Key key = new OfferProgramLink.Key(offer.getId(), p.getId());
+            if (existing.add(key)) {
+                OfferProgramLink l = new OfferProgramLink();
+                l.setId(key);
+                l.setManual(false);
+                l.setLinkedAt(now);
+                out.add(l);
             }
         }
         return out;

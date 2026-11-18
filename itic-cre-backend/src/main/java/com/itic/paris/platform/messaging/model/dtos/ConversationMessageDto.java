@@ -20,7 +20,7 @@ public record ConversationMessageDto(
         String authorLastName,
         @Schema(description = "STUDENT, ADVISOR ou ADMIN ; null si le compte a ete supprime")
         String authorRole,
-        @Schema(description = "Membre de l'equipe dont le compte a ete supprime ou anonymise : afficher « Ancien conseiller »")
+        @Schema(description = "Membre de l'equipe dont le compte a ete supprime ou anonymise : afficher « Compte supprimé »")
         boolean formerStaff
 ) {
 }

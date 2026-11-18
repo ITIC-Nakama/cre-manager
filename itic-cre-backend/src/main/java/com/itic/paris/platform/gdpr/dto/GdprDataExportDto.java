@@ -192,7 +192,7 @@ public class GdprDataExportDto {
         private Instant date;
         /** Ecrit par l'etudiant (sinon par l'equipe CRE). */
         private boolean fromStudent;
-        /** Prenom et nom de l'auteur ; « Ancien conseiller » si son compte a ete supprime. */
+        /** Prenom et nom de l'auteur ; « Compte supprimé » si son compte a ete supprime. */
         private String author;
         private String message;
     }

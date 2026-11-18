@@ -94,7 +94,8 @@
     "my_formation": "My programme page",
     "offers_all": "All offers",
     "offers_mine": "Offers for my programme",
-    "offers_scope_label": "Offers shown"
+    "offers_scope_label": "Offers shown",
+    "offers_mine_empty": "No offer linked to your programme yet: all offers are shown."
   },
   "pwa": {
     "update_available": "A new version of the application is available!",
@@ -484,7 +485,7 @@
         "reactivate": "Reactivate",
         "reactivate_account": "Reactivate account",
         "reactivate_account_of": "Reactivate {{name}}'s account",
-        "anonymize": "Delete account",
+        "anonymize": "Anonymise (GDPR)",
         "declare_contract": "Declare a contract",
         "view_wip": "Profile of {{name}} — under development",
         "export_success_one": "{{count}} student exported.",
@@ -2581,7 +2582,7 @@
       "today": "Today",
       "yesterday": "Yesterday",
       "messages": "Messages",
-      "former_staff": "Former advisor",
+      "former_staff": "Deleted account",
       "load_more": "Show earlier messages",
       "new_messages": "New messages",
       "send": "Send",
@@ -2948,5 +2949,15 @@
     "toast_detached": "Offer unlinked from the programme.",
     "toast_error": "Action failed. Please try again.",
     "toggle_label": "Alerts for {{name}}"
+  },
+  "accounts": {
+    "delete_action_label": "Permanently delete {{name}}'s account",
+    "delete_confirm": "Delete permanently",
+    "delete_error": "Deletion failed.",
+    "delete_input_label": "To confirm, type the account's email address",
+    "delete_staff_message": "{{name}}'s account will be deleted. The offers, comments, ratings and messages they created remain, signed “Deleted account”. This cannot be undone.",
+    "delete_student_message": "{{name}}'s account will be deleted, with their CV, files, applications, messages and ratings. This cannot be undone.",
+    "delete_success": "{{name}}'s account was permanently deleted.",
+    "delete_title": "Permanently delete this account?"
   }
 }

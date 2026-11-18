@@ -102,7 +102,7 @@ function ConversationList({ selectedStudentId }: { selectedStudentId?: string })
   const preview = (c: ConversationSummary) => {
     if (!c.lastMessagePreview) return '';
     if (c.lastMessageFromStudent) return c.lastMessagePreview;
-    const who = c.lastMessageAuthorName ?? t('conversation.common.former_staff', 'Ancien conseiller');
+    const who = c.lastMessageAuthorName ?? t('conversation.common.former_staff', 'Compte supprimé');
     return `${who} : ${c.lastMessagePreview}`;
   };
 

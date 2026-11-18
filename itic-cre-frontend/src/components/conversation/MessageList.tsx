@@ -74,7 +74,7 @@ export default function MessageList({
     : null;
 
   const authorLabel = (m: ConversationMessage) => {
-    if (m.formerStaff) return t('conversation.common.former_staff', 'Ancien conseiller');
+    if (m.formerStaff) return t('conversation.common.former_staff', 'Compte supprimé');
     const name = [m.authorFirstName, m.authorLastName].filter(Boolean).join(' ');
     if (audience === 'student' && !m.fromStudent) {
       return t('conversation.student.staff_author', { name, defaultValue: '{{name}} · équipe CRE' });
