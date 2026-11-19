@@ -12,7 +12,10 @@ import com.itic.paris.platform.reclamation.model.ReclamationStatus;
 import com.itic.paris.platform.reclamation.model.dtos.AdvisorReclamationDTO;
 import com.itic.paris.platform.reclamation.repository.ReclamationRepository;
 import com.itic.paris.platform.shared.local.MessageKey;
+import com.itic.paris.platform.shared.notification.event.ReclamationRefusedEvent;
+import com.itic.paris.platform.shared.notification.event.ReclamationResolvedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,6 +32,7 @@ public class AdvisorReclamationService {
 
     private final ReclamationRepository reclamationRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Par defaut (mineOnly non fourni) : ADVISOR = ses etudiants affectes uniquement, ADMIN = tout —
@@ -66,10 +70,6 @@ public class AdvisorReclamationService {
         User actor = currentActor();
         Reclamation reclamation = reclamationRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, MessageKey.RECLAMATION_NOT_FOUND));
-        // Lot 10 (V64) : une demande transférée vit dans la messagerie ; elle ne se rouvre ni ne se clôt ici.
-        if (reclamation.getStatus() == ReclamationStatus.TRANSFERRED) {
-            throw new AppException(HttpStatus.GONE, MessageKey.RECLAMATIONS_RETIRED);
-        }
 
         if (UserMapper.roleOf(actor) != RoleEnum.ADMIN) {
             User assignedAdvisor = reclamation.getStudent().getAdvisor();
@@ -82,7 +82,15 @@ public class AdvisorReclamationService {
         reclamation.setClosedAt(newStatus == ReclamationStatus.PENDING ? null : Instant.now());
         AdvisorReclamationDTO dto = mapToDTO(reclamationRepository.save(reclamation));
 
-        // Lot 10 : plus aucun e-mail lié aux demandes d'aide (remplacées par la messagerie).
+        Student student = reclamation.getStudent();
+        if (newStatus == ReclamationStatus.RESOLVED) {
+            eventPublisher.publishEvent(new ReclamationResolvedEvent(
+                    student.getEmail(), student.getLang(), student.getFirstName(), reclamation.getMessage()));
+        } else if (newStatus == ReclamationStatus.REFUSED) {
+            eventPublisher.publishEvent(new ReclamationRefusedEvent(
+                    student.getEmail(), student.getLang(), student.getFirstName(), reclamation.getMessage()));
+        }
+
         return dto;
     }
 

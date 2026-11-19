@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import { useNewCompanyRequestCount } from './useNewCompanyRequestCount';
-import { usePublicConfig } from '../../../hooks/usePublicConfig';
-import NotAvailablePage from '../../../components/shared/NotAvailablePage';
 import ProgramsTab from './ProgramsTab';
 import RequestsTab from './RequestsTab';
 import StatsTab from './StatsTab';
@@ -20,9 +18,7 @@ export default function CompanySpacePage() {
     const isAdmin = user?.role === Role.ADMIN;
     const [params, setParams] = useSearchParams();
     const tab = (params.get('onglet') as Tab) || 'formations';
-    // Lot 10 : espace masqué → page réservée aux admins (adresse directe), aucun menu n'y mène.
-    const { companySpaceEnabled, isPending } = usePublicConfig();
-    const { data: newCount } = useNewCompanyRequestCount(!isPending && (companySpaceEnabled || isAdmin));
+    const { data: newCount } = useNewCompanyRequestCount();
 
     const tabs: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
         { key: 'formations', label: t('company_admin.tabs.programs', 'Formations'), icon: <GraduationCap className="h-4 w-4" /> },
@@ -31,16 +27,8 @@ export default function CompanySpacePage() {
         { key: 'reglages', label: t('company_admin.tabs.settings', 'Textes et accès'), icon: <Settings2 className="h-4 w-4" /> },
     ];
 
-    if (isPending) return null;
-    if (!companySpaceEnabled && !isAdmin) return <NotAvailablePage fullScreen={false} />;
-
     return (
         <div className="space-y-6">
-            {!companySpaceEnabled && (
-                <p role="note" className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300">
-                    {t('company_admin.hidden_banner', 'Espace entreprise masqué : cette page n’apparaît dans aucun menu.')}
-                </p>
-            )}
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
@@ -50,10 +38,10 @@ export default function CompanySpacePage() {
                         {t('company_admin.subtitle', 'L’annuaire public des CV pour les entreprises. Un étudiant y apparaît automatiquement quand son CV est validé, tant qu’il n’a pas de contrat, que son compte est actif et qu’il ne s’y est pas opposé.')}
                     </p>
                 </div>
-                {companySpaceEnabled && <a href="/entreprise" target="_blank" rel="noreferrer"
+                <a href="/entreprise" target="_blank" rel="noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
                     <ExternalLink className="h-4 w-4" /> {t('company_admin.open_public', 'Ouvrir l’Espace entreprise')}
-                </a>}
+                </a>
             </div>
 
             <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800" role="tablist">

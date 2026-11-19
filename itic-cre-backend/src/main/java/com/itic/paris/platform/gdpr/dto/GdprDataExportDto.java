@@ -47,10 +47,6 @@ public class GdprDataExportDto {
         private String promotion;
         /** Code postal (carte des étudiants, V56). */
         private String postalCode;
-        /** Adresse postale (V62). */
-        private String addressLine1;
-        private String addressLine2;
-        private String city;
         private Integer xpTotal;
         private boolean privacyAccepted;
         private Instant privacyAcceptedAt;

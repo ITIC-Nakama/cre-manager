@@ -1,3 +1,0 @@
-# Scripts shell lancés sur le serveur Linux (ssh ... 'bash -s' < script) : toujours en fins de ligne LF,
-# même extraits sous Windows (core.autocrlf), sinon bash échoue sur les retours chariot.
-*.sh text eol=lf

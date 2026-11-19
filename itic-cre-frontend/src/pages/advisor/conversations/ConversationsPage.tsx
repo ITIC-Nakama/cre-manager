@@ -77,7 +77,7 @@ function ConversationList({ selectedStudentId }: { selectedStudentId?: string })
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isAdmin = useUserStore((state) => state.user?.role) === Role.ADMIN;
-  // Un conseiller voit d'abord ses étudiants, un admin tout le monde (la messagerie remplace les demandes d'aide, lot 10).
+  // Comme les « Demandes d'aide » : un conseiller voit d'abord ses étudiants, un admin tout le monde.
   const [scope, setScope] = useState<ConversationScope>(isAdmin ? 'ALL' : 'MINE');
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [search, setSearch] = useState('');

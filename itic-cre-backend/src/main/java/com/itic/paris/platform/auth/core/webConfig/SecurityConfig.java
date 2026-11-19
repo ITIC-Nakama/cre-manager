@@ -105,9 +105,6 @@ public class SecurityConfig {
         if (HttpMethod.GET.matches(request.getMethod()) && path.startsWith("/public/entreprise/")) {
             return true;
         }
-        if (HttpMethod.GET.matches(request.getMethod()) && path.equals("/public/config")) {
-            return true;
-        }
         if (path.startsWith("/actuator/health") || path.startsWith("/actuator/info")) {
             return true;
         }
@@ -154,7 +151,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/promotions", "/promotions/**").permitAll()
                         // Espace entreprise : annuaire, pages des formations et CV par lien signé, sans connexion.
                         .requestMatchers(HttpMethod.GET, "/public/entreprise/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/public/config").permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout.disable());
 

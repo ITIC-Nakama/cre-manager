@@ -103,33 +103,31 @@ public class UserGovernanceIntegrationTest {
     }
 
     @Test
-    public void testCreateFourthAdmin_WhenThreeActiveAdminsExist_ShouldSucceed() throws Exception {
-        // Plafond = 4 admins actifs (lot 10) : avec 3 admins actifs (primaryAdmin + deux autres), le 4ème est accepté.
+    public void testCreateThirdAdmin_WhenTwoActiveAdminsExist_ShouldSucceed() throws Exception {
+        // Plafond = 3 admins actifs : avec 2 admins actifs (primaryAdmin + un second), le 3ème est accepté.
         saveActiveAdmin("admin2.gov@itic.fr", "Deux");
-        saveActiveAdmin("admin3.gov@itic.fr", "Trois");
 
         mockMvc.perform(post("/auth/admin/users")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newAdminPayload("admin4.gov@itic.fr", "Quatre"))))
+                        .content(objectMapper.writeValueAsString(newAdminPayload("admin3.gov@itic.fr", "Trois"))))
                 .andExpect(status().isCreated());
 
         assertThat(userRepository.findAll().stream()
                 .filter(u -> u.isActive() && u.getRole() != null && u.getRole().getName() == RoleEnum.ADMIN)
-                .count()).isEqualTo(4);
+                .count()).isEqualTo(3);
     }
 
     @Test
-    public void testCreateAdmin_WhenFourActiveAdminsExist_ShouldReturnForbiddenAdminCapReached() throws Exception {
+    public void testCreateAdmin_WhenThreeActiveAdminsExist_ShouldReturnForbiddenAdminCapReached() throws Exception {
         saveActiveAdmin("admin2.gov@itic.fr", "Deux");
         saveActiveAdmin("admin3.gov@itic.fr", "Trois");
-        saveActiveAdmin("admin4.gov@itic.fr", "Quatre");
 
-        // Tentative de création d'un 5ème admin
+        // Tentative de création d'un 4ème admin
         mockMvc.perform(post("/auth/admin/users")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newAdminPayload("admin5.gov@itic.fr", "Cinq"))))
+                        .content(objectMapper.writeValueAsString(newAdminPayload("admin4.gov@itic.fr", "Quatre"))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.messageKey").value(MessageKey.ADMIN_CAP_REACHED.getKey()));
     }
@@ -137,22 +135,22 @@ public class UserGovernanceIntegrationTest {
     @Test
     public void testAdminGovernance_ExposesConfiguredCapAndActiveCount() throws Exception {
         // Le bandeau « Gouvernance » et le refus immediat du front s'appuient sur cette reponse, jamais sur un
-        // chiffre ecrit dans le code : plafond = configuration (4 par defaut, lot 10), nombre d'admins actifs reel.
+        // chiffre ecrit dans le code : plafond = configuration (3 par defaut), nombre d'admins actifs reel.
         long activeBefore = countActiveAdmins();
         mockMvc.perform(get("/auth/admin/governance")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.maxActiveAdmins").value(4))
+                .andExpect(jsonPath("$.data.maxActiveAdmins").value(3))
                 .andExpect(jsonPath("$.data.activeAdmins").value(activeBefore))
-                .andExpect(jsonPath("$.data.capReached").value(activeBefore >= 4));
+                .andExpect(jsonPath("$.data.capReached").value(activeBefore >= 3));
 
-        while (countActiveAdmins() < 4) {
+        while (countActiveAdmins() < 3) {
             saveActiveAdmin("admin.cap" + countActiveAdmins() + ".gov@itic.fr", "Cap");
         }
         mockMvc.perform(get("/auth/admin/governance")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + primaryAdminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.activeAdmins").value(4))
+                .andExpect(jsonPath("$.data.activeAdmins").value(3))
                 .andExpect(jsonPath("$.data.capReached").value(true));
     }
 

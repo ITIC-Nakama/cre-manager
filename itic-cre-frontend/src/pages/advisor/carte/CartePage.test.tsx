@@ -1,12 +1,14 @@
 /**
  * Carte des étudiants (équipe) : carte de l'Île-de-France et autres départements avec leurs nombres, liste d'un
- * département (nom, formation, promotion, contrat oui / non), filtres (le bandeau côté étudiant est devenu le bandeau « adresse », lot 10).
+ * département (nom, formation, promotion, contrat oui / non), filtres ; bandeau « code postal » côté étudiant.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import CartePage from './CartePage';
+import PostalCodeBanner from '../../../components/student/PostalCodeBanner';
+import { useUserStore } from '../../../store/UserStore';
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn(), patch: vi.fn() }));
 vi.mock('../../../api-s/AxiosApiClient', () => ({ apiClient: api, registerForceLogoutHandler: () => {}, resetSessionState: () => {} }));
@@ -70,5 +72,23 @@ describe('Carte des étudiants', () => {
         fireEvent.change(screen.getByLabelText('Contrat'), { target: { value: 'WITHOUT' } });
         await flush();
         expect(api.get).toHaveBeenCalledWith('/dashboard/students/map', { params: { contract: 'WITHOUT' } });
+    });
+
+    it('bandeau étudiant : affiché sans code postal, absent une fois renseigné, « plus tard » le masque', async () => {
+        useUserStore.setState({ user: { id: 'u1' } as never });
+        localStorage.clear();
+        api.get.mockImplementation(() => Promise.resolve({ data: { data: { postalCode: null, department: null, departmentName: null } } }));
+        const first = wrap(<PostalCodeBanner />);
+        await flush();
+        expect(screen.getByText(/Indique ton code postal/)).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Plus tard' }));
+        expect(screen.queryByText(/Indique ton code postal/)).toBeNull();
+        first.unmount();
+
+        localStorage.clear();
+        api.get.mockImplementation(() => Promise.resolve({ data: { data: { postalCode: '93200', department: '93', departmentName: 'Seine-Saint-Denis' } } }));
+        wrap(<PostalCodeBanner />);
+        await flush();
+        expect(screen.queryByText(/Indique ton code postal/)).toBeNull();
     });
 });

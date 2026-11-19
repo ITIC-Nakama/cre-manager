@@ -1,18 +1,7 @@
 import type { StudentRow } from '../types/models/Dashboard';
 
-/**
- * Cellule CSV : entre guillemets, guillemets doublés. Une valeur saisie par un utilisateur qui commence par = + - @
- * (ou une tabulation, un retour) serait exécutée comme une formule par Excel : elle est préfixée d'une apostrophe.
- */
-export function csvCell(cell: unknown): string {
-    let value = String(cell ?? '');
-    if (/^[=+\-@\t\r]/.test(value)) value = `'${value}`;
-    return `"${value.replace(/"/g, '""')}"`;
-}
-
 export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.csv') {
-    const headers = ['Prénom', 'Nom', 'Email', 'Promotion', 'Année', 'XP', 'Grade', 'Candidatures', 'En retard', 'CV', 'Actif',
-        'Adresse', 'Complément', 'Code postal', 'Ville'];
+    const headers = ['Prénom', 'Nom', 'Email', 'Promotion', 'Année', 'XP', 'Grade', 'Candidatures', 'En retard', 'CV', 'Actif'];
 
     const rows = students.map((s) => [
         s.firstName,
@@ -26,14 +15,10 @@ export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.
         s.staleApplicationCount,
         s.hasCv ? 'Oui' : 'Non',
         s.isActive ? 'Oui' : 'Non',
-        s.addressLine1 ?? '',
-        s.addressLine2 ?? '',
-        s.postalCode ?? '',
-        s.city ?? '',
     ]);
 
     const csv = [headers, ...rows]
-        .map((row) => row.map(csvCell).join(','))
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -69,7 +54,7 @@ export function exportAlumniCsv(contacts: import('../types/models/Alumni').Alumn
     ]);
 
     const csv = [headers, ...rows]
-        .map((row) => row.map(csvCell).join(','))
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
