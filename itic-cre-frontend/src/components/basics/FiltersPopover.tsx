@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 're
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, RotateCcw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import FilterTriggerButton from './FilterTriggerButton';
 
 interface FiltersPopoverProps {
     activeCount: number;
@@ -87,23 +88,17 @@ export default function FiltersPopover({ activeCount, onReset, children, classNa
 
     return (
         <div ref={containerRef} className={`relative inline-block ${className}`}>
-            <button
-                type="button"
+            {/* Même déclencheur que les autres filtres de la barre (lot 11) ; « Filtres (2) » quand des filtres sont actifs. */}
+            <FilterTriggerButton
                 onClick={handleToggle}
-                className={`relative inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-2xs transition-all cursor-pointer ${
-                    hasActive || isOpen
-                        ? 'border-[#E2762F] bg-[#E2762F] text-white hover:bg-[#c76426] shadow-sm'
-                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-            >
-                <SlidersHorizontal className="h-4 w-4" />
-                {t('dashboard.offres.filters_button', 'Filtres')}
-                {hasActive && (
-                    <span className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-white/25 text-xs font-bold tabular-nums">
-                        {activeCount}
-                    </span>
-                )}
-            </button>
+                aria-expanded={isOpen}
+                icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                label={hasActive
+                    ? t('dashboard.offres.filters_button_active', { count: activeCount, defaultValue: 'Filtres ({{count}})' })
+                    : t('dashboard.offres.filters_button', 'Filtres')}
+                active={hasActive}
+                open={isOpen}
+            />
 
             {isOpen && panelRect && createPortal(
                 <div

@@ -9,6 +9,9 @@ export type ContractFilter = 'all' | 'under_contract' | 'not_under_contract' | '
 /** Filtre de note : toutes, non noté, noté, ou note minimale ('2' à '5'). */
 export type StarredFilter = 'all' | 'starred' | 'unstarred' | '2' | '3' | '4' | '5';
 
+/** Largeur commune des filtres de la barre : au moins 12 rem ; sous sm, ils se partagent la ligne. */
+const FILTER_CLASS = 'flex-1 min-w-48 sm:flex-none';
+
 interface FilterOption {
     value: string;
     label: string;
@@ -85,9 +88,11 @@ export default function EtudiantsFilters({
     const { t } = useTranslation();
 
     return (
+        // Lot 11 : tous les filtres de la barre ont le même déclencheur (FilterTriggerButton), la même largeur minimale
+        // et le même état « actif ». Sous sm, ils se partagent la largeur et la barre passe sur plusieurs lignes.
         <div className="flex flex-wrap items-center gap-3">
             {/* Search input */}
-            <div className="relative flex-1 min-w-48 max-w-72">
+            <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-48 sm:max-w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                     type="text"
@@ -114,7 +119,8 @@ export default function EtudiantsFilters({
                 options={filterOptions}
                 onChange={(value) => onFilterChange(value as FilterStatus)}
                 icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
-                className="min-w-48"
+                active={filterStatus !== 'all'}
+                className={FILTER_CLASS}
             />
 
             {/* Filtre note (etoiles), toujours visible. */}
@@ -123,14 +129,15 @@ export default function EtudiantsFilters({
                 options={starredFilterOptions}
                 onChange={(value) => onStarredFilterChange(value as StarredFilter)}
                 icon={<Star className="h-4 w-4 text-slate-400" />}
-                className="min-w-40"
+                active={starredFilter !== 'all'}
+                className={FILTER_CLASS}
             />
 
-            <FormationFilter value={formationFilter} onChange={onFormationChange} className="w-full sm:w-64" />
+            <FormationFilter value={formationFilter} onChange={onFormationChange} className={FILTER_CLASS} />
 
             {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de
               * surcharger la barre avec 6+ controles affiches en permanence. */}
-            <FiltersPopover activeCount={activeFilterCount} onReset={onReset}>
+            <FiltersPopover activeCount={activeFilterCount} onReset={onReset} className={FILTER_CLASS}>
                 <div className="py-3 first:pt-3 last:pb-3">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                         {t('dashboard.etudiants.filter_promotion_label', 'Promotion')}
