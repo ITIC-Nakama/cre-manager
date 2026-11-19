@@ -2,6 +2,7 @@ import './App.css'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 import { BrowserRouter, Route, Routes, Navigate, useLocation } from 'react-router-dom'
+import { legacyRoutes, STAFF_LEGACY_REDIRECTS, STUDENT_LEGACY_REDIRECTS } from './routes/legacyRedirects'
 import { Outlet } from 'react-router-dom'
 import OfflineBanner from './components/common/OfflineBanner'
 import StudentLayout from './layouts/StudentLayout'
@@ -23,6 +24,7 @@ import StudentCVPage from './pages/student/cv/StudentCVPage'
 const ContenuPage = lazy(() => import('./pages/advisor/formation/ContenuPage'))
 // Espace entreprise (public) et son back-office : chargés à la demande.
 const CompanyLayout = lazy(() => import('./pages/public/entreprise/CompanyLayout'))
+const CompanySpaceGate = lazy(() => import('./pages/public/entreprise/CompanySpaceGate'))
 const CompanyHomePage = lazy(() => import('./pages/public/entreprise/CompanyHomePage'))
 const CompanyDirectoryPage = lazy(() => import('./pages/public/entreprise/CompanyDirectoryPage'))
 const CompanyProgramPage = lazy(() => import('./pages/public/entreprise/CompanyProgramPage'))
@@ -60,7 +62,6 @@ import ExternalSyncPage from './pages/advisor/offres/ExternalSyncPage'
 import ParametresPage from './pages/dashboard/parametres'
 import CVValidationPage from './pages/advisor/cv-validation/CVValidationPage'
 import GamificationPage from './pages/advisor/gamification/GamificationPage'
-import ReclamationsPage from './pages/advisor/reclamations/ReclamationsPage'
 import ConversationsPage from './pages/advisor/conversations/ConversationsPage'
 import AlumniPage from './pages/advisor/alumni/AlumniPage'
 import UnsubscribePage from './pages/public/UnsubscribePage'
@@ -123,8 +124,8 @@ function App() {
         <Route path="/alumni" element={<AlumniFormPage />} />
         {/* Lien « Ne plus recevoir ces e-mails » des e-mails d'offres (sans connexion) */}
         <Route path="/email/desinscription" element={<UnsubscribePage />} />
-        {/* Espace entreprise : annuaire public des CV (sans connexion, jamais indexé) */}
-        <Route element={<LazyPage><CompanyLayout /></LazyPage>}>
+        {/* Espace entreprise : annuaire public des CV (sans connexion, jamais indexé). Masqué (lot 10) : « Page non disponible ». */}
+        <Route element={<LazyPage><CompanySpaceGate><CompanyLayout /></CompanySpaceGate></LazyPage>}>
           <Route path="/entreprise" element={<CompanyHomePage />} />
           <Route path="/entreprise/candidats" element={<CompanyDirectoryPage />} />
           <Route path="/entreprise/candidats/:slug" element={<CompanyProgramPage />} />
@@ -142,6 +143,7 @@ function App() {
           <Route path="/student/offres"        element={<StudentOffresPage />} />
           <Route path="/student/conseillers"   element={<ConseillersPage />} />
           <Route path="/student/messages"      element={<StudentMessagesPage />} />
+          {legacyRoutes(STUDENT_LEGACY_REDIRECTS)}
           <Route path="/student/connaissances"                        element={<LazyPage><SkillTreePage /></LazyPage>} />
           <Route path="/student/connaissances/:categoryId"            element={<CategoryArticlesPage />} />
           <Route path="/student/connaissances/:categoryId/:articleId" element={<ArticleReaderPage />} />
@@ -163,7 +165,8 @@ function App() {
           <Route path="/supervisor/cv"            element={<CVValidationPage />} />
           <Route path="/supervisor/contenu"       element={<LazyPage><ContenuPage /></LazyPage>} />
           <Route path="/supervisor/gamification"  element={<GamificationPage />} />
-          <Route path="/supervisor/reclamations"  element={<ReclamationsPage />} />
+          {/* Lot 10 : les « Demandes d'aide » sont remplacées par la messagerie ; les anciens liens y mènent. */}
+          {legacyRoutes(STAFF_LEGACY_REDIRECTS)}
           <Route path="/supervisor/conversations" element={<ConversationsPage />} />
           <Route path="/supervisor/conversations/:studentId" element={<ConversationsPage />} />
           <Route path="/supervisor/alumni"        element={<AlumniPage />} />

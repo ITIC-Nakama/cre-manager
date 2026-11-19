@@ -1,5 +1,5 @@
 import MyFormationButton from '../../../components/student/MyFormationButton';
-import PostalCodeBanner from '../../../components/student/PostalCodeBanner';
+import AddressBanner from '../../../components/student/AddressBanner';
 import { useUserStore } from '../../../store/UserStore';
 import { useMyDashboardSummary } from '../../../hooks/useStudentDashboard';
 import MyAdvisorCard from './components/MyAdvisorCard';
@@ -96,8 +96,8 @@ export default function StudentDashboard() {
         <MyAdvisorCard advisor={data?.advisor ?? null} />
       </div>
 
-      {/* Code postal manquant : bandeau discret (carte de l'équipe) */}
-      <PostalCodeBanner />
+      {/* Adresse incomplète (lot 10) : bandeau, sans rien bloquer */}
+      <AddressBanner />
 
       {/* Alert CV to correct */}
       {cvNeedsCorrection && (

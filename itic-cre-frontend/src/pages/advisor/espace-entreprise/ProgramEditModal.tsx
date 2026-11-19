@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -7,7 +7,8 @@ import { useModalLayer } from '../../../hooks/useModalLayer';
 import { usePromotions } from '../../../hooks/usePromotions';
 import { fieldClass } from '../../../components/basics/fieldStyles';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
-import { createProgram, deleteProgram, updateProgram } from '../../../api-s/requests/CompanySpaceRequest';
+import { createProgram, deleteProgram, fetchAdminPrograms, updateProgram } from '../../../api-s/requests/CompanySpaceRequest';
+import DomainSelect from './DomainSelect';
 import type { AdminProgram, ProgramForm } from '../../../api-s/requests/CompanySpaceRequest';
 import { getApiErrorMessage } from '../../../utils/errorHelper';
 import { PROGRAMS_KEY } from './queryKeys';
@@ -18,6 +19,8 @@ export default function ProgramEditModal({ program, isAdmin, onClose }: { progra
     useModalLayer();
     const queryClient = useQueryClient();
     const { data: promotions } = usePromotions();
+    // Domaines déjà utilisés (lot 10) : liste déroulante du champ « Domaine ».
+    const { data: allPrograms } = useQuery({ queryKey: PROGRAMS_KEY, queryFn: fetchAdminPrograms, staleTime: 5 * 60_000 });
     const creating = program === null;
     const [form, setForm] = useState({
         level: program?.level ?? 'BTS',
@@ -78,7 +81,7 @@ export default function ProgramEditModal({ program, isAdmin, onClose }: { progra
                         </select>
                     </Field>
                     <Field label={t('company_admin.form.domain', 'Domaine')}>
-                        <input className={fieldClass(false, false)} value={form.domain} maxLength={80} onChange={(e) => set('domain', e.target.value)} />
+                        <DomainSelect value={form.domain} domains={(allPrograms ?? []).map((p) => p.domain)} onChange={(v) => set('domain', v)} />
                     </Field>
                     <Field label={t('company_admin.form.label', 'Nom affiché')}>
                         <input className={fieldClass(false, false)} value={form.label} maxLength={80} onChange={(e) => set('label', e.target.value)} />

@@ -14,6 +14,9 @@ import { handleApiError } from '../../utils/errorHelper';
 import { getBrowserLang } from '../../utils/browserSettings';
 import { formatPromotionLabel } from '../../utils/promotionUtils';
 import { toast } from 'sonner';
+import AddressFields from '../../components/shared/AddressFields';
+import { useAddressForm } from '../../hooks/useAddressForm';
+import { EMPTY_ADDRESS, serverAddressErrors, trimAddress } from '../../utils/address';
 
 export default function RegisterPage() {
     const { t } = useTranslation();
@@ -27,6 +30,8 @@ export default function RegisterPage() {
     const [promotionError, setPromotionError] = useState<string | null>(null);
     const [studyYear, setStudyYear] = useState('');
     const [studyYearError, setStudyYearError] = useState<string | null>(null);
+    // Adresse postale (lot 10) : obligatoire, mêmes règles que le serveur.
+    const address = useAddressForm(EMPTY_ADDRESS);
 
     const promotionOptions = useMemo(() => [
         {
@@ -58,6 +63,7 @@ export default function RegisterPage() {
     ], [availableYears, t]);
 
     const onSubmit = (data: any) => {
+        const addressOk = address.submit();
         if (!promotionId) {
             setPromotionError(t('auth.register.promotion_required'));
             return;
@@ -69,6 +75,7 @@ export default function RegisterPage() {
             return;
         }
         setStudyYearError(null);
+        if (!addressOk) return;
 
         const registerDto: RegisterDTO = {
             email: data.email,
@@ -80,6 +87,7 @@ export default function RegisterPage() {
             promotionId,
             studyYear: hasYears && studyYear ? Number(studyYear) : undefined,
             privacyAccepted: Boolean(data.privacyAccepted),
+            ...trimAddress(address.value),
         };
 
         mutate(registerDto, {
@@ -88,6 +96,7 @@ export default function RegisterPage() {
                 navigate(`/verify-email?email=${encodeURIComponent(registerDto.email)}`);
             },
             onError: (err: any) => {
+                address.setServerErrors(serverAddressErrors(err?.response?.data?.data));
                 handleApiError(err, setError, setGeneralError, t('auth.register.error_generic'));
             },
         });
@@ -164,7 +173,7 @@ export default function RegisterPage() {
                         </p>
                     </div>
 
-                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+                    <form className="space-y-5" onSubmit={handleSubmit(onSubmit, () => { address.submit(); })}>
 
                         {generalError && (
                             <div className="flex gap-2 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm animate-fade-in-up">
@@ -344,6 +353,18 @@ export default function RegisterPage() {
                                 <p className="text-red-500 text-xs">{errors.password.message as string}</p>
                             )}
                         </div>
+
+                        {/* Adresse postale (lot 10) */}
+                        <fieldset className="space-y-3 pt-1" aria-labelledby="register-address-title">
+                            <legend id="register-address-title" className="text-sm font-semibold text-slate-900 dark:text-white">
+                                {t('address.title', 'Adresse')}
+                            </legend>
+                            <AddressFields value={address.value} onChange={address.setValue} errors={address.errors}
+                                onBlurField={address.touch} disabled={isPending} idPrefix="register-address" />
+                            <p className="text-xs text-slate-500 dark:text-[#9aa0a6]">
+                                {t('address.privacy_note', 'Ton adresse sert à ton dossier administratif (conventions, contrats). Seuls toi, ton conseiller et l’équipe ITIC la voient.')}
+                            </p>
+                        </fieldset>
 
                         {/* Privacy & Terms Consent */}
                         <div className="space-y-1.5 pt-1">

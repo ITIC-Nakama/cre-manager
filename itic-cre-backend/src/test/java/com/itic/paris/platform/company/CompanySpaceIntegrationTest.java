@@ -155,7 +155,14 @@ class CompanySpaceIntegrationTest {
                 .content("{\"rhythm\":\"2 jours école / 3 jours entreprise\",\"availability\":\"Septembre 2026\"}"), advisor)
                 .andExpect(status().isNoContent());
 
+        // Lot 10 : l'adresse de l'étudiante ne part jamais vers les entreprises.
+        lina.setAddressLine1("7 allée Secrète");
+        lina.setPostalCode("75011");
+        lina.setCity("Villefictive");
+        studentRepository.saveAndFlush(lina);
+
         String page = publicJson(get("/public/entreprise/formations/bach-rh"));
+        assertThat(page).doesNotContain("Secrète").doesNotContain("Villefictive").doesNotContain("75011");
         assertThat(JsonPath.<String>read(page, "$.data.intro"))
                 .isEqualTo("Vous pouvez retrouver ici l'ensemble des CV de nos étudiants en Bachelor RH.");
         assertThat(JsonPath.<String>read(page, "$.data.texts.warningText")).contains("mise en place de contrat avec notre école exclusivement");
