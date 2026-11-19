@@ -8,25 +8,30 @@ import App from './App.tsx'
 import { registerSW } from 'virtual:pwa-register'
 import { toast } from 'sonner'
 import { queryClient } from './queryClient'
+import { startVersionWatcher } from './pwa/versionWatcher'
+
+// Identifiant du build (commit), aussi publié dans /version.json : sert à repérer qu'une autre version est en ligne.
+document.documentElement.dataset.build = __APP_BUILD_ID__;
+let swRegistration: ServiceWorkerRegistration | undefined;
 
 // Auto-update du Service Worker en arrière-plan avec alerte Toast
-const SW_UPDATE_INTERVAL_MS = 15 * 60 * 1000;
-
 registerSW({
   immediate: true,
   onNeedRefresh() {
     toast.info(i18n.t('pwa.update_available'));
   },
-  // Le navigateur ne cherche une nouvelle version du service worker qu'à la navigation (et parfois tard) : un onglet
-  // resté ouvert gardait l'ancienne version de l'application après un déploiement. On vérifie donc toutes les
-  // 15 minutes et à chaque retour sur l'onglet.
+  // La recherche de mise à jour est pilotée par startVersionWatcher (ci-dessous) : toutes les 5 minutes, au retour sur
+  // l'onglet et quand un morceau de l'application ne se charge plus, jamais pendant une saisie.
   onRegisteredSW(_swUrl, registration) {
-    if (!registration) return;
-    const check = () => { if (navigator.onLine) void registration.update().catch(() => undefined); };
-    setInterval(check, SW_UPDATE_INTERVAL_MS);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+    swRegistration = registration;
   },
 });
+
+// Rechargement automatique quand une autre version est en ligne (incident du 19/11 : un poste resté sur l'ancienne
+// version en cache). Inactif en développement (pas de /version.json).
+if (import.meta.env.PROD) {
+  startVersionWatcher({ currentBuildId: __APP_BUILD_ID__, getRegistration: () => swRegistration });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
