@@ -514,7 +514,7 @@ export default function CVValidationPage() {
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             {table.getHeaderGroups().map((hg) => (
-                                <tr key={hg.id} className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <tr key={hg.id} className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
                                     {hg.headers.map((header) => (
                                         <th key={header.id} className="px-6 py-4">
                                             {header.column.getCanSort() ? (

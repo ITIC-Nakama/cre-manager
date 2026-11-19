@@ -48,7 +48,7 @@ export default function AdvisorTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
               <SortableTh label={t('dashboard.conseillers.table.name')} sortKey="name" currentSort={sort} onSort={onSort} />
               <SortableTh label={t('dashboard.conseillers.table.contact')} sortKey="contact" currentSort={sort} onSort={onSort} />
               <th className="px-6 py-4">{t('dashboard.conseillers.table.job_title')}</th>

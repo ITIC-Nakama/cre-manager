@@ -259,7 +259,7 @@ export default function PromotionDetailPage() {
         <div className="overflow-x-auto rounded-b-2xl min-h-[320px]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 <SortableTh label={t('dashboard.promotions.table.students', 'Étudiant')} sortKey="student" currentSort={sort} onSort={handleSort} />
                 <SortableTh label={t('dashboard.promotions.status_label', 'Statut')} sortKey="isActive" currentSort={sort} onSort={handleSort} />
                 {promotion.hasYears && (

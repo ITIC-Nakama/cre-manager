@@ -28,6 +28,7 @@ import { useUserStore } from '../../../store/UserStore';
 import { Role } from '../../../types/models/Auth';
 import type { StudentRow } from '../../../types/models/Dashboard';
 import { isAnonymizedStudent } from '../../../utils/studentUtils';
+import { useColumnVisibility } from '../../../components/table/useColumnVisibility';
 
 import { useStudentColumns } from './hooks/useStudentTableColumn';
 import StudentTable from './components/StudentTable';
@@ -125,6 +126,8 @@ export default function EtudiantsPage() {
     const { data: advisors = [] } = useAllAdvisors();
 
     const columns = useStudentColumns({ isAdmin, onReactivate: studentActions.handleReactivateStudent });
+    // Colonnes affichées (bouton « Colonnes »), mémorisées par utilisateur (lot 11). Sélection et « Étudiant » : toujours.
+    const [columnVisibility, setColumnVisibility] = useColumnVisibility('etudiants', currentUser?.id, ['select', 'name']);
 
     const filterOptions = useMemo(() => [
         { value: 'all', label: t('dashboard.etudiants.filter_all') },
@@ -242,8 +245,9 @@ export default function EtudiantsPage() {
     const table = useReactTable({
         data: students,
         columns,
-        state: { sorting, rowSelection },
+        state: { sorting, rowSelection, columnVisibility },
         onSortingChange: setSorting,
+        onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
         getRowId: (row) => row.id,
         enableRowSelection: (row) => isAdmin && !isAnonymizedStudent(row.original),
@@ -371,8 +375,9 @@ export default function EtudiantsPage() {
 
     return (
         <div className="flex flex-col gap-6 animate-fadeIn">
-            {/* Header + Filters (sticky ensemble) */}
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+            {/* Header + Filters : accrochés en haut à partir de md ; sur mobile, la barre de filtres (plusieurs lignes)
+              * défile avec la page pour laisser la place au tableau. */}
+            <div className="md:sticky md:top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
                 <EtudiantsHeader
                     totalElements={totalElements}
                     exporting={exporting}

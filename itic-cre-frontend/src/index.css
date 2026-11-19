@@ -296,6 +296,57 @@ html.dark body {
   border-color: #333a51 !important;
 }
 
+/* ─── Tableaux de données (lot 11, DataTableFrame) ───
+   En-tête accroché en haut de la zone qui défile, colonnes figées à gauche (classe dt-sticky + style left), ombres
+   de défilement. Les fonds sont opaques et reprennent exactement ceux des cartes (#15171f en sombre, forcé plus haut)
+   et du survol des lignes, sinon le contenu qui défile apparaîtrait sous les colonnes figées. La ligne sous
+   l'en-tête est une ombre intérieure : une bordure de <tr> ne suit pas un en-tête accroché. */
+.dt-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: #f8fafc;
+  box-shadow: inset 0 -1px 0 #e2e8f0;
+}
+.dark .dt-table thead th {
+  background-color: #15171f;
+  box-shadow: inset 0 -1px 0 #333a51;
+}
+.dt-table .dt-sticky {
+  position: sticky;
+  z-index: 1;
+  background-color: #ffffff;
+}
+.dt-table thead th.dt-sticky {
+  z-index: 3;
+  background-color: #f8fafc;
+}
+.dark .dt-table .dt-sticky,
+.dark .dt-table thead th.dt-sticky {
+  background-color: #15171f;
+}
+/* Survol (slate-50/50 sur blanc ; slate-800/30 sur #15171f) et ligne atténuée (amber-50/30 ; amber-950/10). */
+.dt-table tbody tr:hover > .dt-sticky { background-color: #fbfcfe; }
+.dark .dt-table tbody tr:hover > .dt-sticky { background-color: #181c27; }
+.dt-table tbody tr.dt-row-muted > .dt-sticky { background-color: #fffefa; }
+.dark .dt-table tbody tr.dt-row-muted > .dt-sticky { background-color: #1a171c; }
+/* Ombre de la dernière colonne figée, dès que le tableau a défilé vers la droite. */
+.dt-scroll[data-scrolled-x] .dt-table .dt-sticky-edge {
+  box-shadow: 6px 0 8px -6px rgba(15, 23, 42, 0.28);
+}
+.dt-scroll[data-scrolled-x] .dt-table thead th.dt-sticky-edge {
+  box-shadow: inset 0 -1px 0 #e2e8f0, 6px 0 8px -6px rgba(15, 23, 42, 0.28);
+}
+.dark .dt-scroll[data-scrolled-x] .dt-table .dt-sticky-edge {
+  box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.85);
+}
+.dark .dt-scroll[data-scrolled-x] .dt-table thead th.dt-sticky-edge {
+  box-shadow: inset 0 -1px 0 #333a51, 6px 0 8px -6px rgba(0, 0, 0, 0.85);
+}
+/* Bord droit : il reste des colonnes à voir. */
+.dt-more-right { background: linear-gradient(to left, rgba(15, 23, 42, 0.10), rgba(15, 23, 42, 0)); }
+.dark .dt-more-right { background: linear-gradient(to left, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)); }
+
 /* Icone native du picker (Chromium) masquee : DateInput.tsx redessine sa propre icone cliquable
    par-dessus (appearance-none seul ne suffit pas a la retirer, elle restait visible en double). */
 input[type="date"]::-webkit-calendar-picker-indicator {

@@ -157,7 +157,7 @@ export default function PromotionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 <SortableTh label={t('dashboard.promotions.table.name')} sortKey="name" currentSort={sort} onSort={handleSort} />
                 <SortableTh label={t('dashboard.promotions.table.year')} sortKey="year" currentSort={sort} onSort={handleSort} />
                 <th className="px-6 py-4">{t('dashboard.promotions.table.years_levels')}</th>

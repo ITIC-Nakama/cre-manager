@@ -444,7 +444,10 @@
         "account_disabled": "Compte désactivé",
         "empty": "Aucun étudiant ne correspond à vos critères.",
         "last_activity": "Dernière connexion",
-        "rating": "Note"
+        "rating": "Note",
+        "region_label": "Tableau des étudiants",
+        "select_all": "Sélectionner tous les étudiants affichés",
+        "select_one": "Sélectionner {{name}}"
       },
       "detail": {
         "total_applications": "Total candidatures",
@@ -904,7 +907,8 @@
         "inactive": "Inactive",
         "created_at": "Publiée le",
         "actions": "Actions",
-        "empty": "Aucune offre ne correspond à vos critères."
+        "empty": "Aucune offre ne correspond à vos critères.",
+        "region_label": "Tableau des offres"
       },
       "actions": {
         "view_link": "Voir l'offre originale",
@@ -994,7 +998,8 @@
       "subtitle": "Consultez et gérez l'ensemble des offres d'emploi et d'alternance.",
       "filter_drafts": "Brouillons",
       "draft_badge": "Brouillon",
-      "draft_hint": "Brouillon : invisible des étudiants tant qu’il n’est pas publié."
+      "draft_hint": "Brouillon : invisible des étudiants tant qu’il n’est pas publié.",
+      "filters_button_active": "Filtres ({{count}})"
     },
     "notify_modal": {
       "message_label": "Message personnalisé",
@@ -2865,7 +2870,9 @@
     "detach": "Détacher",
     "column_student": "Formation",
     "sort_name": "Tri : nom",
-    "sort_formation": "Tri : formation"
+    "sort_formation": "Tri : formation",
+    "filter_aria": "Filtrer par formation",
+    "filter_active": "Formations ({{count}})"
   },
   "alerts": {
     "preview_title": "Destinataires de l’alerte",
@@ -2928,5 +2935,12 @@
     "title": "Page non disponible",
     "text": "Cette page n’est pas accessible pour le moment.",
     "home": "Aller à la page de connexion"
+  },
+  "table": {
+    "columns": "Colonnes",
+    "columns_hidden": "Colonnes ({{count}} masquées)",
+    "columns_title": "Colonnes affichées",
+    "column_locked": "toujours affichée",
+    "columns_show_all": "Tout afficher"
   }
 }

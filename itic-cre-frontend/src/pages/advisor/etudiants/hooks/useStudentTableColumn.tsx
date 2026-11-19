@@ -7,6 +7,7 @@ import TruncatedText from '../../../../components/shared/TruncatedText';
 import UserAvatar from '../../../../components/shared/UserAvatar';
 import StudentActivityBadge from '../../../../components/shared/StudentActivityBadge';
 import { isAnonymizedStudent } from '../../../../utils/studentUtils';
+import { SELECT_COLUMN_WIDTH } from '../../../../components/table/columnMeta';
 
 const col = createColumnHelper<StudentRow>();
 
@@ -45,8 +46,12 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
     return useMemo(() => [
         ...(isAdmin ? [col.display({
             id: 'select',
+            // Figée à gauche, largeur fixe (décalage de la colonne « Étudiant ») ; jamais masquable.
+            enableHiding: false,
+            meta: { stickyLeft: 0, className: 'w-12 min-w-12 max-w-12' },
             header: ({ table }) => (
                 <IndeterminateCheckbox
+                    aria-label={t('dashboard.etudiants.table.select_all', 'Sélectionner tous les étudiants affichés')}
                     checked={table.getIsAllPageRowsSelected()}
                     indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
                     onChange={table.getToggleAllPageRowsSelectedHandler()}
@@ -58,6 +63,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                 return (
                     <input
                         type="checkbox"
+                        aria-label={t('dashboard.etudiants.table.select_one', { name: `${row.original.firstName} ${row.original.lastName}`, defaultValue: 'Sélectionner {{name}}' })}
                         checked={row.getIsSelected()}
                         disabled={isAnon}
                         onChange={row.getToggleSelectedHandler()}
@@ -69,10 +75,16 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
         col.accessor((row) => `${row.firstName} ${row.lastName}`, {
             id: 'name',
             header: t('dashboard.etudiants.table.student'),
+            // Identité de la ligne : figée à gauche (après la sélection) et jamais masquable (lot 11).
+            enableHiding: false,
+            meta: { stickyLeft: isAdmin ? SELECT_COLUMN_WIDTH : 0, stickyEdge: true },
             cell: ({ row }) => {
                 const isAnon = isAnonymizedStudent(row.original);
+                const fullName = `${row.original.firstName} ${row.original.lastName}`;
+                // Badges : icône seule sur mobile (le texte reste lu par les lecteurs d'écran) pour garder la colonne figée étroite.
+                const badgeText = 'sr-only sm:not-sr-only';
                 return (
-                    <div className="flex items-center gap-2.5 max-w-[260px]">
+                    <div className="flex items-center gap-2.5 whitespace-nowrap">
                         <UserAvatar
                             profilePicture={row.original.profilePicture}
                             firstName={row.original.firstName}
@@ -81,31 +93,34 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                             enlargeOnClick
                         />
                         <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1.5">
                                 <TruncatedText
-                                    text={`${row.original.firstName} ${row.original.lastName}`}
-                                    className={isAnon ? "font-semibold text-slate-500 dark:text-slate-400" : "font-semibold text-slate-900 dark:text-white"}
+                                    text={fullName}
+                                    className={`max-w-[7.5rem] sm:max-w-[17rem] ${isAnon ? 'font-semibold text-slate-500 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-white'}`}
                                 />
                                 {isAnon && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                        <ShieldAlert className="h-3 w-3" />
-                                        {t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}
+                                    <span className="inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                                        title={t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}>
+                                        <ShieldAlert className="h-3 w-3" aria-hidden="true" />
+                                        <span className={badgeText}>{t('dashboard.etudiants.table.gdpr_badge', 'Supprimé (RGPD)')}</span>
                                     </span>
                                 )}
                                 {row.original.underContract && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                        <FileSignature className="h-3 w-3" />
-                                        {t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}
+                                    <span className="inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                                        title={t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}>
+                                        <FileSignature className="h-3 w-3" aria-hidden="true" />
+                                        <span className={badgeText}>{t('dashboard.etudiants.table.under_contract_badge', 'Sous contrat')}</span>
                                     </span>
                                 )}
                                 {row.original.contractNeedsVerification && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                        <ShieldAlert className="h-2.5 w-2.5" />
-                                        {t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}
+                                    <span className="inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                                        title={t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}>
+                                        <ShieldAlert className="h-2.5 w-2.5" aria-hidden="true" />
+                                        <span className={badgeText}>{t('dashboard.etudiants.table.contract_unverified_badge', 'À vérifier')}</span>
                                     </span>
                                 )}
                             </div>
-                            <TruncatedText text={row.original.email} className="text-xs text-slate-400 font-mono" />
+                            <TruncatedText text={row.original.email} className="max-w-[9rem] sm:max-w-[17rem] text-xs text-slate-400 font-mono" />
                         </div>
                     </div>
                 );
@@ -118,10 +133,10 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                 const value = getValue();
                 const studyYear = row.original.studyYear;
                 return value ? (
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        <TruncatedText text={value} className="max-w-[200px] text-slate-500 dark:text-slate-400 text-sm" />
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <TruncatedText text={value} className="max-w-[14rem] text-slate-500 dark:text-slate-400 text-sm" />
                         {studyYear && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40">
+                            <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40">
                                 {t(`study_years.year_${studyYear}`, `${studyYear}e année`)}
                             </span>
                         )}
@@ -138,7 +153,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
             cell: ({ getValue }) => {
                 const value = getValue();
                 return value
-                    ? <TruncatedText text={value} className="max-w-[180px] text-slate-600 dark:text-slate-300 text-sm" />
+                    ? <TruncatedText text={value} className="max-w-[14rem] text-slate-600 dark:text-slate-300 text-sm" />
                     : <span className="text-slate-300 dark:text-slate-600">—</span>;
             },
             enableSorting: true,
@@ -149,14 +164,14 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
             cell: ({ row }) => {
                 const student = row.original;
                 return student.advisor
-                    ? <span className="text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
+                    ? <span className="whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{student.advisor.firstName} {student.advisor.lastName}</span>
                     : <span className="text-slate-300 dark:text-slate-600">—</span>;
             },
         }),
         col.accessor('xpTotal', {
             header: t('dashboard.etudiants.table.grade_xp').split(' / ')[0],
             cell: ({ row }) => (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
                         {row.original.grade?.nom ?? '—'}
                     </span>
@@ -166,7 +181,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
         col.accessor('hasCv', {
             header: t('dashboard.etudiants.table.cv'),
             cell: ({ getValue }) => (
-                <div className="flex items-center">
+                <div className="flex items-center whitespace-nowrap">
                     {getValue() ? (
                         <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
                             {t('dashboard.etudiants.table.cv_deposited')}
@@ -186,7 +201,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
             cell: ({ getValue }) => {
                 const value = getValue();
                 return value ? (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-xs font-semibold text-amber-800 dark:text-amber-300"
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-xs font-semibold text-amber-800 dark:text-amber-300"
                         title={t('dashboard.etudiants.rating.private', 'Jamais visible par l’étudiant')}>
                         <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                         {value}/5
@@ -197,7 +212,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
             cell: ({ getValue, row }) => (
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <StudentActivityBadge
                         accountActive={row.original.accountActive}
                         isActive={!!getValue()}
