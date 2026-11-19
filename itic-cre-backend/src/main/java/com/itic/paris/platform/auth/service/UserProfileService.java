@@ -82,8 +82,8 @@ public class UserProfileService {
     @Value("${app.upload.max-image-size-mb:5}")
     private long maxImageSizeMb;
 
-    /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE. */
-    @Value("${app.admin.max-active:3}")
+    /** Plafond d'administrateurs actifs simultanément — configurable via ADMIN_MAX_ACTIVE (4 : trois admins et une place de secours). */
+    @Value("${app.admin.max-active:4}")
     private long adminMaxActive;
 
     /**

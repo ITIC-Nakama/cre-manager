@@ -6,7 +6,6 @@ import com.itic.paris.platform.reclamation.model.dtos.ReclamationFormContextDTO;
 import com.itic.paris.platform.reclamation.service.ReclamationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,8 +34,8 @@ public class ReclamationController {
     }
 
     @PostMapping
-    @Operation(summary = "Créer une réclamation")
-    public ResponseEntity<ReclamationDTO> create(@Valid @RequestBody CreateReclamationRequest request) {
+    @Operation(summary = "Retiré (lot 10) : toujours 410 Gone, la messagerie remplace les demandes d'aide")
+    public ResponseEntity<ReclamationDTO> create(@RequestBody(required = false) CreateReclamationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(reclamationService.create(request));
     }
 

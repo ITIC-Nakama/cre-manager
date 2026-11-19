@@ -2,9 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import type { Plugin } from 'vite'
+
+// Identifiant du build : le commit en CI (GITHUB_SHA), sinon l'heure du build. Injecté dans la page (__APP_BUILD_ID__)
+// et publié dans /version.json, que l'application relit pour savoir si une autre version est en ligne.
+const BUILD_ID = process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 12) : `local-${Date.now()}`
+
+function versionFile(): Plugin {
+  return {
+    name: 'cre-version-file',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ buildId: BUILD_ID }) })
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __APP_BUILD_ID__: JSON.stringify(BUILD_ID),
+  },
   server: {
     host: true,
     port: 5173,
@@ -12,6 +30,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    versionFile(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -60,6 +79,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // version.json n'est jamais précaché (extension json absente de la liste) : il doit toujours venir du réseau.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Exclure de l'interception SPA Service Worker pour éviter les redirections React :
         // - L'API backend (/api/)

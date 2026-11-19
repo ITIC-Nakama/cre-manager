@@ -175,52 +175,46 @@ public class ReclamationIntegrationTest {
     class StudentSide {
 
         @Test
-        @DisplayName("Create without assigned advisor is rejected")
-        void createWithoutAdvisor_isRejected() throws Exception {
-            mockMvc.perform(post("/reclamations")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithoutAdvisorToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"J'ai un probleme\",\"phoneNumber\":\"0612345678\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.messageKey").value("reclamation-no-advisor-assigned"));
-
-            assertThat(reclamationRepository.findByStudentId(studentWithoutAdvisor.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
-                    .isZero();
+        @DisplayName("Lot 10 : les demandes d'aide sont retirées — toute création est refusée en 410, quel que soit l'étudiant")
+        void create_isGone() throws Exception {
+            for (String token : new String[]{studentWithAdvisorToken, studentWithoutAdvisorToken, studentWithPhoneToken}) {
+                mockMvc.perform(post("/reclamations")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"message\":\"J'ai un probleme\",\"phoneNumber\":\"0698765432\"}"))
+                        .andExpect(status().isGone())
+                        .andExpect(jsonPath("$.messageKey").value("reclamations-retired"));
+            }
+            assertThat(reclamationRepository.count()).isZero();
+            assertThat(studentRepository.findById(studentWithAdvisor.getId()).orElseThrow().getPhoneNumber())
+                    .as("plus aucun effet de bord sur le profil").isNull();
         }
 
         @Test
-        @DisplayName("Create without phone, and none on file, is rejected")
-        void createWithoutPhone_andNoneOnFile_isRejected() throws Exception {
-            mockMvc.perform(post("/reclamations")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithAdvisorToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"J'ai un probleme\"}"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.messageKey").value("reclamation-phone-required"));
-        }
-
-        @Test
-        @DisplayName("Create with phone persists it to the student profile")
-        void createWithPhone_persistsToProfile() throws Exception {
-            mockMvc.perform(post("/reclamations")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithAdvisorToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"J'ai un probleme\",\"phoneNumber\":\"0698765432\"}"))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.data.status").value("PENDING"));
-
-            Student updated = studentRepository.findById(studentWithAdvisor.getId()).orElseThrow();
-            assertThat(updated.getPhoneNumber()).isEqualTo("0698765432");
-        }
-
-        @Test
-        @DisplayName("Create with phone already on file does not require it again")
-        void createWithExistingPhone_doesNotRequireIt() throws Exception {
+        @DisplayName("Lot 10 : les demandes existantes restent en base et lisibles par l'équipe (historique), sans création possible")
+        void existingReclamationsAreKept() throws Exception {
+            Reclamation old = persistReclamation(studentWithPhone, ReclamationStatus.PENDING);
             mockMvc.perform(post("/reclamations")
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"J'ai un probleme\"}"))
-                    .andExpect(status().isCreated());
+                            .content("{\"message\":\"Encore\"}"))
+                    .andExpect(status().isGone());
+            assertThat(reclamationRepository.findById(old.getId())).isPresent();
+            mockMvc.perform(get("/dashboard/reclamations")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content.length()").value(1));
+        }
+
+        @Test
+        @DisplayName("Lot 10 : plus aucun e-mail lié aux demandes d'aide (aucun écouteur ne les envoie)")
+        void noReclamationEmailListenerLeft() {
+            for (java.lang.reflect.Method m : com.itic.paris.platform.shared.notification.NotificationEmailService.class.getDeclaredMethods()) {
+                assertThat(m.getName().toLowerCase()).as(m.getName()).doesNotContain("reclamation");
+                for (Class<?> type : m.getParameterTypes()) {
+                    assertThat(type.getSimpleName()).as(m.getName()).doesNotContain("Reclamation");
+                }
+            }
         }
 
         @Test
@@ -260,37 +254,6 @@ public class ReclamationIntegrationTest {
         void unauthenticated_isRejected() throws Exception {
             mockMvc.perform(get("/reclamations"))
                     .andExpect(status().isUnauthorized());
-        }
-
-        @Test
-        @DisplayName("Create while another reclamation is still pending is rejected")
-        void create_whileOnePending_isRejected() throws Exception {
-            persistReclamation(studentWithPhone, ReclamationStatus.PENDING);
-
-            mockMvc.perform(post("/reclamations")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"Un autre probleme\"}"))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.messageKey").value("reclamation-already-pending"));
-
-            assertThat(reclamationRepository.findByStudentId(studentWithPhone.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
-                    .isEqualTo(1);
-        }
-
-        @Test
-        @DisplayName("Create is allowed again once the previous reclamation is resolved")
-        void create_afterPreviousResolved_isAllowed() throws Exception {
-            persistReclamation(studentWithPhone, ReclamationStatus.RESOLVED);
-
-            mockMvc.perform(post("/reclamations")
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentWithPhoneToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"message\":\"Nouveau probleme\"}"))
-                    .andExpect(status().isCreated());
-
-            assertThat(reclamationRepository.findByStudentId(studentWithPhone.getId(), org.springframework.data.domain.Pageable.unpaged()).getTotalElements())
-                    .isEqualTo(2);
         }
 
         @Test

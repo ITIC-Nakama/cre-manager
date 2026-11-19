@@ -24,6 +24,12 @@ public final class UserMapper {
         student.setPrivacyAccepted(dto.isPrivacyAccepted());
         student.setPrivacyAcceptedAt(dto.isPrivacyAccepted() ? Instant.now() : null);
         student.setPrivacyPolicyVersion("1.0");
+        // Adresse (lot 10) : déjà validée par UserRegisterDto ; nettoyée ici, département déduit pour la carte.
+        student.setAddressLine1(trimToNull(dto.getAddressLine1()));
+        student.setCity(trimToNull(dto.getCity()));
+        String postalCode = trimToNull(dto.getPostalCode());
+        student.setPostalCode(postalCode);
+        student.setDepartment(com.itic.paris.platform.geo.PostalCodes.department(postalCode).orElse(null));
         mapCommonFields(student, dto.getEmail(), dto.getFirstName(), dto.getLastName(),
                 dto.getPhoneNumber(), dto.getPassword(), dto.getLang(), role);
         return student;
@@ -63,5 +69,13 @@ public final class UserMapper {
         if (role != null) {
             user.setRole(role);
         }
+    }
+
+    public static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
