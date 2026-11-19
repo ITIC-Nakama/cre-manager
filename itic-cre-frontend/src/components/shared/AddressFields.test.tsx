@@ -50,18 +50,25 @@ function cities(names: string[]) {
 }
 
 describe('validation de l’adresse', () => {
-    it('rue, code postal à 5 chiffres et ville obligatoires ; complément facultatif', () => {
+    it('rue, code postal à 5 chiffres et ville obligatoires ; plus de champ « Complément »', () => {
         expect(validateAddress(EMPTY_ADDRESS)).toEqual({
             addressLine1: 'ADDRESS_LINE1_REQUIRED', postalCode: 'POSTAL_CODE_REQUIRED', city: 'CITY_REQUIRED',
         });
-        const ok = { addressLine1: ' 12 rue X ', addressLine2: '', postalCode: '75011', city: 'Paris' };
+        const ok = { addressLine1: ' 12 rue X ', postalCode: '75011', city: 'Paris' };
         expect(validateAddress(ok)).toEqual({});
         for (const bad of ['7501', '750111', '75O11', '75 11']) {
             expect(validateAddress({ ...ok, postalCode: bad }).postalCode).toBe('POSTAL_CODE_INVALID');
         }
         expect(validateAddress({ ...ok, addressLine1: '   ' }).addressLine1).toBe('ADDRESS_LINE1_REQUIRED');
-        expect(validateAddress({ ...ok, addressLine2: 'x'.repeat(121) }).addressLine2).toBe('ADDRESS_LINE2_TOO_LONG');
         expect(serverAddressErrors({ postalCode: 'POSTAL_CODE_INVALID', email: 'autre' })).toEqual({ postalCode: 'POSTAL_CODE_INVALID' });
+    });
+
+    it('le formulaire n’affiche pas de champ « Complément »', () => {
+        fetchMock.mockReturnValue(cities([]));
+        render(<Harness />);
+        expect(screen.getByLabelText(/N° et rue/)).toBeTruthy();
+        expect(screen.queryByLabelText(/Complément/)).toBeNull();
+        expect(document.querySelector('[autocomplete="address-line2"]')).toBeNull();
     });
 
     it('erreurs en direct : affichées quand on quitte un champ vide, toutes à l’envoi, avec les messages du serveur', async () => {
@@ -146,13 +153,13 @@ describe('aide au code postal (geo.api.gouv.fr simulée)', () => {
 
 describe('bandeau « Complète ton adresse »', () => {
     it('affiché tant que l’adresse est incomplète, avec un lien vers le bloc Adresse ; absent une fois enregistrée', async () => {
-        api.get.mockResolvedValue({ data: { data: { addressLine1: null, addressLine2: null, postalCode: '93200', city: null, complete: false } } });
+        api.get.mockResolvedValue({ data: { data: { addressLine1: null, postalCode: '93200', city: null, complete: false } } });
         const first = wrap(<AddressBanner />);
         expect(await screen.findByText('Complète ton adresse : elle est maintenant demandée pour ton dossier.')).toBeTruthy();
         expect(screen.getByRole('link', { name: 'Compléter mon adresse' }).getAttribute('href')).toBe('/student/parametres#adresse');
         first.unmount();
 
-        api.get.mockResolvedValue({ data: { data: { addressLine1: '1 rue X', addressLine2: null, postalCode: '93200', city: 'Saint-Denis', complete: true } } });
+        api.get.mockResolvedValue({ data: { data: { addressLine1: '1 rue X', postalCode: '93200', city: 'Saint-Denis', complete: true } } });
         wrap(<AddressBanner />);
         await flush();
         expect(screen.queryByText(/Complète ton adresse/)).toBeNull();

@@ -18,7 +18,7 @@ export default function AddressCard() {
 }
 
 function toForm(a: StudentAddress) {
-    return { addressLine1: a.addressLine1 ?? '', addressLine2: a.addressLine2 ?? '', postalCode: a.postalCode ?? '', city: a.city ?? '' };
+    return { addressLine1: a.addressLine1 ?? '', postalCode: a.postalCode ?? '', city: a.city ?? '' };
 }
 
 function AddressCardForm({ initial }: { initial: StudentAddress }) {

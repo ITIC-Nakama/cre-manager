@@ -29,14 +29,14 @@ public class StudentAddressService {
     /** Mêmes règles qu'à l'inscription (UserRegisterDto) : rue, code postal à 5 chiffres et ville obligatoires. */
     public record AddressRequest(
             @NotBlank(message = "ADDRESS_LINE1_REQUIRED") @Size(max = 120, message = "ADDRESS_LINE1_TOO_LONG") String addressLine1,
-            @Size(max = 120, message = "ADDRESS_LINE2_TOO_LONG") String addressLine2,
             @NotBlank(message = "POSTAL_CODE_REQUIRED") @Pattern(regexp = "^\\s*$|^\\s*\\d{5}\\s*$", message = "POSTAL_CODE_INVALID") String postalCode,
             @NotBlank(message = "CITY_REQUIRED") @Size(max = 80, message = "CITY_TOO_LONG") String city) {
     }
 
-    public record Address(String addressLine1, String addressLine2, String postalCode, String city, boolean complete) {
+    /** Sans « Complément » (retiré du formulaire le 19/11) : la colonne address_line2 reste en base, ni lue ni écrite ici. */
+    public record Address(String addressLine1, String postalCode, String city, boolean complete) {
         static Address of(Student s) {
-            return new Address(s.getAddressLine1(), s.getAddressLine2(), s.getPostalCode(), s.getCity(), s.hasCompleteAddress());
+            return new Address(s.getAddressLine1(), s.getPostalCode(), s.getCity(), s.hasCompleteAddress());
         }
     }
 
@@ -60,7 +60,6 @@ public class StudentAddressService {
             throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.ADDRESS_INVALID);
         }
         s.setAddressLine1(line1);
-        s.setAddressLine2(UserMapper.trimToNull(request.addressLine2()));
         s.setPostalCode(postalCode);
         s.setDepartment(PostalCodes.department(postalCode).orElse(null));
         s.setCity(city);

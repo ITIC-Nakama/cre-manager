@@ -2903,8 +2903,6 @@
     "optional": "facultatif",
     "line1_label": "N° et rue",
     "line1_placeholder": "12 rue de la Paix",
-    "line2_label": "Complément",
-    "line2_placeholder": "Bâtiment, étage, appartement…",
     "postal_code_label": "Code postal",
     "city_label": "Ville",
     "city_placeholder": "Paris",
@@ -2919,7 +2917,6 @@
     "errors": {
       "ADDRESS_LINE1_REQUIRED": "Indique ton numéro et ta rue.",
       "ADDRESS_LINE1_TOO_LONG": "120 caractères au maximum.",
-      "ADDRESS_LINE2_TOO_LONG": "120 caractères au maximum.",
       "POSTAL_CODE_REQUIRED": "Indique ton code postal.",
       "POSTAL_CODE_INVALID": "Code postal non valide : 5 chiffres (ex. 75011).",
       "CITY_REQUIRED": "Indique ta ville.",

@@ -134,7 +134,7 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                 <Home className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                                 {student.addressLine1 ? (
                                     <span>
-                                        {student.addressLine1}{student.addressLine2 ? `, ${student.addressLine2}` : ''}
+                                        {student.addressLine1}
                                         {', '}{[student.postalCode, student.city].filter(Boolean).join(' ')}
                                     </span>
                                 ) : (

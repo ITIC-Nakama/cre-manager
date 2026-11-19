@@ -26,7 +26,6 @@ public final class UserMapper {
         student.setPrivacyPolicyVersion("1.0");
         // Adresse (lot 10) : déjà validée par UserRegisterDto ; nettoyée ici, département déduit pour la carte.
         student.setAddressLine1(trimToNull(dto.getAddressLine1()));
-        student.setAddressLine2(trimToNull(dto.getAddressLine2()));
         student.setCity(trimToNull(dto.getCity()));
         String postalCode = trimToNull(dto.getPostalCode());
         student.setPostalCode(postalCode);

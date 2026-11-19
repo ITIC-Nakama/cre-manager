@@ -184,9 +184,8 @@ public class StudentReportingService {
             row.put("starRating", student.getStarRating());
             row.put("latestRating", student.getLatestRating());
             row.put("postalCode", student.getPostalCode());
-            // Adresse (lot 10) : pour l'export CSV de l'équipe (colonnes Adresse, Complément, Code postal, Ville).
+            // Adresse (lot 10) : pour l'export CSV de l'équipe (colonnes Adresse, Code postal, Ville).
             row.put("addressLine1", student.getAddressLine1());
-            row.put("addressLine2", student.getAddressLine2());
             row.put("city", student.getCity());
             row.put("department", student.getDepartment());
             return row;
@@ -271,7 +270,6 @@ public class StudentReportingService {
         detail.put("postalCode", student.getPostalCode());
         // Adresse (lot 10) : lecture seule pour l'équipe, jamais transmise aux entreprises.
         detail.put("addressLine1", student.getAddressLine1());
-        detail.put("addressLine2", student.getAddressLine2());
         detail.put("city", student.getCity());
         detail.put("department", student.getDepartment());
         detail.put("phoneNumber", student.getPhoneNumber());

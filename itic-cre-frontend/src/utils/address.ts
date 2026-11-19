@@ -2,17 +2,17 @@ import type { AddressForm } from '../api-s/requests/StudentAddressRequest';
 
 /** Codes d'erreur de l'adresse, identiques à ceux du serveur (UserRegisterDto, StudentAddressService). */
 export type AddressErrorCode =
-    | 'ADDRESS_LINE1_REQUIRED' | 'ADDRESS_LINE1_TOO_LONG' | 'ADDRESS_LINE2_TOO_LONG'
+    | 'ADDRESS_LINE1_REQUIRED' | 'ADDRESS_LINE1_TOO_LONG'
     | 'POSTAL_CODE_REQUIRED' | 'POSTAL_CODE_INVALID' | 'CITY_REQUIRED' | 'CITY_TOO_LONG';
 
 export type AddressErrors = Partial<Record<keyof AddressForm, AddressErrorCode>>;
 
-export const EMPTY_ADDRESS: AddressForm = { addressLine1: '', addressLine2: '', postalCode: '', city: '' };
+export const EMPTY_ADDRESS: AddressForm = { addressLine1: '', postalCode: '', city: '' };
 
-const ADDRESS_CODES: AddressErrorCode[] = ['ADDRESS_LINE1_REQUIRED', 'ADDRESS_LINE1_TOO_LONG', 'ADDRESS_LINE2_TOO_LONG',
+const ADDRESS_CODES: AddressErrorCode[] = ['ADDRESS_LINE1_REQUIRED', 'ADDRESS_LINE1_TOO_LONG',
     'POSTAL_CODE_REQUIRED', 'POSTAL_CODE_INVALID', 'CITY_REQUIRED', 'CITY_TOO_LONG'];
 
-/** Mêmes règles que le serveur : rue, code postal (exactement 5 chiffres) et ville obligatoires ; complément facultatif. */
+/** Mêmes règles que le serveur : rue, code postal (exactement 5 chiffres) et ville obligatoires (plus de champ « Complément » depuis le 19/11). */
 export function validateAddress(a: AddressForm): AddressErrors {
     const errors: AddressErrors = {};
     const line1 = a.addressLine1.trim();
@@ -20,7 +20,6 @@ export function validateAddress(a: AddressForm): AddressErrors {
     const city = a.city.trim();
     if (!line1) errors.addressLine1 = 'ADDRESS_LINE1_REQUIRED';
     else if (line1.length > 120) errors.addressLine1 = 'ADDRESS_LINE1_TOO_LONG';
-    if (a.addressLine2.trim().length > 120) errors.addressLine2 = 'ADDRESS_LINE2_TOO_LONG';
     if (!postal) errors.postalCode = 'POSTAL_CODE_REQUIRED';
     else if (!/^\d{5}$/.test(postal)) errors.postalCode = 'POSTAL_CODE_INVALID';
     if (!city) errors.city = 'CITY_REQUIRED';
@@ -32,7 +31,7 @@ export function validateAddress(a: AddressForm): AddressErrors {
 export function serverAddressErrors(data: unknown): AddressErrors {
     const out: AddressErrors = {};
     if (!data || typeof data !== 'object') return out;
-    for (const key of ['addressLine1', 'addressLine2', 'postalCode', 'city'] as const) {
+    for (const key of ['addressLine1', 'postalCode', 'city'] as const) {
         const code = (data as Record<string, unknown>)[key];
         if (typeof code === 'string' && (ADDRESS_CODES as string[]).includes(code)) out[key] = code as AddressErrorCode;
     }
@@ -40,7 +39,7 @@ export function serverAddressErrors(data: unknown): AddressErrors {
 }
 
 export function trimAddress(a: AddressForm): AddressForm {
-    return { addressLine1: a.addressLine1.trim(), addressLine2: a.addressLine2.trim(), postalCode: a.postalCode.trim(), city: a.city.trim() };
+    return { addressLine1: a.addressLine1.trim(), postalCode: a.postalCode.trim(), city: a.city.trim() };
 }
 
 /**

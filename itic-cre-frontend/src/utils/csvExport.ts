@@ -12,7 +12,7 @@ export function csvCell(cell: unknown): string {
 
 export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.csv') {
     const headers = ['Prénom', 'Nom', 'Email', 'Promotion', 'Année', 'XP', 'Grade', 'Candidatures', 'En retard', 'CV', 'Actif',
-        'Adresse', 'Complément', 'Code postal', 'Ville'];
+        'Adresse', 'Code postal', 'Ville'];
 
     const rows = students.map((s) => [
         s.firstName,
@@ -27,7 +27,6 @@ export function exportStudentsCsv(students: StudentRow[], filename = 'etudiants.
         s.hasCv ? 'Oui' : 'Non',
         s.isActive ? 'Oui' : 'Non',
         s.addressLine1 ?? '',
-        s.addressLine2 ?? '',
         s.postalCode ?? '',
         s.city ?? '',
     ]);

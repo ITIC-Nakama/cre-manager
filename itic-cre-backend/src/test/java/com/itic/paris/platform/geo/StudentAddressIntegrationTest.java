@@ -116,14 +116,14 @@ class StudentAddressIntegrationTest {
     void registrationWithAddressIsSaved() throws Exception {
         Map<String, Object> body = registration("ines.adresse@itic.fr");
         body.put("addressLine1", "  12 rue de la Recette ");
-        body.put("addressLine2", "  ");
+        body.put("addressLine2", "Bât. A"); // ancien client : le « Complément » n'existe plus (19/11), ignoré
         body.put("postalCode", " 93200 ");
         body.put("city", " Saint-Denis ");
         register(body).andExpect(status().isCreated());
 
         Student ines = (Student) userRepository.findByEmailIgnoreCase("ines.adresse@itic.fr").orElseThrow();
         assertThat(ines.getAddressLine1()).isEqualTo("12 rue de la Recette");
-        assertThat(ines.getAddressLine2()).isNull();
+        assertThat(ines.getAddressLine2()).as("complément ignoré").isNull();
         assertThat(ines.getPostalCode()).isEqualTo("93200");
         assertThat(ines.getDepartment()).isEqualTo("93");
         assertThat(ines.getCity()).isEqualTo("Saint-Denis");
@@ -153,7 +153,7 @@ class StudentAddressIntegrationTest {
     void studentCannotClearAddress() throws Exception {
         putAddress(nina, "{\"addressLine1\":\"5 avenue Fictive\",\"addressLine2\":\"Bât. B\",\"postalCode\":\"75011\",\"city\":\"Paris\"}")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.complete").value(true))
-                .andExpect(jsonPath("$.data.addressLine2").value("Bât. B"));
+                .andExpect(jsonPath("$.data.addressLine2").doesNotExist());
         // Le profil (gardé dans le navigateur) ne porte jamais l'adresse : elle se lit par /me/address.
         perform(get("/auth/users/me"), nina).andExpect(jsonPath("$.data.addressLine1").doesNotExist())
                 .andExpect(jsonPath("$.data.city").doesNotExist()).andExpect(jsonPath("$.data.postalCode").doesNotExist());
@@ -177,7 +177,7 @@ class StudentAddressIntegrationTest {
         putAddress(nina, "{\"addressLine1\":\"8 rue Imaginaire\",\"postalCode\":\"92100\",\"city\":\"Boulogne-Billancourt\"}")
                 .andExpect(status().isOk());
         saved = studentRepository.findById(nina.getId()).orElseThrow();
-        assertThat(saved.getAddressLine2()).as("complément vidé : facultatif").isNull();
+        assertThat(saved.getAddressLine2()).as("complément jamais écrit (champ retiré)").isNull();
         assertThat(saved.getDepartment()).isEqualTo("92");
         // Journal d'audit : la modification apparaît, la valeur jamais.
         entityManager.flush();
@@ -228,8 +228,13 @@ class StudentAddressIntegrationTest {
     @Test
     @DisplayName("RGPD : l'adresse est dans l'export de l'étudiant, effacée à l'anonymisation et à la suppression définitive")
     void gdprExportErasureAndDeletion() throws Exception {
-        putAddress(nina, "{\"addressLine1\":\"5 avenue Fictive\",\"addressLine2\":\"Esc. 2\",\"postalCode\":\"75011\",\"city\":\"Paris\"}")
+        putAddress(nina, "{\"addressLine1\":\"5 avenue Fictive\",\"postalCode\":\"75011\",\"city\":\"Paris\"}")
                 .andExpect(status().isOk());
+        // Colonne address_line2 gardée en base (champ retiré du formulaire) : si elle porte une valeur, l'export la donne
+        // et l'anonymisation l'efface.
+        Student withLine2 = studentRepository.findById(nina.getId()).orElseThrow();
+        withLine2.setAddressLine2("Esc. 2");
+        studentRepository.save(withLine2);
         putAddress(omar, "{\"addressLine1\":\"9 impasse Inventée\",\"postalCode\":\"93200\",\"city\":\"Saint-Denis\"}")
                 .andExpect(status().isOk());
 

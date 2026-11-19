@@ -70,7 +70,6 @@ export interface StudentRow {
   department?: string | null;
   /** Adresse postale (lot 10) : équipe seulement, lecture seule. */
   addressLine1?: string | null;
-  addressLine2?: string | null;
   city?: string | null;
 }
 

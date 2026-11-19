@@ -44,8 +44,7 @@ public class UserRegisterDto {
     @Size(max = 120, message = "ADDRESS_LINE1_TOO_LONG")
     private String addressLine1;
 
-    @Size(max = 120, message = "ADDRESS_LINE2_TOO_LONG")
-    private String addressLine2;
+    // Plus de « Complément » (19/11) : un addressLine2 envoyé par un ancien client est ignoré (propriété inconnue).
 
     @NotBlank(message = "POSTAL_CODE_REQUIRED")
     // Vide : seule l'erreur « obligatoire » (POSTAL_CODE_REQUIRED) s'applique, jamais les deux.

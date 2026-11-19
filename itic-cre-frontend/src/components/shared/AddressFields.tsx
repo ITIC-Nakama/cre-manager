@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building, Home, MapPin } from 'lucide-react';
+import { Home, MapPin } from 'lucide-react';
 import { fieldClass } from '../basics/fieldStyles';
 import type { AddressForm } from '../../api-s/requests/StudentAddressRequest';
 import { lookupCities, type AddressErrors } from '../../utils/address';
@@ -92,17 +92,6 @@ export default function AddressFields({ value, onChange, errors, onBlurField, di
                         onChange={(e) => set('addressLine1', e.target.value)} onBlur={() => onBlurField?.('addressLine1')} />
                 </div>
                 {errorText('addressLine1')}
-            </div>
-            <div className="space-y-2 sm:col-span-6">
-                {label(t('address.line2_label', 'Complément'), false, `${idPrefix}-line2`)}
-                <div className="relative">
-                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <input id={`${idPrefix}-line2`} autoComplete="address-line2" maxLength={120} disabled={disabled}
-                        placeholder={t('address.line2_placeholder', 'Bâtiment, étage, appartement…')}
-                        className={fieldClass(!!errors.addressLine2)} value={value.addressLine2} {...aria('addressLine2')}
-                        onChange={(e) => set('addressLine2', e.target.value)} onBlur={() => onBlurField?.('addressLine2')} />
-                </div>
-                {errorText('addressLine2')}
             </div>
             <div className="space-y-2 sm:col-span-2">
                 {label(t('address.postal_code_label', 'Code postal'), true, `${idPrefix}-postal`)}
