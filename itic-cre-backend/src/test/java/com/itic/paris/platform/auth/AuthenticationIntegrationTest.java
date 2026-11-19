@@ -82,7 +82,6 @@ public class AuthenticationIntegrationTest {
                 "firstName", "Alice",
                 "lastName", "Smith",
                 "password", "Password123!",
-                "addressLine1", "12 rue de la Recette", "postalCode", "75011", "city", "Paris",
                 "privacyAccepted", true
         );
 
@@ -104,7 +103,6 @@ public class AuthenticationIntegrationTest {
                 "firstName", "Bob",
                 "lastName", "NoPrivacy",
                 "password", "Password123!",
-                "addressLine1", "12 rue de la Recette", "postalCode", "75011", "city", "Paris",
                 "privacyAccepted", false
         );
 
@@ -209,7 +207,6 @@ public class AuthenticationIntegrationTest {
                 "firstName", "Reggie",
                 "lastName", "Verifier",
                 "password", "Password123!",
-                "addressLine1", "12 rue de la Recette", "postalCode", "75011", "city", "Paris",
                 "privacyAccepted", true
         );
 

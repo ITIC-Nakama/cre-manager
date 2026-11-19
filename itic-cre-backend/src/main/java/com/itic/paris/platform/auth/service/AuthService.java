@@ -313,7 +313,6 @@ public class AuthService {
             profile.put("lastActivity", student.getLastActivity());
             profile.put("promotion", sanitizePromotion(student.getPromotion()));
             profile.put("studyYear", student.getStudyYear());
-            // Adresse (lot 10) : jamais dans le profil, que le front garde dans le navigateur ; elle se lit par /me/address.
         }
         if (user instanceof Advisor advisor) {
             profile.put("jobTitle", advisor.getJobTitle());

@@ -36,12 +36,4 @@ public class Reclamation {
     @CreationTimestamp
     @Column(name = "date_creation", updatable = false)
     private Instant dateCreation;
-
-    /** Lot 10 (V64) : date du transfert vers la messagerie, null sinon. */
-    @Column(name = "transferred_at")
-    private Instant transferredAt;
-
-    /** Lot 10 (V64) : message de la messagerie créé à partir de cette demande. */
-    @Column(name = "transferred_message_id")
-    private Long transferredMessageId;
 }

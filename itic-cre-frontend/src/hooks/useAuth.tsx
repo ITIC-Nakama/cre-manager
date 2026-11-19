@@ -49,7 +49,7 @@ export const useChangePassword = () => {
 };
 
 // Profil frais, lu directement en base — le store Zustand peut etre desynchronise par un
-// changement fait ailleurs (ex : numero de telephone renseigne par l'equipe).
+// changement fait ailleurs (ex : numero de telephone renseigne via une reclamation).
 export const useMyProfile = () => {
     return useQuery({ queryKey: ['my-profile'], queryFn: MyProfileRequest, staleTime: 0 });
 };
@@ -72,4 +72,4 @@ export const useCancelEmailChange = () => {
 
 export const useResendEmailChangeOtp = () => {
     return useMutation({ mutationFn: ResendEmailChangeOtpRequest });
-};
+};

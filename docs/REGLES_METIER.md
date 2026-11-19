@@ -21,7 +21,6 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Pas de limite de tentatives sur la validation OTP, pas de cooldown sur le renvoi (une demande de renvoi invalide simplement l'OTP précédent).
 - `promotionId` est **optionnel** à l'inscription.
 - Mot de passe : 8 à 128 caractères, aucune contrainte de complexité (pas de regex majuscule/chiffre/symbole imposée).
-- **Adresse postale obligatoire** (lot 10, V62) : rue, code postal (exactement 5 chiffres) et ville ; complément facultatif. Voir §24.
 
 ### Comptes admin/conseiller créés par un admin
 - Créés avec un **mot de passe temporaire** et `mustChangePassword = true`.
@@ -31,7 +30,7 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - **Réinitialisation / modification de mot de passe par un tiers interdite pour les comptes `ADMIN`** (`ADMIN_PASSWORD_RESET_FORBIDDEN`, HTTP 403) — un admin ne peut pas réinitialiser le mot de passe d'un autre admin via l'interface ou l'API.
 
 ### Gouvernance Multi-Admin & Désactivation RBAC
-- **Plafond d'administrateurs actifs** : Limité à 4 admins actifs simultanément (`ADMIN_MAX_ACTIVE`, 4 par défaut depuis le lot 10 : trois admins et une place de secours). Tout ajout ou réactivation d'un 5ème admin est bloqué avec `ADMIN_CAP_REACHED`. Si la variable `ADMIN_MAX_ACTIVE` est présente dans le `.env` d'un environnement, c'est elle qui fait foi.
+- **Plafond d'administrateurs actifs** : Limité à 3 admins actifs simultanément (`ADMIN_MAX_ACTIVE`, 3 par défaut). Tout ajout ou réactivation d'un 4ème admin est bloqué avec `ADMIN_CAP_REACHED`. Si la variable `ADMIN_MAX_ACTIVE` est présente dans le `.env` d'un environnement, c'est elle qui fait foi.
   - L'écran de gestion des admins lit la limite et le nombre d'admins actifs sur `GET /auth/admin/governance` (admins uniquement) : le bandeau « Gouvernance » affiche la valeur de la configuration, jamais un chiffre écrit dans le front.
   - Plafond atteint : le clic sur « Créer un admin » ou sur « Réactiver » d'un admin ouvre **tout de suite** la fenêtre de refus, sans formulaire à remplir. Le contrôle côté serveur (`ADMIN_CAP_REACHED`, sous verrou) reste en place ; s'il refuse quand même (plafond atteint entre-temps), la même fenêtre s'affiche.
 - **Règles de désactivation par rôle** :
@@ -691,7 +690,7 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
   - le fil est verrouillé pendant la décision : deux messages simultanés ne donnent qu'un e-mail ;
   - compte étudiant désactivé ou anonymisé : aucun e-mail.
 - **Onglet « Conversations »** (conseillers et admins, `/supervisor/conversations`, 15/11/2026) :
-  - entrée de menu « Conversations » avec le badge `badge` ; l'ancien menu « Messages » (réclamations) s'appelait ensuite **« Demandes d'aide »** ; **retiré au lot 10** (§24), la messagerie le remplace ;
+  - entrée de menu « Conversations » avec le badge `badge` ; l'ancien menu « Messages » (réclamations) s'appelle désormais **« Demandes d'aide »**, et les réclamations restent séparées de la messagerie ;
   - liste triée par dernier message, filtres « Mes étudiants » (par défaut pour un conseiller), « Tous » (par défaut pour un admin) et « Non lus », avec leurs compteurs, et recherche ;
   - fil avec zone de réponse (Ctrl + Entrée), ligne « Nouveaux messages », « Lu » quand l'étudiant a lu, « Afficher les messages précédents » ; compte désactivé : lecture seule ;
   - accès depuis la fiche étudiant (bouton « Conversation ») ; sur mobile, la liste puis le fil (`/supervisor/conversations/{studentId}`) ;
@@ -720,7 +719,6 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - Une seule brique réutilisable : `useFormDraft`, `DraftRestoreBanner`, `useCloseGuard`, `clearAllFormDrafts`.
 
 ## 17. Espace entreprise (V55, remplace le Google Sites « Espace Entreprise - NOS CANDIDATS »)
-> **Lot 10 : masqué par défaut** (`APP_COMPANY_SPACE_ENABLED=false`, §24). Tout ce qui suit vaut quand l'interrupteur est allumé.
 - **Public, sans connexion, vouvoiement** : `/entreprise` (accueil), `/entreprise/candidats` (répertoire niveau → domaine → formation, avec le nombre de CV), `/entreprise/candidats/{slug}` (page d'une formation). Le **slug est celui des liens courts `itic.short.gy/{slug}`** : il suffit de faire pointer chaque lien court vers la nouvelle adresse.
 - **Qui apparaît** (recalculé à chaque requête, `CompanySpaceRepositories.ELIGIBLE`) : compte actif, choix « Apparaître dans l'Espace entreprise » activé (`students.company_space_visible`, oui par défaut), CV au statut **Validé** (code `VALIDE`, posé par V55 sur le statut existant ; le nom reste modifiable), **aucun contrat déclaré ou vérifié en cours** (même règle que les listes de CV). Rien n'est copié : un CV supprimé ou remplacé, un contrat déclaré, un compte désactivé ou le choix de l'étudiant le retirent **immédiatement**, sans tâche de nuit.
 - **CV affiché** : le CV actif de l'étudiant (assistant ou PDF déposé ; un seul par étudiant, le plus récent).
@@ -738,7 +736,7 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 ## 18. Carte des étudiants (V56)
 - **Code postal** (`students.postal_code`, facultatif) : saisi par l'étudiant dans son profil (« Code postal », tutoiement) ou par l'équipe sur la fiche étudiant (journal d'audit, action `OTHER`). 5 chiffres d'un département français, espaces ignorés ; vide = effacé ; sinon 400 `postal-code-invalid`.
 - **Département déduit** (`students.department`) : 2 premiers chiffres ; Corse 200xx–201xx = **2A**, 202xx–206xx = **2B** ; outre-mer = 3 chiffres (971 à 976). Codes hors département (Monaco 98, 975…) refusés.
-- **Lot 10** : le code postal fait partie de l'**adresse postale** (§24). Le bloc « Code postal » du profil et son bandeau sont remplacés par le bloc « Adresse » et le bandeau « Complète ton adresse ». Une fois l'adresse saisie, ni l'étudiant ni l'équipe ne peuvent effacer le code postal (400 `address-cannot-be-cleared`) ; l'équipe peut toujours le corriger sur la fiche.
+- **Bandeau discret** sur le tableau de bord étudiant tant que le code postal manque ; « Plus tard » le masque sur cet appareil.
 - **Carte de l'équipe** (`/supervisor/carte`, conseillers et admins) : étudiants **actifs** par département. Île-de-France en carte SVG (contours intégrés au code, aucune tuile ni clé externe ; source IGN Admin Express via france-geojson, Licence ouverte), autres départements en liste. Un clic ouvre la liste du département : nom, formation (annuaire de l'Espace entreprise), promotion, contrat oui / non. **Seul le département est affiché** : jamais le code postal complet sur la carte ni dans la liste.
 - **Filtres** : formation (formations de l'Espace entreprise : promotions rattachées et année d'étude), promotion, avec / sans contrat (contrat déclaré ou vérifié en cours, même règle que les CV). Le résumé indique aussi le nombre d'étudiants sans code postal.
 - API : `GET/PUT /me/postal-code` (étudiant), `PUT /dashboard/students/{id}/postal-code`, `GET /dashboard/students/map`, `GET /dashboard/students/map/departments/{code}` (équipe, 403 pour un étudiant).
@@ -887,48 +885,6 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 - Le front ne relance **jamais** une requête en erreur 4xx (réglage global). Il relance au plus 3 fois une erreur réseau ou 5xx.
 - « Étudiants à relancer » : ex aequo départagés par nom puis identifiant (ordre stable).
 - Procédure de déploiement, risques et retour arrière : [MISE_EN_PROD.md](./MISE_EN_PROD.md).
-
-## 24. Lot 10 : adresse, fin des « Demandes d'aide », Espace entreprise masqué, types de contrat, plafond à 4 (V62 à V64)
-
-### Adresse postale de l'étudiant (V62)
-- **Pourquoi** : dossier administratif (conventions de stage, contrats d'alternance).
-- **Colonnes** (`students`, toutes nullables : les inscrits existants n'en ont pas) : `address_line1` (n° et rue, 120 car.), `address_line2` (complément, 120 car.), `city` (80 car.). Le **code postal** est celui de V56 (`postal_code`, 5 car.) ; le département de la carte suit l'adresse.
-- **Inscription** (`POST /auth/register`) : rue, code postal (`^\d{5}$`, espaces autour retirés) et ville **obligatoires**, nettoyés (trim) ; erreurs par champ en 400 `validation-failed` : `ADDRESS_LINE1_REQUIRED`, `ADDRESS_LINE1_TOO_LONG`, `ADDRESS_LINE2_TOO_LONG`, `POSTAL_CODE_REQUIRED`, `POSTAL_CODE_INVALID`, `CITY_REQUIRED`, `CITY_TOO_LONG`.
-- **Profil** (`GET/PUT /me/address`, étudiant) : mêmes règles ; modifiable, **jamais effaçable**. Journal d'audit : « Adresse postale modifiée par l'étudiant », sans la valeur.
-- **Comptes créés hors inscription** : l'équipe ne crée pas d'étudiant (`POST /auth/admin/users` refuse `STUDENT`), il n'y a pas d'import ; seuls les seeders de test créent des étudiants, sans adresse. Les étudiants sans adresse gardent un accès complet : bandeau « Complète ton adresse » sur le tableau de bord et le profil, qui disparaît dès l'enregistrement.
-- **Qui la voit** : l'étudiant (`/me/address` seulement : jamais dans le profil `/auth/users/me`, que le front garde dans le navigateur, ni dans l'entité `Student` sérialisée) et l'équipe (fiche étudiant en lecture seule, « Adresse non renseignée » sinon ; liste et export CSV : colonnes Adresse, Complément, Code postal, Ville ; une cellule qui commence par = + - @ est neutralisée par une apostrophe, contre les formules Excel). Le contrôle d'accès existant ne distingue pas le conseiller référent des autres conseillers sur la fiche : logique gardée.
-- **Qui ne la voit jamais** : les autres étudiants, l'Espace entreprise et ses pages publiques (aucun DTO de `CompanySpaceService` ne porte l'adresse, test à l'appui), les CV générés (l'assistant ne lit pas l'adresse), les e-mails (aucun e-mail n'est envoyé aux entreprises ; la demande d'une entreprise part vers l'équipe sans adresse).
-- **Aide au code postal** : à 5 chiffres, le navigateur interroge `https://geo.api.gouv.fr/communes?codePostal=…&fields=nom` (API publique de l'État, sans clé). Une ville : préremplie, modifiable ; plusieurs : liste de choix avec « Autre ville… » (saisie libre) ; ville proposée pour un ancien code postal : effacée ; pas de réponse : saisie libre, sans message d'erreur. Le dépôt ne pose aucune CSP ; si le Nginx du serveur en pose une, `connect-src` doit autoriser ce domaine (`verif_admins.sh` l'affiche).
-- **RGPD** : dans l'export (`userProfile.addressLine1/addressLine2/postalCode/city`) ; effacée à l'anonymisation et avec la ligne `students` à la suppression définitive.
-
-### « Demandes d'aide » retirées
-- La messagerie (§14) remplace les demandes d'aide (réclamations). `POST /reclamations` répond **410 Gone** (`reclamations-retired`) ; les données restent en base (table `reclamations`, historique, liste de l'équipe `GET /dashboard/reclamations`).
-- Plus aucun e-mail : écouteurs, événements et modèles supprimés. Aucune tâche planifiée n'existait.
-- Front : entrée de menu et compteur retirés (plus de requête de comptage), bouton flottant « Contacter l'équipe » retiré côté étudiant ; `/supervisor/reclamations` → `/supervisor/conversations`, `/student/reclamations` → `/student/messages`.
-- **Reprise dans la messagerie (V64, migration Java `db.migration.V64__reclamations_vers_messagerie`)**. Chaque demande **en attente** devient un message dans le fil de l'étudiant :
-  - **contenu** : envoyé par l'étudiant, daté de la demande, texte « Ancienne demande d'aide du JJ/MM/AAAA : » suivi du message d'origine ;
-  - **demande** : passe au statut `TRANSFERRED`, avec `transferred_at` et `transferred_message_id` ;
-  - **ce qui ne bouge pas** : rien n'est supprimé ; les demandes résolues ou refusées restent telles quelles ; une demande transférée ne se rouvre ni ne se clôt (410) ;
-  - **rejouée** : ne fait rien (seules les demandes `PENDING` jamais transférées sont reprises).
-  - **Fil** : un seul par étudiant, partagé par toute l'équipe, sans lien avec un conseiller particulier. Un étudiant sans fil en reçoit un. Un étudiant **sans référent** apparaît dans « Mes étudiants » de tous les conseillers et chez les admins (portée « référent ou sans référent »). Aucun admin n'est rattaché d'office : ce serait lui assigner l'étudiant.
-  - **Non lu, sans e-mail** : le fil apparaît « non lu » pour l'équipe (badge de Conversations), mais la reprise marque le message comme déjà signalé (`staff_notified_message_id`). Elle ne déclenche donc **aucun rappel « message non lu »**, ni au déploiement ni plus tard. Si un vrai message de l'étudiant attendait déjà son rappel, ce rappel unique part comme prévu ; la reprise n'en ajoute pas.
-  - **Ordre** : les messages sont triés par identifiant, donc le message repris apparaît en fin de fil, avec sa date d'origine.
-  - **Contrainte** : sur une base créée un jour par Hibernate, `reclamations_status_check` limitait les statuts à trois. V64 la remplace par la même contrainte avec `TRANSFERRED`. La prod n'avait pas cette contrainte ; elle l'a désormais, avec les quatre statuts.
-- `scripts/prod/verif_admins.sh` affiche les demandes par statut et celles encore en attente : après V64, 0 en attente.
-
-### Espace entreprise masqué (interrupteur)
-- `app.company-space.enabled=${APP_COMPANY_SPACE_ENABLED:false}`, exposé au front par `GET /public/config` (sans connexion, lecture seule : `{ companySpaceEnabled }`).
-- **Coupé** : aucune entrée de menu ni compteur, pour tous les rôles ; `/public/entreprise/**` (annuaire, formation, CV, demande) en **404**, page « Page non disponible » ; back-office `/supervisor/espace-entreprise` **réservé aux admins** par son adresse directe, avec le bandeau « Espace entreprise masqué : cette page n'apparaît dans aucun menu. » ; **403** `company-space-hidden` pour un conseiller (formations à modifier, aperçu, demandes, statistiques, réglages) ; le choix « Apparaître dans l'Espace entreprise » est masqué dans le profil étudiant.
-- **Toujours actif** : `GET /company-space/programs` reste lisible par l'équipe (filtres par formation, carte, sélecteur des offres), et la configuration des formations sert en coulisses (rattachement des étudiants et des offres, alertes du lot 8, vue par formation, récapitulatif du lundi, codes ROME des sources, « Ma fiche formation »). La suite des alertes est rejouée avec l'espace masqué.
-- **Allumé** : comportement d'avant le lot 10.
-- **Fiche formation** : « Domaine » en liste déroulante (valeurs distinctes déjà utilisées, plus « Autre… » et un champ libre).
-
-### Types de contrat (V63)
-- « Publier une offre », les filtres de l'équipe et des étudiants lisent `GET /jobboard/contract-types/active/list` : la liste contient **CDI, CDD, Alternance, Stage, Job étudiant** (et « Inconnu » s'il est actif).
-- V63 n'ajoute que les absents, comparaison sans casse ni accent. Un « Job étudiant » déjà créé sous une autre orthographe (en prod : « Job Etudiant ») garde son identifiant et ses offres ; seul son libellé est corrigé. CDI, CDD, Stage, Alternance et Inconnu (synchronisation) ne sont jamais renommés ni supprimés.
-
-### Plafond d'administrateurs à 4
-- Défaut du code 4 (`ADMIN_MAX_ACTIVE`). La valeur du `.env` du serveur fait foi ; elle est réécrite à chaque déploiement depuis le secret `BACKEND_ENV_CONTENT`.
 
 ## Notes de fiabilité de ce document
 

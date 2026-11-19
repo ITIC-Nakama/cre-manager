@@ -34,7 +34,7 @@ export default function ProfileCard() {
   const isAdvisor = user?.role === Role.ADVISOR;
   const { data: dashboardSummary } = useMyDashboardSummary(isStudent);
   const { data: promotions } = usePromotions();
-  // Le numero de telephone peut avoir ete renseigne ailleurs (ex : par l'equipe)
+  // Le numero de telephone peut avoir ete renseigne ailleurs (ex : formulaire de reclamation)
   // sans passer par ce composant — le store Zustand ne le saurait pas, d'ou cette lecture fraiche.
   const { data: myProfile } = useMyProfile();
 

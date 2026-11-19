@@ -79,6 +79,18 @@
       "toggle": "Appear in the Business space",
       "explanation": "Once your CV is approved and as long as you have no contract, partner companies see your first name, last name, programme and CV in the school directory. Never your email or phone: they go through the Business Relations team."
     },
+    "postal_code": {
+      "saved": "Postal code saved.",
+      "error": "Invalid postal code: 5 digits (e.g. 75011).",
+      "title": "Postal code",
+      "department": "Department: {{name}} ({{code}})",
+      "missing": "Not filled in yet",
+      "explanation": "The team only sees your department, to suggest companies near you.",
+      "save": "Save",
+      "banner": "Add your postal code: the team can then suggest companies near you.",
+      "banner_link": "Add",
+      "banner_later": "Later"
+    },
     "my_formation": "My programme page",
     "offers_all": "All offers",
     "offers_mine": "Offers for my programme",
@@ -152,6 +164,7 @@
       "cv_validation": "CV Validation",
       "contenu": "Content & Quizzes",
       "gamification": "Gamification",
+      "reclamations": "Help requests",
       "conversations": "Conversations",
       "messages": "Messages",
       "conseillers": "Corporate Relations",
@@ -1171,6 +1184,36 @@
       "toast_question_too_long": "Question is too long.",
       "toast_question_option_too_long": "An answer option is too long."
     },
+    "reclamations": {
+      "floating_button": "Contact the team",
+      "title": "Contact the team",
+      "tab_new": "New message",
+      "tab_history": "My messages",
+      "form": {
+        "intro_p1": "This space lets you talk directly with your CRE and reach out to us with any question, difficulty, or particular situation you're facing at your company.",
+        "intro_p2": "Don't hesitate to write to us — we're here to support you throughout your journey.",
+        "intro_p3": "Your message will be forwarded to the relevant team, who can get back to you directly.",
+        "message_label": "Explain your problem or your message",
+        "message_placeholder": "Write your message here...",
+        "message_too_short": "Please describe your problem in a bit more detail.",
+        "phone_label": "Your phone number",
+        "phone_hint": "So your advisor can call you back.",
+        "phone_required": "Please provide your phone number.",
+        "submit": "Send",
+        "success": "Your message has been sent, you'll be contacted soon.",
+        "error": "Something went wrong, please try again.",
+        "no_advisor_title": "No advisor yet",
+        "no_advisor_description": "You don't have an assigned advisor yet. Please wait, one will be assigned to you shortly."
+      },
+      "history": {
+        "empty": "You haven't sent any messages.",
+        "status_resolved": "Resolved",
+        "status_pending": "Pending",
+        "status_refused": "Refused",
+        "withdraw": "Withdraw",
+        "withdraw_error": "Couldn't withdraw this message, please try again."
+      }
+    },
     "alumni": {
       "title": "Alumni",
       "subtitle": "{{count}} record(s)",
@@ -1209,6 +1252,29 @@
         "delete_button": "Delete permanently",
         "toast_deleted": "{{count}} record(s) deleted."
       }
+    },
+    "reclamations_advisor": {
+      "title": "Help requests",
+      "subtitle": "{{count}} request(s)",
+      "filter_pending": "Pending",
+      "filter_resolved": "Resolved",
+      "filter_refused": "Refused",
+      "filter_all": "All",
+      "empty": "No requests.",
+      "status_resolved": "Resolved",
+      "status_pending": "Pending",
+      "status_refused": "Refused",
+      "resolve_button": "Mark resolved",
+      "refuse_button": "Refuse",
+      "reopen_button": "Reopen",
+      "toast_resolved": "Request marked as resolved.",
+      "toast_refused": "Request refused.",
+      "toast_reopened": "Request reopened.",
+      "toast_error": "Something went wrong, please try again.",
+      "mine_only": "My portfolio only",
+      "my_pending_count": "{{count}} request(s) to handle in my portfolio",
+      "outside_pending_count": "{{count}} request(s) to handle outside my portfolio",
+      "outside_pending_count_hint": "Pending requests from students who are not in my portfolio — uncheck the box to see them in the list."
     },
     "connaissances": {
       "tree": {
@@ -2690,10 +2756,7 @@
       "offer_keywords": "Offer keywords (Monday summary, suggestions)",
       "offer_keywords_hint": "Searched in the offer title (3 points), sector (2) and description (1). Separated by “|”.",
       "pedagogy_url": "Programme page (teaching website)",
-      "pedagogy_url_hint": "“My programme page” button for students of this programme. Empty: no button.",
-      "domain_choose": "Choose a field",
-      "domain_other": "Other…",
-      "domain_new": "New field"
+      "pedagogy_url_hint": "“My programme page” button for students of this programme. Empty: no button."
     },
     "preview_title": "Preview: what a company sees",
     "preview_hidden": "(hidden programme)",
@@ -2746,8 +2809,7 @@
       "col_requests": "Requests",
       "none": "No visits in the last 30 days.",
       "privacy": "Counters per day and per programme only: no IP address, no browser, no tracking cookie."
-    },
-    "hidden_banner": "Company space hidden: this page is not shown in any menu."
+    }
   },
   "carte": {
     "department_label": "{{name}} ({{code}}): {{count}} student(s)",
@@ -2897,39 +2959,5 @@
     "delete_student_message": "{{name}}'s account will be deleted, with their CV, files, applications, messages and ratings. This cannot be undone.",
     "delete_success": "{{name}}'s account was permanently deleted.",
     "delete_title": "Permanently delete this account?"
-  },
-  "address": {
-    "title": "Address",
-    "optional": "optional",
-    "line1_label": "Number and street",
-    "line1_placeholder": "12 rue de la Paix",
-    "line2_label": "Address line 2",
-    "line2_placeholder": "Building, floor, apartment…",
-    "postal_code_label": "Postal code",
-    "city_label": "City",
-    "city_placeholder": "Paris",
-    "city_choose": "Choose your city",
-    "privacy_note": "Your address is used for your administrative file (internship agreements, contracts). Only you, your advisor and the ITIC team can see it.",
-    "banner": "Complete your address: it is now required for your file.",
-    "banner_button": "Complete my address",
-    "saved": "Address saved.",
-    "save_error": "Address not saved: check the fields.",
-    "save": "Save",
-    "staff_missing": "No address provided",
-    "errors": {
-      "ADDRESS_LINE1_REQUIRED": "Enter your street number and name.",
-      "ADDRESS_LINE1_TOO_LONG": "120 characters maximum.",
-      "ADDRESS_LINE2_TOO_LONG": "120 characters maximum.",
-      "POSTAL_CODE_REQUIRED": "Enter your postal code.",
-      "POSTAL_CODE_INVALID": "Invalid postal code: 5 digits (e.g. 75011).",
-      "CITY_REQUIRED": "Enter your city.",
-      "CITY_TOO_LONG": "80 characters maximum."
-    },
-    "city_other": "Other city…"
-  },
-  "not_available": {
-    "title": "Page not available",
-    "text": "This page is not available at the moment.",
-    "home": "Go to the login page"
   }
 }

@@ -35,7 +35,7 @@ export function useDashboardOverview(advisorId?: string) {
     });
 }
 
-// Poll toutes les minutes + refetch au focus de l'onglet (defaut React Query).
+// Poll toutes les minutes + refetch au focus de l'onglet (defaut React Query) — meme pattern que usePendingReclamationsCount.
 export function useCvPendingCount() {
     return useQuery({
         queryKey: ['dashboard', 'cv', 'pending-count'],

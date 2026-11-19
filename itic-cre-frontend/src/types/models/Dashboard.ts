@@ -68,10 +68,6 @@ export interface StudentRow {
   /** Code postal et département (carte des étudiants). */
   postalCode?: string | null;
   department?: string | null;
-  /** Adresse postale (lot 10) : équipe seulement, lecture seule. */
-  addressLine1?: string | null;
-  addressLine2?: string | null;
-  city?: string | null;
 }
 
 export interface StudentPage {

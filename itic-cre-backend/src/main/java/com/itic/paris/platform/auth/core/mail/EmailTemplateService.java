@@ -91,6 +91,37 @@ public class EmailTemplateService {
         return templateEngine.process("email/account-reactivated", context);
     }
 
+    public String renderReclamationCreatedEmail(String lang, String studentFullName, String studentPhoneNumber, String message) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("studentFullName", studentFullName != null ? studentFullName.trim() : "");
+        context.setVariable("studentPhoneNumber", studentPhoneNumber != null ? studentPhoneNumber.trim() : "");
+        context.setVariable("message", message);
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/reclamation-created", context);
+    }
+
+    public String renderReclamationResolvedEmail(String lang, String studentFirstName, String message) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("studentFirstName", studentFirstName != null ? studentFirstName.trim() : "");
+        context.setVariable("message", message);
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/reclamation-resolved", context);
+    }
+
+    public String renderReclamationRefusedEmail(String lang, String studentFirstName, String message) {
+        Context context = new Context();
+        context.setVariable("lang", normalizeLang(lang));
+        context.setVariable("studentFirstName", studentFirstName != null ? studentFirstName.trim() : "");
+        context.setVariable("message", message);
+        context.setVariable("brandName", brandName);
+        context.setVariable("frontendUrl", frontendUrl);
+        return templateEngine.process("email/reclamation-refused", context);
+    }
+
     /**
      * Messagerie : avis de nouveau message, sans le contenu. senderName : qui a ecrit (null : « l'equipe CRE ») ;
      * link : lien direct vers la conversation.
