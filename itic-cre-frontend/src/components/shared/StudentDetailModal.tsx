@@ -1,6 +1,6 @@
 import StudentPostalCodeField from './StudentPostalCodeField';
 import { useState, useMemo } from 'react';
-import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2, MessagesSquare } from 'lucide-react';
+import { X, Star, FileText, AlertCircle, Calendar, GraduationCap, ShieldAlert, Mail, Phone, UserX, UserCheck, Pencil, Check, Loader2, Handshake, Trash2, MessagesSquare, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -129,6 +129,18 @@ export default function StudentDetailModal({ student, onClose, onNotify, onToggl
                                     {student.phoneNumber}
                                 </p>
                             )}
+                            {/* Adresse postale (lot 10) : lecture seule, saisie par l'étudiant. */}
+                            <p className="flex items-start gap-1.5 text-sm text-slate-500 dark:text-slate-400 mt-0.5" data-testid="student-address">
+                                <Home className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                {student.addressLine1 ? (
+                                    <span>
+                                        {student.addressLine1}{student.addressLine2 ? `, ${student.addressLine2}` : ''}
+                                        {', '}{[student.postalCode, student.city].filter(Boolean).join(' ')}
+                                    </span>
+                                ) : (
+                                    <span className="italic">{t('address.staff_missing', 'Adresse non renseignée')}</span>
+                                )}
+                            </p>
                             {/* Code postal (carte des étudiants) : modifiable par l'équipe. */}
                             <StudentPostalCodeField studentId={student.id} postalCode={student.postalCode} department={student.department} />
                             {/* Dernière note de l'équipe (1 à 5) — jamais visible côté étudiant ; détail et historique plus bas. */}

@@ -99,6 +99,9 @@ public class GdprService {
         if (user instanceof Student student) {
             userProfile.setPromotion(student.getPromotion() != null ? student.getPromotion().getName() : null);
             userProfile.setPostalCode(student.getPostalCode());
+            userProfile.setAddressLine1(student.getAddressLine1());
+            userProfile.setAddressLine2(student.getAddressLine2());
+            userProfile.setCity(student.getCity());
             userProfile.setXpTotal(student.getXpTotal());
 
             // CV
@@ -304,9 +307,12 @@ public class GdprService {
             // Alertes instantanées (lot 8) : abonnement coupé, file d'envoi de l'étudiant supprimée.
             student.setEmailInstantOffers(false);
             offerAlertService.deleteAllFor(student.getId());
-            // Carte des étudiants : code postal et département effacés.
+            // Carte des étudiants et adresse (lot 10) : code postal, département et adresse effacés.
             student.setPostalCode(null);
             student.setDepartment(null);
+            student.setAddressLine1(null);
+            student.setAddressLine2(null);
+            student.setCity(null);
             scheduledMailingRepository.deleteByRecipientId(student.getId());
             // Espace entreprise : retiré de l'annuaire, demandes d'entreprises le concernant supprimées.
             companySpaceAdminService.deleteAllFor(student);

@@ -1,6 +1,6 @@
-# Mise en production de la pile #71 → #97
+# Mise en production de la pile #71 → #97, puis du lot 10
 
-*Rédigé le 17/11/2026 (lot 9). La production est aujourd'hui sur `main` = `7ed25ef` (PR #81).*
+*Rédigé le 17/11/2026 (lot 9). Pile #71 → #97 mise en ligne le 18/11/2026 (`main` = `2239a1a`, Flyway 61). Lot 10 (adresse, fin des demandes d'aide, Espace entreprise masqué, types de contrat, plafond à 4) : **§9**.*
 
 Ce document dit ce qui part en production, ce qui change dès le lendemain, ce qui reste coupé, les risques, et la procédure du jour J (avec le retour arrière). Tout ce qu'il décrit a été joué sur une base jetable de taille réaliste, sauf mention contraire.
 
@@ -276,6 +276,7 @@ Chaque variable se change dans le secret `BACKEND_ENV_CONTENT` (puis relance du 
 1. **Rien le premier jour** : laisser tourner, regarder « Conversations » et l'e-mail de 18 h (0 tant qu'aucune promotion n'est ciblée).
 2. **Espace entreprise** (quand l'école l'annonce) :
    - **avant** : prévenir les étudiants qu'ils peuvent couper « Apparaître dans l'Espace entreprise », et vérifier l'accès Internet au CRE ;
+   - **afficher** (lot 10) : `APP_COMPANY_SPACE_ENABLED=true` (menu, vitrine publique, back-office pour les conseillers) ;
    - **ouvrir** : admin → Espace entreprise → Textes et accès ;
    - **regarder ensuite** : les statistiques et l'onglet « Demandes ».
 3. **Récapitulatif du lundi** :
@@ -319,6 +320,47 @@ Pour un e-mail en trop, couper d'abord la variable : c'est plus rapide qu'un ret
   3. supprimer les autres un par un (🗑, adresse à retaper). Le dernier admin actif ne peut pas être supprimé.
 - **« Entreprise »** : il n'existe pas de compte entreprise dans le CRE (l'Espace entreprise est public, sans compte) ; rien à supprimer de ce côté.
 
+## 9. Lot 10 : adresse, fin des demandes d'aide, Espace entreprise masqué, types de contrat, plafond à 4
+
+Une seule PR, **3 migrations** (V62 adresse, V63 types de contrat, V64 demandes d'aide en attente reprises dans la messagerie), aucune donnée existante supprimée. Règles : `docs/REGLES_METIER.md` §24.
+
+### 9.1 Ce qui change dès le déploiement
+- **Inscription** : adresse postale obligatoire (rue, code postal, ville). Les étudiants déjà inscrits voient le bandeau « Complète ton adresse » ; rien n'est bloqué.
+- **Demandes d'aide** : menu, compteur et bouton flottant retirés ; création refusée (410) ; données gardées. Anciennes adresses → messagerie. **V64** reprend chaque demande encore en attente en message de l'étudiant dans Conversations : fil non lu, date d'origine, mention « Ancienne demande d'aide », **aucun e-mail de rappel**. La demande passe en `TRANSFERRED`.
+- **Espace entreprise masqué** : plus aucun menu ; vitrine publique « Page non disponible » (404 côté serveur) ; back-office ouvert aux admins seulement, par `/supervisor/espace-entreprise` (bandeau « masqué ») ; un conseiller reçoit 403 et **ne peut plus modifier une formation** tant que l'espace est masqué (les admins le peuvent). La liste des formations reste lisible par tous (filtres, carte, offres) et les formations continuent de servir en coulisses.
+- **Types de contrat** : « Job Etudiant » (créé à la main en octobre) devient « Job étudiant », même identifiant ; aucun autre type touché.
+- **Plafond d'admins** : 4 par défaut (au lieu de 3).
+
+### 9.2 Variables
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `APP_COMPANY_SPACE_ENABLED` | `false` | Espace entreprise affiché (`true`) ou masqué (`false`) |
+| `ADMIN_MAX_ACTIVE` | `4` | Plafond d'admins actifs. Si la ligne existe dans le secret avec une valeur plus basse, c'est elle qui compte |
+
+Le `.env` du serveur est **réécrit à chaque déploiement** depuis le secret `BACKEND_ENV_CONTENT` (`cd.yml`). Une variable se change donc dans ce secret ; une modification faite à la main sur le serveur disparaît au déploiement suivant.
+
+### 9.3 Procédure (Samuel lance chaque script lui-même, dans Git Bash)
+1. **Sauvegarde** : `bash scripts/prod/sauvegarde_prod.sh` (lecture seule ; fichier daté hors dépôt, contrôles à côté).
+2. **Vérification** : `ssh root@10.190.0.16 'bash -s' < scripts/prod/verif_admins.sh` (lecture seule). Elle affiche :
+   - la ligne `ADMIN_MAX_ACTIVE` ;
+   - les comptes admin ;
+   - les **demandes d'aide** par statut et celles en attente, avec leur date : V64 les reprendra dans Conversations. Noter leur nombre, qui doit se retrouver en `TRANSFERRED` après le déploiement ;
+   - la CSP de Nginx. Si elle existe, ajouter `https://geo.api.gouv.fr` à `connect-src` ; sinon, l'aide au code postal se tait et la ville se tape à la main.
+3. **« Go merge »** : fusion par la file de fusion (merge commit), déploiement automatique par `cd.yml`, **Flyway passe à 64**.
+4. **Plafond** : si `ADMIN_MAX_ACTIVE` est présent avec une valeur inférieure à 4, il y a deux étapes.
+   - Mettre `ADMIN_MAX_ACTIVE=4` dans le secret `BACKEND_ENV_CONTENT`, ou retirer la ligne. C'est la correction durable.
+   - Pour l'appliquer sans attendre de redéploiement : après un « go », lancer `bash scripts/prod/plafond_admins.sh`. Il demande « tape OUI », fait une copie datée du `.env`, change la ligne, redémarre le service et vérifie. Le retour arrière est décrit en tête du script.
+   - Si la ligne est absente, rien à faire : le défaut du code (4) suffit.
+5. **Contrôle** : `ssh root@10.190.0.16 'bash -s' < scripts/prod/verif_deploiement.sh` (Flyway 64, 0 échec, 0 ERROR), puis `verif_admins.sh` (demandes : 0 en attente, autant de `TRANSFERRED` qu'avant). Contrôles à la main :
+   - inscription avec adresse (puis supprimer le compte de test) ;
+   - menus sans « Demandes d'aide » ni « Espace entreprise » ;
+   - `/entreprise` → « Page non disponible » ;
+   - « Publier une offre » → « Job étudiant » dans la liste ;
+   - Conversations → filtre « Non lus » : les anciennes demandes d'aide y sont, à traiter.
+
+### 9.4 Retour arrière
+« Revert » de la fusion sur GitHub (nouveau déploiement). V62, V63 et V64 n'ont rien supprimé : l'ancien code ignore les colonnes d'adresse et de transfert, et « Job étudiant » reste un type ordinaire. **Avant que l'ancien code ne tourne** : passer `scripts/rollback/avant_retour_arriere_lot10.sql`. L'ancien code ne connaît pas le statut `TRANSFERRED` : sans ce script, l'export RGPD d'un étudiant concerné et la liste « Demandes d'aide » répondent 500. Le script remet ces demandes « en attente » ; les messages créés restent dans Conversations.
+
 ## Annexes : scripts (versionnés)
 
 | Script | Rôle |
@@ -331,3 +373,8 @@ Pour un e-mail en trop, couper d'abord la variable : c'est plus rapide qu'un ret
 | `scripts/nonreg/ui_sweep.py` | passe sur chaque écran (ordinateur, 390 px, ancien bundle) |
 | `scripts/nonreg/switches_check.py` | vérifie les envois selon les interrupteurs |
 | `scripts/rollback/avant_retour_arriere.sql` | à passer avant un retour arrière du code |
+| `scripts/rollback/avant_retour_arriere_lot10.sql` | lot 10 : à passer avant un retour arrière du lot 10 (statut `TRANSFERRED` inconnu de l'ancien code) |
+| `scripts/prod/sauvegarde_prod.sh` | sauvegarde de la base de prod, lecture seule, copiée sur le poste (Samuel la lance) |
+| `scripts/prod/verif_admins.sh` | lot 10, lecture seule : ADMIN_MAX_ACTIVE, comptes admin, demandes d'aide en attente, CSP |
+| `scripts/prod/plafond_admins.sh` | lot 10, après « go » seulement : ADMIN_MAX_ACTIVE=4 sur le serveur, redémarrage, vérification |
+| `scripts/prod/verif_deploiement.sh` | lecture seule : service, Flyway, journal du lancement en cours |

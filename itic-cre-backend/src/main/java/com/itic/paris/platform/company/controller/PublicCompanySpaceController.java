@@ -1,5 +1,6 @@
 package com.itic.paris.platform.company.controller;
 
+import com.itic.paris.platform.company.service.CompanySpaceFeature;
 import com.itic.paris.platform.company.service.CompanySpaceService;
 import com.itic.paris.platform.company.service.CompanySpaceService.CvFile;
 import com.itic.paris.platform.company.service.CompanySpaceService.Directory;
@@ -39,10 +40,12 @@ public class PublicCompanySpaceController {
     private static final String NOINDEX = "noindex, nofollow, noarchive";
 
     private final CompanySpaceService service;
+    private final CompanySpaceFeature feature;
 
     @GetMapping("/annuaire")
     @Operation(summary = "Annuaire : niveaux → domaines → formations, avec le nombre de CV, et les textes de l'accueil")
     public ResponseEntity<Directory> directory(@RequestParam(name = "cle", required = false) String key, HttpServletRequest request) {
+        feature.requirePublicAccess();
         return ResponseEntity.ok().header("X-Robots-Tag", NOINDEX).cacheControl(CacheControl.noStore())
                 .body(service.directory(key, ClientIpResolver.resolve(request)));
     }
@@ -51,6 +54,7 @@ public class PublicCompanySpaceController {
     @Operation(summary = "Page d'une formation : cartes des étudiants, liens signés vers les CV (valables 15 minutes)")
     public ResponseEntity<ProgramPage> program(@PathVariable String slug, @RequestParam(name = "cle", required = false) String key,
                                                HttpServletRequest request) {
+        feature.requirePublicAccess();
         return ResponseEntity.ok().header("X-Robots-Tag", NOINDEX).cacheControl(CacheControl.noStore())
                 .body(service.programPage(slug, key, ClientIpResolver.resolve(request)));
     }
@@ -61,6 +65,7 @@ public class PublicCompanySpaceController {
                                                   @RequestParam(name = "cle", required = false) String key,
                                                   @RequestParam(name = "telechargement", defaultValue = "false") boolean download,
                                                   HttpServletRequest request) {
+        feature.requirePublicAccess();
         CvFile file = service.openCv(token, key, ClientIpResolver.resolve(request));
         ContentDisposition disposition = (download ? ContentDisposition.attachment() : ContentDisposition.inline())
                 .filename(file.fileName(), StandardCharsets.UTF_8).build();
@@ -76,6 +81,7 @@ public class PublicCompanySpaceController {
     @Operation(summary = "« Ce profil m'intéresse » / « Contactez-nous » : demande d'une entreprise (limitée, avec champ piège)")
     public ResponseEntity<Void> request(@RequestBody RequestForm form, @RequestParam(name = "cle", required = false) String key,
                                         HttpServletRequest request) {
+        feature.requirePublicAccess();
         service.submitRequest(form, key, ClientIpResolver.resolve(request));
         return ResponseEntity.accepted().header("X-Robots-Tag", NOINDEX).build();
     }

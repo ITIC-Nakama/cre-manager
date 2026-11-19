@@ -7,9 +7,6 @@ import com.itic.paris.platform.shared.notification.event.CVCommentAddedEvent;
 import com.itic.paris.platform.shared.notification.event.CVStatusChangedEvent;
 import com.itic.paris.platform.shared.notification.event.ContractDeclarationInvalidatedEvent;
 import com.itic.paris.platform.shared.notification.event.OtpEmailEvent;
-import com.itic.paris.platform.shared.notification.event.ReclamationCreatedEvent;
-import com.itic.paris.platform.shared.notification.event.ReclamationRefusedEvent;
-import com.itic.paris.platform.shared.notification.event.ReclamationResolvedEvent;
 import com.itic.paris.platform.shared.notification.event.StudentAccountReactivatedEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -93,39 +90,6 @@ public class NotificationEmailService {
         String subject = "en".equals(event.studentLang())
                 ? "Your " + brandName + " account is active again"
                 : "Votre compte " + brandName + " est de nouveau actif";
-        sendHtml(event.studentEmail(), subject, html);
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onReclamationCreated(ReclamationCreatedEvent event) {
-        String html = emailTemplateService.renderReclamationCreatedEmail(
-                event.advisorLang(), event.studentFullName(), event.studentPhoneNumber(), event.message());
-        String subject = "en".equals(event.advisorLang())
-                ? "A student needs your help"
-                : "Un étudiant a besoin de vous";
-        sendHtml(event.advisorEmail(), subject, html);
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onReclamationResolved(ReclamationResolvedEvent event) {
-        String html = emailTemplateService.renderReclamationResolvedEmail(
-                event.studentLang(), event.studentFirstName(), event.message());
-        String subject = "en".equals(event.studentLang())
-                ? "Your report has been resolved"
-                : "Votre signalement a été résolu";
-        sendHtml(event.studentEmail(), subject, html);
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onReclamationRefused(ReclamationRefusedEvent event) {
-        String html = emailTemplateService.renderReclamationRefusedEmail(
-                event.studentLang(), event.studentFirstName(), event.message());
-        String subject = "en".equals(event.studentLang())
-                ? "Your report has been closed"
-                : "Votre signalement a été clos";
         sendHtml(event.studentEmail(), subject, html);
     }
 
