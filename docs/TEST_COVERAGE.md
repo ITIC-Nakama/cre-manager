@@ -95,11 +95,16 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 | **Alertes, formations et cartes (lot 8)** | `src/components/offers/OfferAlerts.test.tsx` | 9 | Formulaire : « Publier » refusé sans formation, formation choisie envoyée (`programIds`), « Toutes les formations » (`allPrograms`), brouillon sans formation. Aperçu des destinataires : nombre, liste, « Déjà prévenu », formations coupées, une seule requête, aucun envoi. Onglet Formations : chiffres par formation, réglages, journal, clic → offres de la formation ; bascule des alertes (PUT, ligne mise à jour). Liste des offres : colonne « Formation(s) » (deux puis « +1 »), tri, bouton « Destinataires de l'alerte ». Cartes : onglet « Entreprises et offres » (résumé, détail d'un département en une requête, filtre type de contrat), « Étudiants » par défaut. |
 | **Ma fiche formation** | `src/components/student/MyFormationButton.test.tsx` | 1 | Lien vers la page de la formation dans un nouvel onglet (`noopener`) ; rien sans page. |
 
-| **Adresse postale (lot 10)** | `src/components/shared/AddressFields.test.tsx` | 9 | Validation (mêmes règles que le serveur), erreurs en direct ; geo.api.gouv.fr simulée : une ville préremplie et modifiable, plusieurs villes en liste avec « Autre ville… » ; API en échec : aucune erreur, saisie libre ; bandeau « Complète ton adresse » présent / absent ; inscription bloquée sans adresse, phrase de confidentialité. |
+| **Adresse postale (lot 10)** | `src/components/shared/AddressFields.test.tsx` | 10 | Validation (mêmes règles que le serveur), erreurs en direct ; geo.api.gouv.fr simulée : une ville préremplie et modifiable, plusieurs villes en liste avec « Autre ville… » ; API en échec : aucune erreur, saisie libre ; bandeau « Complète ton adresse » présent / absent ; inscription bloquée sans adresse, phrase de confidentialité. |
 | **Menus et anciennes adresses (lot 10)** | `src/layouts/menus.test.tsx` | 5 | Conseiller, admin, étudiant : aucune « Demandes d'aide », aucun bouton flottant, aucune requête de comptage ; `/supervisor/reclamations` et `/student/reclamations` redirigés vers la messagerie. |
 | **Espace entreprise masqué (lot 10)** | `src/pages/advisor/espace-entreprise/CompanySpaceToggle.test.tsx` | 7 | Coupé : pas de menu ni de compteur (conseiller, admin), vitrine « Page non disponible », back-office admin avec bandeau, conseiller « Page non disponible » ; allumé : comme avant ; « Domaine » en liste (domaines distincts triés, « Autre… », domaine inconnu gardé). |
 
-**Total front : 86 tests.** Export CSV : une valeur qui commence par = + - @ est neutralisée (apostrophe).
+| **Rechargement automatique (19/11)** | `src/pwa/versionWatcher.test.ts` | 9 | Même version : rien ; nouvelle version : service worker mis à jour puis page rechargée, `/version.json` lu sans cache ; version remise après un retour arrière : rechargée aussi ; saisie en cours : ni mise à jour ni rechargement avant de quitter le champ ; page toujours ancienne : caches vidés, dernier rechargement, puis plus rien (pas de boucle) ; hors ligne : rien ; vérification au retour sur l'onglet, sur un morceau introuvable et toutes les 5 min ; détection d'une saisie. Recette dans un vrai navigateur : `docs/MISE_EN_PROD.md` §9.6. |
+
+**Total front : 96 tests** (dont « le formulaire n'affiche pas de champ « Complément » » dans `AddressFields.test.tsx`, 10 tests).
+
+### Script de déploiement
+`scripts/deploy/test_deploy_native.sh` (bash, sans serveur : faux `systemctl`, `curl`, `sudo`, `rsync`) : 9 scénarios, 31 contrôles. Lancé par le job build de `cd.yml` avant tout déploiement. Export CSV : une valeur qui commence par = + - @ est neutralisée (apostrophe).
 
 ## 3. Exécution Automatisée dans la CI/CD
 

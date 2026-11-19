@@ -21,7 +21,7 @@ Trois rôles, un seul par utilisateur (`users.role_id`) : `STUDENT`, `ADVISOR`, 
 - Pas de limite de tentatives sur la validation OTP, pas de cooldown sur le renvoi (une demande de renvoi invalide simplement l'OTP précédent).
 - `promotionId` est **optionnel** à l'inscription.
 - Mot de passe : 8 à 128 caractères, aucune contrainte de complexité (pas de regex majuscule/chiffre/symbole imposée).
-- **Adresse postale obligatoire** (lot 10, V62) : rue, code postal (exactement 5 chiffres) et ville ; complément facultatif. Voir §24.
+- **Adresse postale obligatoire** (lot 10, V62) : rue, code postal (exactement 5 chiffres) et ville. Pas de champ « Complément » (retiré le 19/11). Voir §24.
 
 ### Comptes admin/conseiller créés par un admin
 - Créés avec un **mot de passe temporaire** et `mustChangePassword = true`.
@@ -892,9 +892,9 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 
 ### Adresse postale de l'étudiant (V62)
 - **Pourquoi** : dossier administratif (conventions de stage, contrats d'alternance).
-- **Colonnes** (`students`, toutes nullables : les inscrits existants n'en ont pas) : `address_line1` (n° et rue, 120 car.), `address_line2` (complément, 120 car.), `city` (80 car.). Le **code postal** est celui de V56 (`postal_code`, 5 car.) ; le département de la carte suit l'adresse.
-- **Inscription** (`POST /auth/register`) : rue, code postal (`^\d{5}$`, espaces autour retirés) et ville **obligatoires**, nettoyés (trim) ; erreurs par champ en 400 `validation-failed` : `ADDRESS_LINE1_REQUIRED`, `ADDRESS_LINE1_TOO_LONG`, `ADDRESS_LINE2_TOO_LONG`, `POSTAL_CODE_REQUIRED`, `POSTAL_CODE_INVALID`, `CITY_REQUIRED`, `CITY_TOO_LONG`.
-- **Profil** (`GET/PUT /me/address`, étudiant) : mêmes règles ; modifiable, **jamais effaçable**. Journal d'audit : « Adresse postale modifiée par l'étudiant », sans la valeur.
+- **Colonnes** (`students`, toutes nullables : les inscrits existants n'en ont pas) : `address_line1` (n° et rue, 120 car.), `address_line2` (complément, 120 car. : **plus saisi depuis le 19/11**, champ retiré de l'inscription et du profil ; colonne gardée, ni lue ni écrite par l'API, sauf l'export RGPD et l'anonymisation qui la traitent si elle porte une valeur), `city` (80 car.). Le **code postal** est celui de V56 (`postal_code`, 5 car.) ; le département de la carte suit l'adresse.
+- **Inscription** (`POST /auth/register`) : rue, code postal (`^\d{5}$`, espaces autour retirés) et ville **obligatoires**, nettoyés (trim) ; erreurs par champ en 400 `validation-failed` : `ADDRESS_LINE1_REQUIRED`, `ADDRESS_LINE1_TOO_LONG`, `POSTAL_CODE_REQUIRED`, `POSTAL_CODE_INVALID`, `CITY_REQUIRED`, `CITY_TOO_LONG`.
+- **Profil** (`GET/PUT /me/address`, étudiant) : mêmes règles ; modifiable, **jamais effaçable**. Un `addressLine2` envoyé par un ancien client est ignoré (ni erreur, ni enregistrement), et n'est plus renvoyé. Journal d'audit : « Adresse postale modifiée par l'étudiant », sans la valeur.
 - **Comptes créés hors inscription** : l'équipe ne crée pas d'étudiant (`POST /auth/admin/users` refuse `STUDENT`), il n'y a pas d'import ; seuls les seeders de test créent des étudiants, sans adresse. Les étudiants sans adresse gardent un accès complet : bandeau « Complète ton adresse » sur le tableau de bord et le profil, qui disparaît dès l'enregistrement.
 - **Qui la voit** : l'étudiant (`/me/address` seulement : jamais dans le profil `/auth/users/me`, que le front garde dans le navigateur, ni dans l'entité `Student` sérialisée) et l'équipe (fiche étudiant en lecture seule, « Adresse non renseignée » sinon ; liste et export CSV : colonnes Adresse, Complément, Code postal, Ville ; une cellule qui commence par = + - @ est neutralisée par une apostrophe, contre les formules Excel). Le contrôle d'accès existant ne distingue pas le conseiller référent des autres conseillers sur la fiche : logique gardée.
 - **Qui ne la voit jamais** : les autres étudiants, l'Espace entreprise et ses pages publiques (aucun DTO de `CompanySpaceService` ne porte l'adresse, test à l'appui), les CV générés (l'assistant ne lit pas l'adresse), les e-mails (aucun e-mail n'est envoyé aux entreprises ; la demande d'une entreprise part vers l'équipe sans adresse).

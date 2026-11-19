@@ -325,7 +325,7 @@ Pour un e-mail en trop, couper d'abord la variable : c'est plus rapide qu'un ret
 Une seule PR, **3 migrations** (V62 adresse, V63 types de contrat, V64 demandes d'aide en attente reprises dans la messagerie), aucune donnée existante supprimée. Règles : `docs/REGLES_METIER.md` §24.
 
 ### 9.1 Ce qui change dès le déploiement
-- **Inscription** : adresse postale obligatoire (rue, code postal, ville). Les étudiants déjà inscrits voient le bandeau « Complète ton adresse » ; rien n'est bloqué.
+- **Inscription** : adresse postale obligatoire (rue, code postal, ville ; pas de « Complément »). Les étudiants déjà inscrits voient le bandeau « Complète ton adresse » ; rien n'est bloqué.
 - **Demandes d'aide** : menu, compteur et bouton flottant retirés ; création refusée (410) ; données gardées. Anciennes adresses → messagerie. **V64** reprend chaque demande encore en attente en message de l'étudiant dans Conversations : fil non lu, date d'origine, mention « Ancienne demande d'aide », **aucun e-mail de rappel**. La demande passe en `TRANSFERRED`.
 - **Espace entreprise masqué** : plus aucun menu ; vitrine publique « Page non disponible » (404 côté serveur) ; back-office ouvert aux admins seulement, par `/supervisor/espace-entreprise` (bandeau « masqué ») ; un conseiller reçoit 403 et **ne peut plus modifier une formation** tant que l'espace est masqué (les admins le peuvent). La liste des formations reste lisible par tous (filtres, carte, offres) et les formations continuent de servir en coulisses.
 - **Types de contrat** : « Job Etudiant » (créé à la main en octobre) devient « Job étudiant », même identifiant ; aucun autre type touché.
@@ -369,6 +369,23 @@ Le `.env` du serveur est **réécrit à chaque déploiement** depuis le secret `
 - **Correction** : V63 réécrite (jamais appliquée nulle part en prod) : variantes écrites en toutes lettres, égalité exacte, libellé exact vérifié avant chaque `INSERT`. Reproduite puis validée avec le vrai jar sur une copie SQL_ASCII du schéma de prod, et sur une copie SQL_ASCII de données fictives (Flyway 64, 55 demandes transférées, démarrage 31 s, 0 ERROR).
 - **Au prochain déploiement** : Flyway applique V63 et V64 (V62 est déjà là), puis passe à 64.
 
+### 9.6 Déploiement : version de secours et rechargement du front (ajoutés à #100)
+- **Version de secours toujours gardée** (`scripts/deploy/deploy_native.sh`, appelé par `cd.yml`). Le 19/11, le pipeline ne trouvait pas le jar en service (« Aucun jar actuellement en service ») : `actions/checkout` vide le dossier de travail du runner à chaque déploiement. Désormais :
+  - après chaque déploiement réussi, le jar est copié dans `/home/github-runner/itic-cre-backups/last-good.jar` (hors du dossier de travail), avec `last-good.txt` (commit, date) ;
+  - au **premier** passage du nouveau pipeline, `last-good.jar` n'existe pas encore : `cd.yml` télécharge le jar du dernier déploiement réussi (artefact GitHub `backend-jar`, gardé 90 jours) ;
+  - contrôle de santé pendant **120 s** (un démarrage normal prend moins d'une minute), interrompu plus tôt si le service redémarre en boucle (2 redémarrages automatiques) ou passe en échec ;
+  - en cas d'échec : le jar et le front précédents sont remis, le service redémarre et il est contrôlé à son tour. Le job échoue quand même, ce qui déclenche l'alerte Discord : la nouvelle version n'est **pas** en ligne.
+  - **Limite** : une migration Flyway réussie reste en base, rien ne l'annule. L'ancien jar l'ignore (Flyway laisse de côté les migrations plus récentes que les siennes). Les migrations restent donc à répéter avant (§9.3).
+  - **Testé sans serveur** à chaque pipeline (`scripts/deploy/test_deploy_native.sh`, job build) et à la main : 9 scénarios, 31 contrôles (succès, démarrage lent, boucle de redémarrage, service muet, premier passage avec l'artefact précédent, jar en service détecté, aucune version de secours, secours en échec lui aussi, ménage des copies). Ces tests ont trouvé un défaut corrigé avant toute mise en ligne : le ménage des copies faisait échouer un déploiement réussi.
+- **Rechargement automatique du front** (`src/pwa/versionWatcher.ts`). Le 19/11, un poste est resté sur l'ancienne version, servie par le service worker depuis son cache. Désormais :
+  - chaque build publie `/version.json` (commit du build), jamais mis en cache ;
+  - l'onglet le relit toutes les 5 minutes, au retour sur l'onglet, et quand un morceau de l'application ne se charge plus ;
+  - s'il diffère (nouvelle version, ou version remise après un retour arrière), il met à jour le service worker puis recharge la page ;
+  - **jamais pendant une saisie** : si un champ est actif, il attend qu'on le quitte ;
+  - si la page rechargée est toujours l'ancienne, il désinscrit le service worker, vide ses caches et recharge une dernière fois, sans boucle.
+  - Recette dans un vrai navigateur (Edge, `vite preview`, service worker actif) : version B publiée → page rechargée d'elle-même en 1,8 s ; rechargement manuel → toujours B ; version C publiée pendant une saisie → pas de rechargement en 6 s, texte intact, puis rechargée dès le champ quitté.
+- **Le jour du déploiement de #100** : les postes ouverts sur l'ancienne version n'ont pas encore ce mécanisme. Ils prennent la nouvelle version au prochain contrôle de leur service worker (navigation, ou toutes les 15 min dans l'ancien code). Les déploiements suivants seront pris en compte d'eux-mêmes.
+
 ## Annexes : scripts (versionnés)
 
 | Script | Rôle |
@@ -380,6 +397,8 @@ Le `.env` du serveur est **réécrit à chaque déploiement** depuis le secret `
 | `scripts/nonreg/api_journeys.py` | rejoue et compare les écritures des parcours existants |
 | `scripts/nonreg/ui_sweep.py` | passe sur chaque écran (ordinateur, 390 px, ancien bundle) |
 | `scripts/nonreg/switches_check.py` | vérifie les envois selon les interrupteurs |
+| `scripts/deploy/deploy_native.sh` | déploiement natif appelé par `cd.yml` : version de secours `last-good.jar`, contrôle de santé 120 s, retour automatique |
+| `scripts/deploy/test_deploy_native.sh` | tests du script de déploiement sans serveur (job build de `cd.yml`, ou à la main) |
 | `scripts/rollback/avant_retour_arriere.sql` | à passer avant un retour arrière du code |
 | `scripts/rollback/avant_retour_arriere_lot10.sql` | lot 10 : à passer avant un retour arrière du lot 10 (statut `TRANSFERRED` inconnu de l'ancien code) |
 | `scripts/prod/sauvegarde_prod.sh` | sauvegarde de la base de prod, lecture seule, copiée sur le poste (Samuel la lance) |
