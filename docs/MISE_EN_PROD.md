@@ -341,6 +341,7 @@ Le `.env` du serveur est **réécrit à chaque déploiement** depuis le secret `
 
 ### 9.3 Procédure (Samuel lance chaque script lui-même, dans Git Bash)
 1. **Sauvegarde** : `bash scripts/prod/sauvegarde_prod.sh` (lecture seule ; fichier daté hors dépôt, contrôles à côté).
+   - **Répétition des migrations** (assistant, en local) : base jetable **en SQL_ASCII comme la prod** (`CREATE DATABASE … ENCODING 'SQL_ASCII' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0`), avec le schéma de cette sauvegarde (`pg_restore -s`) plus les seules tables de référence (`contract_types`, `flyway_schema_history`) ; puis le jar construit comme la CI, lancé dessus. Flyway doit arriver à 64. Aucune donnée personnelle n'est chargée.
 2. **Vérification** : `ssh root@10.190.0.16 'bash -s' < scripts/prod/verif_admins.sh` (lecture seule). Elle affiche :
    - la ligne `ADMIN_MAX_ACTIVE` ;
    - les comptes admin ;
@@ -360,6 +361,13 @@ Le `.env` du serveur est **réécrit à chaque déploiement** depuis le secret `
 
 ### 9.4 Retour arrière
 « Revert » de la fusion sur GitHub (nouveau déploiement). V62, V63 et V64 n'ont rien supprimé : l'ancien code ignore les colonnes d'adresse et de transfert, et « Job étudiant » reste un type ordinaire. **Avant que l'ancien code ne tourne** : passer `scripts/rollback/avant_retour_arriere_lot10.sql`. L'ancien code ne connaît pas le statut `TRANSFERRED` : sans ce script, l'export RGPD d'un étudiant concerné et la liste « Demandes d'aide » répondent 500. Le script remet ces demandes « en attente » ; les messages créés restent dans Conversations.
+
+### 9.5 Incident du 19/11 : première V63 en échec, retour arrière (#99)
+- **Ce qui s'est passé** : #98 fusionnée à 10 h 31, puis le serveur a redémarré en boucle (25 redémarrages). V62 est passée ; V63 échouait à chaque démarrage : `SQL State 23505`, clé dupliquée sur la contrainte unique `contract_types_label_key`, ligne 30 (dernier `INSERT 'Job étudiant'`). PostgreSQL annulait V63 à chaque fois : Flyway restait à 62 sans échec enregistré. V64 n'a jamais tourné.
+- **Cause** : la base de prod est en **SQL_ASCII**. `translate(lower(label), 'éèêë', 'eeee')` y travaille octet par octet, et « é » fait deux octets : après le renommage de « Job Etudiant » en « Job étudiant », la garde du dernier `INSERT` ne reconnaissait plus ce libellé et tentait de l'insérer une seconde fois. Les répétitions avaient été faites sur des bases en UTF8, où tout passait.
+- **Retour arrière** : #99 (annulation de la fusion), déployée avec succès ; le code est revenu à `2239a1a`. V62 reste appliquée : l'ancien code ignore ces colonnes. Aucune donnée n'a été écrite par V63 ni V64 : `avant_retour_arriere_lot10.sql` n'était pas nécessaire.
+- **Correction** : V63 réécrite (jamais appliquée nulle part en prod) : variantes écrites en toutes lettres, égalité exacte, libellé exact vérifié avant chaque `INSERT`. Reproduite puis validée avec le vrai jar sur une copie SQL_ASCII du schéma de prod, et sur une copie SQL_ASCII de données fictives (Flyway 64, 55 demandes transférées, démarrage 31 s, 0 ERROR).
+- **Au prochain déploiement** : Flyway applique V63 et V64 (V62 est déjà là), puis passe à 64.
 
 ## Annexes : scripts (versionnés)
 

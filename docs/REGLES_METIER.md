@@ -925,7 +925,9 @@ Spécification : `PROPOSITIONS-JULES.md`, section 1, avec les valeurs proposées
 
 ### Types de contrat (V63)
 - « Publier une offre », les filtres de l'équipe et des étudiants lisent `GET /jobboard/contract-types/active/list` : la liste contient **CDI, CDD, Alternance, Stage, Job étudiant** (et « Inconnu » s'il est actif).
-- V63 n'ajoute que les absents, comparaison sans casse ni accent. Un « Job étudiant » déjà créé sous une autre orthographe (en prod : « Job Etudiant ») garde son identifiant et ses offres ; seul son libellé est corrigé. CDI, CDD, Stage, Alternance et Inconnu (synchronisation) ne sont jamais renommés ni supprimés.
+- V63 n'ajoute que les absents, sans casse, et reconnaît les variantes « Job Etudiant », « Job étudiant », « Job Étudiant » (et au pluriel) écrites en toutes lettres.
+- **Base de prod en SQL_ASCII** : `lower()`, `translate()` et les comparaisons y travaillent octet par octet, et un caractère accentué fait deux octets. Une migration ne doit donc jamais comparer un texte accentué après transformation : égalité exacte sur des variantes écrites en toutes lettres, et vérification du libellé exact avant chaque `INSERT` (comme la contrainte unique). C'est ce qui a fait échouer la première V63 le 19/11 (voir `docs/MISE_EN_PROD.md` §9.5).
+- Un « Job étudiant » déjà créé sous une autre orthographe (en prod : « Job Etudiant ») garde son identifiant et ses offres ; seul son libellé est corrigé. CDI, CDD, Stage, Alternance et Inconnu (synchronisation) ne sont jamais renommés ni supprimés.
 
 ### Plafond d'administrateurs à 4
 - Défaut du code 4 (`ADMIN_MAX_ACTIVE`). La valeur du `.env` du serveur fait foi ; elle est réécrite à chaque déploiement depuis le secret `BACKEND_ENV_CONTENT`.

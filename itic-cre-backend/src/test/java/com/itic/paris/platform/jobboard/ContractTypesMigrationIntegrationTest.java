@@ -71,6 +71,35 @@ class ContractTypesMigrationIntegrationTest {
     }
 
     @Test
+    @DisplayName("« Job étudiant » déjà présent tel quel (cas de l'incident du 19/11) : rien d'inséré, aucune clé dupliquée")
+    void exactLabelAlreadyPresent() throws Exception {
+        jdbc.update("DELETE FROM contract_types WHERE lower(label) LIKE 'job%'");
+        UUID id = insertType("Job étudiant");
+        runMigration();
+        runMigration();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM contract_types WHERE lower(label) LIKE 'job%'", Long.class)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("SELECT label FROM contract_types WHERE id = ?", String.class, id)).isEqualTo("Job étudiant");
+    }
+
+    @Test
+    @DisplayName("« Job Étudiant » (É majuscule) : reconnu et corrigé, même identifiant, aucun doublon")
+    void capitalAccentVariant() throws Exception {
+        jdbc.update("DELETE FROM contract_types WHERE lower(label) LIKE 'job%'");
+        UUID id = insertType("Job Étudiant");
+        runMigration();
+        runMigration();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM contract_types WHERE lower(label) LIKE 'job%'", Long.class)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("SELECT label FROM contract_types WHERE id = ?", String.class, id)).isEqualTo("Job étudiant");
+    }
+
+    private UUID insertType(String label) {
+        UUID id = UUID.randomUUID();
+        jdbc.update("INSERT INTO contract_types (id, label, description, active, created_at, updated_at) VALUES (?, ?, NULL, true, ?, ?)",
+                id, label, java.sql.Timestamp.from(Instant.now()), java.sql.Timestamp.from(Instant.now()));
+        return id;
+    }
+
+    @Test
     @DisplayName("Types de la synchronisation inchangés (libellé et identifiant) ; France Travail classe toujours l'apprentissage en Alternance")
     void syncTypesUntouched() throws Exception {
         List<ContractType> before = contractTypeRepository.findAll().stream()

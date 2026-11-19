@@ -1,12 +1,12 @@
 # Contrôle d'un déploiement (MISE_EN_PROD §7.3), en LECTURE SEULE. Utilisé le 18/11 (pile #71 → #97, Flyway 61) ;
-# lot 10 : Flyway attendu à 63 (V62 adresse, V63 types de contrat), 2 migrations appliquées le jour même.
+# lot 10 (après l'incident du 19/11) : Flyway attendu à 64 ; V62 est déjà appliquée, V63 et V64 passent le jour même.
 # À lancer depuis Git Bash :  ssh root@10.190.0.16 'bash -s' < scripts/prod/verif_deploiement.sh
 # Aucune écriture, aucun redémarrage. Seuls des versions, des nombres et des lignes de démarrage s'affichent.
 DB=$(grep -h "^DB_NAME=" $(systemctl show itic-backend.service -p EnvironmentFiles --value | grep -oE "/[^ ]+") /dev/null 2>/dev/null | tail -1 | cut -d= -f2 | tr -d "\"\r")
 DB=${DB:-itic_cre}
 echo "== Service"
 systemctl show itic-backend.service -p ActiveState -p SubState -p ActiveEnterTimestamp -p NRestarts
-echo "== Flyway (lot 10 : 63 en tête, toutes à t, 0 échec)"
+echo "== Flyway (lot 10 : 64 en tête, toutes à t, 0 échec)"
 sudo -u postgres psql -X -At -d "$DB" -c "SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY" -c "
   SELECT 'max=' || max(split_part(version, '.', 1)::int) FILTER (WHERE success)
       || ' echecs=' || count(*) FILTER (WHERE NOT success)
