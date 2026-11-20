@@ -285,6 +285,7 @@ export default function CandidaturesPage() {
                     options={statusOptions}
                     onChange={handleStatusChange}
                     icon={<SlidersHorizontal className="h-4 w-4 text-slate-400" />}
+                    active={!!statusFilter}
                     className="min-w-48"
                 />
 
@@ -295,10 +296,12 @@ export default function CandidaturesPage() {
                     options={starredFilterOptions}
                     onChange={(value) => handleStarredFilterChange(value as StarredFilter)}
                     icon={<Star className="h-4 w-4 text-slate-400" />}
-                    className="min-w-40"
+                    active={starredFilter !== 'all'}
+                    className="min-w-48"
                 />
 
-                <FormationFilter value={formationFilter} onChange={(csv) => setUrlParam('formations', csv)} className="w-full sm:w-64" />
+                {/* Lot 11 : même déclencheur et même largeur minimale que les autres filtres de la barre. */}
+                <FormationFilter value={formationFilter} onChange={(csv) => setUrlParam('formations', csv)} className="min-w-48" />
                 <CustomSelect
                     value={sortByFormation ? 'formation' : 'name'}
                     options={[
@@ -306,12 +309,12 @@ export default function CandidaturesPage() {
                         { value: 'formation', label: t('formations.sort_formation', 'Tri : formation') },
                     ]}
                     onChange={(value) => setUrlParam('tri', value === 'formation' ? 'formation' : '')}
-                    className="min-w-40"
+                    className="min-w-48"
                 />
 
                 {/* Le reste des filtres regroupes dans un panneau, comme sur Offres — evite de
                   * surcharger la barre avec 6+ controles affiches en permanence. */}
-                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters}>
+                <FiltersPopover activeCount={activeFilterCount} onReset={handleResetFilters} className="min-w-48">
                     <div className="py-3 first:pt-3 last:pb-3">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                             {t('dashboard.etudiants.filter_promotion_label', 'Promotion')}
@@ -423,7 +426,8 @@ export default function CandidaturesPage() {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {/* Page en pleine largeur (lot 11) : une colonne de cartes de plus sur les grands écrans. */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 gap-4">
                         {studentGroups.map((group) => (
                             <StudentCard
                                 key={group.studentId}

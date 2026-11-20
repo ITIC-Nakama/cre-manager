@@ -101,7 +101,12 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 
 | **Rechargement automatique (19/11)** | `src/pwa/versionWatcher.test.ts` | 9 | Même version : rien ; nouvelle version : service worker mis à jour puis page rechargée, `/version.json` lu sans cache ; version remise après un retour arrière : rechargée aussi ; saisie en cours : ni mise à jour ni rechargement avant de quitter le champ ; page toujours ancienne : caches vidés, dernier rechargement, puis plus rien (pas de boucle) ; hors ligne : rien ; vérification au retour sur l'onglet, sur un morceau introuvable et toutes les 5 min ; détection d'une saisie. Recette dans un vrai navigateur : `docs/MISE_EN_PROD.md` §9.6. |
 
-**Total front : 96 tests** (dont « le formulaire n'affiche pas de champ « Complément » » dans `AddressFields.test.tsx`, 10 tests).
+| **Largeur des pages (lot 11)** | `src/layouts/pageWidth.test.tsx` | 19 | Pages à tableau de l'équipe en pleine largeur (Étudiants, Candidatures, Offres, Validation des CV, Comptes, Promotions et leur détail, Audit) ; toutes les autres en 1 280 px, côté étudiant compris ; gabarits équipe et étudiant (attribut `data-page-width`). |
+| **Bouton « Colonnes » (lot 11)** | `src/components/table/columns.test.tsx` | 5 | Masquer et réafficher une colonne, « Tout afficher », état actif du bouton ; « Étudiant » non masquable, sélection absente de la liste ; mémorisation par utilisateur et par tableau ; stockage indisponible (lecture et écriture refusées) ; valeur illisible ou forcée ignorée. |
+| **Carte des tableaux (lot 11)** | `src/components/table/DataTableFrame.test.tsx` | 2 | Défilement infini : repère = la page sur mobile (la carte ne défile qu'en largeur), la carte à partir de md (hauteur calée sur la fenêtre). |
+| **Page Étudiants (lot 11)** | `src/pages/advisor/etudiants/EtudiantsPage.lot11.test.tsx` | 7 | Filtres de la barre : même déclencheur et même largeur minimale, état actif, « Formations (2) » et liste complète au survol, recherche dans la liste conservée ; colonnes sélection et « Étudiant » figées (admin et conseiller), textes longs complets au survol ; sélection multiple, colonne masquée puis affectation groupée, « tout sélectionner » puis « les 45 étudiants correspondant au filtre ». |
+
+**Total front : 129 tests** (dont « le formulaire n'affiche pas de champ « Complément » » dans `AddressFields.test.tsx`, 10 tests).
 
 ### Script de déploiement
 `scripts/deploy/test_deploy_native.sh` (bash, sans serveur : faux `systemctl`, `curl`, `sudo`, `rsync`) : 9 scénarios, 31 contrôles. Lancé par le job build de `cd.yml` avant tout déploiement. Export CSV : une valeur qui commence par = + - @ est neutralisée (apostrophe).

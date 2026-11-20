@@ -375,7 +375,8 @@ export default function OffresPage() {
 
     return (
         <div className="flex flex-col gap-6  animate-fadeIn">
-            <div className="sticky top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
+            {/* Accroché en haut à partir de md ; sur mobile, la barre de filtres défile avec la page (lot 11). */}
+            <div className="md:sticky md:top-0 z-10 bg-slate-50 dark:bg-[#020203] py-2 flex flex-col gap-4">
                 <OffresHeader
                     totalElements={totalElements}
                     isAdmin={isAdmin}

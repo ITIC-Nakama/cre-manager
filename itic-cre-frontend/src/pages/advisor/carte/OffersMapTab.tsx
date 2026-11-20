@@ -58,7 +58,7 @@ export default function OffersMapTab() {
                 {t('carte.offers_subtitle', 'Offres en ligne et entreprises qui recrutent, par département (d’après la localisation de l’offre). Aucune adresse exacte n’est affichée.')}
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
-                <FormationFilter value={formations} onChange={(v) => { setFormations(v); setSelected(null); }} className="w-full" />
+                <FormationFilter appearance="field" value={formations} onChange={(v) => { setFormations(v); setSelected(null); }} className="w-full" />
                 <select className={fieldClass(false, false)} aria-label={t('carte.filter_contract_type', 'Type de contrat')}
                     value={contractTypeId} onChange={(e) => setContractTypeId(e.target.value)}>
                     <option value="">{t('carte.all_contract_types', 'Tous les contrats')}</option>

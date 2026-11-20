@@ -444,7 +444,10 @@
         "account_disabled": "Account disabled",
         "empty": "No students match your criteria.",
         "last_activity": "Last active",
-        "rating": "Rating"
+        "rating": "Rating",
+        "region_label": "Students table",
+        "select_all": "Select all displayed students",
+        "select_one": "Select {{name}}"
       },
       "detail": {
         "total_applications": "Total applications",
@@ -904,7 +907,8 @@
         "inactive": "Inactive",
         "created_at": "Published on",
         "actions": "Actions",
-        "empty": "No offers match your criteria."
+        "empty": "No offers match your criteria.",
+        "region_label": "Job offers table"
       },
       "actions": {
         "view_link": "View original offer",
@@ -994,7 +998,8 @@
       "subtitle": "View and manage job offers.",
       "filter_drafts": "Drafts",
       "draft_badge": "Draft",
-      "draft_hint": "Draft: hidden from students until it is published."
+      "draft_hint": "Draft: hidden from students until it is published.",
+      "filters_button_active": "Filters ({{count}})"
     },
     "notify_modal": {
       "message_label": "Custom message",
@@ -2886,7 +2891,9 @@
     "toast_attached": "Offer linked: the programme's students will be notified.",
     "toast_detached": "Offer unlinked from the programme.",
     "toast_error": "Action failed. Please try again.",
-    "toggle_label": "Alerts for {{name}}"
+    "toggle_label": "Alerts for {{name}}",
+    "filter_aria": "Filter by programme",
+    "filter_active": "Programmes ({{count}})"
   },
   "accounts": {
     "delete_action_label": "Permanently delete {{name}}'s account",
@@ -2928,5 +2935,13 @@
     "title": "Page not available",
     "text": "This page is not available at the moment.",
     "home": "Go to the login page"
+  },
+  "table": {
+    "columns": "Columns",
+    "columns_hidden_one": "Columns ({{count}} hidden)",
+    "columns_hidden_other": "Columns ({{count}} hidden)",
+    "columns_title": "Visible columns",
+    "column_locked": "always shown",
+    "columns_show_all": "Show all"
   }
 }

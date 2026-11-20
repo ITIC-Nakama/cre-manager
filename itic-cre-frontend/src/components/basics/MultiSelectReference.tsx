@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 import type { ReferenceOption } from '../../types/models/JobOffer';
+import FilterTriggerButton from './FilterTriggerButton';
+import { fieldClass } from './fieldStyles';
 
 interface MultiSelectReferenceProps {
     options: ReferenceOption[];
@@ -16,6 +18,20 @@ interface MultiSelectReferenceProps {
     closeLabel?: string;
     /** Libellé du badge de repli quand plus de 3 éléments sont sélectionnés (ex: "{{count}} sélectionnés"). */
     selectedCountLabel?: (count: number) => string;
+    /**
+     * Aspect du déclencheur (lot 11) :
+     *   - 'chips' (défaut) : champ de formulaire, sélection affichée en pastilles sous le champ ;
+     *   - 'filter' : pastille de filtre commune aux barres d'outils (FilterTriggerButton), sans pastilles dessous ;
+     *   - 'field' : même habillage que les champs de formulaire voisins (fieldClass), sans pastilles dessous.
+     * En 'filter' et 'field', le libellé résume la sélection : un seul choix → son nom, plusieurs → activeCountLabel.
+     */
+    variant?: 'chips' | 'filter' | 'field';
+    /** Icône à gauche du déclencheur ('filter'). */
+    icon?: ReactNode;
+    /** Libellé quand plusieurs éléments sont choisis ('filter' et 'field'), ex. « Formations (2) ». */
+    activeCountLabel?: (count: number) => string;
+    /** Nom accessible du déclencheur (lecteurs d'écran), ex. « Filtrer par formation ». */
+    ariaLabel?: string;
 }
 
 /**
@@ -36,6 +52,10 @@ export default function MultiSelectReference({
     noResultsLabel = 'Aucun résultat',
     closeLabel = 'Fermer',
     selectedCountLabel = (count) => `${count} sélectionnés`,
+    variant = 'chips',
+    icon,
+    activeCountLabel,
+    ariaLabel,
 }: MultiSelectReferenceProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -43,6 +63,7 @@ export default function MultiSelectReference({
     const [panelRect, setPanelRect] = useState<{ top: number; bottom: number; left: number; width: number } | null>(null);
     const [panelMaxHeight, setPanelMaxHeight] = useState(320);
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
     const selected = useMemo(
@@ -73,6 +94,19 @@ export default function MultiSelectReference({
         document.addEventListener('mousedown', handleOutside);
         return () => document.removeEventListener('mousedown', handleOutside);
     }, []);
+
+    // Échap ferme la liste et rend le focus au déclencheur (clavier).
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
+            setIsOpen(false);
+            setSearch('');
+            triggerRef.current?.focus();
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -116,27 +150,64 @@ export default function MultiSelectReference({
 
     const removeOne = (v: string) => onChange(selected.filter((s) => s !== v).join(','));
 
+    const compact = variant !== 'chips';
     const triggerLabel = selected.length === 0
         ? allLabel
-        : selected.length <= 2
-            ? selected.map(labelFor).join(', ')
-            : selectedCountLabel(selected.length);
+        : compact
+            ? (selected.length === 1 ? labelFor(selected[0]) : (activeCountLabel ?? selectedCountLabel)(selected.length))
+            : selected.length <= 2
+                ? selected.map(labelFor).join(', ')
+                : selectedCountLabel(selected.length);
+    // Sélection complète au survol (le libellé résumé peut être coupé ou réduit à un nombre).
+    const triggerTitle = selected.length === 0 ? allLabel : selected.map(labelFor).join(', ');
 
     return (
         <div ref={containerRef} className="relative">
-            <button
-                type="button"
-                onClick={handleToggleOpen}
-                disabled={loading}
-                className={`w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-slate-900 border px-3 py-2 text-sm text-left transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isOpen ? 'border-[#E2762F] ring-2 ring-[#E2762F]/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                }`}
-            >
-                <span className={`truncate ${selected.length === 0 ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200 font-medium'}`}>
-                    {triggerLabel}
-                </span>
-                <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
+            {variant === 'filter' ? (
+                <FilterTriggerButton
+                    ref={triggerRef}
+                    onClick={handleToggleOpen}
+                    disabled={loading}
+                    aria-expanded={isOpen}
+                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerLabel}` : undefined}
+                    title={triggerTitle}
+                    icon={icon}
+                    label={triggerLabel}
+                    active={selected.length > 0}
+                    open={isOpen}
+                />
+            ) : variant === 'field' ? (
+                <button
+                    type="button"
+                    ref={triggerRef}
+                    onClick={handleToggleOpen}
+                    disabled={loading}
+                    aria-expanded={isOpen}
+                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerLabel}` : undefined}
+                    title={triggerTitle}
+                    className={`${fieldClass(false, false)} inline-flex items-center justify-between gap-2 text-left cursor-pointer disabled:cursor-not-allowed`}
+                >
+                    <span className={`truncate ${selected.length === 0 ? 'text-slate-400' : 'font-medium'}`}>{triggerLabel}</span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    onClick={handleToggleOpen}
+                    disabled={loading}
+                    ref={triggerRef}
+                    aria-expanded={isOpen}
+                    aria-label={ariaLabel}
+                    className={`w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-slate-900 border px-3 py-2 text-sm text-left transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isOpen ? 'border-[#E2762F] ring-2 ring-[#E2762F]/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}
+                >
+                    <span className={`truncate ${selected.length === 0 ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200 font-medium'}`}>
+                        {triggerLabel}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            )}
 
             {isOpen && panelRect && createPortal(
                 <div
@@ -205,6 +276,7 @@ export default function MultiSelectReference({
                                     <button
                                         key={o.value}
                                         type="button"
+                                        aria-pressed={isSelected}
                                         onClick={() => toggleValue(o.value)}
                                         className={`w-full flex items-center gap-2 text-left rounded-xl px-3 py-2 text-sm transition-colors cursor-pointer ${
                                             isSelected
@@ -228,7 +300,7 @@ export default function MultiSelectReference({
                 document.body
             )}
 
-            <div className="flex flex-wrap gap-1 mt-1.5">
+            {!compact && <div className="flex flex-wrap gap-1 mt-1.5">
                 {selected.length === 0 ? (
                     <span className="text-[11px] text-slate-400 italic">{allLabel}</span>
                 ) : (
@@ -248,7 +320,7 @@ export default function MultiSelectReference({
                         </span>
                     ))
                 )}
-            </div>
+            </div>}
         </div>
     );
 }
