@@ -24,16 +24,18 @@ export default function ColumnsMenu<T>({ table, className = '' }: { table: Table
 
     return (
         <Popover.Root open={open} onOpenChange={setOpen}>
-            <Popover.Trigger asChild>
-                <FilterTriggerButton
-                    className={className}
-                    icon={<Columns3 className="h-4 w-4 text-slate-400" />}
-                    label={label}
-                    active={hiddenCount > 0}
-                    open={open}
-                    data-testid="columns-menu-trigger"
-                />
-            </Popover.Trigger>
+            {/* Conteneur à la largeur de son contenu : le déclencheur (w-full) ne s'étire pas sur toute la barre. */}
+            <div className={`inline-block ${className}`}>
+                <Popover.Trigger asChild>
+                    <FilterTriggerButton
+                        icon={<Columns3 className="h-4 w-4 text-slate-400" />}
+                        label={label}
+                        active={hiddenCount > 0}
+                        open={open}
+                        data-testid="columns-menu-trigger"
+                    />
+                </Popover.Trigger>
+            </div>
             <Popover.Portal>
                 <Popover.Content
                     align="end"
@@ -81,9 +83,10 @@ export default function ColumnsMenu<T>({ table, className = '' }: { table: Table
                     <div className="mt-1.5 border-t border-slate-100 pt-1.5 dark:border-slate-800">
                         <button
                             type="button"
-                            onClick={() => table.toggleAllColumnsVisible(true)}
-                            disabled={hiddenCount === 0}
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-900 cursor-pointer"
+                            onClick={() => { if (hiddenCount > 0) table.toggleAllColumnsVisible(true); }}
+                            // aria-disabled plutôt que disabled : le focus clavier reste sur le bouton après l'avoir activé.
+                            aria-disabled={hiddenCount === 0}
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aria-disabled:cursor-not-allowed aria-disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-900 cursor-pointer"
                         >
                             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                             {t('table.columns_show_all', 'Tout afficher')}

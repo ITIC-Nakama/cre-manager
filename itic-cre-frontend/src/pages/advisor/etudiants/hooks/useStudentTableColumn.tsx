@@ -85,18 +85,21 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                 const badgeText = 'sr-only sm:not-sr-only';
                 return (
                     <div className="flex items-center gap-2.5 whitespace-nowrap">
-                        <UserAvatar
-                            profilePicture={row.original.profilePicture}
-                            firstName={row.original.firstName}
-                            lastName={row.original.lastName}
-                            className="h-8 w-8 flex-shrink-0"
-                            enlargeOnClick
-                        />
+                        {/* Photo masquée sous sm : la colonne figée laisse de la place au reste du tableau. */}
+                        <span className="hidden sm:contents">
+                            <UserAvatar
+                                profilePicture={row.original.profilePicture}
+                                firstName={row.original.firstName}
+                                lastName={row.original.lastName}
+                                className="h-8 w-8 flex-shrink-0"
+                                enlargeOnClick
+                            />
+                        </span>
                         <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                                 <TruncatedText
                                     text={fullName}
-                                    className={`max-w-[7.5rem] sm:max-w-[17rem] ${isAnon ? 'font-semibold text-slate-500 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-white'}`}
+                                    className={`max-w-[7.5rem] sm:max-w-[14rem] ${isAnon ? 'font-semibold text-slate-500 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-white'}`}
                                 />
                                 {isAnon && (
                                     <span className="inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
@@ -120,7 +123,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                                     </span>
                                 )}
                             </div>
-                            <TruncatedText text={row.original.email} className="max-w-[9rem] sm:max-w-[17rem] text-xs text-slate-400 font-mono" />
+                            <TruncatedText text={row.original.email} className="max-w-[9rem] sm:max-w-[14rem] text-xs text-slate-400 font-mono" />
                         </div>
                     </div>
                 );
@@ -134,7 +137,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
                 const studyYear = row.original.studyYear;
                 return value ? (
                     <div className="flex items-center gap-1.5 whitespace-nowrap">
-                        <TruncatedText text={value} className="max-w-[14rem] text-slate-500 dark:text-slate-400 text-sm" />
+                        <TruncatedText text={value} className="max-w-[12rem] text-slate-500 dark:text-slate-400 text-sm" />
                         {studyYear && (
                             <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40">
                                 {t(`study_years.year_${studyYear}`, `${studyYear}e année`)}
@@ -153,7 +156,7 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
             cell: ({ getValue }) => {
                 const value = getValue();
                 return value
-                    ? <TruncatedText text={value} className="max-w-[14rem] text-slate-600 dark:text-slate-300 text-sm" />
+                    ? <TruncatedText text={value} className="max-w-[12rem] text-slate-600 dark:text-slate-300 text-sm" />
                     : <span className="text-slate-300 dark:text-slate-600">—</span>;
             },
             enableSorting: true,
@@ -212,7 +215,8 @@ export function useStudentColumns({ isAdmin, onReactivate }: UseStudentColumnsOp
         col.accessor('isActive', {
             header: t('dashboard.etudiants.table.status'),
             cell: ({ getValue, row }) => (
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                // Badge et bouton « Réactiver » empilés (chacun sur une ligne) : la colonne reste étroite.
+                <div className="flex flex-col items-start gap-1 whitespace-nowrap">
                     <StudentActivityBadge
                         accountActive={row.original.accountActive}
                         isActive={!!getValue()}

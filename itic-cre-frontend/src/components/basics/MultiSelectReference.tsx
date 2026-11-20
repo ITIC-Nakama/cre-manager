@@ -169,7 +169,7 @@ export default function MultiSelectReference({
                     onClick={handleToggleOpen}
                     disabled={loading}
                     aria-expanded={isOpen}
-                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerTitle}` : undefined}
+                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerLabel}` : undefined}
                     title={triggerTitle}
                     icon={icon}
                     label={triggerLabel}
@@ -183,7 +183,7 @@ export default function MultiSelectReference({
                     onClick={handleToggleOpen}
                     disabled={loading}
                     aria-expanded={isOpen}
-                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerTitle}` : undefined}
+                    aria-label={ariaLabel ? `${ariaLabel} : ${triggerLabel}` : undefined}
                     title={triggerTitle}
                     className={`${fieldClass(false, false)} inline-flex items-center justify-between gap-2 text-left cursor-pointer disabled:cursor-not-allowed`}
                 >
@@ -276,6 +276,7 @@ export default function MultiSelectReference({
                                     <button
                                         key={o.value}
                                         type="button"
+                                        aria-pressed={isSelected}
                                         onClick={() => toggleValue(o.value)}
                                         className={`w-full flex items-center gap-2 text-left rounded-xl px-3 py-2 text-sm transition-colors cursor-pointer ${
                                             isSelected

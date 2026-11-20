@@ -2938,7 +2938,8 @@
   },
   "table": {
     "columns": "Colonnes",
-    "columns_hidden": "Colonnes ({{count}} masquées)",
+    "columns_hidden_one": "Colonnes ({{count}} masquée)",
+    "columns_hidden_other": "Colonnes ({{count}} masquées)",
     "columns_title": "Colonnes affichées",
     "column_locked": "toujours affichée",
     "columns_show_all": "Tout afficher"

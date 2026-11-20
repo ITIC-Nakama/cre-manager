@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Updater, VisibilityState } from '@tanstack/react-table';
 
 /**
@@ -62,5 +62,7 @@ export function useColumnVisibility(
         });
     }, [key, clean]);
 
-    return [clean(state.key === key ? state.value : {}), setVisibility];
+    const current = state.key === key ? state.value : null;
+    const visibility = useMemo(() => clean(current ?? {}), [clean, current]);
+    return [visibility, setVisibility];
 }

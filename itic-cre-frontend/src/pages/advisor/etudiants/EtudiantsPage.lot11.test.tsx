@@ -135,7 +135,7 @@ describe('page Étudiants : tableau lisible', () => {
         renderPage();
         await flush();
         const region = screen.getByRole('region', { name: 'Tableau des étudiants' });
-        expect(region.className).toContain('overflow-auto');
+        expect(region.className).toContain('overflow-x-auto');
         const header = within(region).getAllByRole('columnheader');
         expect(header[0].className).toContain('dt-sticky');
         expect(header[0].style.left).toBe('0px');

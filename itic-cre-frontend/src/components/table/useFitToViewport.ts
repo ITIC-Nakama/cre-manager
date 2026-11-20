@@ -1,6 +1,18 @@
-import { useLayoutEffect, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useState, type RefObject } from 'react';
 
 const MD_QUERY = '(min-width: 768px)';
+
+/** Vrai à partir de md (768 px), suivi en direct. */
+export function useIsMdUp(): boolean {
+    const [mdUp, setMdUp] = useState(() => typeof window !== 'undefined' && window.matchMedia(MD_QUERY).matches);
+    useEffect(() => {
+        const mql = window.matchMedia(MD_QUERY);
+        const onChange = () => setMdUp(mql.matches);
+        mql.addEventListener('change', onChange);
+        return () => mql.removeEventListener('change', onChange);
+    }, []);
+    return mdUp;
+}
 
 /**
  * Hauteur maximale de la zone qui défile = place restante sous elle dans la page (<main> du gabarit), moins la marge
@@ -38,11 +50,14 @@ export function useFitToViewport(ref: RefObject<HTMLElement | null>, enabled = t
             if (scroller.firstElementChild) observer.observe(scroller.firstElementChild);
         }
         window.addEventListener('resize', schedule);
+        // La bannière « Installer l'application » annonce sa hauteur par cet événement (PwaInstallBanner.tsx).
+        window.addEventListener('pwa-banner-space', schedule);
         mql.addEventListener('change', schedule);
         return () => {
             cancelAnimationFrame(frame);
             observer.disconnect();
             window.removeEventListener('resize', schedule);
+            window.removeEventListener('pwa-banner-space', schedule);
             mql.removeEventListener('change', schedule);
             el.style.maxHeight = '';
         };

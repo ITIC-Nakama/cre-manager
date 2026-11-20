@@ -47,7 +47,7 @@ describe('bouton « Colonnes »', () => {
         fireEvent.click(box('Ville'));
         expect(visibles()).toBe('select,name,note');
         // Le bouton indique qu'une colonne est masquée, avec l'état « actif » des filtres.
-        expect(screen.getByTestId('columns-menu-trigger').textContent).toContain('1 masquée');
+        expect(screen.getByTestId('columns-menu-trigger').textContent).toBe('Colonnes (1 masquée)');
         expect(screen.getByTestId('columns-menu-trigger').getAttribute('data-active')).toBe('true');
         fireEvent.click(box('Note'));
         expect(visibles()).toBe('select,name');

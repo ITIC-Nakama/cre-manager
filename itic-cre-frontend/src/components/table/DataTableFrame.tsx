@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useFitToViewport } from './useFitToViewport';
+import { useFitToViewport, useIsMdUp } from './useFitToViewport';
 
 /**
  * Carte d'un tableau de données (lot 11).
@@ -9,6 +9,8 @@ import { useFitToViewport } from './useFitToViewport';
  *   - Ombre sur le bord droit tant qu'il reste des colonnes à droite ; ombre sur la dernière colonne figée dès qu'on
  *     a défilé (classes dt-* dans index.css).
  *   - `footer` est placé dans la zone qui défile : la sentinelle du défilement infini y suit le bas du tableau.
+ *     Sous md, la zone ne défile qu'en largeur (overflow-y: hidden, sans hauteur imposée) : la sentinelle prend
+ *     alors <main> comme repère, comme avant. Elle est remontée quand on franchit md pour recréer son observateur.
  */
 interface DataTableFrameProps {
     children: ReactNode;
@@ -25,6 +27,7 @@ interface DataTableFrameProps {
 export default function DataTableFrame({ children, toolbar, footer, label, fitToViewport = true, className = '' }: DataTableFrameProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [edges, setEdges] = useState({ left: false, right: false });
+    const mdUp = useIsMdUp();
 
     const updateEdges = useCallback(() => {
         const el = scrollRef.current;
@@ -64,12 +67,13 @@ export default function DataTableFrame({ children, toolbar, footer, label, fitTo
                     tabIndex={0}
                     data-scrolled-x={edges.left ? 'true' : undefined}
                     data-testid="data-table-scroll"
-                    className="dt-scroll overflow-auto overscroll-x-contain focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                    style={{ overflowY: mdUp && fitToViewport ? 'auto' : 'hidden' }}
+                    className="dt-scroll overflow-x-auto overscroll-x-contain focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                 >
                     {children}
-                    {footer}
+                    <div key={mdUp ? 'md' : 'mobile'}>{footer}</div>
                 </div>
-                {edges.right && <div aria-hidden="true" className="dt-more-right pointer-events-none absolute inset-y-0 right-0 w-8" />}
+                {edges.right && <div aria-hidden="true" className="dt-more-right pointer-events-none absolute inset-y-0 right-0 z-[4] w-8" />}
             </div>
         </div>
     );
