@@ -356,7 +356,7 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                     </div>
 
                     {/* Aperçu en direct : à côté sur grand écran, en dessous sur téléphone */}
-                    <aside className="border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-slate-800 p-5 bg-slate-50/60 dark:bg-[#0d0f16]">
+                    <aside className="border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-slate-800 p-5 bg-slate-50/60 dark:bg-[#0d0f16] lg:sticky lg:top-0 lg:self-start lg:max-h-[calc(94vh-9rem)] lg:overflow-y-auto">
                         <ProgramLivePreview level={form.level} domain={form.domain} label={form.label}
                             rhythm={form.rhythm} availability={formatAvailability(form.availability)} />
                     </aside>
@@ -378,7 +378,6 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                             </p>
                         )}
                         <button type="button" onClick={() => { setSubmitted(true); if (!hasErrors) save.mutate(); }} disabled={save.isPending || (hasErrors && submitted)}
-                            aria-disabled={hasErrors}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3f74ff] text-white text-sm font-semibold hover:bg-[#2f63ee] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} {t('company_admin.form.save', 'Enregistrer')}
                         </button>
