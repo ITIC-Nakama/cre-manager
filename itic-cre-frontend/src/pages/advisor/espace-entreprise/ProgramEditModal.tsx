@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, ChevronDown, Loader2, Lock, RotateCcw, Search, Trash2, Unlock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import ProgramLivePreview from './ProgramLivePreview';
 import { PROGRAMS_KEY, PROMOTIONS_OVERVIEW_KEY } from './queryKeys';
 import {
     availabilityMonths, baseName, displayName, formatAvailability, LEVEL_LABEL, parseAvailability, proposeLabel,
-    proposeSlug, rhythmOptions, similarity, SLUG_RE, type Availability, type Level,
+    proposeSlug, rhythmOptions, similarity, SLUG_RE, yearLabel, type Availability, type Level,
 } from './programFormHelpers';
 
 type FieldKey = 'label' | 'level' | 'domain' | 'slug' | 'rhythm' | 'availability' | 'pedagogyUrl' | 'romeCodes';
@@ -55,7 +55,13 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
         rhythm: program?.rhythm ?? '',
         availability: parseAvailability(program?.availability),
         visible: program?.visible ?? true,
-        promotionIds: Array.from(new Set([...(program?.manualPromotions.map((p) => p.id) ?? []), ...(presetPromotionId ? [presetPromotionId] : [])])),
+        // Formation en rattachement automatique (aucune promotion cochée à la main) : les promotions trouvées
+        // automatiquement partent cochées, pour qu'en cocher une de plus ne fasse pas disparaître les autres.
+        promotionIds: Array.from(new Set([
+            ...((program && program.manualPromotions.length === 0 ? program.linkedPromotions : program?.manualPromotions ?? []).map((p) => p.id)),
+            ...(presetPromotionId ? [presetPromotionId] : []),
+        ])),
+        slugConfirmed: program?.slugConfirmed ?? true,
         matchKeywords: program?.matchKeywords ?? '',
         romeCodes: program?.romeCodes ?? '',
         offerKeywords: program?.offerKeywords ?? '',
@@ -69,17 +75,28 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
     const [confirmUnlock, setConfirmUnlock] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [serverErrors, setServerErrors] = useState<Errors>({});
+    // La liste des promotions n'est envoyée que si elle a été modifiée (sinon le rattachement reste tel quel).
+    const [promotionsDirty, setPromotionsDirty] = useState(!!presetPromotionId);
+    const autoMode = !!program && program.manualPromotions.length === 0;
+    const autoIds = useMemo(() => new Set(autoMode ? program!.linkedPromotions.map((p) => p.id) : []), [autoMode, program]);
+    // Erreurs affichées seulement après une saisie dans le champ ou un essai d'enregistrement.
+    const [touched, setTouched] = useState<Set<FieldKey>>(new Set());
+    const [submitted, setSubmitted] = useState(false);
+    const [advancedOpen, setAdvancedOpen] = useState(false);
+    const slugRef = useRef<HTMLInputElement>(null);
+    const touch = (key: FieldKey) => setTouched((s) => (s.has(key) ? s : new Set(s).add(key)));
 
     const proposed = proposeLabel(form.base, form.level, form.studyYear);
     const takenSlugs = useMemo(() => (allPrograms ?? []).filter((p) => p.id !== program?.id).map((p) => p.slug), [allPrograms, program?.id]);
 
-    const update = (patch: Partial<typeof form>) => setForm((f) => {
+    const update = (patch: Partial<typeof form>) => { setServerErrors({}); setForm((f) => {
         const next = { ...f, ...patch };
         const nextProposal = proposeLabel(next.base, next.level, next.studyYear);
         if (!labelTouched) next.label = nextProposal;
         if (creating && !slugTouched) next.slug = proposeSlug(next.level, next.base, next.studyYear, takenSlugs);
         return next;
-    });
+    }); };
+    const change = (patch: Partial<typeof form>) => { setServerErrors({}); setForm((f) => ({ ...f, ...patch })); };
 
     // ─── Validation (avant envoi : aucune sauvegarde tant qu'une erreur reste à l'écran) ────────────────────
     const errors: Errors = useMemo(() => {
@@ -103,14 +120,19 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
         return { ...e, ...serverErrors };
     }, [form, allPrograms, program?.id, isAdmin, serverErrors, t]);
     const hasErrors = Object.keys(errors).length > 0;
+    const shown = (key: FieldKey) => (submitted || touched.has(key) || key in serverErrors ? errors[key] : undefined);
+    const advancedError = !!(errors.romeCodes || errors.pedagogyUrl);
+    // Une erreur dans les réglages avancés garde la section ouverte : jamais d'erreur cachée qui bloque l'enregistrement.
+    const advancedShown = advancedOpen || (advancedError && (submitted || touched.has('romeCodes') || touched.has('pedagogyUrl')));
 
     const save = useMutation({
         mutationFn: () => {
             const body: ProgramForm = {
                 level: form.level, domain: form.domain.trim(), label: form.label.trim(), studyYear: form.studyYear,
                 rhythm: form.rhythm.trim(), availability: formatAvailability(form.availability), visible: form.visible,
-                promotionIds: form.promotionIds,
             };
+            if (promotionsDirty) body.promotionIds = form.promotionIds;
+            if (isAdmin) body.slugConfirmed = form.slugConfirmed;
             if (creating || form.slug !== program.slug) {
                 body.slug = form.slug;
                 if (!creating) body.confirmSlugChange = true;
@@ -148,8 +170,7 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
         },
     });
 
-    const clearServer = (key: FieldKey) => setServerErrors((s) => { const n = { ...s }; delete n[key]; return n; });
-    const title = creating
+        const title = creating
         ? t('company_admin.form.title_add', 'Ajouter une formation')
         : t('company_admin.form.title_edit', { name: program.displayName, defaultValue: 'Modifier la formation : {{name}}' });
 
@@ -173,13 +194,13 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                                     <option value="BTS">BTS</option><option value="BACHELOR">Bachelor</option><option value="MASTERE">Mastère</option>
                                 </select>
                             </Field>
-                            <Field label={t('company_admin.form.domain', 'Domaine')} required error={errors.domain}
+                            <Field label={t('company_admin.form.domain', 'Domaine')} required error={shown('domain')}
                                 help={t('company_admin.form.domain_help', 'Sert à regrouper les formations dans la CVthèque.')}>
                                 <DomainSelect value={form.domain} domains={(allPrograms ?? []).map((p) => p.domain)}
-                                    onChange={(v) => { clearServer('domain'); update({ domain: v }); }} />
+                                    onChange={(v) => { touch('domain'); update({ domain: v }); }} />
                             </Field>
                             <Field label={t('company_admin.form.base', 'Intitulé court de la formation')}
-                                help={t('company_admin.form.base_help', 'Ex. « SIO », « Cybersécurité » : sert à proposer le nom ci-dessous.')}>
+                                help={t('company_admin.form.base_help', 'Ex. « SIO », « Cybersécurité » : sert seulement à proposer le nom ci-dessous (n’est pas enregistré).')}>
                                 <input className={fieldClass(false, false)} value={form.base} maxLength={60}
                                     aria-label={t('company_admin.form.base', 'Intitulé court de la formation')}
                                     onChange={(e) => update({ base: e.target.value })} />
@@ -189,22 +210,22 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                                 <select className={fieldClass(false, false)} value={form.studyYear} aria-label={t('company_admin.form.year', 'Année d’étude')}
                                     onChange={(e) => update({ studyYear: Number(e.target.value) })}>
                                     <option value={0}>{t('company_admin.form.all_years', 'Toutes')}</option>
-                                    {[1, 2, 3, 4, 5].map((y) => <option key={y} value={y}>{form.level === 'MASTERE' && y <= 2 ? `M${y}` : (y === 1 ? '1re année' : `${y}e année`)}</option>)}
+                                    {[1, 2, 3, 4, 5].map((y) => <option key={y} value={y}>{yearLabel(form.level, y)}</option>)}
                                 </select>
                             </Field>
-                            <Field wide label={t('company_admin.form.label', 'Nom de la formation affiché aux entreprises')} required error={errors.label}
+                            <Field wide label={t('company_admin.form.label', 'Nom de la formation affiché aux entreprises')} required error={shown('label')}
                                 help={t('company_admin.form.label_help', 'Ce que l’entreprise lit en titre de la page.')}>
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <div className="relative flex-1">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">{LEVEL_LABEL[form.level]}</span>
-                                        <input className={`${fieldClass(!!errors.label, false)} !pl-[4.75rem]`} value={form.label} maxLength={80}
+                                        <input className={`${fieldClass(!!shown('label'), false)} !pl-[4.75rem]`} value={form.label} maxLength={80}
                                             aria-label={t('company_admin.form.label', 'Nom de la formation affiché aux entreprises')}
-                                            onChange={(e) => { setLabelTouched(true); clearServer('label'); setForm((f) => ({ ...f, label: e.target.value })); }} />
+                                            onChange={(e) => { setLabelTouched(true); touch('label'); change({ label: e.target.value }); }} />
                                     </div>
                                     {proposed && form.label.trim() !== proposed && (
                                         <button type="button" onClick={() => { setLabelTouched(false); setForm((f) => ({ ...f, label: proposed })); }}
                                             className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer whitespace-nowrap">
-                                            <RotateCcw className="h-4 w-4" /> {t('company_admin.form.use_proposed', 'Revenir au nom proposé')}
+                                            <RotateCcw className="h-4 w-4" /> {creating ? t('company_admin.form.use_proposed', 'Revenir au nom proposé') : t('company_admin.form.use_proposed_edit', 'Utiliser le nom proposé')}
                                         </button>
                                     )}
                                 </div>
@@ -218,15 +239,17 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
 
                         {/* 2. La page publique */}
                         <Section title={t('company_admin.form.section_page', 'La page dans la CVthèque')}>
-                            <Field wide label={t('company_admin.form.slug', 'Adresse de la page publique')} required error={errors.slug}
-                                help={t('company_admin.form.slug_help', 'Lien de la page dans la CVthèque. Ne pas modifier : les liens déjà envoyés ne marcheraient plus.')}>
+                            <Field wide label={t('company_admin.form.slug', 'Adresse de la page publique')} required error={shown('slug')}
+                                help={creating
+                                    ? t('company_admin.form.slug_help_create', 'Proposée automatiquement. Après l’enregistrement, elle sera verrouillée : les liens envoyés aux entreprises en dépendent.')
+                                    : t('company_admin.form.slug_help', 'Lien de la page dans la CVthèque. Ne pas modifier : les liens déjà envoyés ne marcheraient plus.')}>
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <div className="relative flex-1">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-mono hidden sm:inline">…/entreprise/candidats/</span>
-                                        <input className={`${fieldClass(!!errors.slug, false)} font-mono sm:!pl-[11.5rem] ${slugUnlocked ? '' : 'opacity-80 cursor-not-allowed'}`}
+                                        <input className={`${fieldClass(!!shown('slug'), false)} font-mono sm:!pl-[11.5rem] ${slugUnlocked ? '' : 'opacity-80 cursor-not-allowed'}`}
                                             value={form.slug} maxLength={60} readOnly={!slugUnlocked} aria-readonly={!slugUnlocked}
                                             aria-label={t('company_admin.form.slug', 'Adresse de la page publique')} data-testid="slug-input"
-                                            onChange={(e) => { setSlugTouched(true); clearServer('slug'); setForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })); }} />
+                                            onChange={(e) => { setSlugTouched(true); touch('slug'); change({ slug: e.target.value.toLowerCase().replace(/\s+/g, '-') }); }} ref={slugRef} />
                                         {!slugUnlocked && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />}
                                     </div>
                                     {!slugUnlocked && isAdmin && (
@@ -242,22 +265,33 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                                     </p>
                                 )}
                             </Field>
+                            {isAdmin && (
+                                <div className="sm:col-span-2 space-y-1">
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                                        <input type="checkbox" className="accent-[#3f74ff] h-4 w-4" checked={form.slugConfirmed} onChange={(e) => change({ slugConfirmed: e.target.checked })} />
+                                        {t('company_admin.form.slug_confirmed', 'Lien court vérifié')}
+                                    </label>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 pl-6">
+                                        {t('company_admin.form.slug_confirmed_help', 'Cochez quand le lien court (itic.short.gy/…) qui mène à cette page a été vérifié.')}
+                                    </p>
+                                </div>
+                            )}
                             <label className="sm:col-span-2 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                <input type="checkbox" className="accent-[#3f74ff] h-4 w-4" checked={form.visible} onChange={(e) => setForm((f) => ({ ...f, visible: e.target.checked }))} />
+                                <input type="checkbox" className="accent-[#3f74ff] h-4 w-4" checked={form.visible} onChange={(e) => change({ visible: e.target.checked })} />
                                 {t('company_admin.form.visible', 'Afficher cette formation dans la CVthèque')}
                             </label>
                         </Section>
 
                         {/* 3. Sur les cartes des étudiants */}
                         <Section title={t('company_admin.form.section_cards', 'Sur les cartes des étudiants')}>
-                            <Field label={t('company_admin.form.rhythm', 'Rythme de l’alternance')} error={errors.rhythm}
+                            <Field label={t('company_admin.form.rhythm', 'Rythme de l’alternance')} error={shown('rhythm')}
                                 help={t('company_admin.form.cards_help', 'Affiché sur chaque carte d’étudiant.')}>
                                 <RhythmPicker value={form.rhythm} existing={(allPrograms ?? []).map((p) => p.rhythm)}
-                                    onChange={(v) => setForm((f) => ({ ...f, rhythm: v }))} />
+                                    onChange={(v) => { touch('rhythm'); change({ rhythm: v }); }} />
                             </Field>
-                            <Field label={t('company_admin.form.availability', 'Disponible à partir de')} error={errors.availability}
+                            <Field label={t('company_admin.form.availability', 'Disponible à partir de')} error={shown('availability')}
                                 help={t('company_admin.form.cards_help', 'Affiché sur chaque carte d’étudiant.')}>
-                                <AvailabilityPicker value={form.availability} onChange={(v) => setForm((f) => ({ ...f, availability: v }))} />
+                                <AvailabilityPicker value={form.availability} onChange={(v) => { touch('availability'); change({ availability: v }); }} />
                             </Field>
                         </Section>
 
@@ -271,14 +305,16 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                                     currentProgramId={program?.id}
                                     level={form.level}
                                     name={form.base || form.label}
-                                    onChange={(ids) => setForm((f) => ({ ...f, promotionIds: ids }))}
+                                    autoIds={autoIds}
+                                    onChange={(ids) => { setPromotionsDirty(true); change({ promotionIds: ids }); }}
                                 />
                             </div>
                         </Section>
 
                         {/* 5. Réglages avancés : admins seulement, repliés */}
                         {isAdmin && (
-                            <details className="group rounded-2xl border border-slate-200 dark:border-slate-800" data-testid="advanced-settings">
+                            <details className="group rounded-2xl border border-slate-200 dark:border-slate-800" data-testid="advanced-settings"
+                                open={advancedShown} onToggle={(e) => setAdvancedOpen((e.target as HTMLDetailsElement).open)}>
                                 <summary className="flex items-center justify-between gap-2 px-4 py-3 cursor-pointer list-none text-sm font-bold text-slate-900 dark:text-white">
                                     {t('company_admin.form.advanced', 'Réglages avancés (admin)')}
                                     <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
@@ -290,28 +326,28 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                                     </p>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <Field label={t('company_admin.form.keywords', 'Rattachement automatique (si aucune promotion n’est choisie)')}
-                                            help={t('company_admin.form.keywords_help', 'Mots reconnus dans le nom des promotions.')}>
+                                            help={t('company_admin.form.keywords_help', 'Variantes séparées par « | » ; une promotion est rattachée si son nom contient tous les mots d’une variante (ex. bts sio|bts informatique).')}>
                                             <input className={fieldClass(false, false)} value={form.matchKeywords} maxLength={255} placeholder="bts sio|bts informatique"
                                                 aria-label={t('company_admin.form.keywords', 'Rattachement automatique (si aucune promotion n’est choisie)')}
-                                                onChange={(e) => setForm((f) => ({ ...f, matchKeywords: e.target.value }))} />
+                                                onChange={(e) => change({ matchKeywords: e.target.value })} />
                                         </Field>
-                                        <Field label={t('company_admin.form.rome', 'Métiers visés (codes ROME)')} error={errors.romeCodes}
-                                            help={t('company_admin.form.rome_help', 'Sert à aller chercher les offres d’alternance correspondantes.')}>
-                                            <input className={`${fieldClass(!!errors.romeCodes, false)} font-mono`} value={form.romeCodes} maxLength={255} placeholder="M1805, M1810"
+                                        <Field label={t('company_admin.form.rome', 'Métiers visés (codes ROME)')} error={shown('romeCodes')}
+                                            help={t('company_admin.form.rome_help', 'Sert à aller chercher les offres d’alternance correspondantes. Codes séparés par des virgules, ex. M1805, M1810 (fiches métiers de France Travail).')}>
+                                            <input className={`${fieldClass(!!shown('romeCodes'), false)} font-mono`} value={form.romeCodes} maxLength={255} placeholder="M1805, M1810"
                                                 aria-label={t('company_admin.form.rome', 'Métiers visés (codes ROME)')}
-                                                onChange={(e) => { clearServer('romeCodes'); setForm((f) => ({ ...f, romeCodes: e.target.value })); }} />
+                                                onChange={(e) => { touch('romeCodes'); change({ romeCodes: e.target.value }); }} />
                                         </Field>
                                         <Field wide label={t('company_admin.form.offer_keywords', 'Mots-clés pour trier les offres')}
-                                            help={t('company_admin.form.offer_keywords_help', 'Sert aux suggestions et au récapitulatif du lundi.')}>
+                                            help={t('company_admin.form.offer_keywords_help', 'Mots séparés par « | », cherchés dans le titre, le secteur et la description des offres. Sert aux suggestions et au récapitulatif du lundi.')}>
                                             <textarea className={`${fieldClass(false, false)} min-h-20 font-mono text-xs`} value={form.offerKeywords} maxLength={1000}
                                                 aria-label={t('company_admin.form.offer_keywords', 'Mots-clés pour trier les offres')}
-                                                placeholder="developpeur|web|java" onChange={(e) => setForm((f) => ({ ...f, offerKeywords: e.target.value }))} />
+                                                placeholder="developpeur|web|java" onChange={(e) => change({ offerKeywords: e.target.value })} />
                                         </Field>
-                                        <Field wide label={t('company_admin.form.pedagogy_url', 'Lien vers la fiche de la formation')} error={errors.pedagogyUrl}
+                                        <Field wide label={t('company_admin.form.pedagogy_url', 'Lien vers la fiche de la formation')} error={shown('pedagogyUrl')}
                                             help={t('company_admin.form.pedagogy_url_help', 'Bouton « Ma fiche formation » des étudiants.')}>
-                                            <input className={fieldClass(!!errors.pedagogyUrl, false)} value={form.pedagogyUrl} maxLength={500} type="url"
+                                            <input className={fieldClass(!!shown('pedagogyUrl'), false)} value={form.pedagogyUrl} maxLength={500} type="url"
                                                 aria-label={t('company_admin.form.pedagogy_url', 'Lien vers la fiche de la formation')}
-                                                placeholder="https://…" onChange={(e) => { clearServer('pedagogyUrl'); setForm((f) => ({ ...f, pedagogyUrl: e.target.value })); }} />
+                                                placeholder="https://…" onChange={(e) => { touch('pedagogyUrl'); change({ pedagogyUrl: e.target.value }); }} />
                                         </Field>
                                     </div>
                                 </div>
@@ -335,11 +371,14 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
                     ) : <span />}
                     <div className="flex items-center gap-3">
                         {hasErrors && (
-                            <p role="status" className="text-sm text-red-600 dark:text-red-400" data-testid="form-has-errors">
-                                {t('company_admin.form.fix_errors', 'Corrigez les champs en rouge pour enregistrer.')}
+                            <p role="status" className={`text-sm ${submitted || touched.size > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`} data-testid="form-has-errors">
+                                {submitted || touched.size > 0
+                                    ? t('company_admin.form.fix_errors', 'Corrigez les champs signalés pour enregistrer.')
+                                    : t('company_admin.form.fill_required', 'Remplissez les champs marqués * pour enregistrer.')}
                             </p>
                         )}
-                        <button type="button" onClick={() => save.mutate()} disabled={save.isPending || hasErrors}
+                        <button type="button" onClick={() => { setSubmitted(true); if (!hasErrors) save.mutate(); }} disabled={save.isPending || (hasErrors && submitted)}
+                            aria-disabled={hasErrors}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3f74ff] text-white text-sm font-semibold hover:bg-[#2f63ee] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} {t('company_admin.form.save', 'Enregistrer')}
                         </button>
@@ -349,7 +388,7 @@ export default function ProgramEditModal({ program, isAdmin, presetPromotionId, 
             <ConfirmDialog isOpen={confirmUnlock} title={t('company_admin.form.unlock_title', 'Changer l’adresse de la page ?')}
                 message={t('company_admin.form.unlock_message', 'Les liens déjà envoyés aux entreprises (e-mails, plaquettes, anciens liens courts) ne marcheront plus. Ne la changez que si c’est vraiment nécessaire.')}
                 confirmLabel={t('company_admin.form.unlock_confirm', 'Je comprends, déverrouiller')}
-                onConfirm={() => { setSlugUnlocked(true); setSlugTouched(true); setConfirmUnlock(false); }} onClose={() => setConfirmUnlock(false)} />
+                onConfirm={() => { setSlugUnlocked(true); setSlugTouched(true); setConfirmUnlock(false); setTimeout(() => slugRef.current?.focus(), 0); }} onClose={() => setConfirmUnlock(false)} />
             <ConfirmDialog isOpen={confirmDelete} title={t('company_admin.form.delete_title', 'Retirer cette formation ?')}
                 message={t('company_admin.form.delete_message', 'Sa page publique ne sera plus accessible. Les CV restent dans le CRE.')}
                 confirmLabel={t('company_admin.form.delete', 'Retirer')} loading={remove.isPending}
@@ -451,34 +490,43 @@ function AvailabilityPicker({ value, onChange }: { value: Availability; onChange
     );
 }
 
-function PromotionPicker({ selected, promotions, programs, currentProgramId, level, name, onChange }: {
+function PromotionPicker({ selected, promotions, programs, currentProgramId, level, name, autoIds, onChange }: {
     selected: string[];
     promotions: { id: string; name: string; activeStudents: number; programIds: string[] }[];
     programs: AdminProgram[];
     currentProgramId?: string;
     level: Level;
     name: string;
+    autoIds: Set<string>;
     onChange: (ids: string[]) => void;
 }) {
     const { t } = useTranslation();
     const [search, setSearch] = useState('');
+    // Tri selon la sélection à l'ouverture : une ligne cochée ne saute pas sous le curseur.
+    const [initial] = useState(() => new Set(selected));
     const programName = useMemo(() => new Map(programs.map((p) => [p.id, p.displayName])), [programs]);
     const sorted = useMemo(() => {
         const needle = search.trim().toLowerCase();
         return promotions
             .filter((p) => !needle || p.name.toLowerCase().includes(needle))
-            .map((p) => ({ ...p, score: similarity(p.name, level, name), on: selected.includes(p.id) }))
-            // Cochées d'abord, puis celles dont le nom ressemble à la formation, puis l'ordre alphabétique.
-            .sort((a, b) => Number(b.on) - Number(a.on) || b.score - a.score || a.name.localeCompare(b.name, 'fr'));
-    }, [promotions, search, selected, level, name]);
+            .map((p) => ({ ...p, score: similarity(p.name, level, name), on: selected.includes(p.id), first: initial.has(p.id) }))
+            // Cochées à l'ouverture d'abord, puis celles dont le nom ressemble à la formation, puis l'ordre alphabétique.
+            .sort((a, b) => Number(b.first) - Number(a.first) || b.score - a.score || a.name.localeCompare(b.name, 'fr'));
+    }, [promotions, search, selected, level, name, initial]);
     const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
 
     return (
         <div className="space-y-2">
             <p className="text-xs text-slate-500 dark:text-slate-400">
                 {t('company_admin.form.promotions_help', 'Les étudiants de ces promotions apparaissent sur la page.')}
-                {selected.length === 0 && ` ${t('company_admin.form.promotions_auto', 'Aucune cochée : rattachement automatique (réglage avancé).')}`}
+                {selected.length === 0 && ` ${t('company_admin.form.promotions_auto', 'Aucune promotion cochée : la page affiche les promotions trouvées automatiquement d’après leur nom.')}`}
             </p>
+            {autoIds.size > 0 && (
+                <p className="flex items-start gap-2 text-xs text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900/50 rounded-lg px-3 py-2" data-testid="auto-mode-note">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                    {t('company_admin.form.auto_mode_note', 'Ces promotions sont trouvées automatiquement d’après leur nom. Si vous cochez ou décochez une promotion, la liste sera figée : les nouvelles promotions ne seront plus ajoutées d’elles-mêmes.')}
+                </p>
+            )}
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                 <input type="search" className={`${fieldClass(false, false)} !pl-9 !py-2`} value={search}
@@ -499,6 +547,11 @@ function PromotionPicker({ selected, promotions, programs, currentProgramId, lev
                                     <span className="block text-xs text-slate-500 dark:text-slate-400">
                                         {t('company_admin.form.students_count', { count: p.activeStudents, defaultValue: '{{count}} étudiant(s)' })}
                                     </span>
+                                    {autoIds.has(p.id) && (
+                                        <span className="mr-2 inline-flex text-[11px] font-semibold text-sky-700 dark:text-sky-300">
+                                            {t('company_admin.form.auto_found', 'trouvée automatiquement')}
+                                        </span>
+                                    )}
                                     {elsewhere.length > 0 && (
                                         <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-300" data-testid="already-linked">
                                             <AlertTriangle className="h-3 w-3" aria-hidden="true" />

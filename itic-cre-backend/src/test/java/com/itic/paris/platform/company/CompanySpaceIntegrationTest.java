@@ -399,6 +399,11 @@ class CompanySpaceIntegrationTest {
             perform(put(url).contentType(MediaType.APPLICATION_JSON).content(body), advisor)
                     .andExpect(status().isForbidden()).andExpect(jsonPath("$.messageKey").value("company-space-admin-only"));
         }
+        // Le niveau (grisé à l'écran pour un conseiller) : admin seulement.
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"level\":\"MASTERE\"}"), advisor)
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.data.field").value("level"));
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"level\":\"" + current.getLevel().name() + "\"}"), advisor)
+                .andExpect(status().isNoContent());
         // Valeur identique à l'actuelle : acceptée (ancien écran qui renvoie tout).
         perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"" + current.getRomeCodes() + "\"}"), advisor)
                 .andExpect(status().isNoContent());
@@ -443,6 +448,13 @@ class CompanySpaceIntegrationTest {
         assertThat(JsonPath.<List<List<String>>>read(body, "$.data[?(@.name == 'Promo orpheline Zorglub')].programIds")).containsExactly(List.of());
         assertThat(JsonPath.<List<List<String>>>read(body, "$.data[?(@.name == 'Bachelor RH Zorglub 2026-2027')].programIds").get(0))
                 .contains(programId("bach-rh"));
+        // Formation masquée : ne compte plus (la promotion redevient orpheline si c'était la seule).
+        perform(put("/company-space/programs/" + programId("bach-rh")).contentType(MediaType.APPLICATION_JSON).content("{\"visible\":false}"), advisor)
+                .andExpect(status().isNoContent());
+        entityManager.flush();
+        String after = json(get("/company-space/promotions"), advisor);
+        assertThat(JsonPath.<List<List<String>>>read(after, "$.data[?(@.name == 'Bachelor RH Zorglub 2026-2027')].programIds").get(0))
+                .doesNotContain(programId("bach-rh"));
     }
 
     private long cvCount(String directory, String slug) {

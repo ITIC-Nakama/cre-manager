@@ -177,7 +177,9 @@ public class CompanySpaceAdminService {
             students.put((UUID) row[0], (Long) row[1]);
         }
         Map<UUID, List<UUID>> programsByPromotion = new HashMap<>();
-        for (CompanySpaceProgram p : programRepository.findAllByOrderBySortOrderAscLabelAsc().stream().sorted(CompanySpaceService.order()).toList()) {
+        // Formations affichées seulement : une promotion rattachée à une formation masquée reste « orpheline ».
+        for (CompanySpaceProgram p : programRepository.findAllByOrderBySortOrderAscLabelAsc().stream()
+                .filter(CompanySpaceProgram::isVisible).sorted(CompanySpaceService.order()).toList()) {
             for (UUID promotionId : companySpaceService.resolvePromotionIds(p, allPromotions)) {
                 programsByPromotion.computeIfAbsent(promotionId, k -> new java.util.ArrayList<>()).add(p.getId());
             }
@@ -220,11 +222,17 @@ public class CompanySpaceAdminService {
             if (f.level() == null || f.level().isBlank()) {
                 throw missing("niveau", "level");
             }
+            CompanySpaceProgram.Level level;
             try {
-                p.setLevel(CompanySpaceProgram.Level.valueOf(f.level()));
+                level = CompanySpaceProgram.Level.valueOf(f.level());
             } catch (RuntimeException e) {
                 throw invalidProgram();
             }
+            // Le niveau change l'adresse proposée et le regroupement de l'annuaire : admin seulement (grisé à l'écran).
+            if (!creating && !admin && level != p.getLevel()) {
+                throw adminOnly("level");
+            }
+            p.setLevel(level);
         }
         if (creating || f.domain() != null) {
             p.setDomain(required(f.domain(), 80, "domaine", "domain"));

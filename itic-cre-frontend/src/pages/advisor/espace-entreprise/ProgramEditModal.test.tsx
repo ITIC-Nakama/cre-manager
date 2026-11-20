@@ -24,7 +24,8 @@ function program(id: string, level: string, label: string, slug: string, extra: 
     } as AdminProgram;
 }
 
-const SIO1 = program('p1', 'BTS', 'SIO - 1A', 'bts-sio1a');
+// Rattachement automatique (comme les 39 formations de départ) : aucune promotion cochée à la main.
+const SIO1 = program('p1', 'BTS', 'SIO - 1A', 'bts-sio1a', { linkedPromotions: [{ id: 'pr1', name: 'BTS SIO 2025-2027' }] });
 const SLAM = program('p2', 'BTS', 'SIO - 2A - SLAM', 'bts-sio2a-slam', { studyYear: 2 });
 const CI = program('p3', 'BTS', 'CI - 1A', 'bts-ci1a', { domain: 'Commerce' });
 const PROMOTIONS = [
@@ -75,6 +76,8 @@ describe('formulaire « Formations de la CVthèque »', () => {
         const [url, body] = api.put.mock.calls[0];
         expect(url).toBe('/company-space/programs/p1');
         expect(body).not.toHaveProperty('slug');
+        // Promotions non touchées : la liste n'est pas envoyée, le rattachement automatique reste tel quel.
+        expect(body).not.toHaveProperty('promotionIds');
         for (const k of ['matchKeywords', 'romeCodes', 'offerKeywords', 'pedagogyUrl']) expect(body).not.toHaveProperty(k);
         expect(body).toMatchObject({ label: 'SIO - 1A', rhythm: '2 jours école / 3 jours entreprise', availability: 'Dès septembre 2026' });
     });
@@ -107,13 +110,16 @@ describe('formulaire « Formations de la CVthèque »', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Je comprends, déverrouiller' }));
         fireEvent.change(input('Adresse de la page publique'), { target: { value: 'bts-ci1a' } });
         expect(screen.getByText('Cette adresse est déjà utilisée par la formation « BTS CI - 1A ».')).toBeTruthy();
-        expect(saveButton().disabled).toBe(true);
         fireEvent.change(input('Adresse de la page publique'), { target: { value: 'bts_sio!' } });
         expect(screen.getByText(/Seulement des minuscules sans accent/)).toBeTruthy();
-        expect(saveButton().disabled).toBe(true);
         fireEvent.change(input('Nom de la formation affiché aux entreprises'), { target: { value: '' } });
         expect(screen.getByText('Indiquez le nom de la formation.')).toBeTruthy();
-        expect(screen.getByTestId('form-has-errors')).toBeTruthy();
+        expect(screen.getByTestId('form-has-errors').textContent).toBe('Corrigez les champs signalés pour enregistrer.');
+        // Aucune sauvegarde possible tant qu'une erreur reste à l'écran.
+        fireEvent.click(saveButton());
+        await flush();
+        expect(api.put).not.toHaveBeenCalled();
+        expect(saveButton().disabled).toBe(true);
     });
 
     it('ajout : nom et adresse proposés à partir du niveau, de la formation et de l’année ; « Revenir au nom proposé »', async () => {
@@ -149,7 +155,7 @@ describe('formulaire « Formations de la CVthèque »', () => {
         await open(CI, false, 'pr2');
         const list = screen.getByTestId('promotion-list');
         const sio = within(list).getByText('BTS SIO 2025-2027').closest('label')!;
-        expect(within(sio).getByText('24 étudiant(s)')).toBeTruthy();
+        expect(within(sio).getByText('24 étudiants')).toBeTruthy();
         expect(within(sio).getByTestId('already-linked').textContent).toContain('Déjà dans : BTS SIO - 1A, BTS SIO - 2A - SLAM');
         const rh = within(list).getByText('Bachelor RH 2025-2026').closest('label')!;
         expect((within(rh).getByRole('checkbox') as HTMLInputElement).checked).toBe(true);
@@ -168,19 +174,50 @@ describe('formulaire « Formations de la CVthèque »', () => {
     });
 });
 
+describe('formulaire : rattachement automatique et ouverture', () => {
+    it('« Rattacher » sur une formation en rattachement automatique : les promotions trouvées restent cochées et sont envoyées avec la nouvelle', async () => {
+        await open(SIO1, false, 'pr2');
+        expect(screen.getByTestId('auto-mode-note').textContent).toContain('la liste sera figée');
+        const sio = within(screen.getByTestId('promotion-list')).getByText('BTS SIO 2025-2027').closest('label')!;
+        expect((within(sio).getByRole('checkbox') as HTMLInputElement).checked).toBe(true);
+        expect(within(sio).getByText('trouvée automatiquement')).toBeTruthy();
+        fireEvent.click(saveButton());
+        await flush();
+        expect([...api.put.mock.calls[0][1].promotionIds].sort()).toEqual(['pr1', 'pr2']);
+    });
+
+    it('« Ajouter une formation » s’ouvre sans message rouge ; les erreurs viennent à la saisie ou à l’essai d’enregistrement', async () => {
+        await open(null, true);
+        expect(screen.queryAllByRole('alert')).toHaveLength(0);
+        expect(screen.getByTestId('form-has-errors').textContent).toBe('Remplissez les champs marqués * pour enregistrer.');
+        fireEvent.click(saveButton());
+        await flush();
+        expect(api.post).not.toHaveBeenCalled();
+        expect(screen.getByText('Indiquez le nom de la formation.')).toBeTruthy();
+        expect(screen.getByText('Choisissez un domaine.')).toBeTruthy();
+    });
+});
+
 describe('bandeau des promotions orphelines', () => {
     it('compte les promotions sans formation (avec étudiants) et propose la formation la plus proche', () => {
         const onAttach = vi.fn();
         const rh = program('p9', 'BACHELOR', 'RH', 'bach-rh');
-        render(<OrphanPromotionsBanner promotions={PROMOTIONS} programs={[SIO1, CI, rh]} onAttach={onAttach} />);
-        expect(screen.getByText('1 promotion(s) ne sont rattachées à aucune formation (12 étudiants)')).toBeTruthy();
+        render(<OrphanPromotionsBanner promotions={PROMOTIONS} programs={[SIO1, CI, rh]} isAdmin={false} onAttach={onAttach} />);
+        expect(screen.getByText('1 promotion n’est rattachée à aucune formation (étudiants concernés : 12)')).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: /Voir la liste/ }));
         fireEvent.click(screen.getByRole('button', { name: 'Rattacher Bachelor RH 2025-2026 à Bachelor RH' }));
         expect(onAttach).toHaveBeenCalledWith(rh, 'pr2');
     });
 
     it('aucune promotion orpheline : pas de bandeau', () => {
-        render(<OrphanPromotionsBanner promotions={PROMOTIONS.filter((p) => p.programIds.length)} programs={[SIO1]} onAttach={() => {}} />);
+        render(<OrphanPromotionsBanner promotions={PROMOTIONS.filter((p) => p.programIds.length)} programs={[SIO1]} isAdmin onAttach={() => {}} />);
         expect(screen.queryByTestId('orphan-banner')).toBeNull();
+    });
+
+    it('conseiller, aucune formation ressemblante : pas de bouton (créer une formation est réservé aux admins)', () => {
+        render(<OrphanPromotionsBanner promotions={PROMOTIONS} programs={[SIO1, CI]} isAdmin={false} onAttach={() => {}} />);
+        fireEvent.click(screen.getByRole('button', { name: /Voir la liste/ }));
+        expect(screen.queryByRole('button', { name: /^Rattacher/ })).toBeNull();
+        expect(screen.getByText(/demandez à un administrateur/)).toBeTruthy();
     });
 });

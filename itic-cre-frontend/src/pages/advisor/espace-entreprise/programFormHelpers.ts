@@ -22,7 +22,7 @@ export function slugify(text: string): string {
 /** « 1re année », « 2e année »… ; en Mastère, « M1 », « M2 ». Vide si toutes les années. */
 export function yearLabel(level: Level, year: number): string {
     if (!year) return '';
-    if (level === 'MASTERE') return `M${year}`;
+    if (level === 'MASTERE' && year <= 2) return `M${year}`;
     return year === 1 ? '1re année' : `${year}e année`;
 }
 

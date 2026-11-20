@@ -60,7 +60,7 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                     </button>
                 )}
             </div>
-            <OrphanPromotionsBanner promotions={promotionOverview ?? []} programs={programs}
+            <OrphanPromotionsBanner promotions={promotionOverview ?? []} programs={programs} isAdmin={isAdmin}
                 onAttach={(program, promotionId) => { setPresetPromotionId(promotionId); setEditing(program ?? 'new'); }} />
             {unlinked > 0 && (
                 <p className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl px-4 py-3">
@@ -82,7 +82,7 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                         <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_address', 'Adresse de la page')}</th>
                                         <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_promotions', 'Promotions affichées')}</th>
                                         <th className="px-3 py-2 font-semibold text-right" title={t('company_admin.programs.col_visible_hint', 'Étudiants qui apparaissent réellement : compte actif, CV validé, sans contrat, d’accord pour apparaître.')}>{t('company_admin.programs.col_visible', 'Étudiants visibles')}</th>
-                                        <th className="px-3 py-2 font-semibold text-right">{t('company_admin.programs.col_views', 'Vues 30 j')}</th>
+                                        <th className="px-3 py-2 font-semibold text-right">{t('company_admin.programs.col_views', 'Visites (30 derniers jours)')}</th>
                                         <th className="px-5 py-2" />
                                     </tr>
                                 </thead>
@@ -97,7 +97,7 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                                 <span className="font-mono text-xs text-slate-600 dark:text-slate-300">{p.slug}</span>
                                                 {!p.slugConfirmed && (
                                                     <span className="ml-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/40 rounded-full px-2 py-0.5">
-                                                        {t('company_admin.programs.to_confirm', 'à confirmer')}
+                                                        {t('company_admin.programs.to_confirm', 'lien court à vérifier')}
                                                     </span>
                                                 )}
                                             </td>
@@ -106,12 +106,12 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                                     ? <span className="text-xs text-amber-700 dark:text-amber-300">{t('company_admin.programs.none', 'Aucune')}</span>
                                                     : <span className="text-xs text-slate-600 dark:text-slate-300">{p.linkedPromotions.map((x) => x.name).join(', ')}</span>}
                                                 <span className="block text-[11px] text-slate-400">
-                                                    {p.manualPromotions.length > 0 ? t('company_admin.programs.manual', 'choisies à la main') : t('company_admin.programs.auto', 'rattachement automatique')}
+                                                    {p.manualPromotions.length > 0 ? t('company_admin.programs.manual', 'cochées dans la formation') : t('company_admin.programs.auto', 'rattachement automatique')}
                                                 </span>
                                             </td>
                                             <td className="px-3 py-3 text-right font-semibold whitespace-nowrap">
                                                 {p.cvCount === 0 ? (
-                                                    <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" data-testid="zero-visible"
+                                                    <span className="relative inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" data-testid="zero-visible"
                                                         title={t('company_admin.programs.zero_hint', 'Aucun étudiant n’apparaît : la page publique est vide.')}>
                                                         <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />0
                                                         <span className="sr-only">{t('company_admin.programs.zero_hint', 'Aucun étudiant n’apparaît : la page publique est vide.')}</span>

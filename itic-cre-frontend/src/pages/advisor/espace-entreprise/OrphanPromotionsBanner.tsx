@@ -9,9 +9,11 @@ import { bestProgramFor } from './programFormHelpers';
  * étudiants actifs comptent. « Rattacher » ouvre la formation dont le nom ressemble le plus à la promotion (ou l'ajout
  * d'une formation si aucune ne ressemble), avec la promotion déjà cochée : il reste à vérifier et enregistrer.
  */
-export default function OrphanPromotionsBanner({ promotions, programs, onAttach }: {
+export default function OrphanPromotionsBanner({ promotions, programs, isAdmin, onAttach }: {
     promotions: PromotionOverview[];
     programs: AdminProgram[];
+    /** Seul un admin peut créer une formation : un conseiller sans formation ressemblante est invité à le demander. */
+    isAdmin: boolean;
     onAttach: (program: AdminProgram | undefined, promotionId: string) => void;
 }) {
     const { t } = useTranslation();
@@ -28,7 +30,7 @@ export default function OrphanPromotionsBanner({ promotions, programs, onAttach 
                 <span className="flex-1">
                     {t('company_admin.orphans.title', {
                         count: orphans.length, students,
-                        defaultValue: '{{count}} promotion(s) ne sont rattachées à aucune formation ({{students}} étudiants)',
+                        defaultValue: '{{count}} promotions ne sont rattachées à aucune formation (étudiants concernés : {{students}})',
                     })}
                 </span>
                 <span className="text-xs font-medium underline">{open ? t('company_admin.orphans.hide', 'Masquer la liste') : t('company_admin.orphans.show', 'Voir la liste')}</span>
@@ -50,6 +52,11 @@ export default function OrphanPromotionsBanner({ promotions, programs, onAttach 
                                             {t('company_admin.form.students_count', { count: p.activeStudents, defaultValue: '{{count}} étudiant(s)' })}
                                         </span>
                                     </span>
+                                    {!target && !isAdmin ? (
+                                        <span className="text-xs text-amber-900 dark:text-amber-200">
+                                            {t('company_admin.orphans.ask_admin', 'Aucune formation ne lui ressemble : demandez à un administrateur de la rattacher ou de créer la formation.')}
+                                        </span>
+                                    ) : (
                                     <button type="button" onClick={() => onAttach(target, p.id)}
                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3f74ff] text-white text-xs font-semibold hover:bg-[#2f63ee] cursor-pointer"
                                         aria-label={t('company_admin.orphans.attach_to', {
@@ -60,6 +67,7 @@ export default function OrphanPromotionsBanner({ promotions, programs, onAttach 
                                         {t('company_admin.orphans.attach', 'Rattacher')}
                                         {target && <span className="font-normal opacity-90">→ {target.displayName}</span>}
                                     </button>
+                                    )}
                                 </li>
                             );
                         })}
