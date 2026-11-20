@@ -308,8 +308,9 @@ class CompanySpaceIntegrationTest {
         assertThat(JsonPath.<List<Boolean>>read(programs, "$.data[?(@.slug == 'bts-tprh')].slugConfirmed")).containsExactly(false);
         assertThat(JsonPath.<List<Boolean>>read(programs, "$.data[?(@.slug == 'bts-sio1a')].slugConfirmed")).containsExactly(true);
 
+        // Lot 12 : l'adresse de la page est verrouillée ; un conseiller ne peut pas la changer.
         perform(put("/company-space/programs/" + programId).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-sio1a\"}"), advisor)
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.messageKey").value("company-space-program-invalid"));
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.messageKey").value("company-space-admin-only"));
         String body = "{\"level\":\"BTS\",\"domain\":\"Tourisme\",\"label\":\"Tourisme - 1A\",\"slug\":\"bts-tourisme1a\",\"matchKeywords\":\"bts tourisme\",\"studyYear\":1}";
         perform(post("/company-space/programs").contentType(MediaType.APPLICATION_JSON).content(body), advisor).andExpect(status().isForbidden());
         perform(post("/company-space/programs").contentType(MediaType.APPLICATION_JSON).content(body), admin).andExpect(status().isCreated());
@@ -362,6 +363,99 @@ class CompanySpaceIntegrationTest {
     }
 
     // ─── Outils ──────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Lot 12 : adresse verrouillée — conseiller refusé, admin sans confirmation refusé, adresse prise nommée, format vérifié")
+    void slugLock() throws Exception {
+        String id = programId("bts-tprh");
+        String url = "/company-space/programs/" + id;
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-tp-rh\"}"), advisor)
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.messageKey").value("company-space-admin-only"))
+                .andExpect(jsonPath("$.data.field").value("slug"));
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-tp-rh\"}"), admin)
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.messageKey").value("company-space-slug-locked"));
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-ci1a\",\"confirmSlugChange\":true}"), admin)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.messageKey").value("company-space-slug-taken"))
+                .andExpect(jsonPath("$.message").value("Cette adresse est déjà utilisée par la formation « BTS CI - 1A »."))
+                .andExpect(jsonPath("$.data.program").value("BTS CI - 1A"));
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts tp é\",\"confirmSlugChange\":true}"), admin)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.data[0].field").value("slug"));
+        // Même adresse renvoyée telle quelle (formulaire complet) : aucun verrou à lever.
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-tprh\",\"rhythm\":\"1 semaine école / 3 semaines entreprise\"}"), advisor)
+                .andExpect(status().isNoContent());
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"slug\":\"bts-tp-rh\",\"confirmSlugChange\":true}"), admin)
+                .andExpect(status().isNoContent());
+        assertThat(programRepository.findBySlug("bts-tp-rh")).isPresent();
+        assertThat(programRepository.findBySlug("bts-tprh")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Lot 12 : réglages avancés réservés aux admins ; un conseiller garde nom, rythme, disponibilité et promotions")
+    void advancedSettingsAdminOnly() throws Exception {
+        String url = "/company-space/programs/" + programId("bach-rh");
+        var current = programRepository.findBySlug("bach-rh").orElseThrow();
+        for (String body : new String[]{"{\"matchKeywords\":\"bachelor rh|rh\"}", "{\"romeCodes\":\"M1501\"}",
+                "{\"offerKeywords\":\"paie\"}", "{\"pedagogyUrl\":\"https://exemple.fr/rh.html\"}"}) {
+            perform(put(url).contentType(MediaType.APPLICATION_JSON).content(body), advisor)
+                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.messageKey").value("company-space-admin-only"));
+        }
+        // Le niveau (grisé à l'écran pour un conseiller) : admin seulement.
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"level\":\"MASTERE\"}"), advisor)
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.data.field").value("level"));
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"level\":\"" + current.getLevel().name() + "\"}"), advisor)
+                .andExpect(status().isNoContent());
+        // Valeur identique à l'actuelle : acceptée (ancien écran qui renvoie tout).
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"" + current.getRomeCodes() + "\"}"), advisor)
+                .andExpect(status().isNoContent());
+        perform(put(url).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"label\":\"RH — 3e année\",\"rhythm\":\"3 jours école / 2 jours entreprise\",\"availability\":\"Dès septembre 2026\"}"), advisor)
+                .andExpect(status().isNoContent());
+        perform(put(url).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"M1501\",\"offerKeywords\":\"paie|recrutement\"}"), admin)
+                .andExpect(status().isNoContent());
+        entityManager.flush();
+        var after = programRepository.findBySlug("bach-rh").orElseThrow();
+        assertThat(after.getLabel()).isEqualTo("RH — 3e année");
+        assertThat(after.getAvailability()).isEqualTo("Dès septembre 2026");
+        assertThat(after.getRomeCodes()).isEqualTo("M1501");
+    }
+
+    @Test
+    @DisplayName("Lot 12 : champs obligatoires nommés dans le message ; limites de longueur vérifiées par Bean Validation")
+    void requiredFields() throws Exception {
+        perform(post("/company-space/programs").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"level\":\"BTS\",\"domain\":\"Tourisme\",\"label\":\"  \",\"slug\":\"bts-tourisme1a\"}"), admin)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.messageKey").value("company-space-program-required"))
+                .andExpect(jsonPath("$.message").value("Champ obligatoire : nom de la formation."))
+                .andExpect(jsonPath("$.data.field").value("label"));
+        perform(post("/company-space/programs").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"level\":\"BTS\",\"label\":\"Tourisme\",\"slug\":\"bts-tourisme1a\"}"), admin)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.data.field").value("domain"));
+        perform(post("/company-space/programs").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"domain\":\"Tourisme\",\"label\":\"Tourisme\",\"slug\":\"bts-tourisme1a\"}"), admin)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.data.field").value("level"));
+        perform(put("/company-space/programs/" + programId("bts-tprh")).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"rhythm\":\"" + "x".repeat(121) + "\"}"), advisor)
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.data[0].field").value("rhythm"));
+    }
+
+    @Test
+    @DisplayName("Lot 12 : promotions — étudiants actifs et formations qui les affichent (promotions orphelines)")
+    void promotionOverview() throws Exception {
+        Promotion orphan = promotion("Promo orpheline Zorglub");
+        student("orphelin.entreprise@itic.fr", "Orphée", orphan, null, false);
+        String body = json(get("/company-space/promotions"), advisor);
+        assertThat(JsonPath.<List<Integer>>read(body, "$.data[?(@.name == 'Promo orpheline Zorglub')].activeStudents")).containsExactly(1);
+        assertThat(JsonPath.<List<List<String>>>read(body, "$.data[?(@.name == 'Promo orpheline Zorglub')].programIds")).containsExactly(List.of());
+        assertThat(JsonPath.<List<List<String>>>read(body, "$.data[?(@.name == 'Bachelor RH Zorglub 2026-2027')].programIds").get(0))
+                .contains(programId("bach-rh"));
+        // Formation masquée : ne compte plus (la promotion redevient orpheline si c'était la seule).
+        perform(put("/company-space/programs/" + programId("bach-rh")).contentType(MediaType.APPLICATION_JSON).content("{\"visible\":false}"), advisor)
+                .andExpect(status().isNoContent());
+        entityManager.flush();
+        String after = json(get("/company-space/promotions"), advisor);
+        assertThat(JsonPath.<List<List<String>>>read(after, "$.data[?(@.name == 'Bachelor RH Zorglub 2026-2027')].programIds").get(0))
+                .doesNotContain(programId("bach-rh"));
+    }
 
     private long cvCount(String directory, String slug) {
         List<Number> counts = JsonPath.read(directory, "$.data.levels[*].domains[*].programs[?(@.slug == '" + slug + "')].cvCount");

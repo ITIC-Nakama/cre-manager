@@ -7,6 +7,8 @@ import com.itic.paris.platform.auth.core.security.SecurityContextHelper;
 import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.Student;
 import com.itic.paris.platform.auth.model.User;
+import com.itic.paris.platform.auth.model.enums.RoleEnum;
+import com.itic.paris.platform.auth.model.mapper.UserMapper;
 import com.itic.paris.platform.auth.repository.PromotionRepository;
 import com.itic.paris.platform.auth.repository.StudentRepository;
 import com.itic.paris.platform.auth.repository.UserRepository;
@@ -19,6 +21,10 @@ import com.itic.paris.platform.company.repository.CompanySpaceSettingsRepository
 import com.itic.paris.platform.company.repository.CompanySpaceStatsRepository;
 import com.itic.paris.platform.gdpr.dto.GdprDataExportDto;
 import com.itic.paris.platform.shared.local.MessageKey;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * Back-office de l'Espace entreprise : formations (rattachement, textes, visibilité), demandes des entreprises,
@@ -51,8 +56,8 @@ public class CompanySpaceAdminService {
 
     /** Les coordonnées laissées par les entreprises sont effacées après ce délai. */
     public static final Duration REQUEST_RETENTION = Duration.ofDays(365);
-    private static final Pattern SLUG = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
-    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final java.util.regex.Pattern SLUG = java.util.regex.Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
+    private static final java.util.regex.Pattern EMAIL = java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final String AUDIT_TARGET = "COMPANY_SPACE";
 
     public record PromotionRef(UUID id, String name) {
@@ -66,10 +71,33 @@ public class CompanySpaceAdminService {
                                long cvCount, long pageViews30d, long cvViews30d, long requests30d) {
     }
 
-    public record ProgramForm(String level, String domain, String label, String slug, Boolean slugConfirmed,
-                              String matchKeywords, Integer studyYear, String romeCodes, String offerKeywords,
-                              String pedagogyUrl, String rhythm, String availability,
-                              Boolean visible, Integer sortOrder, List<UUID> promotionIds) {
+    /**
+     * Formulaire d'une formation. Champ absent (null) : inchangé. Lot 12 : contrôles de forme ici (Bean Validation, messages
+     * en français), contrôles métier dans {@link #apply} (champs obligatoires, adresse unique et verrouillée, réglages
+     * avancés réservés aux admins). confirmSlugChange : l'admin a confirmé le changement d'adresse de la page.
+     */
+    public record ProgramForm(
+            String level,
+            @Size(max = 80, message = "Domaine : 80 caractères au maximum.") String domain,
+            @Size(max = 80, message = "Nom de la formation : 80 caractères au maximum.") String label,
+            @Size(max = 60, message = "Adresse de la page : 60 caractères au maximum.")
+            @Pattern(regexp = "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$|^$",
+                    message = "Adresse de la page : seulement des minuscules sans accent, des chiffres et des tirets (ex. bts-sio-1a).")
+            String slug,
+            Boolean slugConfirmed,
+            @Size(max = 255, message = "Rattachement automatique : 255 caractères au maximum.") String matchKeywords,
+            @Min(value = 0, message = "Année d'étude : de 1 à 5, ou « Toutes ».")
+            @Max(value = 5, message = "Année d'étude : de 1 à 5, ou « Toutes ».") Integer studyYear,
+            @Size(max = 255, message = "Métiers visés : 255 caractères au maximum.") String romeCodes,
+            @Size(max = 1000, message = "Mots-clés pour trier les offres : 1 000 caractères au maximum.") String offerKeywords,
+            @Size(max = 500, message = "Lien vers la fiche : 500 caractères au maximum.") String pedagogyUrl,
+            @Size(max = 120, message = "Rythme de l'alternance : 120 caractères au maximum.") String rhythm,
+            @Size(max = 120, message = "Disponible à partir de : 120 caractères au maximum.") String availability,
+            Boolean visible, Integer sortOrder, List<UUID> promotionIds, Boolean confirmSlugChange) {
+    }
+
+    /** Lot 12 : une promotion, son nombre d'étudiants actifs et les formations qui l'affichent (bandeau, liste à cocher). */
+    public record PromotionOverview(UUID id, String name, long activeStudents, List<UUID> programIds) {
     }
 
     public record AdminRequest(UUID id, String status, Instant createdAt, String company, String contactName,
@@ -141,13 +169,35 @@ public class CompanySpaceAdminService {
         }).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<PromotionOverview> promotionOverview() {
+        List<Promotion> allPromotions = promotionRepository.findAll();
+        Map<UUID, Long> students = new HashMap<>();
+        for (Object[] row : studentRepository.countActiveByPromotion()) {
+            students.put((UUID) row[0], (Long) row[1]);
+        }
+        Map<UUID, List<UUID>> programsByPromotion = new HashMap<>();
+        // Formations affichées seulement : une promotion rattachée à une formation masquée reste « orpheline ».
+        for (CompanySpaceProgram p : programRepository.findAllByOrderBySortOrderAscLabelAsc().stream()
+                .filter(CompanySpaceProgram::isVisible).sorted(CompanySpaceService.order()).toList()) {
+            for (UUID promotionId : companySpaceService.resolvePromotionIds(p, allPromotions)) {
+                programsByPromotion.computeIfAbsent(promotionId, k -> new java.util.ArrayList<>()).add(p.getId());
+            }
+        }
+        return allPromotions.stream()
+                .map(p -> new PromotionOverview(p.getId(), p.getName(), students.getOrDefault(p.getId(), 0L),
+                        programsByPromotion.getOrDefault(p.getId(), List.of())))
+                .sorted(Comparator.comparing(PromotionOverview::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
     @Transactional
     public void createProgram(ProgramForm form) {
         CompanySpaceProgram p = new CompanySpaceProgram();
         p.setId(UUID.randomUUID());
         p.setCreatedAt(Instant.now());
         p.setSortOrder((int) programRepository.count());
-        apply(p, form, true);
+        apply(p, form, true, currentUserIsAdmin());
         programRepository.save(p);
         audit("Formation ajoutée à l'Espace entreprise : " + p.displayName() + " (" + p.getSlug() + ")", p.getId());
     }
@@ -155,7 +205,7 @@ public class CompanySpaceAdminService {
     @Transactional
     public void updateProgram(UUID id, ProgramForm form) {
         CompanySpaceProgram p = programRepository.findById(id).orElseThrow(CompanySpaceSettingsService::notFound);
-        apply(p, form, false);
+        apply(p, form, false, currentUserIsAdmin());
         programRepository.save(p);
         audit("Formation de l'Espace entreprise modifiée : " + p.displayName() + " (" + p.getSlug() + ")", p.getId());
     }
@@ -167,33 +217,57 @@ public class CompanySpaceAdminService {
         audit("Formation retirée de l'Espace entreprise : " + p.displayName() + " (" + p.getSlug() + ")", id);
     }
 
-    private void apply(CompanySpaceProgram p, ProgramForm f, boolean creating) {
+    private void apply(CompanySpaceProgram p, ProgramForm f, boolean creating, boolean admin) {
         if (creating || f.level() != null) {
+            if (f.level() == null || f.level().isBlank()) {
+                throw missing("niveau", "level");
+            }
+            CompanySpaceProgram.Level level;
             try {
-                p.setLevel(CompanySpaceProgram.Level.valueOf(f.level()));
+                level = CompanySpaceProgram.Level.valueOf(f.level());
             } catch (RuntimeException e) {
                 throw invalidProgram();
             }
+            // Le niveau change l'adresse proposée et le regroupement de l'annuaire : admin seulement (grisé à l'écran).
+            if (!creating && !admin && level != p.getLevel()) {
+                throw adminOnly("level");
+            }
+            p.setLevel(level);
         }
         if (creating || f.domain() != null) {
-            p.setDomain(required(f.domain(), 80));
+            p.setDomain(required(f.domain(), 80, "domaine", "domain"));
         }
         if (creating || f.label() != null) {
-            p.setLabel(required(f.label(), 80));
+            p.setLabel(required(f.label(), 80, "nom de la formation", "label"));
         }
         if (creating || f.slug() != null) {
-            String slug = required(f.slug(), 60).toLowerCase();
-            if (!SLUG.matcher(slug).matches()
-                    || (creating ? programRepository.existsBySlug(slug) : programRepository.existsBySlugAndIdNot(slug, p.getId()))) {
-                throw invalidProgram();
+            String slug = required(f.slug(), 60, "adresse de la page", "slug").toLowerCase();
+            boolean changed = creating || !slug.equals(p.getSlug());
+            if (changed) {
+                // Lot 12 : adresse verrouillée après la création ; seul un admin la change, après confirmation.
+                if (!creating && !admin) {
+                    throw adminOnly("slug");
+                }
+                if (!creating && !Boolean.TRUE.equals(f.confirmSlugChange())) {
+                    throw new AppException(HttpStatus.CONFLICT, MessageKey.COMPANY_SPACE_SLUG_LOCKED, Map.of("field", "slug"));
+                }
+                if (!SLUG.matcher(slug).matches()) {
+                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.COMPANY_SPACE_SLUG_FORMAT, Map.of("field", "slug"));
+                }
+                programRepository.findBySlug(slug).filter(other -> !other.getId().equals(p.getId())).ifPresent(other -> {
+                    throw new AppException(HttpStatus.BAD_REQUEST, MessageKey.COMPANY_SPACE_SLUG_TAKEN,
+                            Map.of("field", "slug", "program", other.displayName()), other.displayName());
+                });
+                p.setSlug(slug);
             }
-            p.setSlug(slug);
         }
         if (f.slugConfirmed() != null) {
             p.setSlugConfirmed(f.slugConfirmed());
         }
         if (creating || f.matchKeywords() != null) {
-            p.setMatchKeywords(optional(f.matchKeywords(), 255));
+            String keywords = optional(f.matchKeywords(), 255);
+            guardAdvanced(admin, creating, p.getMatchKeywords(), keywords, "matchKeywords");
+            p.setMatchKeywords(keywords);
         }
         if (creating || f.studyYear() != null) {
             Integer year = f.studyYear() == null || f.studyYear() == 0 ? null : f.studyYear();
@@ -210,16 +284,20 @@ public class CompanySpaceAdminService {
                     throw invalidProgram();
                 }
             }
+            guardAdvanced(admin, creating, p.getRomeCodes(), rome, "romeCodes");
             p.setRomeCodes(rome);
         }
         if (creating || f.offerKeywords() != null) {
-            p.setOfferKeywords(optional(f.offerKeywords(), 1000));
+            String keywords = optional(f.offerKeywords(), 1000);
+            guardAdvanced(admin, creating, p.getOfferKeywords(), keywords, "offerKeywords");
+            p.setOfferKeywords(keywords);
         }
         if (creating || f.pedagogyUrl() != null) {
             String url = optional(f.pedagogyUrl(), 500);
             if (url != null && !url.matches("^https://[^\\s]+$")) {
                 throw invalidProgram();
             }
+            guardAdvanced(admin, creating, p.getPedagogyUrl(), url, "pedagogyUrl");
             p.setPedagogyUrl(url);
         }
         if (creating || f.rhythm() != null) {
@@ -243,6 +321,40 @@ public class CompanySpaceAdminService {
             p.getPromotions().addAll(promotions);
         }
         p.setUpdatedAt(Instant.now());
+    }
+
+    /**
+     * Lot 12 : réglages avancés (rattachement automatique, métiers visés, mots-clés des offres, lien de la fiche) réservés
+     * aux admins. Une valeur identique à l'actuelle est acceptée : un ancien écran qui renvoie tout le formulaire passe.
+     */
+    private static void guardAdvanced(boolean admin, boolean creating, String current, String next, String field) {
+        if (!admin && !creating && !java.util.Objects.equals(current, next)) {
+            throw adminOnly(field);
+        }
+    }
+
+    private boolean currentUserIsAdmin() {
+        return userRepository.findById(SecurityContextHelper.currentUserId())
+                .map(u -> UserMapper.roleOf(u) == RoleEnum.ADMIN).orElse(false);
+    }
+
+    private static AppException adminOnly(String field) {
+        return new AppException(HttpStatus.FORBIDDEN, MessageKey.COMPANY_SPACE_ADMIN_ONLY, Map.of("field", field));
+    }
+
+    private static AppException missing(String label, String field) {
+        return new AppException(HttpStatus.BAD_REQUEST, MessageKey.COMPANY_SPACE_PROGRAM_REQUIRED, Map.of("field", field), label);
+    }
+
+    private static String required(String value, int max, String label, String field) {
+        String v = value == null ? "" : value.trim();
+        if (v.isEmpty()) {
+            throw missing(label, field);
+        }
+        if (v.length() > max) {
+            throw invalidProgram();
+        }
+        return v;
     }
 
     // ─── Demandes ─────────────────────────────────────────────────────────────────────

@@ -144,6 +144,16 @@ export interface ProgramForm {
     visible?: boolean;
     sortOrder?: number;
     promotionIds?: string[];
+    /** Lot 12 : l'admin a confirmé le changement d'adresse de la page (les anciens liens ne marcheront plus). */
+    confirmSlugChange?: boolean;
+}
+
+/** Lot 12 : une promotion, ses étudiants actifs et les formations qui l'affichent. */
+export interface PromotionOverview {
+    id: string;
+    name: string;
+    activeStudents: number;
+    programIds: string[];
 }
 
 export interface AdminCompanyRequest {
@@ -192,6 +202,7 @@ export const fetchAdminPrograms = () => apiClient.get('/company-space/programs')
 export const createProgram = (form: ProgramForm) => apiClient.post('/company-space/programs', form).then(() => undefined);
 export const updateProgram = (id: string, form: ProgramForm) => apiClient.put(`/company-space/programs/${id}`, form).then(() => undefined);
 export const deleteProgram = (id: string) => apiClient.delete(`/company-space/programs/${id}`).then(() => undefined);
+export const fetchPromotionOverview = () => apiClient.get('/company-space/promotions').then((r) => unwrap<PromotionOverview[]>(r));
 export const fetchProgramPreview = (id: string) =>
     apiClient.get(`/company-space/programs/${id}/preview`).then((r) => unwrap<CompanyProgramPage>(r));
 export const fetchCompanyRequests = (status: string, page: number) =>

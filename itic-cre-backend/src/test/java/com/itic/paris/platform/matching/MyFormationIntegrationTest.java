@@ -1,6 +1,7 @@
 package com.itic.paris.platform.matching;
 
 import com.itic.paris.platform.auth.core.webConfig.JWTAuthProvider;
+import com.itic.paris.platform.auth.model.Admin;
 import com.itic.paris.platform.auth.model.Advisor;
 import com.itic.paris.platform.auth.model.Promotion;
 import com.itic.paris.platform.auth.model.Student;
@@ -54,11 +55,13 @@ class MyFormationIntegrationTest {
     @MockitoBean private JavaMailSender javaMailSender;
 
     private Advisor advisor;
+    private Admin admin;
     private Student nina;
 
     @BeforeEach
     void setUp() {
         advisor = save(new Advisor(), "conseiller.fiche@itic.fr", "Nadia", RoleEnum.ADVISOR);
+        admin = save(new Admin(), "admin.fiche@itic.fr", "Alice", RoleEnum.ADMIN);
         nina = student("nina.fiche@itic.fr", "Nina", promotion("Bachelor RH Fiche Zorglub"));
     }
 
@@ -92,12 +95,12 @@ class MyFormationIntegrationTest {
     void editableInBackOffice() throws Exception {
         String id = programRepository.findBySlug("bach-rh").orElseThrow().getId().toString();
         perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"pedagogyUrl\":\"http://exemple.fr/rh\"}"), advisor).andExpect(status().isBadRequest());
+                .content("{\"pedagogyUrl\":\"http://exemple.fr/rh\"}"), admin).andExpect(status().isBadRequest());
         perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"pedagogyUrl\":\"https://exemple.fr/rh.html\"}"), advisor).andExpect(status().isNoContent());
+                .content("{\"pedagogyUrl\":\"https://exemple.fr/rh.html\"}"), admin).andExpect(status().isNoContent());
         perform(get("/me/formation"), nina).andExpect(jsonPath("$.data.pedagogyUrl").value("https://exemple.fr/rh.html"));
         perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"pedagogyUrl\":\"\"}"), advisor).andExpect(status().isNoContent());
+                .content("{\"pedagogyUrl\":\"\"}"), admin).andExpect(status().isNoContent());
         perform(get("/me/formation"), nina).andExpect(jsonPath("$.data.pedagogyUrl").doesNotExist())
                 .andExpect(jsonPath("$.data.formation").value("Bachelor RH"));
     }

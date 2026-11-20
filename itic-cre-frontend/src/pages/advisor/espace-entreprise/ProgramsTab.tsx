@@ -4,11 +4,12 @@ import { AlertTriangle, Copy, Eye, EyeOff, Loader2, Pencil, Plus } from 'lucide-
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
-    companyProgramUrl, fetchAdminPrograms, fetchCompanySpaceSettings, updateProgram,
+    companyProgramUrl, fetchAdminPrograms, fetchCompanySpaceSettings, fetchPromotionOverview, updateProgram,
 } from '../../../api-s/requests/CompanySpaceRequest';
 import type { AdminProgram } from '../../../api-s/requests/CompanySpaceRequest';
 import ProgramEditModal from './ProgramEditModal';
-import { PROGRAMS_KEY, SETTINGS_KEY } from './queryKeys';
+import { PROGRAMS_KEY, PROMOTIONS_OVERVIEW_KEY, SETTINGS_KEY } from './queryKeys';
+import OrphanPromotionsBanner from './OrphanPromotionsBanner';
 import ProgramPreviewModal from './ProgramPreviewModal';
 
 const LEVEL_LABEL: Record<string, string> = { BTS: 'BTS', BACHELOR: 'Bachelor', MASTERE: 'Mastère' };
@@ -20,11 +21,14 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
     const { data: programs, isLoading } = useQuery({ queryKey: PROGRAMS_KEY, queryFn: fetchAdminPrograms });
     const { data: settings } = useQuery({ queryKey: SETTINGS_KEY, queryFn: fetchCompanySpaceSettings });
     const [editing, setEditing] = useState<AdminProgram | 'new' | null>(null);
+    // Bandeau des promotions orphelines (lot 12) : « Rattacher » ouvre la formation qui leur ressemble, promotion cochée.
+    const [presetPromotionId, setPresetPromotionId] = useState<string | undefined>();
+    const { data: promotionOverview } = useQuery({ queryKey: PROMOTIONS_OVERVIEW_KEY, queryFn: fetchPromotionOverview });
     const [previewing, setPreviewing] = useState<AdminProgram | null>(null);
 
     const toggle = useMutation({
         mutationFn: (p: AdminProgram) => updateProgram(p.id, { visible: !p.visible }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: PROGRAMS_KEY }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-space'] }),
         onError: () => toast.error(t('company_admin.save_error', 'La modification n’a pas pu être enregistrée.')),
     });
 
@@ -47,7 +51,7 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
         <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-slate-500 dark:text-[#9aa0a6]">
-                    {t('company_admin.programs.hint', 'Promotions rattachées automatiquement par mots-clés (ex. « bts sio »), ou choisies à la main. Année d’étude : 1A / M1 = 1, 2A / M2 = 2.')}
+                    {t('company_admin.programs.hint', 'Chaque formation a sa page dans la CVthèque. Les étudiants des promotions affichées y apparaissent quand leur CV est validé, tant qu’ils n’ont pas de contrat.')}
                 </p>
                 {isAdmin && (
                     <button type="button" onClick={() => setEditing('new')}
@@ -56,10 +60,12 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                     </button>
                 )}
             </div>
+            <OrphanPromotionsBanner promotions={promotionOverview ?? []} programs={programs} isAdmin={isAdmin}
+                onAttach={(program, promotionId) => { setPresetPromotionId(promotionId); setEditing(program ?? 'new'); }} />
             {unlinked > 0 && (
                 <p className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl px-4 py-3">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
-                    {t('company_admin.programs.unlinked', '{{count}} formation(s) visible(s) sans promotion rattachée : leur page reste vide. Ajustez les mots-clés ou choisissez les promotions.', { count: unlinked })}
+                    {t('company_admin.programs.unlinked', '{{count}} formation(s) affichée(s) sans aucune promotion : leur page reste vide. Ouvrez la formation et cochez ses promotions.', { count: unlinked })}
                 </p>
             )}
             {levels.map((level) => {
@@ -73,10 +79,10 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                 <thead className="text-xs uppercase text-slate-400 text-left">
                                     <tr>
                                         <th className="px-5 py-2 font-semibold">{t('company_admin.programs.col_program', 'Formation')}</th>
-                                        <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_address', 'Adresse')}</th>
-                                        <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_promotions', 'Promotions rattachées')}</th>
-                                        <th className="px-3 py-2 font-semibold text-right">{t('company_admin.programs.col_cv', 'CV')}</th>
-                                        <th className="px-3 py-2 font-semibold text-right">{t('company_admin.programs.col_views', 'Vues 30 j')}</th>
+                                        <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_address', 'Adresse de la page')}</th>
+                                        <th className="px-3 py-2 font-semibold">{t('company_admin.programs.col_promotions', 'Promotions affichées')}</th>
+                                        <th className="px-3 py-2 font-semibold text-right" title={t('company_admin.programs.col_visible_hint', 'Étudiants qui apparaissent réellement : compte actif, CV validé, sans contrat, d’accord pour apparaître.')}>{t('company_admin.programs.col_visible', 'Étudiants visibles')}</th>
+                                        <th className="px-3 py-2 font-semibold text-right">{t('company_admin.programs.col_views', 'Visites (30 derniers jours)')}</th>
                                         <th className="px-5 py-2" />
                                     </tr>
                                 </thead>
@@ -91,7 +97,7 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                                 <span className="font-mono text-xs text-slate-600 dark:text-slate-300">{p.slug}</span>
                                                 {!p.slugConfirmed && (
                                                     <span className="ml-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/40 rounded-full px-2 py-0.5">
-                                                        {t('company_admin.programs.to_confirm', 'à confirmer')}
+                                                        {t('company_admin.programs.to_confirm', 'lien court à vérifier')}
                                                     </span>
                                                 )}
                                             </td>
@@ -100,10 +106,18 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                                                     ? <span className="text-xs text-amber-700 dark:text-amber-300">{t('company_admin.programs.none', 'Aucune')}</span>
                                                     : <span className="text-xs text-slate-600 dark:text-slate-300">{p.linkedPromotions.map((x) => x.name).join(', ')}</span>}
                                                 <span className="block text-[11px] text-slate-400">
-                                                    {p.manualPromotions.length > 0 ? t('company_admin.programs.manual', 'choisies à la main') : t('company_admin.programs.auto', 'par mots-clés')}
+                                                    {p.manualPromotions.length > 0 ? t('company_admin.programs.manual', 'cochées dans la formation') : t('company_admin.programs.auto', 'rattachement automatique')}
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-3 text-right font-semibold text-slate-900 dark:text-white">{p.cvCount}</td>
+                                            <td className="px-3 py-3 text-right font-semibold whitespace-nowrap">
+                                                {p.cvCount === 0 ? (
+                                                    <span className="relative inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" data-testid="zero-visible"
+                                                        title={t('company_admin.programs.zero_hint', 'Aucun étudiant n’apparaît : la page publique est vide.')}>
+                                                        <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />0
+                                                        <span className="sr-only">{t('company_admin.programs.zero_hint', 'Aucun étudiant n’apparaît : la page publique est vide.')}</span>
+                                                    </span>
+                                                ) : <span className="text-slate-900 dark:text-white">{p.cvCount}</span>}
+                                            </td>
                                             <td className="px-3 py-3 text-right text-slate-500">{p.pageViews30d}</td>
                                             <td className="px-5 py-3">
                                                 <div className="flex items-center justify-end gap-1">
@@ -122,7 +136,8 @@ export default function ProgramsTab({ isAdmin }: { isAdmin: boolean }) {
                     </section>
                 );
             })}
-            {editing && <ProgramEditModal program={editing === 'new' ? null : editing} isAdmin={isAdmin} onClose={() => setEditing(null)} />}
+            {editing && <ProgramEditModal program={editing === 'new' ? null : editing} isAdmin={isAdmin} presetPromotionId={presetPromotionId}
+                onClose={() => { setEditing(null); setPresetPromotionId(undefined); }} />}
             {previewing && <ProgramPreviewModal program={previewing} onClose={() => setPreviewing(null)} />}
         </div>
     );
