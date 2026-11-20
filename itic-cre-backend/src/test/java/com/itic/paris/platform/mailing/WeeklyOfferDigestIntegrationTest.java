@@ -206,10 +206,10 @@ class WeeklyOfferDigestIntegrationTest {
         String id = programRepository.findBySlug("bach-rh").orElseThrow().getId().toString();
         perform(get("/company-space/programs"), advisor)
                 .andExpect(jsonPath("$.data[?(@.slug == 'bach-rh')].romeCodes").value("M1501,M1502,M1503"));
-        perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"m1501, m1503\"}"), advisor)
+        perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"m1501, m1503\"}"), admin)
                 .andExpect(status().isNoContent());
         assertThat(programRepository.findBySlug("bach-rh").orElseThrow().getRomeCodes()).isEqualTo("M1501,M1503");
-        perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"RH\"}"), advisor)
+        perform(put("/company-space/programs/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"RH\"}"), admin)
                 .andExpect(status().isBadRequest());
         assertThat(programRepository.findAll()).allSatisfy(p -> assertThat(p.getOfferKeywords()).isNotBlank());
         assertThat(admin.getId()).isNotNull();

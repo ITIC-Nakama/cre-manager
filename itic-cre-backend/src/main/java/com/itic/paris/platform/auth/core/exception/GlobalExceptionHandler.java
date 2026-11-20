@@ -34,8 +34,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CustomResponseEntity> handleAppException(AppException ex, HttpServletRequest request) {
         String lang = LanguageUtil.resolveLang(request);
         MessageKey key = ex.getMessageKey();
-        return ResponseEntity.status(ex.getStatus())
-                .body(CustomResponseEntity.of(key, lang, ex.getStatus().value(), null));
+        CustomResponseEntity body = CustomResponseEntity.of(key, lang, ex.getStatus().value(), ex.getData());
+        if (ex.getArgs().length > 0) {
+            body.setMessage(String.format(body.getMessage(), ex.getArgs()));
+        }
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

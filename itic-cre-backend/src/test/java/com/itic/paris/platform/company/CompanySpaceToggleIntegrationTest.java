@@ -115,8 +115,11 @@ class CompanySpaceToggleIntegrationTest {
             mockMvc.perform(get("/public/entreprise/annuaire").header("X-Forwarded-For", "10.99.0.1")).andExpect(status().isOk());
             perform(get("/company-space/requests"), advisor).andExpect(status().isOk());
             perform(get("/company-space/stats"), advisor).andExpect(status().isOk());
-            perform(put("/company-space/programs/" + programId()).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"M1501\"}"), advisor)
+            perform(put("/company-space/programs/" + programId()).contentType(MediaType.APPLICATION_JSON).content("{\"rhythm\":\"2 jours école / 3 jours entreprise\"}"), advisor)
                     .andExpect(status().isNoContent());
+            // Lot 12 : les codes ROME sont un réglage avancé, réservé aux admins.
+            perform(put("/company-space/programs/" + programId()).contentType(MediaType.APPLICATION_JSON).content("{\"romeCodes\":\"M1501\"}"), advisor)
+                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.messageKey").value("company-space-admin-only"));
         }
     }
 
