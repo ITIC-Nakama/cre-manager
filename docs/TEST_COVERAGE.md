@@ -68,7 +68,9 @@ Toutes les briques applicatives principales du backend sont couvertes par des su
 | **Types de contrat (lot 10, V63)** | `ContractTypesMigrationIntegrationTest.java` | 5 | Script V63 exécuté tel quel, deux fois : cinq types présents une fois chacun ; « Job Etudiant » corrigé (même identifiant, aucun doublon) ; « Job étudiant » déjà présent tel quel : rien d'inséré (incident du 19/11) ; « Job Étudiant » reconnu et corrigé ; types de la synchronisation inchangés ; France Travail classe toujours l'apprentissage en Alternance. |
 | **Plafond d'admins à 4 (lot 10)** | `UserGovernanceIntegrationTest.java` | — | 4e admin accepté, 5e refusé (`ADMIN_CAP_REACHED`), gouvernance à 4. |
 
-**Total : 635 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
+| **Formations de la CVthèque (lot 12)** | `CompanySpaceIntegrationTest.java` (+4), tests existants adaptés | 4 | Adresse de la page verrouillée : conseiller 403, admin sans confirmation 409, adresse prise nommée (« BTS CI - 1A »), format refusé, même adresse renvoyée acceptée, changement confirmé. Réglages avancés (rattachement automatique, codes ROME, mots-clés des offres, lien de la fiche) et niveau : 403 pour un conseiller, valeur identique acceptée ; nom, rythme, disponibilité modifiables. Champs obligatoires nommés (`data.field`), longueur du rythme (Bean Validation). Promotions : étudiants actifs et formations affichées qui les montrent (une formation masquée ne compte pas). Codes ROME et lien de la fiche modifiés par un admin dans `WeeklyOfferDigestIntegrationTest` et `MyFormationIntegrationTest`. |
+
+**Total : 639 tests automatisés, dont 1 désactivé par défaut (unitaires et d'intégration, décompte Maven Surefire ; le détail par module ci-dessus n'est pas exhaustif) — 100% SUCCESS.**
 
 ---
 
@@ -106,7 +108,9 @@ Depuis le 13/11/2026, `itic-cre-frontend` a ses premiers tests (Vitest, Testing 
 | **Carte des tableaux (lot 11)** | `src/components/table/DataTableFrame.test.tsx` | 2 | Défilement infini : repère = la page sur mobile (la carte ne défile qu'en largeur), la carte à partir de md (hauteur calée sur la fenêtre). |
 | **Page Étudiants (lot 11)** | `src/pages/advisor/etudiants/EtudiantsPage.lot11.test.tsx` | 7 | Filtres de la barre : même déclencheur et même largeur minimale, état actif, « Formations (2) » et liste complète au survol, recherche dans la liste conservée ; colonnes sélection et « Étudiant » figées (admin et conseiller), textes longs complets au survol ; sélection multiple, colonne masquée puis affectation groupée, « tout sélectionner » puis « les 45 étudiants correspondant au filtre ». |
 
-**Total front : 129 tests** (dont « le formulaire n'affiche pas de champ « Complément » » dans `AddressFields.test.tsx`, 10 tests).
+| **Formations de la CVthèque (lot 12)** | `src/pages/advisor/espace-entreprise/ProgramEditModal.test.tsx`, `programFormHelpers.test.ts` | 14 + 6 | Conseiller : libellés et aides, ni réglages avancés ni déverrouillage, adresse en lecture seule, n'envoie ni l'adresse, ni les réglages avancés, ni les promotions non touchées. Admin : réglages avancés repliés avec l'avertissement ; déverrouillage après confirmation (`confirmSlugChange`). Adresse prise ou mal écrite, nom vide : message, aucun envoi. Ajout : nom et adresse proposés, « Revenir au nom proposé », aucun message rouge à l'ouverture. Rythme et disponibilité guidés (« Autre… », « Dès septembre 2026 », « Immédiatement »). Promotions : nombre d'étudiants, « Déjà dans », recherche ; « Rattacher » sur une formation en rattachement automatique garde les promotions trouvées. Aperçu en direct. Bandeau des promotions orphelines (pluriel, formation la plus proche, conseiller sans formation ressemblante). Calculs : nom, intitulé court, adresse unique, rythmes, disponibilité, ressemblance. |
+
+**Total front : 149 tests** (dont « le formulaire n'affiche pas de champ « Complément » » dans `AddressFields.test.tsx`, 10 tests).
 
 ### Script de déploiement
 `scripts/deploy/test_deploy_native.sh` (bash, sans serveur : faux `systemctl`, `curl`, `sudo`, `rsync`) : 9 scénarios, 31 contrôles. Lancé par le job build de `cd.yml` avant tout déploiement. Export CSV : une valeur qui commence par = + - @ est neutralisée (apostrophe).

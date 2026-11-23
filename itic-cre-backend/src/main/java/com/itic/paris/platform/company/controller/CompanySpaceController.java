@@ -6,6 +6,7 @@ import com.itic.paris.platform.company.service.CompanySpaceAdminService.AdminPro
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.AdminRequest;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.AdminSettings;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.ProgramForm;
+import com.itic.paris.platform.company.service.CompanySpaceAdminService.PromotionOverview;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.RequestPage;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.SettingsForm;
 import com.itic.paris.platform.company.service.CompanySpaceAdminService.Stats;
@@ -15,6 +16,7 @@ import com.itic.paris.platform.company.service.CompanySpaceService;
 import com.itic.paris.platform.company.service.CompanySpaceService.ProgramPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +65,7 @@ public class CompanySpaceController {
     @PostMapping("/company-space/programs")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter une formation (admin)")
-    public ResponseEntity<Void> create(@RequestBody ProgramForm form) {
+    public ResponseEntity<Void> create(@Valid @RequestBody ProgramForm form) {
         feature.requireBackOfficeAccess();
         adminService.createProgram(form);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -72,10 +74,18 @@ public class CompanySpaceController {
     @PutMapping("/company-space/programs/{id}")
     @PreAuthorize(STAFF)
     @Operation(summary = "Modifier une formation (champs absents : inchangés ; promotionIds vide = rattachement par mots-clés)")
-    public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ProgramForm form) {
+    public ResponseEntity<Void> update(@PathVariable UUID id, @Valid @RequestBody ProgramForm form) {
         feature.requireBackOfficeAccess();
         adminService.updateProgram(id, form);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/company-space/promotions")
+    @PreAuthorize(STAFF)
+    @Operation(summary = "Promotions : étudiants actifs et formations qui les affichent (bandeau des promotions orphelines)")
+    public ResponseEntity<List<PromotionOverview>> promotions() {
+        feature.requireBackOfficeAccess();
+        return ResponseEntity.ok(adminService.promotionOverview());
     }
 
     @DeleteMapping("/company-space/programs/{id}")

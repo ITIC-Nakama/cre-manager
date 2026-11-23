@@ -25,7 +25,7 @@ export default function CompanySpacePage() {
     const { data: newCount } = useNewCompanyRequestCount(!isPending && (companySpaceEnabled || isAdmin));
 
     const tabs: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
-        { key: 'formations', label: t('company_admin.tabs.programs', 'Formations'), icon: <GraduationCap className="h-4 w-4" /> },
+        { key: 'formations', label: t('company_admin.tabs.programs', 'Formations de la CVthèque'), icon: <GraduationCap className="h-4 w-4" /> },
         { key: 'demandes', label: t('company_admin.tabs.requests', 'Demandes'), icon: <Inbox className="h-4 w-4" />, badge: newCount },
         { key: 'statistiques', label: t('company_admin.tabs.stats', 'Statistiques'), icon: <BarChart3 className="h-4 w-4" /> },
         { key: 'reglages', label: t('company_admin.tabs.settings', 'Textes et accès'), icon: <Settings2 className="h-4 w-4" /> },
